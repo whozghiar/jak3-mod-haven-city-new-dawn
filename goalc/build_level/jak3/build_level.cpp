@@ -5,6 +5,7 @@
 #include "decompiler/level_extractor/extract_merc.h"
 #include "goalc/build_level/collide/jak3/collide.h"
 #include "goalc/build_level/common/Tfrag.h"
+#include "goalc/build_level/common/fr3_import.h"
 #include "goalc/build_level/jak3/Entity.h"
 #include "goalc/build_level/jak3/FileInfo.h"
 #include "goalc/build_level/jak3/LevelFile.h"
@@ -20,16 +21,18 @@ bool run_build_level(const std::string& input_file,
   tfrag3::Level pc_level;           // PC level file
   gltf_util::TexturePool tex_pool;  // pc level texture pool
 
-  // process input mesh from blender
-  gltf_mesh_extract::Input mesh_extract_in;
-  mesh_extract_in.filename =
-      file_util::get_file_path({level_json.at("gltf_file").get<std::string>()});
-  mesh_extract_in.auto_wall_enable = level_json.value("automatic_wall_detection", true);
-  mesh_extract_in.double_sided_collide = level_json.at("double_sided_collide").get<bool>();
-  mesh_extract_in.auto_wall_angle = level_json.value("automatic_wall_angle", 30.0);
-  mesh_extract_in.tex_pool = &tex_pool;
+  // process input mesh from blender. Optional when the background comes from "import_fr3".
   gltf_mesh_extract::Output mesh_extract_out;
-  gltf_mesh_extract::extract(mesh_extract_in, mesh_extract_out);
+  if (level_json.contains("gltf_file")) {
+    gltf_mesh_extract::Input mesh_extract_in;
+    mesh_extract_in.filename =
+        file_util::get_file_path({level_json.at("gltf_file").get<std::string>()});
+    mesh_extract_in.auto_wall_enable = level_json.value("automatic_wall_detection", true);
+    mesh_extract_in.double_sided_collide = level_json.value("double_sided_collide", false);
+    mesh_extract_in.auto_wall_angle = level_json.value("automatic_wall_angle", 30.0);
+    mesh_extract_in.tex_pool = &tex_pool;
+    gltf_mesh_extract::extract(mesh_extract_in, mesh_extract_out);
+  }
 
   // add stuff to the GOAL level structure
   file.info = make_file_info_for_level(fs::path(input_file).filename().string());
@@ -82,22 +85,112 @@ bool run_build_level(const std::string& input_file,
   pc_level.level_name = file.name;
 
   // TFRAG
-  file.drawable_trees.tfrags.emplace_back("drawable-tree-tfrag", "drawable-inline-array-tfrag");
   tfrag_from_gltf(mesh_extract_out.tfrag, pc_level.tfrag_trees[0]);
 
   // TIE
   if (!mesh_extract_out.tie.base_draws.empty()) {
-    file.drawable_trees.ties.emplace_back();
     tie_from_gltf(mesh_extract_out.tie, pc_level.tie_trees[0]);
   }
 
   pc_level.textures = std::move(tex_pool.textures_by_idx);
 
+  // IMPORTED BACKGROUND (render trees + collision from existing .fr3 files, possibly of another
+  // game). Collision vertices land in pc_level.collision, with their original pat.
+  if (level_json.contains("import_fr3")) {
+    const auto& imp = level_json.at("import_fr3");
+    fr3_import::Options opts;
+    opts.tfrag = imp.value("tfrag", true);
+    opts.tie = imp.value("tie", true);
+    opts.shrub = imp.value("shrub", true);
+    opts.collision = imp.value("collision", true);
+    if (imp.contains("collision_bounds")) {
+      // [xmin, ymin, zmin, xmax, ymax, zmax], in meters
+      const auto b = imp.at("collision_bounds").get<std::vector<float>>();
+      ASSERT_MSG(b.size() == 6, "import_fr3.collision_bounds must have 6 values");
+      opts.clip_collision = true;
+      opts.collision_min = math::Vector3f(b[0], b[1], b[2]) * 4096.f;
+      opts.collision_max = math::Vector3f(b[3], b[4], b[5]) * 4096.f;
+    }
+    const auto game = imp.value("game", std::string("jak2"));
+    fr3_import::Merger merger(pc_level, opts);
+    for (const auto& lev : imp.at("levels").get<std::vector<std::string>>()) {
+      const auto path = file_util::get_jak_project_dir() / "out" / game / "fr3" / (lev + ".fr3");
+      lg::info("fr3 import: merging {}", path.string());
+      merger.merge(fr3_import::load_fr3(path));
+    }
+    const auto& st = merger.stats();
+    lg::info(
+        "fr3 import: {} levels, {} tfrag trees ({} skipped), {} tie trees, {} shrub trees, {} "
+        "textures ({} deduplicated), {} collision tris ({} clipped)",
+        st.levels, st.tfrag_trees, st.tfrag_trees_skipped, st.tie_trees, st.shrub_trees,
+        st.textures_added, st.textures_deduplicated, st.collision_tris, st.collision_tris_clipped);
+    if (st.anim_slot_draws) {
+      lg::warn("fr3 import: {} draws used a source-game animated texture slot, using a fallback",
+               st.anim_slot_draws);
+    }
+    // imported trees keep their bvh vis nodes: mark every vis id visible (2048 bytes is the size
+    // of a level's vis-bits), frustum culling still applies.
+    file.all_visibile_list.bytes.assign(2048, 0xff);
+  }
+
+  // GOAL-side drawable trees. The PC renderer draws every fr3 tree of a kind as soon as the level
+  // sends one tree of that kind, so a single empty tree per kind is enough.
+  auto has_tfrag_kind = [&](tfrag3::TFragmentTreeKind kind) {
+    for (const auto& geom : pc_level.tfrag_trees) {
+      for (const auto& tree : geom) {
+        if (tree.kind == kind) {
+          return true;
+        }
+      }
+    }
+    return false;
+  };
+  if (has_tfrag_kind(tfrag3::TFragmentTreeKind::NORMAL) || !level_json.contains("import_fr3")) {
+    file.drawable_trees.tfrags.emplace_back("drawable-tree-tfrag", "drawable-inline-array-tfrag");
+  }
+  if (has_tfrag_kind(tfrag3::TFragmentTreeKind::TRANS)) {
+    file.drawable_trees.tfrags.emplace_back("drawable-tree-tfrag-trans",
+                                            "drawable-inline-array-tfrag-trans");
+  }
+  if (has_tfrag_kind(tfrag3::TFragmentTreeKind::WATER)) {
+    file.drawable_trees.tfrags.emplace_back("drawable-tree-tfrag-water",
+                                            "drawable-inline-array-tfrag-water");
+  }
+  bool has_tie = false;
+  for (const auto& geom : pc_level.tie_trees) {
+    has_tie |= !geom.empty();
+  }
+  if (has_tie) {
+    file.drawable_trees.ties.emplace_back(true);
+  }
+  if (!pc_level.shrub_trees.empty()) {
+    file.drawable_trees.shrubs.emplace_back();
+  }
+
   // COLLIDE
-  if (mesh_extract_out.collide.faces.empty()) {
+  std::vector<jak3::CollideFace> collide_faces;
+  for (const auto& face : mesh_extract_out.collide.faces) {
+    auto& out = collide_faces.emplace_back();
+    for (int i = 0; i < 3; i++) {
+      out.v[i] = face.v[i];
+    }
+    out.pat = jak3_pat(face.pat);
+  }
+  // imported collision: jak 2 and jak 3 share the pat-surface bit layout, so the value is kept.
+  const auto& imported_verts = pc_level.collision.vertices;
+  for (size_t i = 0; i + 2 < imported_verts.size(); i += 3) {
+    auto& out = collide_faces.emplace_back();
+    for (int j = 0; j < 3; j++) {
+      const auto& v = imported_verts[i + j];
+      out.v[j] = math::Vector3f(v.x, v.y, v.z);
+    }
+    out.pat.val = imported_verts[i].pat;
+  }
+
+  if (collide_faces.empty()) {
     lg::error("No collision geometry was found");
   } else {
-    file.collide_hash = construct_collide_hash(mesh_extract_out.collide.faces);
+    file.collide_hash = construct_collide_hash(collide_faces);
     // for collision renderer
     for (auto& face : mesh_extract_out.collide.faces) {
       math::Vector4f verts[3];

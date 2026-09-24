@@ -1,0 +1,45 @@
+{
+  // Jak 2's whole Haven City, rebuilt as a single Jak 3 custom level.
+  // The long_name must be 10 characters or fewer, and match this folder's name.
+  "long_name": "havenj2",
+  "iso_name": "HAVENJ2",
+  "nickname": "hj2",
+
+  // No Blender mesh: the whole background (tfrag/tie render trees + collision with its original
+  // pat) is merged from Jak 2's already-extracted .fr3 files (out/jak2/fr3/<level>.fr3).
+  // Requires a prior Jak 2 `task extract`. Coordinates are kept as-is (Jak 2 world space).
+  "import_fr3": {
+    "game": "jak2",
+    "levels": [
+      "ctywide",
+      "ctysluma",
+      "ctyslumb",
+      "ctyslumc",
+      "ctyport",
+      "ctymarka",
+      "ctymarkb",
+      "ctyinda",
+      "ctyindb",
+      "ctygena",
+      "ctygenb",
+      "ctygenc",
+      "ctyfarma",
+      "ctyfarmb",
+      "ctypal"
+    ],
+    "tfrag": true,
+    "tie": true,
+    "shrub": true,
+    "collision": true,
+    // [xmin, ymin, zmin, xmax, ymax, zmax] in meters: the 15 levels' playable collision with a
+    // margin. Drops ctywide's backdrop mountains (x < -3000m, up to 1500m high), unreachable, that
+    // would otherwise blow the collide hash grid up.
+    "collision_bounds": [-700, -200, -1000, 1400, 400, 2150]
+  },
+
+  // The base actor id for this level. Must not overlap other custom levels.
+  "base_id": 21000,
+  "base_region_id": 21000,
+
+  "actors": []
+}

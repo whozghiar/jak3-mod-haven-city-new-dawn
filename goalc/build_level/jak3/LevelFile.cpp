@@ -25,6 +25,7 @@ size_t DrawableTreeArray::add_to_object_file(DataObjectGenerator& gen) const {
   int num_trees = 0;
   num_trees += tfrags.size();
   num_trees += ties.size();
+  num_trees += shrubs.size();
   gen.add_word(num_trees << 16);
   gen.add_word(0);
   gen.add_word(0);
@@ -52,8 +53,47 @@ size_t DrawableTreeArray::add_to_object_file(DataObjectGenerator& gen) const {
     for (auto& tie : ties) {
       gen.link_word_to_byte(tree_word++, tie.add_to_object_file(gen));
     }
+
+    for (auto& shrub : shrubs) {
+      gen.link_word_to_byte(tree_word++, shrub.add_to_object_file(gen));
+    }
   }
 
+  return result;
+}
+
+size_t DrawableTreeInstanceShrub::add_to_object_file(DataObjectGenerator& gen) const {
+  /*
+   (deftype prototype-array-shrub-info (basic)
+     ((prototype-inline-array-shrub prototype-inline-array-shrub)   ;; 4
+      (wind-vectors                 uint32)                         ;; 8
+      (wind-count                   int32)))                        ;; 12
+   (deftype drawable-tree-instance-shrub (drawable-tree)
+     ((info         prototype-array-shrub-info :offset 8)
+      (colors-added time-of-day-palette        :offset 12)))       ;; data[0] at 32
+   */
+  // empty prototype array (length 0) and empty instance array (one 80-byte instance slot)
+  const size_t protos = add_empty_dia("prototype-inline-array-shrub", gen, 0x40);
+  const size_t instances = add_empty_dia("drawable-inline-array-instance-shrub", gen, 0x74);
+
+  gen.align_to_basic();
+  gen.add_type_tag("prototype-array-shrub-info");  // 0
+  const size_t info = gen.current_offset_bytes();
+  gen.link_word_to_byte(gen.add_word(0), protos);  // 4
+  gen.add_word(0);                                 // 8 wind-vectors
+  gen.add_word(0);                                 // 12 wind-count
+
+  gen.align_to_basic();
+  gen.add_type_tag("drawable-tree-instance-shrub");  // 0
+  const size_t result = gen.current_offset_bytes();
+  gen.add_word(1 << 16);                         // 4 (id = 0, length = 1)
+  gen.link_word_to_byte(gen.add_word(0), info);  // 8 info
+  for (int i = 0; i < 5; i++) {
+    gen.add_word(0);  // 12 colors-added, 16 bsphere
+  }
+  const size_t slot = gen.add_word(0);  // 32 data[0]
+  ASSERT(slot * 4 - result == 28);
+  gen.link_word_to_byte(slot, instances);
   return result;
 }
 
@@ -81,7 +121,22 @@ std::vector<u8> LevelFile::save_object_file() {
 
   //(bsphere                vector :inline                   :offset-assert  16)
   //(all-visible-list       (pointer uint8)                  :offset-assert  32)
-  //(visible-list-length    int32                            :offset-assert  36)
+  //(visible-list-length    int16                            :offset-assert  36)
+  //(extra-vis-list-length  int16                            :offset-assert  38)
+  // A level without vis-info gets its vis-bits from this list every frame (cam-update.gc). Geometry
+  // built from a glb doesn't use vis nodes, but geometry imported from another level's fr3 keeps
+  // its bvh nodes, which are culled when their vis bit is 0.
+  if (!all_visibile_list.bytes.empty()) {
+    const auto& bytes = all_visibile_list.bytes;
+    ASSERT(bytes.size() % 16 == 0 && bytes.size() <= 2048);
+    gen.align(4);
+    const size_t list = gen.current_offset_bytes();
+    for (size_t i = 0; i < bytes.size(); i += 4) {
+      gen.add_word(bytes[i] | (bytes[i + 1] << 8) | (bytes[i + 2] << 16) | (bytes[i + 3] << 24));
+    }
+    gen.link_word_to_byte(32 / 4, list);
+    gen.set_word(36 / 4, bytes.size());  // extra-vis-list-length = 0
+  }
   //(drawable-trees         drawable-tree-array              :offset-assert  40)
   gen.link_word_to_byte(40 / 4, drawable_trees.add_to_object_file(gen));
   //(pat                    pointer                          :offset-assert  44)

@@ -18,7 +18,18 @@ void save_pc_data(const std::string& nickname,
 std::vector<std::string> get_build_level_deps(const std::string& input_file) {
   auto level_json = parse_commented_json(
       file_util::read_text_file(file_util::get_file_path({input_file})), input_file);
-  return {level_json.at("gltf_file").get<std::string>()};
+  std::vector<std::string> deps;
+  if (level_json.contains("gltf_file")) {
+    deps.push_back(level_json.at("gltf_file").get<std::string>());
+  }
+  if (level_json.contains("import_fr3")) {
+    const auto& imp = level_json.at("import_fr3");
+    const auto game = imp.value("game", std::string("jak2"));
+    for (const auto& lev : imp.at("levels").get<std::vector<std::string>>()) {
+      deps.push_back(fmt::format("out/{}/fr3/{}.fr3", game, lev));
+    }
+  }
+  return deps;
 }
 
 // Find all art groups the custom level needs in a list of object files,

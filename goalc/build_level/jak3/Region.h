@@ -63,10 +63,11 @@ struct RegionArray {
   std::map<int, std::vector<size_t>> pair_slots;
   std::map<int, size_t> region_slots;
   std::map<std::string, size_t> entity_actor_slots;
-  std::vector<EntityActor>* entities;
-  std::vector<ActorGroup>* actor_groups;
+  // only set when the level has region trees: must default to null for levels without regions.
+  std::vector<EntityActor>* entities = nullptr;
+  std::vector<ActorGroup>* actor_groups = nullptr;
 
-  size_t slot;
+  size_t slot = 0;
 
   size_t generate(DataObjectGenerator& gen);
   size_t add_to_object_file(DataObjectGenerator& gen, size_t region_array) const;

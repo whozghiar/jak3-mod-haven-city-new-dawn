@@ -23,3 +23,6 @@ class DrawableTreeTfrag {
 
 void tfrag_from_gltf(const gltf_mesh_extract::TfragOutput& mesh_extract_out,
                      std::vector<tfrag3::TfragTree>& out_pc);
+
+// a zeroed drawable-inline-array of the given type, with a length of 0.
+size_t add_empty_dia(const std::string& name, DataObjectGenerator& gen, int total_size);

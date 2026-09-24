@@ -1,6 +1,8 @@
 #include "collide.h"
 
 #include <algorithm>
+#include <array>
+#include <cmath>
 #include <map>
 #include <unordered_map>
 #include <unordered_set>
@@ -534,6 +536,9 @@ struct VectorIntHash {
 
 CollideHash build_grid_for_main_hash(std::vector<CollideFragment>&& frags) {
   lg::info("Creating main hash");
+  // num-ids/id-count are u16 in the game's collide-hash.
+  ASSERT_MSG(frags.size() <= UINT16_MAX,
+             fmt::format("too many collision fragments: {}", frags.size()));
   CollideHash result;
   BBoxBuilder bbox;
   for (const auto& frag : frags) {
@@ -546,89 +551,84 @@ CollideHash build_grid_for_main_hash(std::vector<CollideFragment>&& frags) {
   // grid the box. It _looks_ like the village1 level just picks dims that get you closest to 10000
   // for the cell size.
   constexpr float kTargetCellSize = 30000;
+  // The game reads bucket indices into the item array as u16, and each grid dimension as a u8. A
+  // big level (a whole city) can overflow the item array with the default cell size, so the cell
+  // size grows until the deduplicated item array fits.
+  constexpr float kCellSizeGrowth = 1.25f;
+  // fragments touching a cell border are put in both cells, like bounding_box_bounding_box does.
+  constexpr float kCellBorderEpsilon = 1e-4f;
 
-  int grid_dimension[3] = {(int)(box_size[0] / kTargetCellSize),
-                           (int)(box_size[1] / kTargetCellSize),
-                           (int)(box_size[2] / kTargetCellSize)};
-  for (auto& x : grid_dimension) {
-    if (x >= UINT8_MAX) {
-      x = UINT8_MAX;
+  float target_cell_size = kTargetCellSize;
+  int grid_dimension[3];
+  math::Vector3f grid_cell_size;
+  for (;;) {
+    for (int i = 0; i < 3; i++) {
+      grid_dimension[i] = std::clamp((int)(box_size[i] / target_cell_size), 1, (int)UINT8_MAX);
+      grid_cell_size[i] = box_size[i] / grid_dimension[i];
     }
-  }
-  lg::info("Size is {}x{}x{} (total {})\n", grid_dimension[0], grid_dimension[1], grid_dimension[2],
-           grid_dimension[0] * grid_dimension[1] * grid_dimension[2]);
-  const math::Vector3f grid_cell_size(box_size[0] / grid_dimension[0],
-                                      box_size[1] / grid_dimension[1],
-                                      box_size[2] / grid_dimension[2]);
+    lg::info("Size is {}x{}x{} (total {})\n", grid_dimension[0], grid_dimension[1],
+             grid_dimension[2], grid_dimension[0] * grid_dimension[1] * grid_dimension[2]);
 
-  std::vector<std::vector<int>> frags_in_cells;
-
-  // debug
-  std::vector<bool> debug_found_flags(frags.size(), false);
-  int debug_intersect_count = 0;
-
-  // yzx order to match game
-  for (int yi = 0; yi < grid_dimension[1]; yi++) {
-    for (int zi = 0; zi < grid_dimension[2]; zi++) {
-      for (int xi = 0; xi < grid_dimension[0]; xi++) {
-        auto& cell_list = frags_in_cells.emplace_back();
-
-        BoundingBox cell;
-        cell.min =
-            math::Vector3f(xi * grid_cell_size[0], yi * grid_cell_size[1], zi * grid_cell_size[2]) +
-            bbox.box.min;
-        cell.max = cell.min + grid_cell_size;
-
-        for (size_t fi = 0; fi < frags.size(); fi++) {
-          const auto& frag = frags[fi];
-          if (bounding_box_bounding_box(cell, {frag.bbox_min_corner, frag.bbox_max_corner})) {
-            debug_found_flags[fi] = true;
-            debug_intersect_count++;
-            cell_list.push_back(fi);
+    // yzx order to match game. Each fragment goes directly in the cells its bbox overlaps.
+    // Fragments are visited in order, so every cell list comes out sorted.
+    const int dx = grid_dimension[0], dy = grid_dimension[1], dz = grid_dimension[2];
+    std::vector<std::vector<int>> frags_in_cells(dx * dy * dz);
+    size_t intersect_count = 0;
+    for (size_t fi = 0; fi < frags.size(); fi++) {
+      int lo[3], hi[3];
+      for (int i = 0; i < 3; i++) {
+        const float fmin =
+            grid_cell_size[i] > 0
+                ? (frags[fi].bbox_min_corner[i] - bbox.box.min[i]) / grid_cell_size[i]
+                : 0.f;
+        const float fmax =
+            grid_cell_size[i] > 0
+                ? (frags[fi].bbox_max_corner[i] - bbox.box.min[i]) / grid_cell_size[i]
+                : 0.f;
+        lo[i] = std::clamp((int)std::floor(fmin - kCellBorderEpsilon), 0, grid_dimension[i] - 1);
+        hi[i] = std::clamp((int)std::floor(fmax + kCellBorderEpsilon), 0, grid_dimension[i] - 1);
+      }
+      for (int yi = lo[1]; yi <= hi[1]; yi++) {
+        for (int zi = lo[2]; zi <= hi[2]; zi++) {
+          for (int xi = lo[0]; xi <= hi[0]; xi++) {
+            frags_in_cells[(yi * dz + zi) * dx + xi].push_back(fi);
+            intersect_count++;
           }
         }
-
-        std::sort(cell_list.begin(), cell_list.end());
-      };
-    }
-  }
-
-  lg::info("Index data size is {}, deduplicating", debug_intersect_count);
-
-  std::unordered_map<std::vector<int>, size_t, VectorIntHash> index_map;
-  for (const auto& cell_list : frags_in_cells) {
-    auto& bucket = result.buckets.emplace_back();
-    bucket.count = cell_list.size();
-
-    const auto& it = index_map.find(cell_list);
-    if (it == index_map.end()) {
-      bucket.index = result.index_array.size();
-      index_map[cell_list] = bucket.index;
-      for (auto x : cell_list) {
-        result.index_array.push_back(x);
       }
-    } else {
-      bucket.index = it->second;
     }
-  }
 
-  lg::info("Index array size is {} in the end", result.index_array.size());
-  if (result.index_array.size() > UINT16_MAX) {
-    printf("index array is too big: %d\n", (int)result.index_array.size());
-    ASSERT_NOT_REACHED();
-  }
+    lg::info("Index data size is {}, deduplicating", intersect_count);
 
-  int unique_found = 0;
-  for (auto x : debug_found_flags) {
-    if (x) {
-      unique_found++;
+    std::vector<CollideBucket> buckets;
+    std::vector<u32> index_array;
+    std::unordered_map<std::vector<int>, size_t, VectorIntHash> index_map;
+    for (const auto& cell_list : frags_in_cells) {
+      auto& bucket = buckets.emplace_back();
+      bucket.count = cell_list.size();
+
+      const auto& it = index_map.find(cell_list);
+      if (it == index_map.end()) {
+        // stored as s16, read back by the game as u16.
+        bucket.index = index_array.size();
+        index_map[cell_list] = index_array.size();
+        for (auto x : cell_list) {
+          index_array.push_back(x);
+        }
+      } else {
+        bucket.index = it->second;
+      }
     }
-  }
 
-  printf("frag find counts: %d %d %d\n", unique_found, (int)debug_found_flags.size(),
-         debug_intersect_count);
-  if (unique_found != (int)debug_found_flags.size()) {
-    printf(" --- !!! %d frags disappeared\n", (int)debug_found_flags.size() - unique_found);
+    lg::info("Index array size is {} in the end", index_array.size());
+    if (index_array.size() <= UINT16_MAX) {
+      result.buckets = std::move(buckets);
+      result.index_array = std::move(index_array);
+      break;
+    }
+    lg::warn("index array is too big ({}) with a cell size of {:.1f}m, growing cells",
+             index_array.size(), target_cell_size / 4096.f);
+    target_cell_size *= kCellSizeGrowth;
   }
 
   //  for (auto& list : frags_in_cells) {
@@ -728,6 +728,19 @@ jak3::CollideFragment build_grid_for_frag(const std::vector<jak3::CollideFace>& 
   std::vector<bool> debug_found_flags(frag.tri_indices.size(), false);
   int debug_intersect_count = 0;
 
+  // Intersection tests run relative to the fragment's corner: far from the origin (a level at
+  // x = 1000m is at 4M units), float rounding of world-space cell borders is large enough to miss
+  // a triangle lying exactly on a border (a flat roof on top of the fragment, for example). Cells
+  // are also padded a little: a triangle on a shared border simply lands in both cells.
+  constexpr float kCellPadding = 1.f;
+  std::vector<std::array<math::Vector3f, 3>> local_tris(frag.tri_indices.size());
+  for (size_t ti = 0; ti < frag.tri_indices.size(); ti++) {
+    const auto& tri = tris[frag.tri_indices[ti]];
+    for (int i = 0; i < 3; i++) {
+      local_tris[ti][i] = tri.v[i] - bbox.box.min;
+    }
+  }
+
   // yzx order to match game
   for (int yi = 0; yi < grid_dimension[1]; yi++) {
     for (int zi = 0; zi < grid_dimension[2]; zi++) {
@@ -736,13 +749,16 @@ jak3::CollideFragment build_grid_for_frag(const std::vector<jak3::CollideFace>& 
 
         BoundingBox cell;
         cell.min =
-            math::Vector3f(xi * grid_cell_size[0], yi * grid_cell_size[1], zi * grid_cell_size[2]) +
-            bbox.box.min;
+            math::Vector3f(xi * grid_cell_size[0], yi * grid_cell_size[1], zi * grid_cell_size[2]);
         cell.max = cell.min + grid_cell_size;
+        for (int i = 0; i < 3; i++) {
+          cell.min[i] -= kCellPadding;
+          cell.max[i] += kCellPadding;
+        }
 
         for (size_t ti = 0; ti < frag.tri_indices.size(); ti++) {
-          const auto& tri = tris[frag.tri_indices[ti]];
-          if (triangle_bounding_box(cell, tri.v[0], tri.v[1], tri.v[2])) {
+          const auto& tri = local_tris[ti];
+          if (triangle_bounding_box(cell, tri[0], tri[1], tri[2])) {
             debug_found_flags[ti] = true;
             debug_intersect_count++;
             cell_list.push_back(ti);

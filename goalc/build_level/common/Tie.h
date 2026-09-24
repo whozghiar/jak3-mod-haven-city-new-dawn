@@ -13,5 +13,13 @@ void tie_from_gltf(const gltf_mesh_extract::TieOutput& mesh_extract_out,
 
 class DrawableTreeInstanceTie {
  public:
+  // Jak 3's draw-drawable-tree-instance-tie reads `data[length - 1]` and the proxy's
+  // prototype-max-qwc unconditionally: an empty tree must then have one empty instance array and
+  // a full-size proxy, or the draw dereferences garbage.
+  explicit DrawableTreeInstanceTie(bool with_empty_instance_array = false)
+      : m_with_empty_instance_array(with_empty_instance_array) {}
   size_t add_to_object_file(DataObjectGenerator& gen) const;
+
+ private:
+  bool m_with_empty_instance_array = false;
 };

@@ -1,5 +1,7 @@
 #include "Tie.h"
 
+#include "goalc/build_level/common/Tfrag.h"
+
 void tie_from_gltf(const gltf_mesh_extract::TieOutput& mesh_extract_out,
                    std::vector<tfrag3::TieTree>& out_pc) {
   auto& out = out_pc.emplace_back();
@@ -101,7 +103,7 @@ size_t add_prototype_array_tie(DataObjectGenerator& gen) {
   return ret;
 }
 
-size_t add_proxy_prototype_array_tie(DataObjectGenerator& gen) {
+size_t add_proxy_prototype_array_tie(DataObjectGenerator& gen, bool full_size) {
   const size_t array_offset = add_prototype_array_tie(gen);
 
   gen.align_to_basic();
@@ -110,20 +112,40 @@ size_t add_proxy_prototype_array_tie(DataObjectGenerator& gen) {
   const size_t array_slot = gen.add_word(0);  // 4 prototype-array-tie
   gen.link_word_to_byte(array_slot, array_offset);
   gen.add_word(0);  // 8 wind-vectors
+  if (full_size) {
+    gen.add_word(0);  // 12 wind-count (u16), 14 prototype-max-qwc (u16)
+  }
   return result;
 }
 
-size_t add_tie_tree_to_object_file(DataObjectGenerator& gen) {
-  const size_t proxy = add_proxy_prototype_array_tie(gen);
+size_t add_tie_tree_to_object_file(DataObjectGenerator& gen, bool with_empty_instance_array) {
+  const size_t proxy = add_proxy_prototype_array_tie(gen, with_empty_instance_array);
+  if (!with_empty_instance_array) {
+    gen.align_to_basic();
+    gen.add_type_tag("drawable-tree-instance-tie");  // 0
+    size_t result = gen.current_offset_bytes();
+    gen.add_word(0);                      // 4 (id = 0, length = 0)
+    const size_t slot = gen.add_word(0);  // 8
+    gen.link_word_to_byte(slot, proxy);
+    return result;
+  }
+
+  // one empty drawable-inline-array-instance-tie (32-byte header + one 64-byte instance + pad)
+  const size_t instances = add_empty_dia("drawable-inline-array-instance-tie", gen, 0x64);
   gen.align_to_basic();
   gen.add_type_tag("drawable-tree-instance-tie");  // 0
   size_t result = gen.current_offset_bytes();
-  gen.add_word(0);                      // 4 (id = 0, length = 0)
-  const size_t slot = gen.add_word(0);  // 8
-  gen.link_word_to_byte(slot, proxy);
+  gen.add_word(1 << 16);                          // 4 (id = 0, length = 1)
+  gen.link_word_to_byte(gen.add_word(0), proxy);  // 8 prototypes
+  for (int i = 0; i < 5; i++) {
+    gen.add_word(0);  // 12 pad, 16 bsphere
+  }
+  const size_t slot = gen.add_word(0);  // 32 data[0]
+  ASSERT(slot * 4 - result == 28);
+  gen.link_word_to_byte(slot, instances);
   return result;
 }
 
 size_t DrawableTreeInstanceTie::add_to_object_file(DataObjectGenerator& gen) const {
-  return add_tie_tree_to_object_file(gen);
+  return add_tie_tree_to_object_file(gen, m_with_empty_instance_array);
 }

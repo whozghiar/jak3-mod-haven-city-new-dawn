@@ -410,6 +410,12 @@
 (goal-src "levels/test-zone/test-zone-obs.gc" "process-focusable")
 (custom-level-cgo "TSZ.DGO" "test-zone/testzone.gd")
 
+;; og:jak2-haven-city Jak 2's whole Haven City, merged from Jak 2 .fr3 files (see havenj2.jsonc)
+(build-custom-level "havenj2")
+(goal-src "levels/havenj2/havenj2-ocean.gc" "process-focusable")
+(goal-src "levels/havenj2/havenj2-obs.gc" "process-focusable")
+(custom-level-cgo "HJ2.DGO" "havenj2/havenj2.gd")
+
 ;; generate the art group for a custom actor.
 ;; requires a .glb model file in custom_assets/jak3/models/custom_levels
 ;; options:

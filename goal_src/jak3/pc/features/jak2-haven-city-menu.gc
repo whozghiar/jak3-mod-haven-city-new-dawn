@@ -1,0 +1,45 @@
+;;-*-Lisp-*-
+(in-package goal)
+
+#|
+
+  jak2-haven-city-menu.gc -- Mods menu entry for jak3/features/jak2-haven-city.
+
+  Jak 2's whole Haven City is rebuilt as the custom level `havenj2`
+  (custom_assets/jak3/levels/havenj2). This file lives in GAME.CGO, not in the
+  level's DGO, so the warp is reachable from anywhere in the game.
+
+  Warping goes through the level's continue point, never through `bg`: havenj2
+  needs a `large` memory bank, which is never free while Jak 3's own city is
+  loaded. A continue point makes the level system unload every level it doesn't
+  want first, then load havenj2.
+
+|#
+
+(defun mod-jak2-haven-city-warp ()
+  "Close the Mods menu and restart the player at the havenj2 start point."
+  (let ((cont (get-continue-by-name *game-info* "havenj2-start")))
+    (when cont
+      (mods-menu-close!)
+      (start 'play cont)
+      )
+    )
+  (none)
+  )
+
+(define *mod-jak2-haven-city-menu*
+  (new 'static 'popup-menu-submenu :label "jak2-haven-city"
+    :entries (new 'static 'boxed-array :type popup-menu-entry
+      (new 'static 'popup-menu-button :label "Warp to Haven City (Jak 2)"
+           :on-confirm (lambda () (mod-jak2-haven-city-warp) (none))
+           )
+      )
+    )
+  )
+
+(defun mod-jak2-haven-city-build-menu ()
+  "Return this mod's entry for the Mods menu. Called on every rebuild."
+  (the-as popup-menu-entry *mod-jak2-haven-city-menu*)
+  )
+
+(mods-menu-register "jak2-haven-city" mod-jak2-haven-city-build-menu)

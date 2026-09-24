@@ -28,17 +28,25 @@
 ---
 
 ## Overview
-Brief, simple description of what this mod introduces or modifies in the game.
+Brings Jak 2's whole Haven City into Jak 3 as one walkable custom level, `havenj2`, built from
+Jak 2's own extracted background data.
 
 - **Target Game:** Jak 3
 - **Active Branch:** `jak3/features/jak2-haven-city`
 
 ## Key Features
-- **Feature 1:** Simple description of the first key feature.
-- **Feature 2:** Simple description of the second key feature.
-- **Feature 3:** Simple description of the third key feature.
+- **The whole city:** the 15 Jak 2 city levels (`ctywide` plus the 14 districts) merged into one
+  Jak 3 level, with their collision and surface types.
+- **Jak 2 lighting:** Jak 2's time-of-day palettes, with street lights, flames and neon signs
+  driven at night.
+- **Vegetation and details:** Jak 2's shrubs (plants, small props) are drawn.
+- **Warp from anywhere:** L3 + SELECT, then Mods ▸ jak2-haven-city ▸ Warp to Haven City (Jak 2).
 
 ## Download & Play via OpenGOAL Launcher (Players)
+
+> [!WARNING]
+> Not available through the launcher yet: the level is built from a local Jak 2 extraction, see
+> [Developer Setup](#developer-setup--local-compilation).
 
 > [!TIP]
 > **No developer environment required!** Players can install and play this mod directly using the official OpenGOAL Launcher:
@@ -72,29 +80,31 @@ task set-game-jak3
 ```
 
 ### 2. Binary Compilation
-- **Status:** [Not required (GOAL-only mod, standard binaries sufficient) / `task build-release-game` (engine or compiler C++ changed) / `task build-release` + `task extract` (decompiler or decompiler/config changed)]
-- **Details:** [Specify which C++ layer was modified — see `docs/modding/guides/build_and_iteration_workflow.md`]
+- **Status:** `task build-release-game` (the custom level builder in `goalc` changed).
+- **Details:** see [the technical README](docs/modding/current_mod/jak2_haven_city_readme.md).
 ```bash
-# GOAL-only mod: nothing to build — go straight to the REPL below.
-# Engine / compiler C++ changed:
 task build-release-game
-# Decompiler or decompiler/config changed (then step 3 is mandatory):
-task build-release-decomp
 ```
 
 ### 3. Asset Extraction
-- **Status:** [Required (`task extract`) / Standard extraction sufficient]
-- **Details:** [Specify if custom 3D models, textures, or sound banks require extraction]
+- **Status:** Required for **both** Jak 2 and Jak 3.
+- **Details:** the level merges Jak 2's extracted `out/jak2/fr3/cty*.fr3` files, so Jak 2 must be
+  extracted once before building the Jak 3 level.
 ```bash
+task set-game-jak2
+task extract
+task set-game-jak3
 task extract
 ```
 
 ### 4. Launch the Game
-Run the game natively:
+Build with `task repl` then `(mi)`, and run the game natively:
 ```bash
 task boot-game
 ```
-*(Or launch via the OpenGOAL REPL using `task repl`, then compile and run with `(mi)` and `(r)`).*
+Then warp from the Mods menu (retail boot, L3 + SELECT) or, with the REPL connected, restart
+play at the `havenj2-start` continue point, the same call as the menu button in
+`goal_src/jak3/pc/features/jak2-haven-city-menu.gc`.
 
 ## Demonstration Video
 

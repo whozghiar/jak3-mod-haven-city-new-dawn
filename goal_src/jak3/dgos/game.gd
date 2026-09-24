@@ -351,6 +351,7 @@
   "popup-menu.o" ;; added
   "speedruns.o" ;; added
   "mods-menu.o" ;; added -- unified in-game "Mods" menu (see pc/features/mods-menu.gc)
+  "jak2-haven-city-menu.o" ;; added -- og:jak2-haven-city warp to the havenj2 custom level
   "drawable.o"
   "drawable-group.o"
   "drawable-inline-array.o"

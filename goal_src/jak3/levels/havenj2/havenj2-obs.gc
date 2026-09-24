@@ -1,0 +1,29 @@
+;;-*-Lisp-*-
+(in-package goal)
+
+;; name: havenj2-obs.gc
+;; name in dgo: havenj2-obs
+;; dgos: HJ2
+
+;; og:jak2-haven-city Level code for havenj2, Jak 2's Haven City rebuilt as a Jak 3 custom level.
+
+;; Mood. The background comes from Jak 2's city levels, whose time-of-day palettes are laid out like
+;; this (see update-mood-ctysluma in goal_src/jak2/engine/gfx/mood/mood-funcs.gc):
+;;   0     ambient            1-4   sun light          (both from the exterior mood)
+;;   5     street lights      6     flames             7     neon signs
+;; Jak 3's update-mood-ctywide leaves palette 7 at 0, which keeps every neon sign and industrial
+;; light of Jak 2's city dark. Each Jak 2 district had its own mood function; this one merges the
+;; slums one, which drives all three light palettes. The state offsets (bytes into the mood-context
+;; state area) are the same as ctysluma's: light 0, neon 8, flames 16.
+(defbehavior update-mood-havenj2 time-of-day-proc ((arg0 mood-context) (arg1 float) (arg2 int))
+  (copy-mood-exterior arg0)
+  (when (and (= (-> *level* level arg2 status) 'active)
+             (< (the-as uint (-> *time-of-day-context* mode)) (the-as uint 9))
+             )
+    (update-mood-flames arg0 6 1 16 0.5 0.001953125 2.0)
+    (update-mood-light arg0 7 8 0.9 0.0 arg1 32.0 2.0)
+    (update-mood-light arg0 5 0 1.0 0.0 arg1 0.0 2.0)
+    )
+  0
+  (none)
+  )

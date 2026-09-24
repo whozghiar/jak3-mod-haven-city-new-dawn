@@ -28,6 +28,7 @@ add_library(compiler
         build_level/jak1/FileInfo.cpp
         build_level/jak2/FileInfo.cpp
         build_level/jak3/FileInfo.cpp
+        build_level/common/fr3_import.cpp
         build_level/common/gltf_mesh_extract.cpp
         build_level/jak1/LevelFile.cpp
         build_level/jak2/LevelFile.cpp

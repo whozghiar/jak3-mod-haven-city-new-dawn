@@ -8,6 +8,10 @@ add_executable(dgo_packer
         dgo_packer.cpp)
 target_link_libraries(dgo_packer common)
 
+add_executable(fr3_check
+        fr3_check.cpp)
+target_link_libraries(fr3_check common)
+
 add_executable(memory_dump_tool
         memory_dump_tool/main.cpp)
 target_link_libraries(memory_dump_tool common decomp)

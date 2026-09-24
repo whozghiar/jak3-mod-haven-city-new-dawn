@@ -21,7 +21,12 @@ struct VisibilityString {
 
 struct DrawableTreeActor {};
 
-struct DrawableTreeInstanceShrub {};
+// An empty shrub tree: enough for draw-drawable-tree-instance-shrub to send the PC renderer the
+// level's shrub bucket (it needs a nonzero length and an info with a prototype array), which then
+// draws every shrub tree of the level's fr3.
+struct DrawableTreeInstanceShrub {
+  size_t add_to_object_file(DataObjectGenerator& gen) const;
+};
 
 struct DrawableTreeArray {
   std::vector<DrawableTreeTfrag> tfrags;
