@@ -240,6 +240,31 @@ int ResType::get_alignment() const {
   return 4;
 }
 
+ResPair::ResPair(const std::string& name, const goos::Object& pair, float key_frame)
+    : Res(name, key_frame), m_pair(pair) {}
+
+TagInfo ResPair::get_tag_info() const {
+  TagInfo result;
+  result.elt_type = "pair";
+  result.elt_count = 1;
+  result.inlined = false;
+  result.data_size = 4;
+  return result;
+}
+
+void ResPair::write_data(DataObjectGenerator& gen) const {
+  m_slot = gen.add_word(0);
+}
+
+void ResPair::write_deferred(DataObjectGenerator& gen) const {
+  ASSERT(m_slot >= 0);
+  gen.link_word_to_byte(m_slot, gen.add_pair(m_pair, std::nullopt, std::nullopt));
+}
+
+int ResPair::get_alignment() const {
+  return 4;
+}
+
 ResRef::ResRef(const std::string& name, const std::string& type, size_t ref, float key_frame)
     : Res(name, key_frame), m_ref(ref), m_type(type) {}
 
@@ -381,4 +406,9 @@ void ResLump::generate_tag_list_and_data(DataObjectGenerator& gen, size_t header
   gen.link_word_to_byte((header_to_update + 3 * 4) / 4, data_end);
   gen.set_word((header_to_update + 4 * 4) / 4, data_end - data_start);
   gen.link_word_to_byte((header_to_update + 6 * 4) / 4, tag_array_start);
+
+  // data referenced by the lump but stored after it (scripts)
+  for (const auto& res : m_res) {
+    res->write_deferred(gen);
+  }
 }

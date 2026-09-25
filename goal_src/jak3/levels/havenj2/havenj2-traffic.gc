@@ -1,0 +1,136 @@
+;;-*-Lisp-*-
+(in-package goal)
+
+;; name: havenj2-traffic.gc
+;; name in dgo: havenj2-traffic
+;; dgos: HJ2
+
+;; og:jak2-haven-city Haven City's traffic: Jak 3's citizens, Freedom League guards, hover bikes and
+;; cars, run by Jak 3's traffic engine (the code of ctywide, levels/city/common/ctywide-init.gc) on
+;; Jak 2's city: havenj2's nav graph and nav meshes (custom_assets/jak3/levels/havenj2/
+;; gen_havenj2_nav.py) and Jak 2's height map (havenj2-height-map.gc). That code and the art of those
+;; traffic types are in havenj2's DGO (see gen_havenj2_links.py).
+;;
+;; Like Spargus (waswide-init.gc), and unlike ctywide: no faction manager (Jak 3's territories and
+;; its war between the Freedom League, the KG and the Metal Heads: the branches of Jak 2's nav graph
+;; have no territory), no borrow manager (every traffic type is in havenj2), and only the Freedom
+;; League's squad (the citizens and guards join it: its alert level is how the guards react to Jak).
+;; Like ctywide, the city's attack controller (*cty-attack-controller*): every guard and citizen
+;; takes an attacker from it when it spawns (crimson-guard's citizen-method-215 only checks that it
+;; is nonzero, so #f crashes it) and when it is activated.
+;;
+;; The traffic runs while havenj2 is active and *mod-jak2-haven-city-traffic* is on (Mods menu), see
+;; hj2-traffic-refresh in jak2-haven-city-world.gc.
+
+(define-extern restore-city-speeches (function none))
+
+;; How many of each traffic type the city has: Jak 2's numbers (its traffic-manager), by Jak 3 type.
+;; The traffic manager's init sets Jak 3's, which Jak 3's faction manager then changes by territory
+;; (few vehicles: a city at war); havenj2 has no faction manager. At most 20 of a type.
+(define *havenj2-traffic-want-counts*
+  (new 'static 'boxed-array :type int8
+    ;; citizens (male, female, fat, pilot), guards (pilot, guard-a), nothing else on foot (0 to 16)
+    15 15 14 1 1 0 9 0 0 0 0 0 0 0 0 0 0
+    ;; hover bikes and cars (17 to 22), none of the other vehicles (23 to 28)
+    8 8 8 7 7 7 0 0 0 0 0 0
+    )
+  )
+
+(defun havenj2-login ((lev level))
+  "havenj2's login callback (slot 33): the traffic engine, the Freedom League's squad and the attack
+controller, in havenj2's heap."
+  (set! *traffic-engine* (new 'loading-level 'traffic-engine))
+  (set! *ff-squad-control* (new 'loading-level 'ff-squad-control))
+  (initialize *ff-squad-control* (the-as process #f))
+  (initialize-cty-attack-controller)
+  (none)
+  )
+
+(defun havenj2-traffic-levels-clear ()
+  "No traffic type spawns in havenj2 any more (other levels' types are left as they are)."
+  (let ((info *traffic-info*))
+    (dotimes (i 29)
+      (if (= (-> info traffic-object-levels i) 'havenj2)
+          (set! (-> info traffic-object-levels i) #f)
+          )
+      )
+    (dotimes (i 44)
+      (if (= (-> info vehicle-levels i) 'havenj2)
+          (set! (-> info vehicle-levels i) #f)
+          )
+      )
+    )
+  (none)
+  )
+
+(defun havenj2-traffic-start ((lev level) (mode symbol))
+  "Start havenj2's traffic (lev: havenj2, active). The traffic manager's start clears the level of
+every traffic type (a type spawns while its level is active): havenj2 is given to the citizens, the
+guards and the city's vehicles after it."
+  (let ((info *traffic-info*))
+    (set! (-> info ctywide-level) lev)
+    (set! (-> info vehicle-level) lev)
+    (set! (-> info restore-speech-callback) restore-city-speeches)
+    )
+  (vehicle-manager-kill)
+  (set! *traffic-fast-spawn* (or (= mode 'life) (= mode 'debug)))
+  (cond
+    ((and (= mode 'debug) (not *spawn-actors*))
+     (traffic-kill)
+     )
+    (else
+      (traffic-start)
+      ;; free every attacker: the citizens killed with the previous traffic never give theirs back
+      ;; (only going inactive does), and the Mods menu can restart the traffic
+      (if *cty-attack-controller*
+          (cty-attack-reset #t #f #f)
+          )
+      ;; before restore-default-settings, which sets the target and reserve counts from them
+      (dotimes (i 29)
+        (set! (-> *traffic-engine* object-type-info-array i want-count) (-> *havenj2-traffic-want-counts* i))
+        )
+      (add-squad-to-traffic-engine *ff-squad-control* *traffic-engine*)
+      (squad-control-method-10 *ff-squad-control*)
+      (restore-default-settings *traffic-engine*)
+      )
+    )
+  (let ((info *traffic-info*))
+    ;; the citizens and guards on foot (the pilots are the ones leaving their vehicle)
+    (set! (-> info traffic-object-levels (traffic-type civilian-male)) 'havenj2)
+    (set! (-> info traffic-object-levels (traffic-type civilian-female)) 'havenj2)
+    (set! (-> info traffic-object-levels (traffic-type civilian-fat)) 'havenj2)
+    (set! (-> info traffic-object-levels (traffic-type civilian-pilot)) 'havenj2)
+    (set! (-> info traffic-object-levels (traffic-type guard-pilot)) 'havenj2)
+    (set! (-> info traffic-object-levels (traffic-type guard-a)) 'havenj2)
+    ;; the city's hover bikes and cars (vehicle types h-bike-a to h-car-c), and their traffic types
+    (dotimes (i 6)
+      (set! (-> info vehicle-levels i) 'havenj2)
+      )
+    )
+  (update-level-info lev)
+  (none)
+  )
+
+(defun havenj2-traffic-stop ((lev level))
+  "Stop havenj2's traffic: the traffic manager and its citizens, the vehicles."
+  (traffic-kill)
+  (vehicle-manager-kill)
+  (havenj2-traffic-levels-clear)
+  (let ((info *traffic-info*))
+    (set! (-> info ctywide-level) #f)
+    (set! (-> info vehicle-level) #f)
+    (set! (-> info restore-speech-callback) #f)
+    )
+  (update-level-info lev)
+  (none)
+  )
+
+(defun havenj2-logout ((lev level))
+  "havenj2's logout callback (slot 34): the traffic engine, the squad and the attack controller go
+with havenj2's heap."
+  (havenj2-traffic-stop lev)
+  (set! *traffic-engine* #f)
+  (set! *ff-squad-control* #f)
+  (set! *cty-attack-controller* #f)
+  (none)
+  )

@@ -470,6 +470,19 @@ void extract_from_level(const ObjectFileDB& db,
   }
   file_util::write_text_file(entities_folder / fmt::format("{}-actors.json", level_data.level_name),
                              extract_actors_to_json(bsp_header.actors));
+  if (!bsp_header.nav_data_json.empty()) {
+    file_util::write_text_file(entities_folder / fmt::format("{}-nav.json", level_data.level_name),
+                               bsp_header.nav_data_json);
+  }
+  if (!bsp_header.city_info_json.empty()) {
+    file_util::write_text_file(entities_folder / fmt::format("{}-city.json", level_data.level_name),
+                               bsp_header.city_info_json);
+  }
+  if (!bsp_header.cameras.empty()) {
+    file_util::write_text_file(
+        entities_folder / fmt::format("{}-cameras.json", level_data.level_name),
+        extract_cameras_to_json(bsp_header.cameras));
+  }
   if (config.game_version == GameVersion::Jak1)
     file_util::write_text_file(
         entities_folder / fmt::format("{}-ambients.json", level_data.level_name),

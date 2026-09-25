@@ -66,14 +66,63 @@ bool run_build_level(const std::string& input_file,
   if (level_json.contains("actor_groups") && !level_json.at("actor_groups").empty()) {
     add_actor_groups_from_json(level_json.at("actor_groups"), file.actors, file.actor_groups, 0);
   }
-  // cameras
+  // cameras: fixed cameras, e.g. taken from a Jak 2 level's <level>-cameras.json dump. Their ids
+  // follow the actors'.
+  if (level_json.contains("cameras")) {
+    u32 base_aid = level_json.value("base_id", 1234) + (u32)file.actors.size() + 1;
+    for (const auto& actor : file.actors) {
+      base_aid = std::max(base_aid, actor.aid + 1);
+    }
+    add_cameras_from_json(level_json.at("cameras"), file.cameras, base_aid, dts);
+    for (const auto& cam : file.cameras) {
+      ASSERT_MSG(std::none_of(file.actors.begin(), file.actors.end(),
+                              [&](const EntityActor& a) { return a.aid == cam.aid; }),
+                 fmt::format("camera {} has the id {} of an actor", cam.name, cam.aid));
+    }
+  }
+  // nav_data: a DataBlob holding the level's city-level-info and nav meshes (for havenj2, Jak 2's
+  // city's, made by custom_assets/jak3/levels/havenj2/gen_havenj2_nav.py). The nav meshes keep
+  // their ids (the nav graph refers to them), which must not be an actor's.
+  if (level_json.contains("nav_data")) {
+    file.nav_data = DataBlob::from_json_file(level_json.at("nav_data").get<std::string>());
+    int meshes = 0;
+    for (const auto& [name, byte] : file.nav_data->roots) {
+      if (name.rfind("nav-mesh-", 0) == 0) {
+        meshes++;
+        // entity aid: 48 bytes from the type tag, the root being 4 bytes after it
+        const u32 aid = file.nav_data->words.at((byte + 44) / 4);
+        ASSERT_MSG(std::none_of(file.actors.begin(), file.actors.end(),
+                                [&](const EntityActor& a) { return a.aid == aid; }),
+                   fmt::format("nav mesh {} has the id {} of an actor", name, aid));
+      }
+    }
+    lg::info("nav data: {} KB, {} nav meshes", file.nav_data->words.size() * 4 / 1024, meshes);
+  }
   // nodes
   // regions
-  if (level_json.contains("region_trees") && !level_json.at("region_trees").empty()) {
+  auto region_trees = level_json.value("region_trees", nlohmann::json::object());
+  if (level_json.contains("region_tree_files")) {
+    // region trees kept in separate (usually generated) json files. Their regions are appended to
+    // the tree of the same name, whose bsphere must then encompass them.
+    for (const auto& path : level_json.at("region_tree_files").get<std::vector<std::string>>()) {
+      const auto extra =
+          parse_commented_json(file_util::read_text_file(file_util::get_file_path({path})), path);
+      for (const auto& [name, tree] : extra.items()) {
+        if (!region_trees.contains(name) || region_trees.at(name).empty()) {
+          region_trees[name] = tree;
+        } else {
+          for (const auto& region : tree.at("regions")) {
+            region_trees[name]["regions"].push_back(region);
+          }
+        }
+      }
+    }
+  }
+  if (!region_trees.empty()) {
     file.region_array.entities = &file.actors;
     file.region_array.actor_groups = &file.actor_groups;
-    fill_region_trees(file.region_trees, file.regions, file.region_array,
-                      level_json.at("region_trees"), level_json.value("base_region_id", 0));
+    fill_region_trees(file.region_trees, file.regions, file.region_array, region_trees,
+                      level_json.value("base_region_id", 0));
   }
   // subdivs
   // actor birth
@@ -111,6 +160,10 @@ bool run_build_level(const std::string& input_file,
       opts.collision_min = math::Vector3f(b[0], b[1], b[2]) * 4096.f;
       opts.collision_max = math::Vector3f(b[3], b[4], b[5]) * 4096.f;
     }
+    // prototypes the source game hides in the story state kept, e.g. "ctyp-statue-rubble-a.mb"
+    for (const auto& name : imp.value("hide_prototypes", std::vector<std::string>{})) {
+      opts.hidden_prototypes.insert(name);
+    }
     const auto game = imp.value("game", std::string("jak2"));
     fr3_import::Merger merger(pc_level, opts);
     for (const auto& lev : imp.at("levels").get<std::vector<std::string>>()) {
@@ -128,9 +181,60 @@ bool run_build_level(const std::string& input_file,
       lg::warn("fr3 import: {} draws used a source-game animated texture slot, using a fallback",
                st.anim_slot_draws);
     }
+    if (!opts.hidden_prototypes.empty()) {
+      lg::info("fr3 import: hidden prototypes: {} triangles, {} collision triangles",
+               st.hidden_proto_tris, st.hidden_proto_collision_tris);
+    }
+    if (st.untagged_collision_levels) {
+      lg::warn(
+          "fr3 import: {} levels have no prototype tags on their collision (extracted by an older "
+          "decompiler): the collision of hidden prototypes is kept",
+          st.untagged_collision_levels);
+    }
     // imported trees keep their bvh vis nodes: mark every vis id visible (2048 bytes is the size
     // of a level's vis-bits), frustum culling still applies.
     file.all_visibile_list.bytes.assign(2048, 0xff);
+  }
+
+  // SPRITE TEXTURES: textures taken from .fr3 files (possibly of another game) and given to the PC
+  // texture pool as a texture page of their own, for sprites and particles: the level's GOAL code
+  // makes a texture-page with that id at runtime, whose upload maps each texture to a VRAM slot.
+  // Entry i of the list is texture i of the page: [source level, source tpage, texture name].
+  if (level_json.contains("sprite_textures")) {
+    const auto& st = level_json.at("sprite_textures");
+    const u32 page = st.at("page").get<u32>();
+    ASSERT_MSG(page > 0 && page < 4096, "sprite_textures.page must be a 12 bit texture page id");
+    const auto game = st.value("game", std::string("jak2"));
+    std::unordered_map<std::string, tfrag3::Level> sources;
+    const auto& list = st.at("textures");
+    ASSERT_MSG(list.size() < 4096, "sprite_textures: too many textures for one page");
+    for (size_t i = 0; i < list.size(); i++) {
+      const auto src_level = list[i].at(0).get<std::string>();
+      const auto src_tpage = list[i].at(1).get<std::string>();
+      const auto src_name = list[i].at(2).get<std::string>();
+      // an entry may name its own game: [level, tpage, name, game]
+      const auto src_game = list[i].size() > 3 ? list[i].at(3).get<std::string>() : game;
+      const auto src_key = src_game + "/" + src_level;
+      auto src = sources.find(src_key);
+      if (src == sources.end()) {
+        const auto path =
+            file_util::get_jak_project_dir() / "out" / src_game / "fr3" / (src_level + ".fr3");
+        src = sources.emplace(src_key, fr3_import::load_fr3(path)).first;
+      }
+      const tfrag3::Texture* found = nullptr;
+      for (const auto& tex : src->second.textures) {
+        if (tex.debug_tpage_name == src_tpage && tex.debug_name == src_name) {
+          found = &tex;
+          break;
+        }
+      }
+      ASSERT_MSG(found, fmt::format("sprite_textures: no texture {}/{} in {}.fr3", src_tpage,
+                                    src_name, src_level));
+      auto& out = pc_level.textures.emplace_back(*found);
+      out.combo_id = (page << 16) | (u32)i;
+      out.load_to_pool = true;
+    }
+    lg::info("sprite textures: {} textures as texture page {}", list.size(), page);
   }
 
   // GOAL-side drawable trees. The PC renderer draws every fr3 tree of a kind as soon as the level
@@ -301,8 +405,10 @@ bool run_build_level(const std::string& input_file,
 
     // find all art groups used by the custom level in other dgos
     if (gen_fr3 && level_json.contains("art_groups") && !level_json.at("art_groups").empty()) {
+      // shared by every DGO: an art group is extracted from the first DGO that has it (Jak 3 ships
+      // com-airlock-outer-ag in 15 of them)
+      std::vector<std::string> processed_art_groups;
       for (auto& dgo : config.dgo_names) {
-        std::vector<std::string> processed_art_groups;
         // remove "DGO/" prefix
         const auto& dgo_name = dgo.substr(4);
         const auto& files = db.obj_files_by_dgo.at(dgo_name);

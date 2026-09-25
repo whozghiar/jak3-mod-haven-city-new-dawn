@@ -352,6 +352,7 @@
   "speedruns.o" ;; added
   "mods-menu.o" ;; added -- unified in-game "Mods" menu (see pc/features/mods-menu.gc)
   "jak2-haven-city-menu.o" ;; added -- og:jak2-haven-city warp to the havenj2 custom level
+  "jak2-haven-city-levels.o" ;; added -- og:jak2-haven-city level-load-infos and continues (generated)
   "drawable.o"
   "drawable-group.o"
   "drawable-inline-array.o"
@@ -491,4 +492,6 @@
   "debris.o"
   "shield-sphere.o"
   "entity-debug.o" ;; added
+  "havenj2-ocean.o" ;; added -- og:jak2-haven-city Jak 2's city ocean map (city, pumping station, forest)
+  "jak2-haven-city-world.o" ;; added -- og:jak2-haven-city moods, weather, level callbacks, respawn points, elevators, air trains, time gate (after elevator.o)
  ))

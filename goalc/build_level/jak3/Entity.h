@@ -36,6 +36,28 @@ struct ActorGroup {
   size_t slot;
 };
 
+/*
+ * a fixed camera (bsp cameras array), found by name with the 'entity-name setting
+ *  (trans vector :inline :offset-assert 32)
+ *  (aid uint32 :offset-assert 48)
+ *  (quat quaternion :inline :offset-assert 64)
+ */
+struct EntityCamera {
+  std::string name;
+  ResLump res_lump;
+  u32 aid = 0;
+  math::Vector4f trans;
+  math::Vector4f quat;
+
+  size_t generate(DataObjectGenerator& gen) const;
+};
+
+size_t generate_cameras_array(DataObjectGenerator& gen, const std::vector<EntityCamera>& cameras);
+void add_cameras_from_json(const nlohmann::json& json,
+                           std::vector<EntityCamera>& camera_list,
+                           u32 base_aid,
+                           decompiler::DecompilerTypeSystem& dts);
+
 size_t generate_inline_array_actors(DataObjectGenerator& gen, std::vector<EntityActor>& actors);
 size_t generate_actor_group_array(DataObjectGenerator& gen, std::vector<ActorGroup>& actor_groups);
 

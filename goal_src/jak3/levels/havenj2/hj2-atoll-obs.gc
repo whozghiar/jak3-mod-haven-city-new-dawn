@@ -1,0 +1,654 @@
+;;-*-Lisp-*-
+(in-package goal)
+
+;; name: hj2-atoll-obs.gc
+;; name in dgo: hj2-atoll-obs
+;; dgos: HJL
+
+;; og:jak2-haven-city Level code for hj2-atoll, Jak 2's pumping station (levels/atoll/atoll-obs.gc
+;; there): its moving platforms and props. Their models are Jak 2's, rebuilt by build-actor
+;; (hj2-*.glb, made by custom_assets/jak3/levels/havenj2/gen_havenj2_links.py); their collision is
+;; the convex hull of the model, bound to its main joint (transform index 3) like Jak 2's mesh. The
+;; story state is the end of the game: the pumping station is running (atoll-sig and atoll-water
+;; done), so every piston moves, the turbines are risen, the lift catwalks are down and the hatch is
+;; open. Jak 2's sounds of these objects aren't in Jak 3.
+
+;; Pistons /////////////////////////////////////////////////////////////////////////////////////////
+
+;; Jak 2's piston: a column moving up and down (move-range, in meters below its top), rideable.
+(deftype hj2-piston (process-focusable)
+  ((init-height   float)
+   (range-top     float)
+   (range-bottom  float)
+   (sync          sync-eased  :inline)
+   )
+  (:state-methods
+    running
+    )
+  )
+
+
+(def-actor hj2-piston
+  :bounds (0 -6.1 0 7.8)
+  )
+
+;; moving up and down forever (sync), carrying Jak
+(defstate running (hj2-piston)
+  :virtual #t
+  :event (behavior ((proc process) (argc int) (message symbol) (block event-message-block))
+    (case message
+      (('sync)
+       (-> self sync)
+       )
+      )
+    )
+  :trans rider-trans
+  :code sleep-code
+  :post (behavior ()
+    (let ((f0-1 (- (-> self range-top) (-> self range-bottom))))
+      (set! (-> self root trans y)
+            (+ (-> self init-height) (+ (-> self range-bottom) (get-scaled-val! (-> self sync) f0-1 0)))
+            )
+      )
+    (rider-post)
+    )
+  )
+
+;; WARN: Return type mismatch object vs none.
+(defmethod init-from-entity! ((this hj2-piston) (arg0 entity-actor))
+  "Jak 2's piston setup: a rideable pusher (the hull of its model, joint 3), its move-range and its
+sync (5 seconds up and down)."
+  (let ((s4-0 (new 'process 'collide-shape this (collide-list-enum usually-hit-by-player))))
+    (let ((s3-0 (new 'process 'collide-shape-prim-mesh s4-0 (the-as uint 0) (the-as uint 0))))
+      (set! (-> s3-0 prim-core collide-as) (collide-spec obstacle pusher))
+      (set! (-> s3-0 prim-core collide-with) (collide-spec jak bot player-list))
+      (set! (-> s3-0 prim-core action) (collide-action solid rideable))
+      (set! (-> s3-0 transform-index) 3)
+      (set-vector! (-> s3-0 local-sphere) 0.0 (meters 7.1) 0.0 (meters 7.8))
+      (set! (-> s4-0 total-prims) (the-as uint 1))
+      (set! (-> s4-0 root-prim) s3-0)
+      )
+    (pusher-init s4-0)
+    (set! (-> s4-0 nav-radius) (* 0.75 (-> s4-0 root-prim local-sphere w)))
+    (let ((v1-12 (-> s4-0 root-prim)))
+      (set! (-> s4-0 backup-collide-as) (-> v1-12 prim-core collide-as))
+      (set! (-> s4-0 backup-collide-with) (-> v1-12 prim-core collide-with))
+      )
+    (set! (-> this root) s4-0)
+    )
+  (process-drawable-from-entity! this arg0)
+  (+! (-> this root trans y) (meters 13))
+  (initialize-skeleton this *hj2-piston-sg* (the-as pair 0))
+  (logior! (-> this focus-status) (focus-status ignore))
+  (logclear! (-> this mask) (process-mask actor-pause))
+  (let ((a1-8 (new 'stack-no-clear 'sync-info-params)))
+    (set! (-> a1-8 sync-type) 'sync-eased)
+    (set! (-> a1-8 sync-flags) (sync-flags pong))
+    (set! (-> a1-8 period) (the-as uint 1500))
+    (set! (-> a1-8 entity) (-> this entity))
+    (set! (-> a1-8 percent) 0.0)
+    (set! (-> a1-8 ease-in) 0.15)
+    (set! (-> a1-8 ease-out) 0.15)
+    (set! (-> a1-8 pause-in) 0.0)
+    (set! (-> a1-8 pause-out) 0.0)
+    (initialize! (-> this sync) a1-8)
+    )
+  (let ((f28-0 -3.0)
+        (f30-0 3.0)
+        )
+    (let* ((sv-64 (new 'static 'res-tag))
+           (v1-40 (res-lump-data arg0 'move-range (pointer float) :tag-ptr (& sv-64)))
+           )
+      (when v1-40
+        (set! f28-0 (-> v1-40 0))
+        (set! f30-0 (-> v1-40 1))
+        )
+      )
+    (set! (-> this range-bottom) (* 4096.0 f28-0))
+    (set! (-> this range-top) (* 4096.0 f30-0))
+    )
+  (set! (-> this init-height) (-> this root trans y))
+  (+! (-> this root trans y) (meters -10))
+  (transform-post)
+  (go (method-of-object this running))
+  )
+
+;; Turbines ////////////////////////////////////////////////////////////////////////////////////////
+
+;; Jak 2's turbine: a spinning platform, risen (rise-height) once the station runs.
+(deftype hj2-turbine (process-drawable)
+  ((root         collide-shape :override)
+   (dest-height  float)
+   (rotspeed     float)
+   )
+  (:state-methods
+    risen
+    )
+  )
+
+
+(def-actor hj2-turbine
+  :bounds (0 -10 0 14)
+  )
+
+;; spinning (rotspeed) and rising to its height, carrying Jak
+(defstate risen (hj2-turbine)
+  :virtual #t
+  :trans rider-trans
+  :code sleep-code
+  :post (behavior ()
+    (quaternion-rotate-y! (-> self root quat) (-> self root quat) (* (-> self rotspeed) (seconds-per-frame)))
+    (let ((f1-2 (- (-> self dest-height) (-> self root trans y))))
+      (if (< 0.0 f1-2)
+          (+! (-> self root trans y) (* (fmax 6144.0 (/ f1-2 2)) (seconds-per-frame)))
+          )
+      )
+    (rider-post)
+    )
+  )
+
+;; WARN: Return type mismatch object vs none.
+(defmethod init-from-entity! ((this hj2-turbine) (arg0 entity-actor))
+  "Jak 2's turbine setup: a rideable pusher (the hull of its model), its spin speed and the height
+it rises to (rise-height)."
+  (let ((s4-0 (new 'process 'collide-shape this (collide-list-enum usually-hit-by-player))))
+    (let ((s3-0 (new 'process 'collide-shape-prim-mesh s4-0 (the-as uint 0) (the-as uint 0))))
+      (set! (-> s3-0 prim-core collide-as) (collide-spec camera-blocker pusher))
+      (set! (-> s3-0 prim-core collide-with) (collide-spec jak bot player-list))
+      (set! (-> s3-0 prim-core action) (collide-action solid rideable))
+      (set! (-> s3-0 transform-index) 3)
+      (set-vector! (-> s3-0 local-sphere) 0.0 (meters 8) 0.0 (meters 14))
+      (set! (-> s4-0 total-prims) (the-as uint 1))
+      (set! (-> s4-0 root-prim) s3-0)
+      )
+    (pusher-init s4-0)
+    (set! (-> s4-0 nav-radius) (* 0.75 (-> s4-0 root-prim local-sphere w)))
+    (let ((v1-12 (-> s4-0 root-prim)))
+      (set! (-> s4-0 backup-collide-as) (-> v1-12 prim-core collide-as))
+      (set! (-> s4-0 backup-collide-with) (-> v1-12 prim-core collide-with))
+      )
+    (set! (-> this root) s4-0)
+    )
+  (process-drawable-from-entity! this arg0)
+  (+! (-> this root trans y) (meters 18))
+  (logclear! (-> this mask) (process-mask actor-pause))
+  (initialize-skeleton this *hj2-turbine-sg* (the-as pair 0))
+  (set! (-> this rotspeed) (res-lump-float arg0 'rotspeed :default 8192.0))
+  (set! (-> this dest-height) (+ (-> this root trans y) (res-lump-float arg0 'rise-height)))
+  (transform-post)
+  (go (method-of-object this risen))
+  )
+
+;; Lift catwalks ///////////////////////////////////////////////////////////////////////////////////
+
+;; Jak 2's liftcat: a catwalk lowered by Jak's weight, down for good once the station runs. Its
+;; collision is the walkway (the hull of the model above its base).
+(deftype hj2-liftcat (process-drawable)
+  ((root  collide-shape :override)
+   )
+  (:state-methods
+    idle-down
+    )
+  )
+
+
+(def-actor hj2-liftcat
+  :bounds (0 -4 0 12.25)
+  )
+
+;; down, still
+(defstate idle-down (hj2-liftcat)
+  :virtual #t
+  :code sleep-code
+  )
+
+;; WARN: Return type mismatch object vs none.
+(defmethod init-from-entity! ((this hj2-liftcat) (arg0 entity-actor))
+  "Jak 2's liftcat setup: solid and rideable (the walkway's hull), its lump offsets (trans-offset,
+scale-mult), lowered."
+  (let ((s4-0 (new 'process 'collide-shape this (collide-list-enum usually-hit-by-player))))
+    (let ((s3-0 (new 'process 'collide-shape-prim-mesh s4-0 (the-as uint 0) (the-as uint 0))))
+      (set! (-> s3-0 prim-core collide-as) (collide-spec obstacle camera-blocker pusher))
+      (set! (-> s3-0 prim-core collide-with) (collide-spec jak bot player-list))
+      (set! (-> s3-0 prim-core action) (collide-action solid rideable))
+      (set! (-> s3-0 transform-index) 3)
+      (set-vector! (-> s3-0 local-sphere) 0.0 (meters 10) 0.0 (meters 12.25))
+      (set! (-> s4-0 total-prims) (the-as uint 1))
+      (set! (-> s4-0 root-prim) s3-0)
+      )
+    (set! (-> s4-0 nav-radius) (* 0.75 (-> s4-0 root-prim local-sphere w)))
+    (let ((v1-12 (-> s4-0 root-prim)))
+      (set! (-> s4-0 backup-collide-as) (-> v1-12 prim-core collide-as))
+      (set! (-> s4-0 backup-collide-with) (-> v1-12 prim-core collide-with))
+      )
+    (set! (-> this root) s4-0)
+    )
+  (process-drawable-from-entity! this arg0)
+  (let ((s4-1 (-> this root)))
+    (let* ((sv-16 (new 'static 'res-tag))
+           (v1-15 (res-lump-data arg0 'trans-offset vector :tag-ptr (& sv-16)))
+           )
+      (when v1-15
+        (+! (-> s4-1 trans x) (-> v1-15 x))
+        (+! (-> s4-1 trans y) (-> v1-15 y))
+        (+! (-> s4-1 trans z) (-> v1-15 z))
+        )
+      )
+    (let* ((sv-32 (new 'static 'res-tag))
+           (v1-17 (res-lump-data arg0 'scale-mult vector :tag-ptr (& sv-32)))
+           )
+      (when v1-17
+        (set! (-> s4-1 scale x) (* (-> s4-1 scale x) (-> v1-17 x)))
+        (set! (-> s4-1 scale y) (* (-> s4-1 scale y) (-> v1-17 y)))
+        (set! (-> s4-1 scale z) (* (-> s4-1 scale z) (-> v1-17 z)))
+        )
+      )
+    )
+  (+! (-> this root trans y) 55558.145)
+  (initialize-skeleton this *hj2-liftcat-sg* (the-as pair 0))
+  (transform-post)
+  (go (method-of-object this idle-down))
+  )
+
+;; Rotating pipes //////////////////////////////////////////////////////////////////////////////////
+
+;; Jak 2's atollrotpipe: a pipe to run on, turning a quarter turn every few seconds (cycle-speed:
+;; period and offset, in seconds) after a shudder.
+(deftype hj2-atollrotpipe (process-drawable)
+  ((root           collide-shape-moving :override)
+   (smush          smush-control         :inline)
+   (init-quat      quaternion            :inline)
+   (rot-angle      float)
+   (shudder-angle  float)
+   (cycle-time     float)
+   (cycle-offset   float)
+   )
+  (:state-methods
+    idle
+    )
+  )
+
+
+(def-actor hj2-atollrotpipe
+  :bounds (0 0 0 16)
+  )
+
+;; waits its offset, then every cycle: a shudder and a quarter turn around its length, carrying Jak
+(defstate idle (hj2-atollrotpipe)
+  :virtual #t
+  :trans (behavior ()
+    (rider-trans)
+    (let ((a1-0 (new 'stack-no-clear 'vector)))
+      (set-vector! a1-0 0.0 0.0 1.0 1.0)
+      (let ((a2-1 (quaternion-vector-angle!
+                    (new 'stack-no-clear 'quaternion)
+                    a1-0
+                    (+ (-> self rot-angle) (-> self shudder-angle))
+                    )
+                  )
+            )
+        (quaternion*! (-> self root quat) (-> self init-quat) a2-1)
+        )
+      )
+    )
+  :code (behavior ()
+    (suspend-for (the int (-> self cycle-offset))
+      )
+    (until #f
+      (suspend-for (the int (-> self cycle-time))
+        )
+      (activate! (-> self smush) -1.0 60 225 1.0 1.0 (-> self clock))
+      (suspend-for (seconds 0.75)
+        (set! (-> self shudder-angle) (* 364.0889 (update! (-> self smush))))
+        )
+      (set! (-> self shudder-angle) 0.0)
+      (set-zero! (-> self smush))
+      (suspend-for (seconds 0.25)
+        )
+      (let ((f30-1 (* 16384.0 2.0)))
+        (suspend-for (seconds 0.5)
+          (set! (-> self rot-angle)
+                (the float (sar (shl (the int (+ (-> self rot-angle) (* f30-1 (seconds-per-frame)))) 48) 48))
+                )
+          )
+        )
+      (let ((v1-42 #x4000))
+        (if (< (-> self rot-angle) 0.0)
+            (set! (-> self rot-angle)
+                  (the float (sar (shl (* v1-42 (/ (- (the int (-> self rot-angle)) (/ v1-42 2)) v1-42)) 48) 48))
+                  )
+            (set! (-> self rot-angle)
+                  (the float (sar (shl (* v1-42 (/ (+ (the int (-> self rot-angle)) (/ v1-42 2)) v1-42)) 48) 48))
+                  )
+            )
+        )
+      )
+    #f
+    )
+  :post rider-post
+  )
+
+;; WARN: Return type mismatch object vs none.
+(defmethod init-from-entity! ((this hj2-atollrotpipe) (arg0 entity-actor))
+  "Jak 2's atollrotpipe setup: a rideable pusher (the hull of its model) and its timing
+(cycle-speed)."
+  (let ((s4-0 (new 'process 'collide-shape-moving this (collide-list-enum usually-hit-by-player))))
+    (let ((s3-0 (new 'process 'collide-shape-prim-mesh s4-0 (the-as uint 0) (the-as uint 0))))
+      (set! (-> s3-0 prim-core collide-as) (collide-spec obstacle camera-blocker pusher))
+      (set! (-> s3-0 prim-core collide-with) (collide-spec jak bot player-list))
+      (set! (-> s3-0 prim-core action) (collide-action solid rideable))
+      (set! (-> s3-0 transform-index) 3)
+      (set-vector! (-> s3-0 local-sphere) 0.0 0.0 0.0 (meters 16))
+      (set! (-> s4-0 total-prims) (the-as uint 1))
+      (set! (-> s4-0 root-prim) s3-0)
+      )
+    (pusher-init s4-0)
+    (set! (-> s4-0 nav-radius) (* 0.75 (-> s4-0 root-prim local-sphere w)))
+    (let ((v1-12 (-> s4-0 root-prim)))
+      (set! (-> s4-0 backup-collide-as) (-> v1-12 prim-core collide-as))
+      (set! (-> s4-0 backup-collide-with) (-> v1-12 prim-core collide-with))
+      )
+    (set! (-> this root) s4-0)
+    )
+  (set! (-> this root rider-max-momentum) 8192.0)
+  (process-drawable-from-entity! this arg0)
+  (initialize-skeleton this *hj2-atollrotpipe-sg* (the-as pair 0))
+  (logclear! (-> this mask) (process-mask actor-pause))
+  (set! (-> this rot-angle) 0.0)
+  (set! (-> this shudder-angle) 0.0)
+  (quaternion-copy! (-> this init-quat) (-> this root quat))
+  (transform-post)
+  (let ((f28-0 4.0)
+        (f30-0 0.0)
+        )
+    (let* ((sv-16 (new 'static 'res-tag))
+           (v1-29 (res-lump-data arg0 'cycle-speed (pointer float) :tag-ptr (& sv-16)))
+           )
+      (when v1-29
+        (set! f28-0 (-> v1-29 0))
+        (set! f30-0 (-> v1-29 1))
+        )
+      )
+    (set! (-> this cycle-time) (the float (max 0 (+ (the int (* 300.0 f28-0)) -375))))
+    (set! (-> this cycle-offset) (the float (the int (* 300.0 f30-0))))
+    )
+  (go (method-of-object this idle))
+  )
+
+;; Sliders /////////////////////////////////////////////////////////////////////////////////////////
+
+;; Jak 2's slider: an electrified wall sliding back and forth along its path, shoving Jak away. Jak
+;; 2's lightning between its poles isn't drawn.
+(deftype hj2-slider (process-drawable)
+  ((root               collide-shape-moving :override)
+   (path-pos           float)
+   (sync               sync-eased            :inline)
+   (attack-id          uint32)
+   (collide-off-timer  time-frame)
+   )
+  (:state-methods
+    idle
+    )
+  )
+
+
+(def-actor hj2-slider
+  :bounds (0 0 0 7)
+  )
+
+;; slides along its path (sync), shoving whatever touches it (2 seconds between shoves)
+(defstate idle (hj2-slider)
+  :virtual #t
+  :event (behavior ((proc process) (argc int) (message symbol) (block event-message-block))
+    (case message
+      (('touch 'attack)
+       (when (time-elapsed? (-> self collide-off-timer) (seconds 2))
+         (let ((s3-0 (the-as process (as-type proc process-focusable))))
+           (when s3-0
+             (let ((s4-1 (vector-z-quaternion! (new 'stack-no-clear 'vector) (-> self root quat))))
+               (let* ((v1-7 (vector-z-quaternion! (new 'stack-no-clear 'vector) (get-quat (the-as process-focusable s3-0) 0)))
+                      (f0-1 (vector-dot s4-1 v1-7))
+                      )
+                 (if (< 0.0 f0-1)
+                     (vector-float*! s4-1 s4-1 -1.0)
+                     )
+                 )
+               (send-event
+                 proc
+                 'attack-or-shove
+                 (-> block param 0)
+                 (static-attack-info :mask (vehicle-impulse-factor) ((id (-> self attack-id))
+                                                                     (damage 2.0)
+                                                                     (vehicle-damage-factor 1.0)
+                                                                     (vehicle-impulse-factor 1.0)
+                                                                     (vector s4-1)
+                                                                     (shove-back (meters 8))
+                                                                     (shove-up (meters 3))
+                                                                     )
+                                     )
+                 )
+               )
+             (set-time! (-> self collide-off-timer))
+             )
+           )
+         )
+       )
+      )
+    )
+  :code sleep-code
+  :post (behavior ()
+    (set! (-> self path-pos) (get-norm! (-> self sync) 0))
+    (get-point-at-percent-along-path! (-> self path) (-> self root trans) (-> self path-pos) 'interp)
+    (let ((a1-4 (new 'stack-no-clear 'overlaps-others-params)))
+      (set! (-> a1-4 options) (overlaps-others-options oo0))
+      (set! (-> a1-4 collide-with-filter) (the-as collide-spec -1))
+      (set! (-> a1-4 tlist) *touching-list*)
+      (find-overlapping-shapes (-> self root) a1-4)
+      )
+    (transform-post)
+    )
+  )
+
+(defmethod run-logic? ((this hj2-slider))
+  "Always run: it moves and shoves even out of view."
+  #t
+  )
+
+;; WARN: Return type mismatch object vs none.
+(defmethod init-from-entity! ((this hj2-slider) (arg0 entity-actor))
+  "Jak 2's slider setup: solid (the hull of its model), its path, its sync (8 seconds back and
+forth) and its attack id."
+  (let ((s4-0 (new 'process 'collide-shape-moving this (collide-list-enum hit-by-player))))
+    (let ((v1-2 (new 'process 'collide-shape-prim-mesh s4-0 (the-as uint 0) (the-as uint 0))))
+      (set! (-> v1-2 prim-core collide-as) (collide-spec obstacle))
+      (set! (-> v1-2 prim-core collide-with) (collide-spec jak player-list))
+      (set! (-> v1-2 transform-index) 3)
+      (set-vector! (-> v1-2 local-sphere) 0.0 0.0 0.0 (meters 7))
+      (set! (-> s4-0 total-prims) (the-as uint 1))
+      (set! (-> s4-0 root-prim) v1-2)
+      )
+    (set! (-> s4-0 nav-radius) (* 0.75 (-> s4-0 root-prim local-sphere w)))
+    (let ((v1-5 (-> s4-0 root-prim)))
+      (set! (-> s4-0 backup-collide-as) (-> v1-5 prim-core collide-as))
+      (set! (-> s4-0 backup-collide-with) (-> v1-5 prim-core collide-with))
+      )
+    (set! (-> this root) s4-0)
+    )
+  (logclear! (-> this mask) (process-mask actor-pause))
+  (process-drawable-from-entity! this arg0)
+  (initialize-skeleton this *hj2-slider-sg* (the-as pair 0))
+  (let ((a1-7 (new 'stack-no-clear 'sync-info-params)))
+    (set! (-> a1-7 sync-type) 'sync-eased)
+    (set! (-> a1-7 sync-flags) (sync-flags pong))
+    (set! (-> a1-7 period) (the-as uint 2400))
+    (set! (-> a1-7 entity) (-> this entity))
+    (set! (-> a1-7 percent) 0.0)
+    (set! (-> a1-7 ease-in) 0.15)
+    (set! (-> a1-7 ease-out) 0.15)
+    (set! (-> a1-7 pause-in) 0.0)
+    (set! (-> a1-7 pause-out) 0.0)
+    (initialize! (-> this sync) a1-7)
+    )
+  (set! (-> this path) (new 'process 'path-control this 'path 0.0 (the-as entity #f) #f))
+  (logior! (-> this path flags) (path-control-flag display draw-line draw-point draw-text))
+  (set! (-> this path-pos) 0.0)
+  (let* ((v1-24 *game-info*)
+         (a0-20 (+ (-> v1-24 attack-id) 1))
+         )
+    (set! (-> v1-24 attack-id) a0-20)
+    (set! (-> this attack-id) a0-20)
+    )
+  (set! (-> this collide-off-timer) 0)
+  (transform-post)
+  (go (method-of-object this idle))
+  )
+
+;; Windmills ///////////////////////////////////////////////////////////////////////////////////////
+
+;; Jak 2's atoll-windmill: turning blades, a turn every sync period.
+(deftype hj2-atoll-windmill (process-drawable)
+  ((sync          sync-linear  :inline)
+   (blade-normal  vector       :inline)
+   (orig-quat     quaternion   :inline)
+   )
+  (:state-methods
+    idle
+    )
+  )
+
+
+(def-actor hj2-atoll-windmill
+  :bounds (0 0 0 62)
+  )
+
+;; turning its blades around their axis, a turn every sync period
+(defstate idle (hj2-atoll-windmill)
+  :virtual #t
+  :code sleep-code
+  :post (behavior ()
+    (let ((f0-0 (get-scaled-val! (-> self sync) -65536.0 0)))
+      (quaternion-axis-angle!
+        (-> self root quat)
+        (-> self blade-normal x)
+        (-> self blade-normal y)
+        (-> self blade-normal z)
+        f0-0
+        )
+      )
+    (quaternion*! (-> self root quat) (-> self root quat) (-> self orig-quat))
+    (quaternion-normalize! (-> self root quat))
+    (ja-post)
+    )
+  )
+
+;; WARN: Return type mismatch object vs none.
+(defmethod init-from-entity! ((this hj2-atoll-windmill) (arg0 entity-actor))
+  "Jak 2's atoll-windmill setup: its sync (a turn every 10 seconds) and the blades' axis (its z
+axis)."
+  (logior! (-> this mask) (process-mask ambient))
+  (let ((a1-1 (new 'stack-no-clear 'sync-info-params)))
+    (set! (-> a1-1 sync-type) 'sync-linear)
+    (set! (-> a1-1 sync-flags) (sync-flags))
+    (set! (-> a1-1 entity) arg0)
+    (set! (-> a1-1 period) (the-as uint 3000))
+    (set! (-> a1-1 percent) 0.0)
+    (initialize! (-> this sync) a1-1)
+    )
+  (set! (-> this root) (new 'process 'trsqv))
+  (process-drawable-from-entity! this arg0)
+  (logclear! (-> this mask) (process-mask actor-pause))
+  (initialize-skeleton this *hj2-atoll-windmill-sg* (the-as pair 0))
+  (quaternion-copy! (-> this orig-quat) (-> this root quat))
+  (vector-z-quaternion! (-> this blade-normal) (-> this root quat))
+  (vector-normalize! (-> this blade-normal) 1.0)
+  (ja-post)
+  (go (method-of-object this idle))
+  )
+
+;; Props ///////////////////////////////////////////////////////////////////////////////////////////
+
+;; The pumping station's still props: a model holding a frame of its animation (the first, or the
+;; last with :last #t), without collision.
+(deftype hj2-atoll-prop (process-drawable)
+  ((last-frame?  symbol)
+   )
+  (:state-methods
+    idle
+    )
+  )
+
+
+;; holds its frame, still
+(defstate idle (hj2-atoll-prop)
+  :virtual #t
+  :code (behavior ()
+    (if (-> self last-frame?)
+        (ja :num-func num-func-identity :frame-num max)
+        (ja :num-func num-func-identity :frame-num 0.0)
+        )
+    (ja-post)
+    (sleep-code)
+    )
+  )
+
+(defun hj2-atoll-prop-init! ((this hj2-atoll-prop) (arg0 entity-actor) (skel skeleton-group) (last-frame? symbol))
+  "Placement and skeleton of a still prop, and which frame it holds (last-frame?)."
+  (logior! (-> this mask) (process-mask ambient))
+  (set! (-> this root) (new 'process 'trsqv))
+  (process-drawable-from-entity! this arg0)
+  (logclear! (-> this mask) (process-mask actor-pause))
+  (initialize-skeleton this skel (the-as pair 0))
+  (set! (-> this last-frame?) last-frame?)
+  (none)
+  )
+
+;; Jak 2's atoll-valve (a valve wheel)
+(deftype hj2-atoll-valve (hj2-atoll-prop)
+  ()
+  )
+
+
+(def-actor hj2-atoll-valve
+  :bounds (0 0 0 1)
+  )
+
+;; WARN: Return type mismatch object vs none.
+(defmethod init-from-entity! ((this hj2-atoll-valve) (arg0 entity-actor))
+  "Jak 2's atoll-valve setup: still, on its first frame."
+  (hj2-atoll-prop-init! this arg0 *hj2-atoll-valve-sg* #f)
+  (go (method-of-object this idle))
+  )
+
+;; Jak 2's atoll-hatch, open (its animation's last frame) once the water is back on (atoll-water)
+(deftype hj2-atoll-hatch (hj2-atoll-prop)
+  ()
+  )
+
+
+(def-actor hj2-atoll-hatch
+  :bounds (0.7 0 0 1.1)
+  )
+
+;; WARN: Return type mismatch object vs none.
+(defmethod init-from-entity! ((this hj2-atoll-hatch) (arg0 entity-actor))
+  "Jak 2's atoll-hatch setup: still, open (its last frame)."
+  (hj2-atoll-prop-init! this arg0 *hj2-atoll-hatch-sg* #t)
+  (go (method-of-object this idle))
+  )
+
+;; Jak 2's atoll-mar-symbol (Mar's symbol on a wall)
+(deftype hj2-atoll-mar-symbol (hj2-atoll-prop)
+  ()
+  )
+
+
+(def-actor hj2-atoll-mar-symbol
+  :bounds (0 0 0 0.6)
+  )
+
+;; WARN: Return type mismatch object vs none.
+(defmethod init-from-entity! ((this hj2-atoll-mar-symbol) (arg0 entity-actor))
+  "Jak 2's atoll-mar-symbol setup: still, on its first frame."
+  (hj2-atoll-prop-init! this arg0 *hj2-atoll-mar-symbol-sg* #f)
+  (go (method-of-object this idle))
+  )

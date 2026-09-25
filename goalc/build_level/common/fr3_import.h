@@ -6,6 +6,7 @@
 
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "common/custom_data/Tfrag3Data.h"
@@ -25,6 +26,11 @@ struct Options {
   bool clip_collision = false;
   math::Vector3f collision_min = math::Vector3f::zero();
   math::Vector3f collision_max = math::Vector3f::zero();
+  // TIE and shrub prototypes left out, with the collision of their instances (the source game
+  // hides them with prototypes-game-visible-set!, depending on the story). The collision of a
+  // TIE prototype is only known if the source fr3 was extracted with the prototype tags, see
+  // collision_proto_tag.
+  std::unordered_set<std::string> hidden_prototypes;
 };
 
 struct Stats {
@@ -38,6 +44,9 @@ struct Stats {
   int anim_slot_draws = 0;
   size_t collision_tris = 0;
   size_t collision_tris_clipped = 0;
+  size_t hidden_proto_tris = 0;            // render triangles of hidden prototypes left out
+  size_t hidden_proto_collision_tris = 0;  // and their collision
+  int untagged_collision_levels = 0;       // levels whose collision has no prototype tags
 };
 
 tfrag3::Level load_fr3(const fs::path& path);
@@ -60,6 +69,7 @@ class Merger {
   Options m_options;
   Stats m_stats;
   std::unordered_map<std::string, s32> m_tex_by_key;
+  std::unordered_set<u32> m_hidden_tags;  // collision tags of the hidden prototypes
 };
 
 }  // namespace fr3_import

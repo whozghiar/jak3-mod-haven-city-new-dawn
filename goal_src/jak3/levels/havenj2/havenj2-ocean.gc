@@ -3,12 +3,14 @@
 
 ;; name: havenj2-ocean.gc
 ;; name in dgo: havenj2-ocean
-;; dgos: HJ2
+;; dgos: GAME
 
-;; og:jak2-haven-city Jak 2's Haven City ocean map, copied from goal_src/jak2/engine/gfx/ocean/ocean-tables.gc
-;; (*ocean-map-city* and its tables). Jak 3 ships its own *ocean-map-city*, but it describes Jak 3's
-;; reworked city, not Jak 2's canals and port. The ocean types are identical in both games, except
-;; that Jak 3's ocean-map has no ocean-spheres field (dropped here).
+;; og:jak2-haven-city Jak 2's Haven City ocean map, copied from
+;; goal_src/jak2/engine/gfx/ocean/ocean-tables.gc (*ocean-map-city* and its tables). Jak 3 ships its
+;; own *ocean-map-city*, but it describes Jak 3's reworked city, not Jak 2's canals and port. In GAME:
+;; the city, the pumping station and the forest use it, and Jak 2 loads the last two without the city.
+;; The ocean types are identical in both games, except that Jak 3's ocean-map has no ocean-spheres
+;; field (dropped here).
 ;; Generated: do not edit by hand, regenerate from the Jak 2 tables instead.
 
 (define *havenj2-ocean-colors*

@@ -58,6 +58,7 @@ add_library(
         level_extractor/BspHeader.cpp
         level_extractor/extract_actors.cpp
         level_extractor/extract_collide_frags.cpp
+        level_extractor/extract_nav.cpp
         level_extractor/extract_common.cpp
         level_extractor/extract_hfrag.cpp
         level_extractor/extract_joint_group.cpp

@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "common/common_types.h"
+#include "common/goos/Object.h"
 #include "common/math/Vector.h"
 
 /*
@@ -37,6 +38,8 @@ class Res {
   virtual TagInfo get_tag_info() const = 0;
   virtual void write_data(DataObjectGenerator& gen) const = 0;
   virtual int get_alignment() const = 0;
+  // called once the whole lump data is written, for data that lives outside of it
+  virtual void write_deferred(DataObjectGenerator& /*gen*/) const {}
   virtual ~Res() = default;
 
  private:
@@ -136,6 +139,22 @@ class ResType : public Res {
 
  private:
   std::vector<std::string> m_str;
+};
+
+// A script (a pair, like the on-activate/on-notice scripts of doors). The lump data holds a
+// pointer to the pair, which is generated after the lump data.
+class ResPair : public Res {
+ public:
+  ResPair(const std::string& name, const goos::Object& pair, float key_frame);
+
+  TagInfo get_tag_info() const override;
+  void write_data(DataObjectGenerator& gen) const override;
+  void write_deferred(DataObjectGenerator& gen) const override;
+  int get_alignment() const override;
+
+ private:
+  goos::Object m_pair;
+  mutable int m_slot = -1;
 };
 
 class ResRef : public Res {

@@ -1,0 +1,1876 @@
+;;-*-Lisp-*-
+(in-package goal)
+
+;; name: jak2-haven-city-world.gc
+;; name in dgo: jak2-haven-city-world
+;; dgos: GAME
+
+;; og:jak2-haven-city Moods, time of day, weather, level callbacks and respawn points of havenj2
+;; (Jak 2's Haven City as a Jak 3 custom level) and of the places reached from it (their
+;; level-load-infos are generated in jak2-haven-city-levels.gc, with *havenj2-levels*), the
+;; elevators and air trains more than one of them uses, and the time gate in Jak 3's Freedom HQ. In
+;; GAME, not in the levels' own code: Jak 2 unloads the city while Jak is in some of these places, so
+;; a place's mood must never depend on the city's code.
+
+;; every level name of this mod, defined in jak2-haven-city-levels.gc
+(define-extern *havenj2-levels* pair)
+
+;; Fog ////////////////////////////////////////////////////////////////////////////////////////////
+
+(defun hj2-mood-no-fog ((ctx mood-context))
+  "No fog. fog-dists z/w are the fog values at the near/far distances, on the PS2 scale where 255
+means no fog. They must not be equal: math-camera scales the perspective w by their difference
+(pfog0), and a zero there collapses every vertex (black 3D view). 254 at the far end is at most
+1/255 of fog color, which can't be seen."
+  (set! (-> ctx current-fog fog-dists z) 255.0)
+  (set! (-> ctx current-fog fog-dists w) 254.0)
+  (none)
+  )
+
+(defun hj2-mood-special? ()
+  "Special palettes (time-of-day modes above 8): the moods then only call palette-select-special."
+  (< (the-as uint 8) (the-as uint (-> *time-of-day-context* mode)))
+  )
+
+(defun hj2-mood-lights-on? ((arg2 int))
+  "The light palettes of a mood are only animated for an active level, outside special modes (like
+Jak 2's moods)."
+  (and (= (-> *level* level arg2 status) 'active) (not (hj2-mood-special?)))
+  )
+
+;; City ///////////////////////////////////////////////////////////////////////////////////////////
+
+;; The background comes from Jak 2's city levels, whose time-of-day palettes are laid out like this
+;; (see update-mood-ctysluma in goal_src/jak2/engine/gfx/mood/mood-funcs.gc):
+;;   0     ambient            1-4   sun light          (both from the exterior mood)
+;;   5     street lights      6     flames             7     neon signs
+;; Jak 3's update-mood-ctywide leaves palette 7 at 0, which keeps every neon sign and industrial
+;; light of Jak 2's city dark. Each Jak 2 district had its own mood function; this one merges the
+;; slums one, which drives all three light palettes. The state offsets (bytes into the mood-context
+;; state area) are the same as ctysluma's: light 0, neon 8, flames 16.
+(defbehavior update-mood-havenj2 time-of-day-proc ((arg0 mood-context) (arg1 float) (arg2 int))
+  (copy-mood-exterior arg0)
+  (when (hj2-mood-lights-on? arg2)
+    (update-mood-flames arg0 6 1 16 0.5 0.001953125 2.0)
+    (update-mood-light arg0 7 8 0.9 0.0 arg1 32.0 2.0)
+    (update-mood-light arg0 5 0 1.0 0.0 arg1 0.0 2.0)
+    )
+  0
+  (none)
+  )
+
+;; Interiors //////////////////////////////////////////////////////////////////////////////////////
+
+(defun hj2-mood-interior ((ctx mood-context) (weights (pointer float)))
+  "Interior lighting with fixed palette weights. Jak 2's interiors use their 8 palettes as light
+channels (update-mood-hiphog & co in goal_src/jak2/engine/gfx/mood/mood-funcs2.gc): these are
+their daytime values, without the flickering."
+  (update-mood-interior ctx #t)
+  (hj2-mood-no-fog ctx)
+  (if (hj2-mood-special?)
+      (palette-select-special ctx)
+      (dotimes (i 8)
+        (set! (-> ctx times i w) (-> weights i))
+        )
+      )
+  (none)
+  )
+
+(defbehavior update-mood-hj2-hiphog time-of-day-proc ((arg0 mood-context) (arg1 float) (arg2 int))
+  "Mood of hj2-hiphog, the Hip Hog saloon (Jak 2's update-mood-hiphog): palette 1 on."
+  (hj2-mood-interior arg0 (new 'static 'array float 8 0.0 1.0 0.0 0.0 0.0 0.0 0.0 0.0))
+  0
+  (none)
+  )
+
+(defbehavior update-mood-hj2-gun time-of-day-proc ((arg0 mood-context) (arg1 float) (arg2 int))
+  "Mood of hj2-gun, the gun course (Jak 2's update-mood-gungame): palettes 0 and 1 on."
+  (hj2-mood-interior arg0 (new 'static 'array float 8 1.0 1.0 0.0 0.0 0.0 0.0 0.0 0.0))
+  0
+  (none)
+  )
+
+(defbehavior update-mood-hj2-vin time-of-day-proc ((arg0 mood-context) (arg1 float) (arg2 int))
+  "Mood of hj2-vin, Vin's power station (Jak 2's update-mood-vinroom): palettes 0 to 4 at fixed
+weights."
+  (hj2-mood-interior arg0 (new 'static 'array float 8 1.0 0.9 0.5 0.5 1.2 0.0 0.0 0.0))
+  0
+  (none)
+  )
+
+(defbehavior update-mood-hj2-hide time-of-day-proc ((arg0 mood-context) (arg1 float) (arg2 int))
+  "Mood of hj2-hide, the underground hideout (Jak 2's update-mood-hideout): palettes 0, 1 and 3 on."
+  (hj2-mood-interior arg0 (new 'static 'array float 8 1.0 1.0 0.0 1.0 0.0 0.0 0.0 0.0))
+  0
+  (none)
+  )
+
+;; the Oracle's palette 0 is the daylight through its door, shut by default
+(defbehavior update-mood-hj2-oracle time-of-day-proc ((arg0 mood-context) (arg1 float) (arg2 int))
+  (hj2-mood-interior arg0 (new 'static 'array float 8 0.0 1.0 1.0 1.0 1.0 1.0 0.0 0.0))
+  0
+  (none)
+  )
+
+(defbehavior update-mood-hj2-garage time-of-day-proc ((arg0 mood-context) (arg1 float) (arg2 int))
+  "Mood of hj2-garage, Keira's garage (Jak 2's update-mood-garage): palettes 0, 1, 6 and 7 on."
+  (hj2-mood-interior arg0 (new 'static 'array float 8 1.0 1.0 0.0 0.0 0.0 0.0 0.75 1.0))
+  0
+  (none)
+  )
+
+;; the construction site tunnel (update-mood-consiteb): the exterior ambient, palette 1 on, and
+;; palette 2 flickering (Jak 2 has its own flicker, Jak 3's update-mood-flicker is close)
+(defbehavior update-mood-hj2-consb time-of-day-proc ((arg0 mood-context) (arg1 float) (arg2 int))
+  (copy-mood-exterior-ambi arg0 #f)
+  (update-mood-interior arg0 #f)
+  (hj2-mood-no-fog arg0)
+  (when (hj2-mood-lights-on? arg2)
+    (set! (-> arg0 times 0 w) 0.0)
+    (set! (-> arg0 times 1 w) 1.0)
+    (update-mood-flicker arg0 2 0)
+    )
+  0
+  (none)
+  )
+
+;; the palace pillars (update-mood-palshaft): the exterior ambient and palette 1 on
+(defbehavior update-mood-hj2-pshaft time-of-day-proc ((arg0 mood-context) (arg1 float) (arg2 int))
+  (copy-mood-exterior-ambi arg0 #f)
+  (update-mood-interior arg0 #f)
+  (hj2-mood-no-fog arg0)
+  (if (hj2-mood-special?)
+      (palette-select-special arg0)
+      (set! (-> arg0 times 1 w) 1.0)
+      )
+  0
+  (none)
+  )
+
+;; Exteriors //////////////////////////////////////////////////////////////////////////////////////
+
+;; Dead Town: its lights on palette 6 (update-mood-ruins)
+(defbehavior update-mood-hj2-ruins time-of-day-proc ((arg0 mood-context) (arg1 float) (arg2 int))
+  (copy-mood-exterior arg0)
+  (when (hj2-mood-lights-on? arg2)
+    (update-mood-light arg0 6 0 1.0 0.0 arg1 0.0 2.0)
+    )
+  0
+  (none)
+  )
+
+;; the construction site: lights on palette 5, palette 7 half on by day (update-mood-consite; the
+;; bomb flashes of palette 6 are off)
+(defbehavior update-mood-hj2-cons time-of-day-proc ((arg0 mood-context) (arg1 float) (arg2 int))
+  (copy-mood-exterior arg0)
+  (when (hj2-mood-lights-on? arg2)
+    (update-mood-light arg0 5 0 1.0 0.0 arg1 0.0 2.0)
+    (set! (-> arg0 times 6 w) 0.0)
+    (set! (-> arg0 times 7 w) (cond
+                                ((or (>= 6.0 arg1) (>= arg1 18.0))
+                                 1.0
+                                 )
+                                ((< arg1 7.0)
+                                 (+ 0.5 (* 0.5 (- 7.0 arg1)))
+                                 )
+                                ((< 17.0 arg1)
+                                 (+ 0.5 (* 0.5 (+ -17.0 arg1)))
+                                 )
+                                (else
+                                  0.5
+                                  )
+                                )
+          )
+    )
+  0
+  (none)
+  )
+
+;; the palace roof (update-mood-palroof): palette 7 on, electricity on palettes 5 and 6
+(defbehavior update-mood-hj2-proof time-of-day-proc ((arg0 mood-context) (arg1 float) (arg2 int))
+  (copy-mood-exterior arg0)
+  (when (hj2-mood-lights-on? arg2)
+    (set! (-> arg0 times 7 w) 1.0)
+    (update-mood-electricity arg0 5 0 1.2 1.7)
+    (update-mood-electricity arg0 6 16 1.2 1.7)
+    )
+  0
+  (none)
+  )
+
+;; the palace cable (update-mood-palcab): lights on palette 5, electricity on palette 7 (the turret
+;; flashes of palette 6 are off, and Jak 2's rain near the palace isn't kept)
+(defbehavior update-mood-hj2-pcab time-of-day-proc ((arg0 mood-context) (arg1 float) (arg2 int))
+  (copy-mood-exterior arg0)
+  (when (hj2-mood-lights-on? arg2)
+    (update-mood-light arg0 5 0 1.0 0.0 arg1 0.0 2.0)
+    (set! (-> arg0 times 6 w) 0.0)
+    (update-mood-electricity arg0 7 12 0.8 1.0)
+    )
+  0
+  (none)
+  )
+
+;; the way to the pumping station (update-mood-atollext): the exterior ambient, palette 1 on
+(defbehavior update-mood-hj2-atollx time-of-day-proc ((arg0 mood-context) (arg1 float) (arg2 int))
+  (copy-mood-exterior-ambi arg0 #t)
+  (when (hj2-mood-lights-on? arg2)
+    (set-vector! (-> arg0 times 1) 1.0 1.0 1.0 1.0)
+    (dotimes (i 6)
+      (set! (-> arg0 times (+ i 2) w) 0.0)
+      )
+    )
+  0
+  (none)
+  )
+
+;; the pumping station (update-mood-atoll): lights on palette 5 (the explosion flashes of palette 7
+;; are off)
+(defbehavior update-mood-hj2-atoll time-of-day-proc ((arg0 mood-context) (arg1 float) (arg2 int))
+  (copy-mood-exterior arg0)
+  (when (hj2-mood-lights-on? arg2)
+    (update-mood-light arg0 5 0 1.0 0.0 arg1 0.0 2.0)
+    (set! (-> arg0 times 7 w) 0.0)
+    )
+  0
+  (none)
+  )
+
+;; the mountain and the temple outside (update-mood-mountain): lights on palettes 5 (always on, as
+;; at 2h) and 6, palette 7 on
+(defbehavior update-mood-hj2-mount time-of-day-proc ((arg0 mood-context) (arg1 float) (arg2 int))
+  (copy-mood-exterior arg0)
+  (when (hj2-mood-lights-on? arg2)
+    (update-mood-light arg0 5 0 0.875 0.25 2.0 0.0 1.0)
+    (update-mood-light arg0 6 8 1.0 0.0 arg1 0.0 1.0)
+    (set! (-> arg0 times 7 w) 1.0)
+    )
+  0
+  (none)
+  )
+
+(defbehavior update-mood-hj2-mtnx time-of-day-proc ((arg0 mood-context) (arg1 float) (arg2 int))
+  "Mood of hj2-mtnx, the temple outside: the mountain's (Jak 2's mtnext uses update-mood-mountain)."
+  (update-mood-hj2-mount arg0 arg1 arg2)
+  (none)
+  )
+
+;; Haven Forest (update-mood-forest): lights on palette 5, always on
+(defbehavior update-mood-hj2-forest time-of-day-proc ((arg0 mood-context) (arg1 float) (arg2 int))
+  (copy-mood-exterior arg0)
+  (when (hj2-mood-lights-on? arg2)
+    (update-mood-light arg0 5 0 0.875 0.25 2.0 0.0 1.0)
+    )
+  0
+  (none)
+  )
+
+;; the far end of Haven Forest (update-mood-default)
+(defbehavior update-mood-hj2-forstb time-of-day-proc ((arg0 mood-context) (arg1 float) (arg2 int))
+  (copy-mood-exterior arg0)
+  0
+  (none)
+  )
+
+;; the castle pad (update-mood-caspad): lights on palette 5, always on, palette 6 pulsing red,
+;; palette 7 flickering white (its state words, like Jak 2's caspad-states)
+(deftype hj2-caspad-states (structure)
+  ((light        light-state  :inline)
+   (red          float)
+   (white        float)
+   (white-count  int32)
+   )
+  )
+
+
+(defbehavior update-mood-hj2-caspad time-of-day-proc ((arg0 mood-context) (arg1 float) (arg2 int))
+  "Mood of hj2-caspad (Jak 2's update-mood-caspad): its lights, see hj2-caspad-states above."
+  (copy-mood-exterior arg0)
+  (when (hj2-mood-lights-on? arg2)
+    (let ((gp-1 (the-as hj2-caspad-states (-> arg0 state))))
+      (update-mood-light arg0 5 0 1.0 0.0 arg1 0.0 2.0)
+      (set! (-> arg0 times 6 w) (-> gp-1 red))
+      (set! (-> arg0 times 7 w) (-> gp-1 white))
+      (set! (-> arg0 times 5 w) 1.0)
+      (when (not (paused?))
+        (let ((f0-4 (* 0.006666667 (the float (mod (-> *display* part-clock frame-counter) 150)))))
+          (set! (-> gp-1 red) (+ 0.75 (* 0.25 (cos (* 65536.0 f0-4)))))
+          )
+        (when (<= (-> gp-1 white-count) 0)
+          (set! (-> gp-1 white) (rand-vu-float-range 0.85 1.05))
+          (set! (-> gp-1 white-count) 2)
+          )
+        (+! (-> gp-1 white-count) -1)
+        )
+      )
+    )
+  0
+  (none)
+  )
+
+;; Dig ////////////////////////////////////////////////////////////////////////////////////////////
+
+;; The dig (update-mood-dig1, both of its levels): an interior with Jak 2's red fog and lights
+;; (update-dig1-lights), palettes 0, 1 and 6 on, 2 and 3 pulsing (the lava's glow; Jak 2's pulse
+;; states, at full brightness), 5 (the drill bit) and 7 (explosions) off once its missions are over.
+(deftype hj2-dig-states (structure)
+  ((pulse0  pulse-state  :inline)
+   (pulse1  pulse-state  :inline)
+   )
+  )
+
+
+(defun hj2-dig-lights ((arg0 mood-context))
+  "Jak 2's update-dig1-lights: the dig's fog and its 7 light groups."
+  (let ((v1-0 (-> arg0 current-fog)))
+    (set-vector! (-> v1-0 fog-color) 205.0 90.0 90.0 128.0)
+    (set-vector! (-> v1-0 fog-dists) 294912.0 1802240.0 255.0 187.5)
+    (set-vector! (-> v1-0 erase-color) 54.2635 23.823 23.823 128.0)
+    )
+  (set-vector! (-> arg0 current-env-color) 0.0 0.0 0.0 0.0)
+  (let ((t2-0 (-> arg0 light-group 0))
+        (t1-0 (-> arg0 light-group 1))
+        (t0-0 (-> arg0 light-group 2))
+        (a3-0 (-> arg0 light-group 3))
+        (a2-8 (-> arg0 light-group 4))
+        (a1-6 (-> arg0 light-group 5))
+        (v1-3 (-> arg0 light-group 6))
+        )
+    (set-vector! (-> t2-0 dir0 direction) 0.0 0.955 0.3 1.0)
+    (set-vector! (-> t2-0 dir0 color) 0.9 0.6 0.6 1.0)
+    (set-vector! (-> t2-0 dir1 direction) 0.0 -1.0 0.0 1.0)
+    (set-vector! (-> t2-0 dir1 color) 0.9 0.3 0.3 1.0)
+    (set-vector! (-> t2-0 ambi color) 0.65 0.589 0.406 1.0)
+    (set! (-> t2-0 dir0 extra x) 0.9)
+    (set! (-> t2-0 dir1 extra x) 0.3)
+    (set! (-> t2-0 ambi extra x) 0.45)
+    (set-vector! (-> t1-0 dir0 direction) 0.0 0.955 0.3 1.0)
+    (set-vector! (-> t1-0 dir0 color) 1.0 0.6 0.6 1.0)
+    (set-vector! (-> t1-0 dir1 direction) 0.0 -0.955 -0.3 1.0)
+    (set-vector! (-> t1-0 dir1 color) 0.9 0.4 0.3 1.0)
+    (set-vector! (-> t1-0 ambi color) 0.65 0.55 0.25 1.0)
+    (set! (-> t1-0 dir0 extra x) 0.2)
+    (set! (-> t1-0 dir1 extra x) 0.85)
+    (set! (-> t1-0 ambi extra x) 0.5)
+    (set-vector! (-> t0-0 dir0 direction) 0.0 0.955 0.3 1.0)
+    (set-vector! (-> t0-0 dir0 color) 0.8 0.5 0.4 1.0)
+    (set-vector! (-> t0-0 ambi color) 0.6 0.4 0.3 1.0)
+    (set! (-> t0-0 dir0 extra x) 0.5)
+    (set! (-> t0-0 ambi extra x) 0.4)
+    (set-vector! (-> a3-0 dir0 direction) 0.5299 0.8479 0.0 1.0)
+    (set-vector! (-> a3-0 dir0 color) 1.0 1.0 1.0 1.0)
+    (set-vector! (-> a3-0 dir1 direction) 0.0 -1.0 0.0 1.0)
+    (set-vector! (-> a3-0 dir1 color) 0.9 0.3 0.3 1.0)
+    (set-vector! (-> a3-0 ambi color) 0.5 0.5 0.5 1.0)
+    (set! (-> a3-0 dir0 extra x) 1.0)
+    (set! (-> a3-0 dir1 extra x) 0.5)
+    (set! (-> a3-0 ambi extra x) 0.6)
+    (set-vector! (-> a2-8 dir0 direction) 0.3 0.955 0.0 1.0)
+    (set-vector! (-> a2-8 dir0 color) 1.0 1.0 1.0 1.0)
+    (set-vector! (-> a2-8 dir1 direction) 0.0 -1.0 0.0 1.0)
+    (set-vector! (-> a2-8 dir1 color) 0.9 0.3 0.3 1.0)
+    (set-vector! (-> a2-8 ambi color) 0.5 0.5 0.5 1.0)
+    (set! (-> a2-8 dir0 extra x) 1.0)
+    (set! (-> a2-8 dir1 extra x) 0.5)
+    (set! (-> a2-8 ambi extra x) 0.6)
+    (set-vector! (-> a1-6 dir0 direction) 0.3 0.955 0.0 1.0)
+    (set-vector! (-> a1-6 dir0 color) 1.0 1.0 1.0 1.0)
+    (set-vector! (-> a1-6 dir1 direction) 0.0 -1.0 0.0 1.0)
+    (set-vector! (-> a1-6 dir1 color) 0.8 0.5 0.3 1.0)
+    (set-vector! (-> a1-6 ambi color) 0.5 0.4 0.4 1.0)
+    (set! (-> a1-6 dir0 extra x) 1.0)
+    (set! (-> a1-6 dir1 extra x) 1.4)
+    (set! (-> a1-6 ambi extra x) 0.6)
+    (set-vector! (-> v1-3 dir0 direction) 0.3 0.955 0.0 1.0)
+    (set-vector! (-> v1-3 dir0 color) 0.8 0.9 0.5 1.0)
+    (set-vector! (-> v1-3 dir1 direction) 0.5299 0.8479 0.0 1.0)
+    (set-vector! (-> v1-3 dir1 color) 0.6 0.4 0.3 1.0)
+    (set-vector! (-> v1-3 ambi color) 0.6 0.5 0.4 1.0)
+    (set! (-> v1-3 dir0 extra x) 0.6)
+    (set! (-> v1-3 dir1 extra x) 0.55)
+    (set! (-> v1-3 ambi extra x) 0.5)
+    )
+  (none)
+  )
+
+(defbehavior update-mood-hj2-dig time-of-day-proc ((arg0 mood-context) (arg1 float) (arg2 int))
+  "Mood of hj2-dig (Jak 2's update-mood-dig1): see hj2-dig-states above."
+  (update-mood-interior arg0 #f)
+  (hj2-dig-lights arg0)
+  (cond
+    ((hj2-mood-special?)
+     (palette-select-special arg0)
+     )
+    (else
+      (let ((gp-0 (the-as hj2-dig-states (-> arg0 state))))
+        (set! (-> gp-0 pulse0 brightness) 1.0)
+        (set! (-> gp-0 pulse0 target-brightness) 1.0)
+        (set! (-> gp-0 pulse1 brightness) 1.0)
+        (set! (-> gp-0 pulse1 target-brightness) 1.0)
+        )
+      (set! (-> arg0 times 0 w) 1.0)
+      (set! (-> arg0 times 1 w) 1.0)
+      (update-mood-pulse arg0 2 0 0.85 0.15 (* 182.04445 (seconds-per-frame) (rand-vu-float-range 60.0 200.0)) 0.0)
+      (update-mood-pulse arg0 3 16 0.85 0.15 (* 182.04445 (seconds-per-frame) (rand-vu-float-range 120.0 180.0)) 16384.0)
+      (set! (-> arg0 times 5 w) 0.0)
+      (set! (-> arg0 times 6 w) 1.0)
+      (set! (-> arg0 times 7 w) 0.0)
+      )
+    )
+  0
+  (none)
+  )
+
+(defbehavior update-mood-hj2-digb time-of-day-proc ((arg0 mood-context) (arg1 float) (arg2 int))
+  "Mood of hj2-digb, the dig's second level: hj2-dig's (Jak 2's dig3b uses update-mood-dig1 too)."
+  (update-mood-hj2-dig arg0 arg1 arg2)
+  (none)
+  )
+
+;; Time of day ////////////////////////////////////////////////////////////////////////////////////
+
+;; The hour the clock stays at while Jak is in Jak 2's city or one of its places, or -1 to let it
+;; run (day and night, like Jak 2). Changed from the Mods menu (jak2-haven-city-menu.gc).
+;; 16h: a sunny afternoon, with the sun low enough to be seen (at noon it is almost straight above).
+(define *mod-jak2-haven-city-hour* 16)
+
+(defun hj2-world-level-active? ((except level))
+  "Is one of this mod's levels (*havenj2-levels*) active, other than except?"
+  (dotimes (i (-> *level* length))
+    (let ((lev (-> *level* level i)))
+      (if (and (!= lev except) (= (-> lev status) 'active) (member (-> lev name) *havenj2-levels*))
+          (return #t)
+          )
+      )
+    )
+  #f
+  )
+
+(defun hj2-apply-time-of-day ()
+  "Freeze the clock at *mod-jak2-haven-city-hour*, or let it run when it is negative."
+  (when *time-of-day*
+    (cond
+      ((< *mod-jak2-haven-city-hour* 0)
+       (send-event (ppointer->process *time-of-day*) 'change 'ratio 1.0)
+       )
+      (else
+        (send-event (ppointer->process *time-of-day*) 'change 'ratio 0.0)
+        (send-event (ppointer->process *time-of-day*) 'change 'hour *mod-jak2-haven-city-hour*)
+        )
+      )
+    )
+  (none)
+  )
+
+(defun hj2-release-time-of-day ((lev level))
+  "The clock runs again once none of this mod's levels is active anymore (Jak 3's own levels)."
+  (when (and *time-of-day* (not (hj2-world-level-active? lev)))
+    (send-event (ppointer->process *time-of-day*) 'change 'ratio 1.0)
+    )
+  (none)
+  )
+
+;; Weather ////////////////////////////////////////////////////////////////////////////////////////
+
+;; Jak 2 and Jak 3 share their weather system (mood-control, engine/gfx/mood/mood.gc): the clouds
+;; and the fog drift towards random targets within the mood-range of the levels Jak is in, it rains
+;; when both are high, with thunder and lightning, and it snows when the snow setting is on
+;; (update-snow). Jak 3's play turns the changing weather on (level.gc play). The weather chosen in
+;; the Mods menu (*mod-jak2-haven-city-weather*), everywhere, Jak 3's levels too:
+;;   0  changing: Jak 3's own (in this mod's levels, with Jak 2's ranges). Nothing is forced, but in
+;;      this mod's levels a random draw Jak 3 stopped (a mission's weather) starts again.
+;;   1  sunny, 2 cloudy, 3 foggy, 4 light rain, 5 rain, 6 thunderstorm, 7 snow: fixed.
+;; A process (hj2-weather-driver) holds the choice every frame: nothing Jak 3 does to the weather
+;; (another level's, a mission's) takes it over.
+(define *mod-jak2-haven-city-weather* 0)
+
+;; clouds, fog and snow of the fixed weathers (index: the weather - 1). The rain comes from the
+;; clouds and the fog: min(0.75, 4 (cloud - 0.5) (fog - 0.5)).
+(define *hj2-weather-presets* (new 'static 'boxed-array :type float
+                                ;; cloud fog snow
+                                0.0 0.0 0.0 ;; sunny
+                                0.75 0.4 0.0 ;; cloudy
+                                0.4 1.0 0.0 ;; foggy
+                                0.75 0.75 0.0 ;; light rain (0.25)
+                                0.9 0.9 0.0 ;; rain (0.64)
+                                1.0 1.0 0.0 ;; thunderstorm (0.75, the most)
+                                1.0 0.5 1.0 ;; snow (no rain)
+                                )
+        )
+
+;; the weather held last (-1: none yet)
+(define *hj2-weather-held* -1)
+
+(define *hj2-weather-driver* (the-as handle #f))
+
+(defun hj2-weather-update ()
+  "Hold the weather chosen in the Mods menu (see *mod-jak2-haven-city-weather*)."
+  (let ((ctrl *mood-control*)
+        (weather *mod-jak2-haven-city-weather*)
+        )
+    (cond
+      ((> weather 0)
+       (let ((i (* 3 (+ weather -1))))
+         (set! (-> ctrl overide cloud) (-> *hj2-weather-presets* i))
+         (set! (-> ctrl overide fog) (-> *hj2-weather-presets* (+ i 1)))
+         (set! (-> ctrl overide-weather-flag) #t)
+         (set! (-> *setting-control* user-default snow) (-> *hj2-weather-presets* (+ i 2)))
+         )
+       )
+      (else
+        (when (> *hj2-weather-held* 0)
+          ;; back to the changing weather, from the fixed one's sky, the next draw in a few seconds
+          (set! (-> ctrl current-interp cloud) (-> ctrl overide cloud))
+          (set! (-> ctrl current-interp fog) (-> ctrl overide fog))
+          (set! (-> ctrl target-interp cloud) (-> ctrl overide cloud))
+          (set! (-> ctrl target-interp fog) (-> ctrl overide fog))
+          (set-time-for-random-weather! ctrl 900.0 900.0)
+          (set! (-> ctrl overide-weather-flag) #f)
+          (set! (-> *setting-control* user-default snow) 0.0)
+          )
+        (when (hj2-world-level-active? (the-as level #f))
+          (set! (-> ctrl overide-weather-flag) #f)
+          ;; the special weather (Jak 3's desert storms) doesn't exist here
+          (set! (-> ctrl current-special-interp) 0.0)
+          (set! (-> ctrl target-special-interp) 0.0)
+          ;; a draw stopped by Jak 3 (-99, or a mission's 100000000) starts again
+          (if (or (= (-> ctrl time-until-random cloud) -99.0)
+                  (< (-> ctrl time-until-random-max cloud) (-> ctrl time-until-random cloud))
+                  )
+              (set! (-> ctrl time-until-random cloud) 900.0)
+              )
+          (if (or (= (-> ctrl time-until-random fog) -99.0)
+                  (< (-> ctrl time-until-random-max fog) (-> ctrl time-until-random fog))
+                  )
+              (set! (-> ctrl time-until-random fog) 900.0)
+              )
+          )
+        )
+      )
+    (set! *hj2-weather-held* weather)
+    )
+  (none)
+  )
+
+(defbehavior hj2-weather-driver-code process ()
+  "The weather driver's code: holds the Mods menu's weather every frame (hj2-weather-update)."
+  (loop
+    (hj2-weather-update)
+    (suspend)
+    )
+  )
+
+(defun hj2-apply-weather ()
+  "Apply the weather chosen in the Mods menu now, and hold it from now on (hj2-weather-driver)."
+  (hj2-weather-update)
+  (when (not (handle->process *hj2-weather-driver*))
+    (let ((proc (process-spawn-function process hj2-weather-driver-code :name "hj2-weather")))
+      (set! *hj2-weather-driver* (if proc
+                                     (ppointer->handle proc)
+                                     (the-as handle #f)
+                                     )
+            )
+      )
+    )
+  (none)
+  )
+
+;; Sprite textures ////////////////////////////////////////////////////////////////////////////////
+
+;; Jak 2 draws its signs, posters, lamps and effects with sprites (particles), from the sprite
+;; texture page of each of its levels, which Jak 3 doesn't have. A level of this mod brings them in
+;; its fr3 (sprite_textures in its .jsonc: given to the PC texture pool as a texture page of an id
+;; Jak 3 never uses), and its code makes the matching texture-page while it loads
+;; (hj2-sprite-page-new, hj2-sprite-page-register). While the level is active, that page is its
+;; sprite page (level texture-page 7): Jak 3 lays it out and uploads it with the other levels'
+;; sprite pages before drawing sprites, and particles find its textures by id (texture-page-dir).
+
+(define *hj2-sprite-page-levels* (new 'static 'boxed-array :type symbol #f #f #f #f #f #f #f #f))
+
+(define *hj2-sprite-page-pages* (new 'static 'boxed-array :type texture-page #f #f #f #f #f #f #f #f))
+
+(defun hj2-sprite-page-new ((id int) (names (array string)) (sizes (array uint32)))
+  "A texture-page for a level's sprite textures, made in the loading level's heap. names and sizes
+(w | h << 16) are its textures, in order. On PC a texture's VRAM address is only the key of its
+slot in the texture pool (uploading maps it to the fr3 texture of the same page id and index), so
+each texture takes one block (64 words) whatever its size."
+  (let* ((count (-> names length))
+         (words (* 64 count))
+         (page (the-as texture-page
+                       ((method-of-type object new) 'loading-level texture-page (+ (the-as int (-> texture-page size)) (* 4 count)))
+                       )
+               )
+         )
+    (set! (-> page info) #f)
+    (set! (-> page name) "hj2-sprite")
+    (set! (-> page id) (the-as uint id))
+    (set! (-> page length) count)
+    (set! (-> page mip0-size) (the-as uint words))
+    (set! (-> page size) (the-as uint words))
+    (set! (-> page segment 0 block-data) (malloc 'loading-level (* 4 words)))
+    (set! (-> page segment 0 size) (the-as uint words))
+    (set! (-> page segment 0 dest) (the-as uint 0))
+    (dotimes (seg 2)
+      (set! (-> page segment (+ seg 1) block-data) (-> page segment 0 block-data))
+      (set! (-> page segment (+ seg 1) size) (the-as uint 0))
+      (set! (-> page segment (+ seg 1) dest) (the-as uint words))
+      )
+    (set! (-> page dram-size) (the-as uint (* 4 words)))
+    (set! (-> page vram-size) (the-as uint words))
+    ;; the texture-page-dir entry's shader links, one (empty) per texture, kept in pad 0
+    (let ((links (the-as (pointer uint32) (malloc 'loading-level (* 4 count)))))
+      (dotimes (i count)
+        (set! (-> links i) (the-as uint 0))
+        )
+      (set! (-> page pad 0) (the-as uint links))
+      )
+    (dotimes (i count)
+      (let ((tex (new 'loading-level 'texture))
+            (w (the-as int (logand (-> sizes i) #xffff)))
+            (h (the-as int (shr (-> sizes i) 16)))
+            )
+        (set! (-> tex w) w)
+        (set! (-> tex h) h)
+        (set! (-> tex num-mips) (the-as uint 1))
+        (set! (-> tex tex1-control) (the-as uint 3))
+        (set! (-> tex psm) (gs-psm ct32))
+        (set! (-> tex mip-shift) (the-as uint 0))
+        (set! (-> tex clutpsm) (the-as uint 0))
+        (dotimes (m 7)
+          (set! (-> tex dest m) (the-as uint i))
+          (set! (-> tex width m) (the-as uint (max 1 (/ (+ w 63) 64))))
+          )
+        (set! (-> tex clutdest) (the-as uint 0))
+        (set! (-> tex name) (-> names i))
+        (set! (-> tex size) (the-as uint 64))
+        (set! (-> tex uv-dist) 0.0)
+        (set! (-> tex masks data 0 mask quad) (the-as uint128 0))
+        (set! (-> tex masks data 1 mask quad) (the-as uint128 0))
+        (set! (-> tex masks data 2 mask quad) (the-as uint128 0))
+        (set! (-> page data i) tex)
+        )
+      )
+    page
+    )
+  )
+
+(defun hj2-sprite-page-register ((level-name symbol) (page texture-page))
+  "Called by a level's code while it loads: its sprite page, taken in use when it is activated."
+  (let ((slot -1))
+    (dotimes (i 8)
+      (if (and (< slot 0) (or (= (-> *hj2-sprite-page-levels* i) level-name) (not (-> *hj2-sprite-page-levels* i))))
+          (set! slot i)
+          )
+      )
+    (when (>= slot 0)
+      (set! (-> *hj2-sprite-page-levels* slot) level-name)
+      (set! (-> *hj2-sprite-page-pages* slot) page)
+      )
+    )
+  (none)
+  )
+
+(defun hj2-sprite-page-of ((lev level))
+  "The registered sprite page of a level, or #f."
+  (dotimes (i 8)
+    (if (= (-> *hj2-sprite-page-levels* i) (-> lev name))
+        (return (-> *hj2-sprite-page-pages* i))
+        )
+    )
+  (the-as texture-page #f)
+  )
+
+(defun hj2-sprite-page-on ((lev level))
+  "A level of this mod is active: its sprite page (if any) becomes its sprite texture page and the
+texture page of its id."
+  (let ((page (hj2-sprite-page-of lev)))
+    (when page
+      (let ((entry (-> *texture-page-dir* entries (-> page id))))
+        (set! (-> entry length) (-> page length))
+        (set! (-> entry page) page)
+        ;; no shader links, but unlink-shaders-in-heap walks one per texture
+        (set! (-> entry link) (the-as texture-link (-> page pad 0)))
+        )
+      (set! (-> lev texture-page 7) page)
+      (mark-hud-warp-sprite-dirty *texture-pool*)
+      )
+    )
+  (none)
+  )
+
+(defun hj2-sprite-page-off ((lev level))
+  "A level of this mod is deactivated: its sprite page is put away. The registration is kept: a
+deactivated level stays in memory (the city is only hidden while Jak is in the Hip Hog, the palace
+lobby...) and is activated again without being reloaded. When it is reloaded, its code registers
+the new page before it is activated."
+  (let ((page (hj2-sprite-page-of lev)))
+    (when page
+      (let ((entry (-> *texture-page-dir* entries (-> page id))))
+        (when (= (-> entry page) page)
+          (set! (-> entry page) #f)
+          (set! (-> entry link) #f)
+          (set! (-> entry length) 0)
+          )
+        )
+      (if (= (-> lev texture-page 7) page)
+          (set! (-> lev texture-page 7) #f)
+          )
+      (mark-hud-warp-sprite-dirty *texture-pool*)
+      )
+    )
+  (none)
+  )
+
+;; Jak 3's market and farm props (market-object, fruit-stand, the farm crops: their code is in
+;; havenj2) break into sprite pieces, and the fruit stands throw fruit, with textures from their
+;; Jak 3 level's sprite page. Jak 3's level callbacks market-activate and farm-activate point the
+;; particles to them; here the textures are in havenj2's own page (the last ones of it, see
+;; gen_havenj2_particles.py), found by name.
+
+;; texture choices of the breaking pots, eggplants and chilis (birth-func-texture-group: from index 3)
+(define *hj2-pot-debris-textures* (new 'static 'boxed-array :type int32 5 0 0 0 0))
+
+(define *hj2-eggplant-textures* (new 'static 'boxed-array :type int32 5 0 0 0 0 0))
+
+(define *hj2-chili-textures* (new 'static 'boxed-array :type int32 5 0 0 0 0))
+
+(defun hj2-part-texture! ((id int) (name string))
+  "Set the texture of a loaded part by name."
+  (let ((part (-> *part-id-table* id)))
+    (if (nonzero? part)
+        (setup-special-textures part name)
+        )
+    )
+  (none)
+  )
+
+(defun hj2-part-userdata! ((id int) (data object))
+  "Set the userdata (a texture choice array) of a loaded part."
+  (let ((part (-> *part-id-table* id)))
+    (when (nonzero? part)
+      (let ((spec (get-field-spec-by-id part (sp-field-id spt-userdata))))
+        (if spec
+            (set! (-> spec initial-valuef) (the-as float data))
+            )
+        )
+      )
+    )
+  (none)
+  )
+
+(defun hj2-prop-textures-on ()
+  "market-activate and farm-activate for havenj2's props, after its sprite page is on."
+  (set! (-> *hj2-pot-debris-textures* 3) (the-as int (lookup-texture-id-by-name "clay-pot-debris-01" (the-as string #f))))
+  (set! (-> *hj2-pot-debris-textures* 4) (the-as int (lookup-texture-id-by-name "rope-mesh-debris-01" (the-as string #f))))
+  (set! (-> *hj2-eggplant-textures* 3) (the-as int (lookup-texture-id-by-name "ctyfarm-eggplant-leaf-2" (the-as string #f))))
+  (set! (-> *hj2-eggplant-textures* 4) (the-as int (lookup-texture-id-by-name "ctyfarm-eggplant-leaf-1" (the-as string #f))))
+  (set! (-> *hj2-eggplant-textures* 5) (the-as int (lookup-texture-id-by-name "ctyfarm-eggplant-body" (the-as string #f))))
+  (set! (-> *hj2-chili-textures* 3) (the-as int (lookup-texture-id-by-name "ctyfarm-chili-leaf" (the-as string #f))))
+  (set! (-> *hj2-chili-textures* 4) (the-as int (lookup-texture-id-by-name "ctyfarm-chili-stem" (the-as string #f))))
+  ;; market-activate
+  (hj2-part-userdata! 1124 *hj2-pot-debris-textures*)
+  (hj2-part-userdata! 1123 *hj2-pot-debris-textures*)
+  (hj2-part-texture! 1118 "wood-plain-debris")
+  (hj2-part-texture! 1117 "wood-plain-debris")
+  (hj2-part-texture! 1124 "clay-pot-debris-01")
+  (hj2-part-texture! 1123 "clay-pot-debris-01")
+  (hj2-part-texture! 1131 "basket-debris-01")
+  (hj2-part-texture! 1130 "basket-debris-01")
+  (hj2-part-texture! 1141 "cotton-wrap-debris")
+  (hj2-part-texture! 1140 "cotton-wrap-debris")
+  (hj2-part-texture! 1147 "basket-debris-01")
+  (hj2-part-texture! 1142 "straw-bit")
+  (hj2-part-texture! 1143 "straw-ground")
+  (hj2-part-texture! 1148 "cherry")
+  ;; the fruit thrown by the fruit stands (Jak 3 gives them waswide's texture id)
+  (dotimes (i 5)
+    (hj2-part-texture! (+ 1153 i) "fruit1")
+    )
+  ;; farm-activate
+  (hj2-part-userdata! 4002 *hj2-eggplant-textures*)
+  (hj2-part-userdata! 4001 *hj2-eggplant-textures*)
+  (hj2-part-userdata! 4022 *hj2-chili-textures*)
+  (hj2-part-userdata! 4021 *hj2-chili-textures*)
+  (hj2-part-texture! 4002 "ctyfarm-eggplant-body")
+  (hj2-part-texture! 4001 "ctyfarm-eggplant-body")
+  (hj2-part-texture! 4014 "ctyfarm-chili-stem")
+  (hj2-part-texture! 4013 "ctyfarm-chili-stem")
+  (hj2-part-texture! 4016 "ctyfarm-cab-body")
+  (hj2-part-texture! 4015 "ctyfarm-cab-body")
+  (hj2-part-texture! 4009 "ctyfarm-cab-body")
+  (hj2-part-texture! 4022 "ctyfarm-chili-stem")
+  (hj2-part-texture! 4021 "ctyfarm-chili-stem")
+  (none)
+  )
+
+;; Elevators ///////////////////////////////////////////////////////////////////////////////////////
+
+;; The elevators of Jak 2's places (the palace pillars): Jak 3's elevator (path, flags, move rate,
+;; scripts, in GAME) with Jak 2's com-elevator model (hj2-com-elevator.glb, made by
+;; gen_havenj2_links.py, built by build-actor), which fills Jak 2's shafts. In GAME: the levels
+;; using it can be loaded without the city, each packs the art.
+(deftype hj2-elevator (elevator)
+  ()
+  )
+
+
+;; the platform is 12 x 13m, from 0.85m behind its origin to 12m in front
+(def-actor hj2-com-elevator
+  :bounds (0 0 5.6 9.2)
+  )
+
+(defmethod get-art-group ((this hj2-elevator))
+  "Jak 2's model (initialize-skeleton takes it as the skeleton group)."
+  (the-as art-group *hj2-com-elevator-sg*)
+  )
+
+;; WARN: Return type mismatch collide-shape-moving vs none.
+(defmethod init-collision! ((this hj2-elevator))
+  "The collision boxes of hj2-com-elevator.glb, bound to its main joint: the floor (mesh 0), rideable
+and pushing, and the fence along its edges (mesh 1), only solid during the ride (Jak 3's elevator
+finds it by its prim id and turns it on and off, see the fence elevator flag)."
+  (let ((s5-0 (new 'process 'collide-shape-moving this (collide-list-enum usually-hit-by-player))))
+    (set! (-> s5-0 dynam) (copy *standard-dynamics* 'process))
+    (set! (-> s5-0 reaction) cshape-reaction-default)
+    (set! (-> s5-0 no-reaction)
+          (the-as (function collide-shape-moving collide-query vector vector object) nothing)
+          )
+    (let ((s4-0 (new 'process 'collide-shape-prim-group s5-0 (the-as uint 2) 0)))
+      (set! (-> s5-0 total-prims) (the-as uint 3))
+      (set! (-> s4-0 prim-core collide-as) (collide-spec camera-blocker pusher))
+      (set! (-> s4-0 prim-core collide-with) (collide-spec jak player-list))
+      (set! (-> s4-0 prim-core action) (collide-action solid rideable))
+      (set! (-> s4-0 transform-index) 3)
+      (set-vector! (-> s4-0 local-sphere) 0.0 0.0 (meters 5.6) (meters 9.2))
+      (set! (-> s5-0 root-prim) s4-0)
+      )
+    (pusher-init s5-0)
+    (let ((v1-15 (new 'process 'collide-shape-prim-mesh s5-0 (the-as uint 0) (the-as uint 0))))
+      (set! (-> v1-15 prim-core collide-as) (collide-spec pusher))
+      (set! (-> v1-15 prim-core collide-with) (collide-spec jak bot player-list))
+      (set! (-> v1-15 prim-core action) (collide-action solid rideable))
+      (set! (-> v1-15 transform-index) 3)
+      (set-vector! (-> v1-15 local-sphere) 0.0 0.0 (meters 5.6) (meters 9.2))
+      )
+    (let ((v1-17 (new 'process 'collide-shape-prim-mesh s5-0 (the-as uint 1) (the-as uint (shl #xfe00 16)))))
+      (set! (-> v1-17 prim-core collide-as) (collide-spec obstacle pusher))
+      (set! (-> v1-17 prim-core collide-with) (collide-spec jak player-list))
+      (set! (-> v1-17 prim-core action) (collide-action solid))
+      (set! (-> v1-17 transform-index) 3)
+      (set-vector! (-> v1-17 local-sphere) 0.0 (meters 1.5) (meters 5.6) (meters 9.5))
+      )
+    (set! (-> s5-0 nav-radius) (* 0.75 (-> s5-0 root-prim local-sphere w)))
+    (let ((v1-20 (-> s5-0 root-prim)))
+      (set! (-> s5-0 backup-collide-as) (-> v1-20 prim-core collide-as))
+      (set! (-> s5-0 backup-collide-with) (-> v1-20 prim-core collide-with))
+      )
+    (set! (-> this root) s5-0)
+    )
+  (none)
+  )
+
+(defmethod init-sound! ((this hj2-elevator))
+  "The sounds of Jak 3's city elevator (cty-elevator)."
+  (set! (-> this sound-running-loop) (static-sound-spec "hqlift-loop" :group 0))
+  (set! (-> this sound-arrived) (static-sound-spec "hqlift-stop" :group 0))
+  (set! (-> this sound-start) (static-sound-spec "hqlift-start" :group 0))
+  (call-parent-method this)
+  (none)
+  )
+
+;; Jak 2's cpad-elevator, from the castle pad down to the dig: the same elevator with its model
+;; (hj2-cpad-elevator.glb), a 24 x 24m platform.
+(deftype hj2-cpad-elevator (hj2-elevator)
+  ()
+  )
+
+
+(def-actor hj2-cpad-elevator
+  :bounds (0 0 0 18)
+  )
+
+(defmethod get-art-group ((this hj2-cpad-elevator))
+  "Jak 2's model (initialize-skeleton takes it as the skeleton group)."
+  (the-as art-group *hj2-cpad-elevator-sg*)
+  )
+
+;; WARN: Return type mismatch collide-shape-moving vs none.
+(defmethod init-collision! ((this hj2-cpad-elevator))
+  "The collision boxes of hj2-cpad-elevator.glb, like hj2-elevator's: the floor (mesh 0) and the
+fence along its edges (mesh 1, solid during the ride)."
+  (let ((s5-0 (new 'process 'collide-shape-moving this (collide-list-enum usually-hit-by-player))))
+    (set! (-> s5-0 dynam) (copy *standard-dynamics* 'process))
+    (set! (-> s5-0 reaction) cshape-reaction-default)
+    (set! (-> s5-0 no-reaction)
+          (the-as (function collide-shape-moving collide-query vector vector object) nothing)
+          )
+    (let ((s4-0 (new 'process 'collide-shape-prim-group s5-0 (the-as uint 2) 0)))
+      (set! (-> s5-0 total-prims) (the-as uint 3))
+      (set! (-> s4-0 prim-core collide-as) (collide-spec camera-blocker pusher))
+      (set! (-> s4-0 prim-core collide-with) (collide-spec jak player-list))
+      (set! (-> s4-0 prim-core action) (collide-action solid rideable))
+      (set! (-> s4-0 transform-index) 3)
+      (set-vector! (-> s4-0 local-sphere) 0.0 0.0 0.0 (meters 18))
+      (set! (-> s5-0 root-prim) s4-0)
+      )
+    (pusher-init s5-0)
+    (let ((v1-15 (new 'process 'collide-shape-prim-mesh s5-0 (the-as uint 0) (the-as uint 0))))
+      (set! (-> v1-15 prim-core collide-as) (collide-spec pusher))
+      (set! (-> v1-15 prim-core collide-with) (collide-spec jak bot player-list))
+      (set! (-> v1-15 prim-core action) (collide-action solid rideable))
+      (set! (-> v1-15 transform-index) 3)
+      (set-vector! (-> v1-15 local-sphere) 0.0 0.0 0.0 (meters 18))
+      )
+    (let ((v1-17 (new 'process 'collide-shape-prim-mesh s5-0 (the-as uint 1) (the-as uint (shl #xfe00 16)))))
+      (set! (-> v1-17 prim-core collide-as) (collide-spec obstacle pusher))
+      (set! (-> v1-17 prim-core collide-with) (collide-spec jak player-list))
+      (set! (-> v1-17 prim-core action) (collide-action solid))
+      (set! (-> v1-17 transform-index) 3)
+      (set-vector! (-> v1-17 local-sphere) 0.0 (meters 1.5) 0.0 (meters 18))
+      )
+    (set! (-> s5-0 nav-radius) (* 0.75 (-> s5-0 root-prim local-sphere w)))
+    (let ((v1-20 (-> s5-0 root-prim)))
+      (set! (-> s5-0 backup-collide-as) (-> v1-20 prim-core collide-as))
+      (set! (-> s5-0 backup-collide-with) (-> v1-20 prim-core collide-with))
+      )
+    (set! (-> this root) s5-0)
+    )
+  (none)
+  )
+
+;; Air trains //////////////////////////////////////////////////////////////////////////////////////
+
+;; Jak 2's air trains, between the port and the castle pad above the dig: Jak 3's air train (its
+;; model, hover and trip, in GAME). Riding one plays Jak 3's own air train cutscenes, like Jak 3's
+;; (Jak 2's aren't in Jak 3), their copies below. Its on-notice is Jak 3's: '("continue"
+;; (scene-play '(scenes)) #f (want-anim "first scene")); its prompt names the place it goes to (the
+;; travel-name lump).
+(deftype hj2-air-train (air-train)
+  ((travel-name  string)
+   )
+  )
+
+
+;; a travel prompt's text: as written (UTF-8, with <PAD_*> tags), and in the game's font encoding
+(define *hj2-travel-text* (new 'global 'string 256 (the-as string #f)))
+
+(define *hj2-travel-line* (new 'global 'string 1024 (the-as string #f)))
+
+(defun hj2-print-travel-prompt ((text string))
+  "Print a travel prompt where and like the warp gates print theirs."
+  (pc-encode-utf8-string text *hj2-travel-line*)
+  (let ((gp-0 (new 'stack 'font-context *font-default-matrix* 32 320 0.0 (font-color default) (font-flags shadow kerning))))
+    (set-width! gp-0 340)
+    (set-height! gp-0 80)
+    (let ((a0-3 (-> *setting-control* user-default language)))
+      (set! (-> gp-0 scale) (if (or (= a0-3 (language-enum korean)) (= a0-3 (language-enum russian)))
+                                0.9
+                                0.7
+                                )
+            )
+      )
+    (set! (-> gp-0 flags) (font-flags shadow kerning large))
+    (print-game-text *hj2-travel-line* gp-0 #f 44 (bucket-id hud-draw-hud-alpha))
+    )
+  (none)
+  )
+
+(defbehavior hj2-can-travel? process-drawable ((distance float))
+  "Can Jak take this gate or air train now (the conditions of Jak 3's warp gates)?"
+  (and *target*
+       (>= distance (vector-vector-distance (-> self root trans) (-> *target* control trans)))
+       (not (logtest? (focus-status teleporting) (-> *target* focus-status)))
+       (-> *setting-control* user-current airlock)
+       (begin
+         (persist-with-delay *setting-control* 'lightjak (seconds 0.1) 'lightjak #f 0.0 0)
+         (persist-with-delay *setting-control* 'darkjak (seconds 0.1) 'darkjak #f 0.0 0)
+         (persist-with-delay *setting-control* 'board (seconds 0.1) 'board #f 0.0 0)
+         (not (logtest? (focus-status in-head edge-grab pole flut tube light board pilot mech dark indax)
+                        (-> *target* focus-status)
+                        )
+              )
+         )
+       (not (-> *setting-control* user-current hint))
+       (zero? (-> *target* ext-anim))
+       )
+  )
+
+(defmethod init-defaults! ((this hj2-air-train))
+  "Jak 3's air train setup, and the name of the place it goes to (travel-name lump, shown in its
+prompt)."
+  (call-parent-method this)
+  (set! (-> this travel-name) (res-lump-struct (-> this entity) 'travel-name string))
+  ;; the dust under it on the castle pad (Jak 3's air train does it on Jak 2's caspad)
+  (if (= (-> this level-name) 'hj2-caspad)
+      (set! (-> this dust-y) 114647.04)
+      )
+  (none)
+  )
+
+;; the warp gate's idle (warp-gate.gc), with the prompt naming the place
+(defstate idle (hj2-air-train)
+  :virtual #t
+  :code (behavior ()
+    (remove-setting! 'allow-progress)
+    (set-time! (-> self state-time))
+    (update-transforms (-> self root))
+    (until #f
+      (eval-on-notice self)
+      (when (and (-> self continue) (hj2-can-travel? (-> self distance)))
+        (talker-surpress!)
+        (when (and (can-display-query? self "warp-gate" -99.0)
+                   (cond
+                     ((and (-> *target* next-state) (let ((v1-37 (-> *target* next-state name)))
+                                                      (or (= v1-37 'target-warp-in) (= v1-37 'target-warp-out))
+                                                      )
+                           )
+                      (set-time! (-> self state-time))
+                      #f
+                      )
+                     (else
+                       #t
+                       )
+                     )
+                   (time-elapsed? (-> self state-time) (seconds 0.1))
+                   )
+          (if (and (cpad-pressed? 0 triangle) (process-grab? *target* #f))
+              (go-virtual use (-> self continue))
+              )
+          (script-eval (-> self on-close))
+          (format (clear *hj2-travel-text*) "Press <PAD_TRIANGLE> to travel to ~A" (-> self travel-name))
+          (hj2-print-travel-prompt *hj2-travel-text*)
+          )
+        )
+      (cond
+        ((-> self continue)
+         (seek! (-> self anim-speed) 1.0 (* 2.0 (seconds-per-frame)))
+         (setup-masks (-> self draw) 2 0)
+         )
+        (else
+          (setup-masks (-> self draw) 0 2)
+          (seek! (-> self anim-speed) 0.0 (* 2.0 (seconds-per-frame)))
+          )
+        )
+      (update! (-> self sound))
+      (ja-post)
+      (suspend)
+      (ja :num! (loop! (-> self anim-speed)))
+      )
+    #f
+    )
+  )
+
+;; Jak 3's air train cutscenes (warp-gate.gc), played around this mod's air trains. Jak 3's air train
+;; stands at Jak 2's port: its trip from the city (city-air-train-in-desert, Jak boards) and to it
+;; (city-air-train-out, Jak gets off) take place at Jak 3's scene-stage-87, copied into havenj2. Its
+;; desert air train stands 28m high like the castle pad's: its trip from the desert
+;; (desert-air-train-in) and to it (desert-air-train-out) take place around air-train-3, on the castle
+;; pad. Their actors' art (jakc-highres, daxter-highres, particleman, air-train) is in the level each
+;; plays in; each trip ends at the continue next to the other air train.
+(load-scene (new 'static 'scene
+              :name "hj2-air-train-port-out"
+              :extra #f
+              :info #f
+              :scene-flags (scene-flags scf1 scf2 scf3 scf4)
+              :mask-to-clear (process-mask movie enemy platform projectile)
+              :entity "scene-stage-87"
+              :art-group "scenecamera"
+              :anim "city-air-train-in-desert"
+              :parts 3
+              :command-list '((0 (kill "air-train-1") (fadein (frame-time-30 10))) (275 (fadeout (frame-time-30 5))))
+              :cut-list '(51 102 226)
+              :wait-ground-time (seconds 1)
+              :actor (new 'static 'boxed-array :type scene-actor
+                (new 'static 'scene-actor
+                  :name "scenecamera"
+                  :level #f
+                  :art-group "skel-scenecamera"
+                  :prefix ""
+                  :draw-frames '((min max))
+                  :scissor-frames '()
+                  :shadow-frames '((min max))
+                  :cloth-reset-frames '()
+                  :cloth-commands '()
+                  :camera 4
+                  :shadow-flags -1
+                  :shadow-volume-joint #f
+                  )
+                (new 'static 'scene-actor
+                  :name "jakc-highres"
+                  :level 'havenj2
+                  :art-group "skel-jakc-highres"
+                  :prefix ""
+                  :draw-frames '((min 226))
+                  :scissor-frames '()
+                  :shadow-frames '((min max))
+                  :cloth-reset-frames '()
+                  :cloth-commands '(((min max) set-flags local-space))
+                  :flags #x1
+                  :shadow-flags -1
+                  :shadow-volume-joint #f
+                  :no-draw-seg #x80
+                  )
+                (new 'static 'scene-actor
+                  :name "sidekick-highres"
+                  :level 'havenj2
+                  :art-group "skel-sidekick-highres"
+                  :prefix ""
+                  :draw-frames '((min max))
+                  :scissor-frames '()
+                  :shadow-frames '((min max))
+                  :cloth-reset-frames '()
+                  :cloth-commands '()
+                  :flags #x1
+                  :shadow-flags -1
+                  :shadow-volume-joint #f
+                  )
+                (new 'static 'scene-actor
+                  :name "air-train"
+                  :level 'havenj2
+                  :art-group "skel-air-train"
+                  :prefix ""
+                  :draw-frames '((min max))
+                  :scissor-frames '((min max))
+                  :shadow-frames '((min max))
+                  :cloth-reset-frames '()
+                  :cloth-commands '()
+                  :flags #x1
+                  :shadow-flags -1
+                  :shadow-volume-joint #f
+                  )
+                )
+              :load-point "hj2-ctyport-warp"
+              :end-point "hj2-caspad-warp"
+              :borrow '()
+              :sfx-volume -1.0
+              :ambient-volume -1.0
+              :music-volume -1.0
+              :music-delay 1500.0
+              :on-running #f
+              :on-complete #f
+              )
+            )
+
+(load-scene (new 'static 'scene
+              :name "hj2-air-train-caspad-in"
+              :extra #f
+              :info #f
+              :scene-flags (scene-flags scf1 scf2 scf3 scf4)
+              :mask-to-clear (process-mask movie enemy platform projectile)
+              :entity "air-train-3"
+              :art-group "scenecamera"
+              :anim "desert-air-train-out"
+              :parts 3
+              :command-list '((0 (kill "air-train-3") (fadein (frame-time-30 10)))
+                (1
+                  (part-tracker
+                    "group-warp-fma-drop-thrusters"
+                    entity
+                    "air-train"
+                    joint
+                    "thruster_l"
+                    track
+                    #t
+                    duration
+                    (frame-range 1 200)
+                    )
+                  (part-tracker
+                    "group-warp-fma-drop-thrusters"
+                    entity
+                    "air-train"
+                    joint
+                    "thruster_r"
+                    track
+                    #t
+                    duration
+                    (frame-range 1 200)
+                    )
+                  )
+                (65 (part-tracker
+                      "group-warp-fma-dust-takeoff"
+                      entity
+                      "particleman"
+                      joint
+                      "particleA"
+                      track
+                      #t
+                      duration
+                      (frame-range 65 172)
+                      )
+                    )
+                (290 (fadeout (frame-time-30 5)))
+                )
+              :cut-list '(180)
+              :wait-ground-time (seconds 1)
+              :actor (new 'static 'boxed-array :type scene-actor
+                (new 'static 'scene-actor
+                  :name "scenecamera"
+                  :level #f
+                  :art-group "skel-scenecamera"
+                  :prefix ""
+                  :draw-frames '((min max))
+                  :scissor-frames '()
+                  :shadow-frames '((min max))
+                  :cloth-reset-frames '()
+                  :cloth-commands '()
+                  :camera 4
+                  :shadow-flags -1
+                  :shadow-volume-joint #f
+                  )
+                (new 'static 'scene-actor
+                  :name "jakc-highres"
+                  :level 'hj2-caspad
+                  :art-group "skel-jakc-highres"
+                  :prefix ""
+                  :draw-frames '((min max))
+                  :scissor-frames '()
+                  :shadow-frames '((180 max))
+                  :cloth-reset-frames '()
+                  :cloth-commands '()
+                  :flags #x1
+                  :shadow-flags -1
+                  :shadow-volume-joint #f
+                  :no-draw-seg #x80
+                  )
+                (new 'static 'scene-actor
+                  :name "sidekick-highres"
+                  :level 'hj2-caspad
+                  :art-group "skel-sidekick-highres"
+                  :prefix ""
+                  :draw-frames '((min max))
+                  :scissor-frames '()
+                  :shadow-frames '((180 max))
+                  :cloth-reset-frames '()
+                  :cloth-commands '()
+                  :flags #x1
+                  :shadow-flags -1
+                  :shadow-volume-joint #f
+                  )
+                (new 'static 'scene-actor
+                  :name "particleman"
+                  :level 'hj2-caspad
+                  :art-group "skel-particleman"
+                  :prefix ""
+                  :draw-frames '((min max))
+                  :scissor-frames '()
+                  :shadow-frames '((min max))
+                  :cloth-reset-frames '()
+                  :cloth-commands '()
+                  :shadow-flags -1
+                  :shadow-volume-joint #f
+                  )
+                (new 'static 'scene-actor
+                  :name "air-train"
+                  :level 'hj2-caspad
+                  :art-group "skel-air-train"
+                  :prefix ""
+                  :draw-frames '((min max))
+                  :scissor-frames '()
+                  :shadow-frames '((min max))
+                  :cloth-reset-frames '()
+                  :cloth-commands '()
+                  :flags #x1
+                  :shadow-flags -1
+                  :shadow-volume-joint #f
+                  )
+                )
+              :load-point "hj2-caspad-warp"
+              :end-point "hj2-caspad-warp"
+              :borrow '()
+              :sfx-volume 0.75
+              :ambient-volume -1.0
+              :music-volume -1.0
+              :music-delay 1500.0
+              :on-running #f
+              :on-complete #f
+              )
+            )
+
+(load-scene (new 'static 'scene
+              :name "hj2-air-train-caspad-out"
+              :extra #f
+              :info #f
+              :scene-flags (scene-flags scf1 scf2 scf3 scf4)
+              :mask-to-clear (process-mask movie enemy platform projectile)
+              :entity "air-train-3"
+              :art-group "scenecamera"
+              :anim "desert-air-train-in"
+              :parts 4
+              :command-list '((0 (kill "air-train-3") (fadein (frame-time-30 10)))
+                (260
+                  (part-tracker
+                    "group-warp-fma-drop-thrusters"
+                    entity
+                    "air-train"
+                    joint
+                    "thruster_l"
+                    track
+                    #t
+                    duration
+                    (frame-range 260 475)
+                    )
+                  (part-tracker
+                    "group-warp-fma-drop-thrusters"
+                    entity
+                    "air-train"
+                    joint
+                    "thruster_r"
+                    track
+                    #t
+                    duration
+                    (frame-range 260 475)
+                    )
+                  )
+                (270 (part-tracker
+                       "group-warp-fma-dust-takeoff"
+                       entity
+                       "particleman"
+                       joint
+                       "particleA"
+                       track
+                       #t
+                       duration
+                       (frame-range 270 475)
+                       )
+                     )
+                (350
+                  (part-tracker
+                    "group-warp-thruster-trail"
+                    entity
+                    "air-train"
+                    joint
+                    "thruster_l"
+                    track
+                    #t
+                    duration
+                    (frame-range 350 475)
+                    subsample-num
+                    (new 'static 'bfloat :data 5.0)
+                    )
+                  (part-tracker
+                    "group-warp-thruster-trail"
+                    entity
+                    "air-train"
+                    joint
+                    "thruster_r"
+                    track
+                    #t
+                    duration
+                    (frame-range 350 475)
+                    subsample-num
+                    (new 'static 'bfloat :data 5.0)
+                    )
+                  )
+                (475 (fadeout (frame-time-30 5)))
+                )
+              :cut-list '(285)
+              :wait-ground-time (seconds 1)
+              :actor (new 'static 'boxed-array :type scene-actor
+                (new 'static 'scene-actor
+                  :name "scenecamera"
+                  :level #f
+                  :art-group "skel-scenecamera"
+                  :prefix ""
+                  :draw-frames '((min max))
+                  :scissor-frames '()
+                  :shadow-frames '((min max))
+                  :cloth-reset-frames '()
+                  :cloth-commands '()
+                  :camera 4
+                  :shadow-flags -1
+                  :shadow-volume-joint #f
+                  )
+                (new 'static 'scene-actor
+                  :name "jakc-highres"
+                  :level 'hj2-caspad
+                  :art-group "skel-jakc-highres"
+                  :prefix ""
+                  :draw-frames '((min max))
+                  :scissor-frames '()
+                  :shadow-frames '((min 290))
+                  :cloth-reset-frames '()
+                  :cloth-commands '()
+                  :flags #x1
+                  :shadow-flags -1
+                  :shadow-volume-joint #f
+                  :no-draw-seg #x80
+                  )
+                (new 'static 'scene-actor
+                  :name "sidekick-highres"
+                  :level 'hj2-caspad
+                  :art-group "skel-sidekick-highres"
+                  :prefix ""
+                  :draw-frames '((min max))
+                  :scissor-frames '()
+                  :shadow-frames '((min 290))
+                  :cloth-reset-frames '()
+                  :cloth-commands '()
+                  :flags #x1
+                  :shadow-flags -1
+                  :shadow-volume-joint #f
+                  )
+                (new 'static 'scene-actor
+                  :name "particleman"
+                  :level 'hj2-caspad
+                  :art-group "skel-particleman"
+                  :prefix ""
+                  :draw-frames '((min max))
+                  :scissor-frames '()
+                  :shadow-frames '((min max))
+                  :cloth-reset-frames '()
+                  :cloth-commands '()
+                  :shadow-flags -1
+                  :shadow-volume-joint #f
+                  )
+                (new 'static 'scene-actor
+                  :name "air-train"
+                  :level 'hj2-caspad
+                  :art-group "skel-air-train"
+                  :prefix ""
+                  :draw-frames '((min max))
+                  :scissor-frames '()
+                  :shadow-frames '((min max))
+                  :cloth-reset-frames '()
+                  :cloth-commands '()
+                  :flags #x1
+                  :shadow-flags -1
+                  :shadow-volume-joint #f
+                  )
+                )
+              :load-point "hj2-caspad-warp"
+              :end-point "hj2-ctyport-warp"
+              :borrow '()
+              :sfx-volume 0.75
+              :ambient-volume -1.0
+              :music-volume -1.0
+              :music-delay 1500.0
+              :on-running #f
+              :on-complete #f
+              )
+            )
+
+(load-scene (new 'static 'scene
+              :name "hj2-air-train-port-in"
+              :extra #f
+              :info #f
+              :scene-flags (scene-flags scf1 scf2 scf3 scf4)
+              :mask-to-clear (process-mask movie enemy platform projectile)
+              :entity "scene-stage-87"
+              :art-group "scenecamera"
+              :anim "city-air-train-out"
+              :parts 2
+              :command-list '((0 (kill "air-train-1") (fadein (frame-time-30 10))) (235 (fadeout (frame-time-30 5))))
+              :cut-list '(98 188)
+              :wait-ground-time (seconds 1)
+              :actor (new 'static 'boxed-array :type scene-actor
+                (new 'static 'scene-actor
+                  :name "scenecamera"
+                  :level #f
+                  :art-group "skel-scenecamera"
+                  :prefix ""
+                  :draw-frames '((min max))
+                  :scissor-frames '()
+                  :shadow-frames '((min max))
+                  :cloth-reset-frames '()
+                  :cloth-commands '()
+                  :camera 4
+                  :shadow-flags -1
+                  :shadow-volume-joint #f
+                  )
+                (new 'static 'scene-actor
+                  :name "jakc-highres"
+                  :level 'havenj2
+                  :art-group "skel-jakc-highres"
+                  :prefix ""
+                  :draw-frames '((min max))
+                  :scissor-frames '()
+                  :shadow-frames '((min max))
+                  :cloth-reset-frames '()
+                  :cloth-commands '(((min max) set-flags local-space))
+                  :flags #x1
+                  :shadow-flags -1
+                  :shadow-volume-joint #f
+                  :no-draw-seg #x80
+                  )
+                (new 'static 'scene-actor
+                  :name "sidekick-highres"
+                  :level 'havenj2
+                  :art-group "skel-sidekick-highres"
+                  :prefix ""
+                  :draw-frames '((min max))
+                  :scissor-frames '()
+                  :shadow-frames '((min max))
+                  :cloth-reset-frames '()
+                  :cloth-commands '()
+                  :flags #x1
+                  :shadow-flags -1
+                  :shadow-volume-joint #f
+                  )
+                (new 'static 'scene-actor
+                  :name "air-train"
+                  :level 'havenj2
+                  :art-group "skel-air-train"
+                  :prefix ""
+                  :draw-frames '((min max))
+                  :scissor-frames '()
+                  :shadow-frames '((min max))
+                  :cloth-reset-frames '()
+                  :cloth-commands '()
+                  :flags #x1
+                  :shadow-flags -1
+                  :shadow-volume-joint #f
+                  )
+                )
+              :load-point "hj2-ctyport-warp"
+              :end-point "hj2-ctyport-warp"
+              :borrow '()
+              :sfx-volume -1.0
+              :ambient-volume -1.0
+              :music-volume -1.0
+              :music-delay 1500.0
+              :on-running #f
+              :on-complete #f
+              )
+            )
+
+;; Time gate ///////////////////////////////////////////////////////////////////////////////////////
+
+;; A time gate in Jak 3's Freedom HQ (freehq), to Jak 2's Haven City: a swirl of light Jak jumps
+;; into, like Jak 3's warp gates. freehq is one of Jak 3's own levels: its level-load-info
+;; (level-info.gc) gets two callbacks here, which spawn the gate while freehq is active. The gate
+;; stands on the free floor at the back of the main room (the floor is at 80.34m).
+(define *hj2-time-gate-trans* (static-vectorm 710 80.338 -565))
+
+;; the gate's light: a glow and sparkles rising from a ring (part ids 5400-5402 and group id 1650:
+;; no Jak 3 level uses them; a new group's name isn't defined, see part-groups.gc)
+(defpartgroup group-hj2-time-gate
+  :id 1650
+  :bounds (static-bspherem 0 2 0 4)
+  :parts ((sp-item 5400) (sp-item 5401) (sp-item 5402))
+  )
+
+(defpart 5400
+  :init-specs ((:texture (glow-soft level-default-sprite))
+    (:num 0.5)
+    (:y (meters 1.6))
+    (:scale-x (meters 4) (meters 1))
+    (:rot-z (degrees 0) (degrees 360))
+    (:scale-y (meters 5) (meters 1))
+    (:r 32.0 32.0)
+    (:g 96.0 64.0)
+    (:b 255.0)
+    (:a 16.0 16.0)
+    (:fade-a -0.16)
+    (:timer (seconds 0.5))
+    (:flags (sp-cpuinfo-flag-2 sp-cpuinfo-flag-3))
+    )
+  )
+
+(defpart 5401
+  :init-specs ((:texture (hotdot level-default-sprite))
+    (:num 1.0 1.0)
+    (:x (meters 1.2) (meters 0.3))
+    (:scale-x (meters 0.15) (meters 0.1))
+    (:scale-y :copy scale-x)
+    (:r 96.0 64.0)
+    (:g 192.0 63.0)
+    (:b 255.0)
+    (:a 128.0 64.0)
+    (:vel-y (meters 0.02) (meters 0.02))
+    (:fade-a -1.0 -0.5)
+    (:timer (seconds 1.2))
+    (:flags (sp-cpuinfo-flag-2 sp-cpuinfo-flag-3))
+    (:rotate-y (degrees 0) (degrees 360))
+    )
+  )
+
+(defpart 5402
+  :init-specs ((:texture (middot level-default-sprite))
+    (:num 0.3)
+    (:y (meters 1.6))
+    (:scale-x (meters 2.5) (meters 0.5))
+    (:rot-z (degrees 0) (degrees 360))
+    (:scale-y :copy scale-x)
+    (:r 128.0)
+    (:g 192.0)
+    (:b 255.0)
+    (:a 32.0 16.0)
+    (:rotvel-z (degrees -1) (degrees 2))
+    (:fade-a -0.2)
+    (:timer (seconds 0.8))
+    (:flags (sp-cpuinfo-flag-2 sp-cpuinfo-flag-3))
+    )
+  )
+
+;; The time gate: continue is where it leads (havenj2-start), center the point Jak jumps to (1.5m
+;; above its base).
+(deftype hj2-time-gate (process-drawable)
+  ((continue  continue-point)
+   (center    vector  :inline)
+   )
+  (:state-methods
+    idle
+    (use continue-point)
+    )
+  )
+
+
+;; the gate's light, and its prompt while Jak stands within 3m of it (triangle: use)
+(defstate idle (hj2-time-gate)
+  :virtual #t
+  :code (behavior ()
+    (set-time! (-> self state-time))
+    (until #f
+      (spawn (-> self part) (-> self root trans))
+      (when (and (-> self continue) (hj2-can-travel? (meters 3)))
+        (talker-surpress!)
+        (when (and (can-display-query? self "warp-gate" -99.0) (time-elapsed? (-> self state-time) (seconds 0.1)))
+          (if (and (cpad-pressed? 0 triangle) (process-grab? *target* #f))
+              (go-virtual use (-> self continue))
+              )
+          (hj2-print-travel-prompt "Press <PAD_TRIANGLE> to travel through the time (Jak 2)")
+          )
+        )
+      (suspend)
+      )
+    #f
+    )
+  )
+
+;; the warp gate's use (warp-gate.gc): Jak jumps into the gate and vanishes, the continue loads
+(defstate use (hj2-time-gate)
+  :virtual #t
+  :event (behavior ((proc process) (argc int) (message symbol) (block event-message-block))
+    (case message
+      (('effect)
+       (vector-copy! (-> *launch-matrix* trans) (-> self center))
+       (part-tracker-spawn part-tracker :to *entity-pool* :group group-warpgate)
+       )
+      )
+    )
+  :exit (behavior ()
+    (remove-setting! 'mode-name)
+    (remove-setting! 'interp-time)
+    )
+  :trans (behavior ()
+    (send-event *camera* 'joystick 0.0 0.0)
+    )
+  :code (behavior ((arg0 continue-point))
+    (kill-current-talker '() '() 'exit)
+    (set-setting! 'mode-name 'cam-fixed 0.0 0)
+    (set-setting! 'interp-time 'abs 0.0 0)
+    (set-time! (-> self state-time))
+    (set-setting! 'allow-progress #f 0.0 0)
+    (set! (-> *setting-control* user-default border-mode) #t)
+    (set! (-> *level* play?) #t)
+    (apply-settings *setting-control*)
+    (let ((s5-0 (new 'stack-no-clear 'event-message-block)))
+      (set! (-> s5-0 from) (process->ppointer self))
+      (set! (-> s5-0 num-params) 4)
+      (set! (-> s5-0 message) 'change-state)
+      (set! (-> s5-0 param 0) (the-as uint target-warp-out))
+      (let ((v1-22 (new 'static 'vector)))
+        (vector-copy! v1-22 (-> self center))
+        (set! (-> s5-0 param 1) (the-as uint v1-22))
+        )
+      (set! (-> s5-0 param 2) (the-as uint (target-pos 0)))
+      (set! (-> s5-0 param 3) (the-as uint (process->handle self)))
+      (send-event-function *target* s5-0)
+      )
+    (suspend-for (seconds 2)
+      (spawn (-> self part) (-> self root trans))
+      )
+    (set-blackout-frames (seconds 0.05))
+    (start 'play arg0)
+    (suspend-for (seconds 1)
+      )
+    (go-virtual idle)
+    )
+  )
+
+(defbehavior hj2-time-gate-init hj2-time-gate ((pos vector))
+  "Init of the time gate (process-spawn :init), standing at pos: its light and its continue point."
+  (set! (-> self root) (new 'process 'trsqv))
+  (vector-copy! (-> self root trans) pos)
+  (quaternion-identity! (-> self root quat))
+  (vector-identity! (-> self root scale))
+  (vector-copy! (-> self center) pos)
+  (+! (-> self center y) (meters 1.5))
+  (set! (-> self continue) (get-continue-by-name *game-info* "havenj2-start"))
+  (set! (-> self part) (create-launch-control (-> *part-group-id-table* 1650) self))
+  (go-virtual idle)
+  )
+
+(define *hj2-time-gate* (the-as handle #f))
+
+(defun hj2-freehq-activate ((lev level) (mode symbol))
+  "freehq's activation callback (slot 35, added below): the time gate."
+  (when (not (handle->process *hj2-time-gate*))
+    (let ((proc (process-spawn hj2-time-gate :init hj2-time-gate-init *hj2-time-gate-trans* :name "hj2-time-gate" :to *entity-pool*)))
+      (set! *hj2-time-gate* (if proc
+                                (ppointer->handle proc)
+                                (the-as handle #f)
+                                )
+            )
+      )
+    )
+  (none)
+  )
+
+(defun hj2-freehq-deactivate ((lev level))
+  "freehq's deactivation callback (slot 36, added below): the time gate goes."
+  (let ((proc (handle->process *hj2-time-gate*)))
+    (if proc
+        (deactivate proc)
+        )
+    )
+  (set! *hj2-time-gate* (the-as handle #f))
+  (none)
+  )
+
+;; freehq has no callbacks of its own
+(when (not (get-callback-by-slot! freehq 35))
+  (let ((callbacks '((35 . hj2-freehq-activate) (36 . hj2-freehq-deactivate))))
+    (set! (-> freehq callback-list)
+          (cons (car callbacks) (cons (car (cdr callbacks)) (-> freehq callback-list)))
+          )
+    )
+  )
+
+;; Respawn points /////////////////////////////////////////////////////////////////////////////////
+
+;; Jak 3 picks the closest continue of a level when the player enters it (level-group update), which
+;; is how Jak 2's city districts, each its own level, got a respawn point next to the player. havenj2
+;; is one level: once one of its continues is set, that choice never runs again. This process does
+;; it by distance while havenj2 is active, so dying or saving respawns Jak near where he was. The
+;; places reached through the doors keep Jak 3's own choice (the doors set the vis level).
+
+(define *havenj2-continues* (the-as handle #f))
+
+(defun havenj2-closest-continue ((pos vector))
+  "The havenj2 continue point closest to pos, skipping the ones Jak 3 doesn't pick by itself."
+  (let ((best (the-as continue-point #f))
+        (best-dist 0.0)
+        (info (lookup-level-info 'havenj2))
+        )
+    (when info
+      (let ((conts (-> info continues)))
+        (while (not (null? conts))
+          (let ((cont (the-as continue-point (car conts))))
+            (when (not (logtest? (-> cont flags) (continue-flags change-continue no-auto)))
+              (let ((dist (vector-vector-distance pos (-> cont trans))))
+                (when (or (not best) (< dist best-dist))
+                  (set! best cont)
+                  (set! best-dist dist)
+                  )
+                )
+              )
+            )
+          (set! conts (cdr conts))
+          )
+        )
+      )
+    best
+    )
+  )
+
+(defun havenj2-update-continue ()
+  "Move the current continue to the havenj2 one closest to Jak, while it is a havenj2 one."
+  (let ((cont (-> *game-info* current-continue)))
+    (when (and *target*
+               cont
+               (= (-> cont level) 'havenj2)
+               (not (logtest? (-> cont flags) (continue-flags change-continue)))
+               (-> *setting-control* user-current allow-continue)
+               )
+      (let ((best (havenj2-closest-continue (target-pos 0))))
+        (if (and best (!= best cont))
+            (set-continue! *game-info* (the-as basic best) #f)
+            )
+        )
+      )
+    )
+  (none)
+  )
+
+(defbehavior havenj2-continues-code process ()
+  "The respawn point process's code: moves the current continue every frame
+(havenj2-update-continue)."
+  (loop
+    (havenj2-update-continue)
+    (suspend)
+    )
+  )
+
+;; Traffic ////////////////////////////////////////////////////////////////////////////////////////
+
+;; Jak 3's citizens, guards and vehicles in havenj2 (Mods menu: City traffic)
+(define *mod-jak2-haven-city-traffic* #t)
+
+;; in havenj2's own code (levels/havenj2/havenj2-traffic.gc): only called while havenj2 is active
+(define-extern havenj2-traffic-start (function level symbol none))
+(define-extern havenj2-traffic-stop (function level none))
+
+(defun hj2-traffic-refresh ((lev level) (mode symbol))
+  "Start or stop the traffic of havenj2 (lev, active), as *mod-jak2-haven-city-traffic* says."
+  (if *mod-jak2-haven-city-traffic*
+      (havenj2-traffic-start lev mode)
+      (havenj2-traffic-stop lev)
+      )
+  (none)
+  )
+
+;; Level callbacks (level-info callback-list) /////////////////////////////////////////////////////
+
+(defun havenj2-activate ((lev level) (mode symbol))
+  "havenj2's activation callback (slot 35): the clock (see *mod-jak2-haven-city-hour*), the
+weather, its sprite textures (and its props' particles), the traffic, and the respawn point follows
+Jak."
+  (hj2-apply-time-of-day)
+  (hj2-apply-weather)
+  (hj2-sprite-page-on lev)
+  (hj2-prop-textures-on)
+  (hj2-traffic-refresh lev mode)
+  (when (not (handle->process *havenj2-continues*))
+    (let ((proc (process-spawn-function process havenj2-continues-code :name "havenj2-continues")))
+      (set! *havenj2-continues* (if proc
+                                    (ppointer->handle proc)
+                                    (the-as handle #f)
+                                    )
+            )
+      )
+    )
+  (none)
+  )
+
+(defun havenj2-deactivate ((lev level))
+  "havenj2's deactivation callback (slot 36): the traffic stops, the respawn point stops following,
+the clock runs again if Jak left this mod's levels."
+  (havenj2-traffic-stop lev)
+  (hj2-release-time-of-day lev)
+  (hj2-sprite-page-off lev)
+  (let ((proc (handle->process *havenj2-continues*)))
+    (if proc
+        (deactivate proc)
+        )
+    )
+  (set! *havenj2-continues* (the-as handle #f))
+  (none)
+  )
+
+(defun hj2-place-activate ((lev level) (mode symbol))
+  "Activation callback (slot 35) of the places reached from the city: the same clock as the city
+(Jak 2 unloads the city while Jak is in some of them)."
+  (hj2-apply-time-of-day)
+  (hj2-apply-weather)
+  (hj2-sprite-page-on lev)
+  (none)
+  )
+
+(defun hj2-place-deactivate ((lev level))
+  "Deactivation callback (slot 36) of the places: the clock runs again if Jak left this mod's
+levels."
+  (hj2-release-time-of-day lev)
+  (hj2-sprite-page-off lev)
+  (none)
+  )

@@ -6,24 +6,267 @@
 ;; dgos: HJ2
 
 ;; og:jak2-haven-city Level code for havenj2, Jak 2's Haven City rebuilt as a Jak 3 custom level.
+;; Its moods, level callbacks and respawn points are in GAME: pc/features/jak2-haven-city-world.gc.
+;; The palace pillar elevator (hj2-elevator) is in GAME too, the mountain's actors in hj2-mount-obs.gc.
 
-;; Mood. The background comes from Jak 2's city levels, whose time-of-day palettes are laid out like
-;; this (see update-mood-ctysluma in goal_src/jak2/engine/gfx/mood/mood-funcs.gc):
-;;   0     ambient            1-4   sun light          (both from the exterior mood)
-;;   5     street lights      6     flames             7     neon signs
-;; Jak 3's update-mood-ctywide leaves palette 7 at 0, which keeps every neon sign and industrial
-;; light of Jak 2's city dark. Each Jak 2 district had its own mood function; this one merges the
-;; slums one, which drives all three light palettes. The state offsets (bytes into the mood-context
-;; state area) are the same as ctysluma's: light 0, neon 8, flames 16.
-(defbehavior update-mood-havenj2 time-of-day-proc ((arg0 mood-context) (arg1 float) (arg2 int))
-  (copy-mood-exterior arg0)
-  (when (and (= (-> *level* level arg2 status) 'active)
-             (< (the-as uint (-> *time-of-day-context* mode)) (the-as uint 9))
-             )
-    (update-mood-flames arg0 6 1 16 0.5 0.001953125 2.0)
-    (update-mood-light arg0 7 8 0.9 0.0 arg1 32.0 2.0)
-    (update-mood-light arg0 5 0 1.0 0.0 arg1 0.0 2.0)
+;; Jak 2's propaganda speakers (propa, levels/city/ctywide-obs.gc there): a pole projecting the
+;; Baron's hologram (a particle group, turned towards whoever is closest), solid, broken by a few
+;; hits. Its model is Jak 2's intact look (hj2-propa.glb, made by gen_havenj2_props.py, built by
+;; build-actor); Jak 2 switched to a damaged then a broken look, here it blows up when broken. The
+;; Baron's speeches (Jak 2's voice streams) aren't in Jak 3.
+(deftype hj2-propa (process-focusable)
+  ((handle              handle)
+   (y-rot               float)
+   (hit-points          int32)
+   (incoming-attack-id  uint32)
+   )
+  (:state-methods
+    idle
+    broken
+    )
+  )
+
+
+(def-actor hj2-propa
+  :bounds (0 1.5 0 3)
+  )
+
+(defun hj2-propa-pu->knocked-type ((arg0 penetrate))
+  "Jak 2's propa-pu->knocked-type: the attacks that break it at once."
+  (the-as knocked-type (cond
+                         ((logtest? arg0 (penetrate vehicle))
+                          7
+                          )
+                         ((logtest? (penetrate jak-blue-shot) arg0)
+                          6
+                          )
+                         ((logtest? (penetrate jak-yellow-shot enemy-yellow-shot) arg0)
+                          4
+                          )
+                         ((logtest? (penetrate jak-red-shot) arg0)
+                          5
+                          )
+                         ((logtest? (penetrate explode jak-dark-shot enemy-dark-shot) arg0)
+                          2
+                          )
+                         ((logtest? (penetrate dark-bomb dark-smack) arg0)
+                          3
+                          )
+                         ((logtest? arg0 (penetrate mech-punch))
+                          1
+                          )
+                         (else
+                           0
+                           )
+                         )
+          )
+  )
+
+(defun hj2-propa-find-target ((this hj2-propa) (arg0 vector))
+  "The hologram turns to the closest thing around (Jak when he's near)."
+  (let ((s5-0 (the-as process-drawable #f)))
+    (let ((f30-0 (the-as float #x7f800000))
+          (s3-0 (new 'stack-no-clear 'array 'collide-shape 64))
+          )
+      (countdown (s2-0 (fill-actor-list-for-box *actor-hash* arg0 s3-0 64))
+        (let ((a0-3 (as-type (-> s3-0 s2-0) collide-shape)))
+          (when a0-3
+            (let ((s1-1 (as-type (-> a0-3 process) process-focusable)))
+              (when (and s1-1
+                         (!= this s1-1)
+                         (not (focus-test? (the-as process-focusable s1-1) inactive))
+                         (not (focus-test? (the-as process-focusable s1-1) disable))
+                         (not (focus-test? (the-as process-focusable s1-1) dead))
+                         (not (logtest? (process-mask guard) (-> s1-1 mask)))
+                         (not (logtest? (process-mask crate) (-> s1-1 mask)))
+                         (not (logtest? (process-mask vehicle) (-> s1-1 mask)))
+                         )
+                (let ((f0-0 (vector-vector-xz-distance (-> this root trans) (-> s1-1 root trans))))
+                  (when (or (not s5-0) (< f0-0 f30-0))
+                    (set! s5-0 s1-1)
+                    (set! f30-0 f0-0)
+                    )
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    (if (and *target* (< (vector-vector-distance (target-pos 0) arg0) (-> arg0 w)))
+        (set! s5-0 *target*)
+        )
+    (if s5-0
+        (set! (-> this handle) (process->handle s5-0))
+        (set! (-> this handle) (the-as handle #f))
+        )
     )
   0
+  (none)
+  )
+
+;; blown up: hidden and without collision, nothing left to do
+(defstate broken (hj2-propa)
+  :virtual #t
+  :code sleep-code
+  )
+
+;; standing: each hit takes hit points (the strongest attacks all 10 at once), below 3 it blows
+;; up; its post turns the hologram to the closest target
+(defstate idle (hj2-propa)
+  :virtual #t
+  :event (behavior ((proc process) (argc int) (message symbol) (block event-message-block))
+    (case message
+      (('attack)
+       (let ((v1-2 (the-as attack-info (-> block param 1))))
+         (when (!= (-> v1-2 id) (-> self incoming-attack-id))
+           (set! (-> self incoming-attack-id) (-> v1-2 id))
+           (let ((s5-1 (get-penetrate-using-from-attack-event (the-as process-drawable proc) block)))
+             (if (and (not (logtest? (penetrate dark-skin) s5-1)) (zero? (hj2-propa-pu->knocked-type s5-1)))
+                 (set! (-> self hit-points) (- (-> self hit-points) (the int (penetrate-using->damage s5-1))))
+                 (+! (-> self hit-points) -10)
+                 )
+             )
+           (when (< (-> self hit-points) 3)
+             ;; blown up: no more pole, no more collision, no more hologram
+             (let ((v1-18 (-> self root root-prim)))
+               (set! (-> v1-18 prim-core collide-as) (collide-spec))
+               (set! (-> v1-18 prim-core collide-with) (collide-spec))
+               )
+             (logior! (-> self draw status) (draw-control-status no-draw))
+             (vector-copy!
+               (-> *launch-matrix* trans)
+               (vector+*! (new 'stack-no-clear 'vector) (-> self root trans) *up-vector* 8192.0)
+               )
+             (part-tracker-spawn part-tracker :to *entity-pool* :group group-kg-explosion)
+             (go-virtual broken)
+             )
+           )
+         )
+       )
+      )
+    )
+  :code sleep-code
+  :post (behavior ()
+    (let ((a1-4 (new 'stack-no-clear 'vector)))
+      (vector-copy! a1-4 (-> self root trans))
+      (set! (-> a1-4 w) 40960.0)
+      (hj2-propa-find-target self a1-4)
+      )
+    (let ((s5-1 (matrix->trans (-> self node-list data 3 bone transform) (new 'stack-no-clear 'vector)))
+          (s4-0 (new 'stack-no-clear 'vector))
+          (gp-3 (new 'stack-no-clear 'matrix))
+          )
+      (when (and (nonzero? (-> self handle)) (handle->process (-> self handle)))
+        (let ((a0-25 (as-type (handle->process (-> self handle)) process-focusable)))
+          (when a0-25
+            (vector-! s4-0 (-> (the-as process-focusable a0-25) root trans) (-> self root trans))
+            (set! (-> self y-rot) (deg-seek
+                                    (-> self y-rot)
+                                    (deg- (vector-y-angle s4-0) (quaternion-y-angle (-> self root quat)))
+                                    (* 36408.89 (seconds-per-frame))
+                                    )
+                  )
+            )
+          )
+        )
+      (matrix-rotate-y! gp-3 (-> self y-rot))
+      (matrix<-trans gp-3 s5-1)
+      (spawn-from-mat (-> self part) gp-3)
+      )
+    )
+  )
+
+(defmethod init-from-entity! ((this hj2-propa) (arg0 entity-actor))
+  "Jak 2's propa setup: solid and rideable (the collision box of its model, joint 3), 10 hit
+points, the hologram (group-ctywide-baron-propoganda-holo, in havenj2-part.gc)."
+  (let ((s5-0 (new 'process 'collide-shape this (collide-list-enum usually-hit-by-player))))
+    (let ((v1-2 (new 'process 'collide-shape-prim-mesh s5-0 (the-as uint 0) (the-as uint 0))))
+      (set! (-> v1-2 prim-core collide-as) (collide-spec crate))
+      (set! (-> v1-2 prim-core collide-with) (collide-spec jak player-list tobot))
+      (set! (-> v1-2 prim-core action) (collide-action solid rideable))
+      (set! (-> v1-2 transform-index) 3)
+      (set-vector! (-> v1-2 local-sphere) 0.0 (meters 1.5) 0.0 (meters 2))
+      (set! (-> s5-0 total-prims) (the-as uint 1))
+      (set! (-> s5-0 root-prim) v1-2)
+      )
+    (set! (-> s5-0 nav-radius) (* 0.75 (-> s5-0 root-prim local-sphere w)))
+    (let ((v1-5 (-> s5-0 root-prim)))
+      (set! (-> s5-0 backup-collide-as) (-> v1-5 prim-core collide-as))
+      (set! (-> s5-0 backup-collide-with) (-> v1-5 prim-core collide-with))
+      )
+    (set! (-> this root) s5-0)
+    )
+  (process-drawable-from-entity! this arg0)
+  (initialize-skeleton this *hj2-propa-sg* (the-as pair 0))
+  (logior! (-> this mask) (process-mask crate))
+  (set! (-> this part)
+        (create-launch-control (-> *part-group-id-table* (-> *hj2-propa-holo-group-ids* 0)) this)
+        )
+  (set! (-> this hit-points) 10)
+  (transform-post)
+  (go (method-of-object this idle))
+  )
+
+;; Jak 2's palace gate (palace-door, levels/city/palace/ctypal-obs.gc there), the door between the
+;; palace plaza and the lobby of the palace pillar (the level hj2-pshaft). Jak 3 has no such door:
+;; its model, skeleton and opening animation are Jak 2's, rebuilt as a custom actor by build-actor
+;; (hj2-palace-door.glb, made by custom_assets/jak3/levels/havenj2/gen_havenj2_links.py). It must
+;; really close: like in Jak 2, the city is hidden while Jak is in the lobby and unloaded while he
+;; rides up the pillar, and the gate only opens again once the city is back.
+(deftype hj2-palace-door (com-airlock)
+  ()
+  )
+
+
+;; the art group from build-actor: joint geometry, merc model (in havenj2's fr3), and the opening
+;; animation hj2-palace-door-idle (closed at frame 0, open at the last one)
+(def-actor hj2-palace-door
+  :bounds (0 16 0 24)
+  )
+
+;; WARN: Return type mismatch object vs none.
+(defmethod init-from-entity! ((this hj2-palace-door) (arg0 entity-actor))
+  "Jak 2's palace-door setup: a collision box bound to the sliding door (joint door, transform
+index 3, as in Jak 2), the frames of Jak 2's animation, and Jak 3's airlock sounds (Jak 2's
+pal-door sounds aren't in Jak 3)."
+  (stack-size-set! (-> this main-thread) 1024)
+  (let ((s5-0 (new 'process 'collide-shape this (collide-list-enum usually-hit-by-player))))
+    (set! (-> s5-0 penetrated-by) (penetrate))
+    (let ((v1-2 (new 'process 'collide-shape-prim-mesh s5-0 (the-as uint 0) (the-as uint 0))))
+      (set! (-> v1-2 prim-core collide-as) (collide-spec obstacle))
+      (set! (-> v1-2 prim-core collide-with) (collide-spec jak bot player-list))
+      (set! (-> v1-2 prim-core action) (collide-action solid))
+      (set! (-> v1-2 transform-index) 3)
+      ;; the door slab: 26m wide, 30m high, from its origin up
+      (set-vector! (-> v1-2 local-sphere) 0.0 (meters 13) 0.0 (meters 20))
+      (set! (-> s5-0 total-prims) (the-as uint 1))
+      (set! (-> s5-0 root-prim) v1-2)
+      )
+    (set! (-> s5-0 nav-radius) (* 0.75 (-> s5-0 root-prim local-sphere w)))
+    (let ((v1-5 (-> s5-0 root-prim)))
+      (set! (-> s5-0 backup-collide-as) (-> v1-5 prim-core collide-as))
+      (set! (-> s5-0 backup-collide-with) (-> v1-5 prim-core collide-with))
+      )
+    (set! (-> this root) s5-0)
+    )
+  (initialize-skeleton this *hj2-palace-door-sg* (the-as pair 0))
+  (init-airlock! this)
+  ;; Jak 2's frames 48, 60 and 60. Jak 2 plays the animation at 15 fps, build-actor's play at
+  ;; 60 fps: it is sampled at 60 fps (game.gp), 4 frames for each of Jak 2's, so the gate opens
+  ;; at Jak 2's speed.
+  (set! (-> this pre-open-frame) 192.0)
+  (set! (-> this lock-frame) 240.0)
+  (set! (-> this open-frame) 240.0)
+  (set! (-> this sound-pre-open) (static-sound-spec "airlock-slider" :group 0))
+  (set! (-> this sound-pre-open-stop) (static-sound-spec "airlock-slide-e" :group 0))
+  (set! (-> this sound-open) (static-sound-spec "airlock-seal" :group 0))
+  (set! (-> this sound-open-loop) (static-sound-spec "airlock-open" :group 0))
+  (set! (-> this sound-open-stop) (static-sound-spec "airlock-hit" :group 0))
+  (set! (-> this sound-close-loop) (static-sound-spec "airlock-open" :group 0))
+  (set! (-> this sound-close-stop) (static-sound-spec "airlock-hit" :group 0))
+  (set! (-> this sound-behind?) #t)
+  (set! (-> this door-radius) 40960.0)
+  (go (method-of-object this close) #t)
   (none)
   )

@@ -1,0 +1,459 @@
+;;-*-Lisp-*-
+(in-package goal)
+
+;; name: havenj2-signs.gc
+;; name in dgo: havenj2-signs
+;; dgos: HJ2
+
+;; og:jak2-haven-city The animated neon signs of Jak 2's city: the Baron's skull in the slums
+;; (neon-baron), Praxis' name in the city center (city-neon-praxis) and the Hip Hog's marquee in the
+;; port (hiphog-exterior-marquee). Their lights are particles (havenj2-part.gc, generated from Jak
+;; 2's part files); these processes pick a random blinking pattern from the sign's data and spawn
+;; the particles with it. Ported from Jak 2 (Jak 3's neon-baron-part.gc has the same code for the
+;; Baron's sign).
+
+;; +++hj2-neon-baron-flag
+(defenum hj2-neon-baron-flag
+  :type uint64
+  :bitfield #t
+  (nb0)
+  (nb1)
+  (nb2)
+  (nb3)
+  )
+;; ---hj2-neon-baron-flag
+
+;; The Baron's skull (Jak 2's neon-baron, ctysluma) ///////////////////////////////////////////////
+
+;; flags: the parts of the sign lit now (nb0-nb3), mode: its current pattern, sign: its data
+;; (*hj2-baron-neon-skull*), mat: where its particles spawn
+(deftype hj2-neon-baron (process)
+  ((flags          hj2-neon-baron-flag)
+   (master-enable  uint64)
+   (mode           uint64)
+   (sign           (array object))
+   (parts          sparticle-launch-control  1)
+   (state-time     time-frame)
+   (mat            matrix                    :inline)
+   )
+  (:state-methods
+    idle
+    )
+  (:methods
+    (spawn-parts (_type_) symbol)
+    (update-mode (_type_) none)
+    )
+  )
+
+
+(defmethod deactivate ((this hj2-neon-baron))
+  "Kill its particles with the process."
+  (let ((a0-1 (-> this parts 0)))
+    (if (nonzero? a0-1)
+        (kill-particles a0-1)
+        )
+    )
+  ((method-of-type process deactivate) this)
+  (none)
+  )
+
+(defmethod relocate ((this hj2-neon-baron) (offset int))
+  "Relocate its particle launcher with the process."
+  (if (nonzero? (-> this parts 0))
+      (&+! (-> this parts 0) offset)
+      )
+  (the-as hj2-neon-baron ((method-of-type process relocate) this offset))
+  )
+
+(defmethod spawn-parts ((this hj2-neon-baron))
+  "Spawn the sign's particles for the parts lit now (flags); a new set restarts their animation."
+  (+! (-> this parts 0 state-counter) 1)
+  (when (!= (-> this parts 0 state-mode 0) (-> this flags))
+    (set! (-> this parts 0 state-mode 0) (the-as uint (-> this flags)))
+    (set! (-> this parts 0 state-counter) (the-as uint 0))
+    0
+    )
+  (if (logtest? (-> this master-enable) 1)
+      (spawn-from-mat (-> this parts 0) (-> this mat))
+      )
+  #f
+  )
+
+(defmethod update-mode ((this hj2-neon-baron))
+  "Pick a new random pattern (one of 12, not the current one)."
+  (set! (-> this mode) (the-as uint (rand-vu-int-count-excluding 12 (ash 1 (the-as int (-> this mode))))))
+  (none)
+  )
+
+(define *hj2-neon-baron-flashing-acc* (new 'static 'array uint32 40
+                                        #x258 #x168 #x168 #xd8 #xd8 #x81 #x81 #x4d #x4d #x2e
+                                        #x2e #x2e #x1b #x1b #x10 #x10 #xa #xa #x6 #x6
+                                        #x6 #x6 #x6 #x6 #x6 #x6 #x6 #x6 #x6 #x6
+                                        #x6 #x6 #x6 #x6 #x6 #x6 #x6 #x5a #x0 #x0
+                                        )
+        )
+
+(defbehavior hj2-neon-baron-wait-sign hj2-neon-baron ((times int))
+  "Hold the current pattern for times runs of its animation."
+  (dotimes (s5-5 times)
+    (let ((s4-1 0))
+      (while (let ((a0-45 (the-as (array object) (-> self sign (+ (-> self flags) 1)))))
+               (< s4-1 (* (+ (-> a0-45 length) -1) (the-as int (/ (the-as int (-> a0-45 0)) 8))))
+               )
+        (suspend)
+        (+! s4-1 1)
+        )
+      )
+    )
+  (none)
+  )
+
+(defbehavior hj2-neon-baron-blink hj2-neon-baron ((off hj2-neon-baron-flag) (on hj2-neon-baron-flag) (count int) (period time-frame))
+  "Blink between two patterns."
+  (dotimes (i count)
+    (set-time! (-> self state-time))
+    (set! (-> self flags) off)
+    (until (time-elapsed? (-> self state-time) period)
+      (suspend)
+      )
+    (set-time! (-> self state-time))
+    (set! (-> self flags) on)
+    (until (time-elapsed? (-> self state-time) period)
+      (suspend)
+      )
+    )
+  (none)
+  )
+
+(defbehavior hj2-neon-baron-flash hj2-neon-baron ((off hj2-neon-baron-flag) (on hj2-neon-baron-flag))
+  "Flash faster and faster (*hj2-neon-baron-flashing-acc*)."
+  (dotimes (gp-0 19)
+    (set-time! (-> self state-time))
+    (set! (-> self flags) off)
+    (until (time-elapsed? (-> self state-time) (the-as time-frame (-> *hj2-neon-baron-flashing-acc* (* gp-0 2))))
+      (suspend)
+      )
+    (set-time! (-> self state-time))
+    (set! (-> self flags) on)
+    (until (time-elapsed? (-> self state-time) (the-as time-frame (-> *hj2-neon-baron-flashing-acc* (+ (* gp-0 2) 1))))
+      (suspend)
+      )
+    )
+  (none)
+  )
+
+;; plays random patterns forever: blinking, flashing faster and faster, or holding a set of parts
+(defstate idle (hj2-neon-baron)
+  :virtual #t
+  :trans (behavior ()
+    (spawn-parts self)
+    )
+  :code (behavior ()
+    (until #f
+      (update-mode self)
+      (case (-> self mode)
+        ((2)
+         (hj2-neon-baron-flash (hj2-neon-baron-flag nb3) (hj2-neon-baron-flag nb0 nb3))
+         )
+        ((0)
+         (hj2-neon-baron-blink (hj2-neon-baron-flag nb3) (hj2-neon-baron-flag nb0 nb3) 3 (seconds 1))
+         )
+        ((1)
+         (hj2-neon-baron-blink (hj2-neon-baron-flag nb3) (hj2-neon-baron-flag nb0 nb3) 3 (seconds 0.5))
+         )
+        ((10)
+         (hj2-neon-baron-flash (hj2-neon-baron-flag nb0 nb1) (hj2-neon-baron-flag nb1))
+         )
+        ((8)
+         (hj2-neon-baron-blink (hj2-neon-baron-flag nb0 nb1) (hj2-neon-baron-flag nb1) 3 (seconds 1))
+         )
+        ((9)
+         (hj2-neon-baron-blink (hj2-neon-baron-flag nb0 nb1) (hj2-neon-baron-flag nb1) 3 (seconds 0.5))
+         )
+        ((3)
+         (set! (-> self flags) (hj2-neon-baron-flag nb1 nb3))
+         (hj2-neon-baron-wait-sign (rand-vu-int-range 2 3))
+         )
+        ((4)
+         (set! (-> self flags) (hj2-neon-baron-flag nb0 nb2))
+         (hj2-neon-baron-wait-sign (rand-vu-int-range 10 40))
+         )
+        ((5)
+         (set! (-> self flags) (hj2-neon-baron-flag nb2))
+         (hj2-neon-baron-wait-sign (rand-vu-int-range 3 10))
+         )
+        ((6)
+         (set! (-> self flags) (hj2-neon-baron-flag nb0 nb1 nb2))
+         (hj2-neon-baron-wait-sign (rand-vu-int-range 3 6))
+         )
+        ((11)
+         (set! (-> self flags) (hj2-neon-baron-flag nb1 nb2))
+         (hj2-neon-baron-wait-sign (rand-vu-int-range 3 6))
+         )
+        ((7)
+         (set! (-> self flags) (hj2-neon-baron-flag nb0))
+         (dotimes (gp-11 (rand-vu-int-range 3 6))
+           (set-time! (-> self state-time))
+           (until (time-elapsed? (-> self state-time) (seconds 1))
+             (suspend)
+             )
+           )
+         )
+        )
+      )
+    #f
+    )
+  )
+
+(defmethod init-from-entity! ((this hj2-neon-baron) (arg0 entity-actor))
+  "Setup from the entity: particles placed and turned like it, every part lit, the skull's data and
+particle group."
+  (matrix-rotate-y! (-> this mat) (quaternion-y-angle (-> arg0 quat)))
+  (vector-copy! (-> this mat trans) (-> arg0 extra trans))
+  (set! (-> this master-enable) (the-as uint -1))
+  (set! (-> this flags) (hj2-neon-baron-flag nb0 nb3))
+  (set! (-> this mode) (the-as uint 0))
+  (set! (-> this sign) *hj2-baron-neon-skull*)
+  (set! (-> this parts 0) (create-launch-control (-> *part-group-id-table* (-> *hj2-baron-group-ids* 0)) this))
+  (update-mode this)
+  (go (method-of-object this idle))
+  )
+
+;; Praxis' name (Jak 2's city-neon-praxis, ctygena) ///////////////////////////////////////////////
+
+;; praxis-mode and back-mode: the patterns of the name and of its backing, each run for its counter
+;; (frames)
+(deftype hj2-neon-praxis (process-drawable)
+  ((rot             vector                    :inline)
+   (master-enable   uint32)
+   (praxis-mode     uint32)
+   (back-mode       uint32)
+   (praxis-counter  int32)
+   (back-counter    int32)
+   (parts           sparticle-launch-control  2)
+   )
+  (:state-methods
+    idle
+    )
+  (:methods
+    (spawn-parts (_type_) none)
+    )
+  )
+
+
+(defmethod deactivate ((this hj2-neon-praxis))
+  "Kill its particles with the process."
+  (dotimes (s5-0 2)
+    (let ((a0-1 (-> this parts s5-0)))
+      (if (nonzero? a0-1)
+          (kill-particles a0-1)
+          )
+      )
+    )
+  ((method-of-type process-drawable deactivate) this)
+  (none)
+  )
+
+(defmethod relocate ((this hj2-neon-praxis) (offset int))
+  "Relocate its particle launchers with the process."
+  (dotimes (v1-0 2)
+    (if (nonzero? (-> this parts v1-0))
+        (&+! (-> this parts v1-0) offset)
+        )
+    )
+  (the-as hj2-neon-praxis ((method-of-type process-drawable relocate) this offset))
+  )
+
+(defmethod spawn-parts ((this hj2-neon-praxis))
+  "Both faces of the sign: the name (parts 1) and its backing (parts 0), turned to the camera."
+  (+! (-> this parts 1 state-counter) 1)
+  (when (!= (-> this parts 1 state-mode 0) (-> this praxis-mode))
+    (set! (-> this parts 1 state-mode 0) (-> this praxis-mode))
+    (set! (-> this parts 1 state-counter) (the-as uint 0))
+    0
+    )
+  (+! (-> this parts 0 state-counter) 1)
+  (when (!= (-> this parts 0 state-mode 0) (-> this back-mode))
+    (set! (-> this parts 0 state-mode 0) (-> this back-mode))
+    (set! (-> this parts 0 state-counter) (the-as uint 0))
+    0
+    )
+  (let ((s5-0 (-> this master-enable))
+        (s4-0 (new 'stack-no-clear 'vector))
+        (s3-0 (new 'stack-no-clear 'vector))
+        (f30-0 (-> this rot y))
+        )
+    (set-vector! s4-0 (* 3276.8 (cos (- 49152.0 f30-0))) 0.0 (* 3276.8 (sin (- 49152.0 f30-0))) 1.0)
+    (vector-! s3-0 (camera-pos) (-> this root trans))
+    (when (< (vector-dot s4-0 s3-0) 0.0)
+      (vector-negate! s4-0 s4-0)
+      (set! f30-0 (+ 32768.0 f30-0))
+      )
+    (vector+! s4-0 s4-0 (-> this root trans))
+    (dotimes (s3-1 2)
+      (when (logtest? s5-0 1)
+        (let ((s2-3 (-> this parts s3-1)))
+          (matrix-rotate-y! (-> s2-3 origin) (+ 16384.0 f30-0))
+          (spawn s2-3 s4-0)
+          )
+        )
+      (set! s5-0 (shr s5-0 1))
+      )
+    )
+  (none)
+  )
+
+(defun hj2-sign-pattern-length ((data (array object)) (mode uint))
+  "Frames of one run of a sign's pattern (the data arrays of havenj2-part.gc)."
+  (let ((a0-3 (the-as object (-> data (+ mode 1)))))
+    (* (+ (-> (the-as (pointer int32) a0-3) 0) -1) (the-as int (/ (the-as int (-> (the-as (array object) a0-3) 0)) 8)))
+    )
+  )
+
+;; picks a random pattern for the name and for its backing, each run 3 to 6 times (at least 120
+;; frames), and spawns their particles every frame
+(defstate idle (hj2-neon-praxis)
+  :virtual #t
+  :code (behavior ()
+    (until #f
+      (when (<= (-> self praxis-counter) 0)
+        (set! (-> self praxis-mode) (the-as uint (rand-vu-int-count 5)))
+        (set! (-> self praxis-counter)
+              (* (rand-vu-int-range 3 6) (hj2-sign-pattern-length *hj2-praxis* (-> self praxis-mode)))
+              )
+        (while (< (-> self praxis-counter) 120)
+          (set! (-> self praxis-counter) (* (-> self praxis-counter) 2))
+          )
+        )
+      (+! (-> self praxis-counter) -1)
+      (when (<= (-> self back-counter) 0)
+        (set! (-> self back-mode) (the-as uint (rand-vu-int-count 8)))
+        (set! (-> self back-counter)
+              (* (rand-vu-int-range 3 6) (hj2-sign-pattern-length *hj2-praxis-backing* (-> self back-mode)))
+              )
+        (while (< (-> self back-counter) 120)
+          (set! (-> self back-counter) (* (-> self back-counter) 2))
+          )
+        )
+      (+! (-> self back-counter) -1)
+      (spawn-parts self)
+      (suspend)
+      )
+    #f
+    )
+  )
+
+(defmethod init-from-entity! ((this hj2-neon-praxis) (arg0 entity-actor))
+  "Setup from the entity: turned a quarter turn and moved 1m back (Jak 2's), random first patterns,
+its two particle groups."
+  (set! (-> this root) (new 'process 'trsqv))
+  (process-drawable-from-entity! this arg0)
+  (logclear! (-> this mask) (process-mask actor-pause enemy))
+  (logior! (-> this mask) (process-mask ambient))
+  (set! (-> this master-enable) (the-as uint -1))
+  (set! (-> this praxis-mode) (the-as uint (rand-vu-int-count 5)))
+  (set! (-> this back-mode) (the-as uint (rand-vu-int-count 8)))
+  (let ((f0-1 16384.0))
+    (set! (-> this rot y) f0-1)
+    (quaternion-vector-angle! (-> this root quat) (new 'static 'vector :y 1.0 :w 1.0) f0-1)
+    )
+  (let ((s5-1 (new 'stack-no-clear 'vector)))
+    (vector-z-quaternion! s5-1 (-> this root quat))
+    (vector-normalize! s5-1 -4096.0)
+    (vector+! (-> this root trans) (-> this root trans) s5-1)
+    )
+  (dotimes (s4-0 2)
+    (set! (-> this parts s4-0)
+          (create-launch-control (-> *part-group-id-table* (-> *hj2-neon-praxis-group-ids* s4-0)) this)
+          )
+    )
+  (go (method-of-object this idle))
+  )
+
+;; The Hip Hog's marquee (Jak 2's hiphog-exterior-marquee, ctyport) ///////////////////////////////
+
+;; mode: its current pattern, run for counter frames
+(deftype hj2-hiphog-marquee (process-drawable)
+  ((master-enable  uint32)
+   (mode           uint32)
+   (counter        int32)
+   (parts          sparticle-launch-control  1)
+   )
+  (:state-methods
+    idle
+    )
+  (:methods
+    (spawn-parts (_type_) none)
+    )
+  )
+
+
+(defmethod deactivate ((this hj2-hiphog-marquee))
+  "Kill its particles with the process."
+  (let ((a0-1 (-> this parts 0)))
+    (if (nonzero? a0-1)
+        (kill-particles a0-1)
+        )
+    )
+  ((method-of-type process-drawable deactivate) this)
+  (none)
+  )
+
+(defmethod relocate ((this hj2-hiphog-marquee) (offset int))
+  "Relocate its particle launcher with the process."
+  (if (nonzero? (-> this parts 0))
+      (&+! (-> this parts 0) offset)
+      )
+  (the-as hj2-hiphog-marquee ((method-of-type process-drawable relocate) this offset))
+  )
+
+(defmethod spawn-parts ((this hj2-hiphog-marquee))
+  "Spawn the marquee's particles with the current pattern; a new one restarts their animation."
+  (+! (-> this parts 0 state-counter) 1)
+  (when (!= (-> this parts 0 state-mode 0) (-> this mode))
+    (set! (-> this parts 0 state-mode 0) (-> this mode))
+    (set! (-> this parts 0 state-counter) (the-as uint 0))
+    0
+    )
+  (if (logtest? (-> this master-enable) 1)
+      (spawn (-> this parts 0) (-> this root trans))
+      )
+  (none)
+  )
+
+;; picks a random pattern, run 3 to 6 times (at least 120 frames), and spawns its particles every
+;; frame
+(defstate idle (hj2-hiphog-marquee)
+  :virtual #t
+  :code (behavior ()
+    (until #f
+      (when (<= (-> self counter) 0)
+        (set! (-> self mode) (the-as uint (rand-vu-int-count 8)))
+        (set! (-> self counter)
+              (* (rand-vu-int-range 3 6) (hj2-sign-pattern-length *hj2-hiphog-exterior-marquee* (-> self mode)))
+              )
+        (while (< (-> self counter) 120)
+          (set! (-> self counter) (* (-> self counter) 2))
+          )
+        )
+      (+! (-> self counter) -1)
+      (spawn-parts self)
+      (suspend)
+      )
+    #f
+    )
+  )
+
+(defmethod init-from-entity! ((this hj2-hiphog-marquee) (arg0 entity-actor))
+  "The marquee before the nest boss (Jak 2 shows Daxter's after it): the state of the city kept."
+  (set! (-> this root) (new 'process 'trsqv))
+  (process-drawable-from-entity! this arg0)
+  (logclear! (-> this mask) (process-mask actor-pause enemy))
+  (logior! (-> this mask) (process-mask ambient))
+  (set! (-> this master-enable) (the-as uint -1))
+  (set! (-> this mode) (the-as uint (rand-vu-int-count 8)))
+  (set! (-> this parts 0)
+        (create-launch-control (-> *part-group-id-table* (-> *hj2-hiphog-marquee-group-ids* 0)) this)
+        )
+  (go (method-of-object this idle))
+  )

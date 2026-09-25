@@ -1,5 +1,7 @@
 #include "LevelFile.h"
 
+#include <algorithm>
+
 #include "goalc/data_compiler/DataObjectGenerator.h"
 
 namespace jak3 {
@@ -154,6 +156,9 @@ std::vector<u8> LevelFile::save_object_file() {
   //(actors                 drawable-inline-array-actor      :offset-assert 112)
   gen.link_word_to_byte(112 / 4, generate_inline_array_actors(gen, actors));
   //(cameras                (array entity-camera)            :offset-assert 116)
+  if (!cameras.empty()) {
+    gen.link_word_to_byte(116 / 4, generate_cameras_array(gen, cameras));
+  }
   //(nodes                  (inline-array bsp-node)          :offset-assert 120)
   //(level                  level                            :offset-assert 124)
   //(current-leaf-idx       uint16                           :offset-assert 128)
@@ -168,6 +173,34 @@ std::vector<u8> LevelFile::save_object_file() {
   gen.link_word_to_byte(172 / 4, generate_u32_array(actor_birth_order, gen));
   //(light-hash             light-hash                       :offset-assert 176)
   //(nav-meshes             (array entity-nav-mesh)          :offset-assert 180)
+  //(city-level-info        city-level-info                  :offset        208)
+  if (nav_data) {
+    const int base = nav_data->add_to(gen);
+    // (aid, offset) of each entity-nav-mesh: entity-nav-mesh-by-aid binary-searches the array, so
+    // it is sorted by aid (the entity's aid is 44 bytes after its basic pointer)
+    std::vector<std::pair<u32, int>> meshes;
+    for (const auto& [name, byte] : nav_data->roots) {
+      if (name == "city-level-info") {
+        gen.link_word_to_byte(208 / 4, base + byte);
+      } else if (name.rfind("nav-mesh-", 0) == 0) {
+        meshes.emplace_back(nav_data->words.at((byte + 44) / 4), base + byte);
+      }
+    }
+    std::sort(meshes.begin(), meshes.end());
+    if (!meshes.empty()) {
+      gen.align_to_basic();
+      gen.add_type_tag("array");
+      const int array = (int)gen.current_offset_bytes();
+      gen.add_word(meshes.size());
+      gen.add_word(meshes.size());
+      gen.add_type_tag("entity-nav-mesh");
+      for (const auto& [aid, mesh] : meshes) {
+        gen.link_word_to_byte(gen.add_word(0), mesh);
+      }
+      gen.align(4);
+      gen.link_word_to_byte(180 / 4, array);
+    }
+  }
   //(actor-groups           (array actor-group)              :offset-assert 184)
   gen.link_word_to_byte(184 / 4, generate_actor_group_array(gen, actor_groups));
   //(region-trees           (array drawable-tree-region-prim) :offset-assert 188)

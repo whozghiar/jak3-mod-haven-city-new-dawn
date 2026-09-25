@@ -146,6 +146,74 @@ std::string extract_actors_to_json(const level_tools::DrawableInlineArrayActor& 
   return json.dump(2);
 }
 
+/*
+ * Fixed cameras, with their lumps typed the way the level builder reads them back:
+ * "lump": {"name": "camera-191", "fov": ["float", 11832.9], "interesting": ["vector", [x y z w]]}
+ * (a key frame other than the default is appended to the type: "float@0.5").
+ */
+std::string extract_cameras_to_json(const std::vector<level_tools::EntityCamera>& cameras) {
+  nlohmann::json json = nlohmann::json::array();
+
+  for (const auto& camera : cameras) {
+    auto& json_camera = json.emplace_back();
+    json_camera["trans"] = vectorm_json(camera.trans);
+    json_camera["aid"] = camera.aid;
+    json_camera["quat"] = vector_json(camera.quat);
+    auto& json_lump = json_camera["lump"];
+    json_lump = nlohmann::json::object();
+    for (const auto& res : camera.res_list) {
+      std::string type = res.elt_type;
+      if (res.key_frame != level_tools::kDefaultKeyFrame) {
+        type += fmt::format("@{}", res.key_frame);
+      }
+      nlohmann::json values = nlohmann::json::array({type});
+      auto add_values = [&](auto dummy, int count) {
+        using T = decltype(dummy);
+        for (int i = 0; i < count; i++) {
+          T v;
+          memcpy(&v, res.inlined_storage.data() + i * sizeof(T), sizeof(T));
+          values.push_back(v);
+        }
+      };
+      if (res.name == "name" && res.elt_type == "string" && res.strings.size() == 1) {
+        json_lump["name"] = res.strings[0];
+        continue;
+      } else if (res.elt_type == "string" || res.elt_type == "symbol" || res.elt_type == "type") {
+        for (const auto& str : res.strings) {
+          values.push_back(str);
+        }
+      } else if (res.elt_type == "vector") {
+        const float* data = (const float*)res.inlined_storage.data();
+        for (int i = 0; i < res.count; i++) {
+          values.push_back(vector_json(data + 4 * i));
+        }
+      } else if (res.elt_type == "pair") {
+        values.push_back(pretty_print::to_string(res.script));
+      } else if (res.elt_type == "float") {
+        add_values(float(), res.count);
+      } else if (res.elt_type == "int32") {
+        add_values(int32_t(), res.count);
+      } else if (res.elt_type == "uint32") {
+        add_values(uint32_t(), res.count);
+      } else if (res.elt_type == "int16") {
+        add_values(int16_t(), res.count);
+      } else if (res.elt_type == "uint16") {
+        add_values(uint16_t(), res.count);
+      } else if (res.elt_type == "int8") {
+        add_values(int8_t(), res.count);
+      } else if (res.elt_type == "uint8") {
+        add_values(uint8_t(), res.count);
+      } else {
+        // actor-group and other references to the level's data: not kept
+        continue;
+      }
+      json_lump[res.name] = values;
+    }
+  }
+
+  return json.dump(2);
+}
+
 std::string extract_ambients_to_json(const level_tools::DrawableInlineArrayAmbient& actors) {
   nlohmann::json json;
 

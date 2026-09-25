@@ -5,6 +5,7 @@
 #include "common/log/log.h"
 
 #include "decompiler/ObjectFile/LinkedObjectFile.h"
+#include "decompiler/level_extractor/extract_nav.h"
 #include "decompiler/util/DecompilerTypeSystem.h"
 #include "decompiler/util/Error.h"
 #include "decompiler/util/goal_data_reader.h"
@@ -1857,16 +1858,11 @@ void fill_res_with_value_types(Res& res_tag, const Ref& data) {
   res_tag.inlined_storage = bytes_from_plain_data(data, sizeof(T) * res_tag.count);
 }
 
-void EntityActor::read_from_file(TypedRef ref,
-                                 const decompiler::DecompilerTypeSystem& dts,
-                                 GameVersion /*version*/) {
-  trans.read_from_file(get_field_ref(ref, "trans", dts));
-  aid = read_plain_data_field<u32>(ref, "aid", dts);
-  etype = read_type_field(ref, "etype", dts, false);
-  task = read_plain_data_field<u8>(ref, "task", dts);
-  vis_id = read_plain_data_field<u16>(ref, "vis-id", dts);
-  quat.read_from_file(get_field_ref(ref, "quat", dts));
-
+namespace {
+// the res-lump tags of an entity (actor or camera)
+void read_res_list(TypedRef ref,
+                   const decompiler::DecompilerTypeSystem& dts,
+                   std::vector<Res>& res_list) {
   int res_length = read_plain_data_field<int32_t>(ref, "length", dts);
   // int res_allocated_length = read_plain_data_field<int32_t>(ref, "allocated-length", dts);
 
@@ -1936,6 +1932,28 @@ void EntityActor::read_from_file(TypedRef ref,
 
     tags.byte_offset += 4;
   }
+}
+}  // namespace
+
+void EntityActor::read_from_file(TypedRef ref,
+                                 const decompiler::DecompilerTypeSystem& dts,
+                                 GameVersion /*version*/) {
+  trans.read_from_file(get_field_ref(ref, "trans", dts));
+  aid = read_plain_data_field<u32>(ref, "aid", dts);
+  etype = read_type_field(ref, "etype", dts, false);
+  task = read_plain_data_field<u8>(ref, "task", dts);
+  vis_id = read_plain_data_field<u16>(ref, "vis-id", dts);
+  quat.read_from_file(get_field_ref(ref, "quat", dts));
+  read_res_list(ref, dts, res_list);
+}
+
+void EntityCamera::read_from_file(TypedRef ref,
+                                  const decompiler::DecompilerTypeSystem& dts,
+                                  GameVersion /*version*/) {
+  trans.read_from_file(get_field_ref(ref, "trans", dts));
+  aid = read_plain_data_field<u32>(ref, "aid", dts);
+  quat.read_from_file(get_field_ref(ref, "quat", dts));
+  read_res_list(ref, dts, res_list);
 }
 
 void DrawableActor::read_from_file(TypedRef ref,
@@ -2184,6 +2202,45 @@ void BspHeader::read_from_file(const decompiler::LinkedObjectFile& file,
       ambients.read_from_file(
           get_and_check_ref_to_basic(ref, "ambients", "drawable-inline-array-ambient", dts), dts,
           version);
+    }
+  }
+
+  if (version > GameVersion::Jak1 &&
+      get_word_kind_for_field(ref, "cameras", dts) == decompiler::LinkedWord::PTR) {
+    // (array entity-camera)
+    auto array_ref = get_and_check_ref_to_basic(ref, "cameras", "array", dts);
+    const u32 length = read_plain_data_field<u32>(array_ref, "length", dts);
+    auto data_ref = get_field_ref(array_ref, "data", dts);
+    for (u32 i = 0; i < length; i++) {
+      Ref slot = data_ref;
+      slot.byte_offset += 4 * i;
+      Ref thing = deref_label(slot);
+      thing.byte_offset -= 4;
+      auto type = get_type_of_basic(thing);
+      if (type != "entity-camera") {
+        throw Error("bad type in bsp cameras: {}\n", type);
+      }
+      cameras.emplace_back().read_from_file(typed_ref_from_basic(thing, dts), dts, version);
+    }
+  }
+
+  if (version > GameVersion::Jak1 && !only_read_texture_remap) {
+    // city-level-info and nav meshes (each entity-nav-mesh of the array), copied as they are
+    if (get_word_kind_for_field(ref, "city-level-info", dts) == decompiler::LinkedWord::PTR) {
+      city_info_json = data_graph_copy_to_json(copy_data_graph(
+          file, 0, {{"city-level-info", get_field_ref(ref, "city-level-info", dts).byte_offset}}));
+    }
+    std::vector<std::pair<std::string, int>> nav_roots;
+    if (get_word_kind_for_field(ref, "nav-meshes", dts) == decompiler::LinkedWord::PTR) {
+      auto array_ref = get_and_check_ref_to_basic(ref, "nav-meshes", "array", dts);
+      const u32 length = read_plain_data_field<u32>(array_ref, "length", dts);
+      auto data_ref = get_field_ref(array_ref, "data", dts);
+      for (u32 i = 0; i < length; i++) {
+        nav_roots.emplace_back(fmt::format("nav-mesh-{}", i), data_ref.byte_offset + 4 * i);
+      }
+    }
+    if (!nav_roots.empty()) {
+      nav_data_json = data_graph_copy_to_json(copy_data_graph(file, 0, nav_roots));
     }
   }
 

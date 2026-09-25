@@ -247,6 +247,10 @@ void DataObjectGenerator::link_word_to_symbol(const std::string& str, int word_i
   m_symbol_links[str].push_back(word_idx);
 }
 
+void DataObjectGenerator::link_word_to_type(const std::string& str, int word_idx) {
+  m_type_links[str].push_back(word_idx);
+}
+
 void DataObjectGenerator::align(int alignment_words) {
   while (m_words.size() % alignment_words) {
     m_words.push_back(0);

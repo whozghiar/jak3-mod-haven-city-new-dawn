@@ -290,7 +290,8 @@ void extract_collide_frags(const level_tools::DrawableTreeCollideFragment* tree,
 void handle_collide_fragment(const TypedRef& collide_fragment,
                              const decompiler::DecompilerTypeSystem& dts,
                              const std::optional<std::array<math::Vector4f, 4>>& matrix,
-                             std::vector<tfrag3::CollisionMesh::Vertex>* out) {
+                             std::vector<tfrag3::CollisionMesh::Vertex>* out,
+                             u32 proto_tag = 0) {
   struct Poly {
     u8 vert_index[3];
     u8 pat;
@@ -404,7 +405,7 @@ void handle_collide_fragment(const TypedRef& collide_fragment,
       vert_out.nz = normal.z();
       vert_out.flags = 0;  // todo
       vert_out.pad = 0;
-      vert_out.pad2 = 0;
+      vert_out.pad2 = proto_tag;
       vert_out.pat = pats.at(p.pat);
     }
   }
@@ -497,11 +498,12 @@ void extract_collide_frags(const level_tools::CollideHash& chash,
       mat[3][0] += inst.bsphere.data[0];
       mat[3][1] += inst.bsphere.data[1];
       mat[3][2] += inst.bsphere.data[2];
-      auto& frags =
-          tt->prototypes.prototype_array_tie.data.at(inst.bucket_index).collide_hash_frags;
-      for (auto frag : frags) {
+      const auto& proto = tt->prototypes.prototype_array_tie.data.at(inst.bucket_index);
+      const u32 tag = collision_proto_tag(proto.name);
+      for (auto frag : proto.collide_hash_frags) {
         frag.byte_offset -= 4;
-        handle_collide_fragment(typed_ref_from_basic(frag, dts), dts, mat, &out.collision.vertices);
+        handle_collide_fragment(typed_ref_from_basic(frag, dts), dts, mat, &out.collision.vertices,
+                                tag);
       }
     }
   }

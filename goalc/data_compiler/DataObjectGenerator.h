@@ -28,6 +28,7 @@ class DataObjectGenerator {
   int add_type_tag(const std::string& str);
   int add_symbol_link(const std::string& str);
   void link_word_to_symbol(const std::string& str, int word_idx);
+  void link_word_to_type(const std::string& str, int word_idx);
   std::vector<u8> generate_v2();
   std::vector<u8> generate_v4();
   void align(int alignment_words);

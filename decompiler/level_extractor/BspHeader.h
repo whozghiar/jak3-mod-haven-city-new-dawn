@@ -177,6 +177,19 @@ struct EntityActor {
                       GameVersion version);
 };
 
+// a fixed camera placed in a level (bsp cameras array), jak 2 and later
+struct EntityCamera {
+  Vector trans;
+  u32 aid = 0;
+  Vector quat;
+
+  std::vector<Res> res_list;
+
+  void read_from_file(TypedRef ref,
+                      const decompiler::DecompilerTypeSystem& dts,
+                      GameVersion version);
+};
+
 struct DrawableActor : public Drawable {
   Vector bsphere;
 
@@ -935,6 +948,11 @@ struct BspHeader {
   //  (actors drawable-inline-array-actor :offset-assert 112)
   DrawableInlineArrayActor actors;
   //  (cameras (array entity-camera) :offset-assert 116)
+  std::vector<EntityCamera> cameras;  // jak 2+
+  // jak 2+: the nav meshes and the city-level-info (traffic), each as a relocatable data copy
+  // (json, see extract_nav.h), empty if the level has none
+  std::string nav_data_json;
+  std::string city_info_json;
   //  (nodes (inline-array bsp-node) :offset-assert 120)
   //
   //  (level level :offset-assert 124)

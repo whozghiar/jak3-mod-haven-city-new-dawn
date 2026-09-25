@@ -246,6 +246,17 @@ static std::unordered_map<
            }
            return std::make_unique<ResString>(name, data, time);
          }},
+        // a script, written as a string: ["pair", "(want-load 'havenj2 'hj2-hiphog)"]
+        {"pair",
+         [](const std::string& name,
+            const nlohmann::json& json,
+            float time,
+            decompiler::DecompilerTypeSystem& dts) {
+           (void)dts;
+           auto& reader = pretty_print::get_pretty_printer_reader();
+           auto obj = reader.read_from_string(json[1].get<std::string>(), false).as_pair()->car;
+           return std::make_unique<ResPair>(name, obj, time);
+         }},
         // vectors
         {"vector",
          [](const std::string& name,

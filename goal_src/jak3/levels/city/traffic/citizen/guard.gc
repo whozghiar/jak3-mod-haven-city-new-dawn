@@ -287,7 +287,8 @@
 ;; WARN: Return type mismatch time-frame vs none.
 (defmethod enemy-common-post ((this crimson-guard))
   "Common implementation of post. Runs ja-post."
-  (when (nonzero? (-> this controller branch))
+  ;; og:jak2-haven-city added the faction manager check: Jak 2's city (havenj2) runs without one
+  (when (and *cty-faction-manager* (nonzero? (-> this controller branch)))
     (let* ((v1-2 *cty-faction-manager*)
            (a1-0 (-> this controller branch clock-type))
            (s5-0 (-> v1-2 territory-faction-modes 0 data (+ 0 (* a1-0 16))))

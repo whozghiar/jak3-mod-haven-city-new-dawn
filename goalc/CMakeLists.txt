@@ -20,6 +20,7 @@ add_library(compiler
         build_level/collide/jak2/collide.cpp
         build_level/collide/jak3/collide.cpp
         build_level/common/color_quantization.cpp
+        build_level/common/DataBlob.cpp
         build_level/common/Entity.cpp
         build_level/jak1/Entity.cpp
         build_level/jak2/Entity.cpp

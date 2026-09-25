@@ -22,6 +22,11 @@ std::vector<std::string> get_build_level_deps(const std::string& input_file) {
   if (level_json.contains("gltf_file")) {
     deps.push_back(level_json.at("gltf_file").get<std::string>());
   }
+  if (level_json.contains("region_tree_files")) {
+    for (const auto& path : level_json.at("region_tree_files").get<std::vector<std::string>>()) {
+      deps.push_back(path);
+    }
+  }
   if (level_json.contains("import_fr3")) {
     const auto& imp = level_json.at("import_fr3");
     const auto game = imp.value("game", std::string("jak2"));
