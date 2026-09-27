@@ -17,6 +17,20 @@
   "art_groups": ["com-airlock-outer-ag"],
   "actors": [
     // Jak 2's com-airlock-outer-18 (palroof)
-    {"trans": [148.9558, 418.0259, 632.1289], "etype": "com-airlock-outer", "game_task": 0, "quat": [0.0, 0.9018, 0.0, 0.4321], "bsphere": [148.9558, 418.0259, 632.1289, 13.8564], "lump": {"name": "com-airlock-outer-18", "on-activate": ["pair", "(want-load 'hj2-pshaft 'hj2-pcab 'hj2-proof)"], "on-enter": ["pair", "(want-display 'hj2-pshaft 'display)"], "on-notice": ["pair", "'(hj2-pshaft)"], "next-actor": ["string", "com-airlock-inner-25"]}}
+    {"trans": [148.9558, 418.0259, 632.1289], "etype": "com-airlock-outer", "game_task": 0, "quat": [0.0, 0.9018, 0.0, 0.4321], "bsphere": [148.9558, 418.0259, 632.1289, 13.8564], "lump": {"name": "com-airlock-outer-18", "on-activate": ["pair", "(want-load 'hj2-pshaft 'hj2-pcab 'hj2-proof)"], "on-enter": ["pair", "(want-display 'hj2-pshaft 'display)"], "on-notice": ["pair", "'(hj2-pshaft)"], "next-actor": ["string", "com-airlock-inner-25"]}},
+    // Jak 2's crate-796 (palroof)
+    {"trans": [225.2666, 407.9999, 532.1079], "etype": "crate", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [225.2666, 407.9999, 532.1079, 1.7321], "lump": {"name": "crate-796", "eco-info": ["int32", 15, 20]}},
+    // Jak 2's crate-797 (palroof)
+    {"trans": [222.8346, 407.9999, 531.8831], "etype": "crate", "game_task": 0, "quat": [0.0, -0.1446, 0.0, 0.9895], "bsphere": [222.8346, 407.9999, 531.8831, 1.7321], "lump": {"name": "crate-797", "eco-info": ["int32", 15, 20]}},
+    // Jak 2's crate-798 (palroof)
+    {"trans": [278.4616, 407.9999, 581.4827], "etype": "crate", "game_task": 0, "quat": [0.0, 0.8652, 0.0, 0.5013], "bsphere": [278.4616, 407.9999, 581.4827, 1.7321], "lump": {"name": "crate-798", "eco-info": ["int32", 15, 20]}},
+    // Jak 2's crate-799 (palroof)
+    {"trans": [281.1625, 407.9999, 582.0398], "etype": "crate", "game_task": 0, "quat": [0.0, 0.949, 0.0, 0.3154], "bsphere": [281.1625, 407.9999, 582.0398, 1.7321], "lump": {"name": "crate-799", "eco-info": ["int32", 15, 20]}},
+    // Jak 2's crate-800 (palroof)
+    {"trans": [250.1724, 411.3893, 612.3491], "etype": "crate", "game_task": 0, "quat": [0.0, 0.4498, 0.0, 0.8931], "bsphere": [250.1724, 411.3893, 612.3491, 1.7321], "lump": {"name": "crate-800", "eco-info": ["int32", 15, 20]}},
+    // Jak 2's crate-801 (palroof)
+    {"trans": [252.5132, 411.3893, 611.5754], "etype": "crate", "game_task": 0, "quat": [0.0, 0.1626, 0.0, 0.9867], "bsphere": [252.5132, 411.3893, 611.5754, 1.7321], "lump": {"name": "crate-801", "eco-info": ["int32", 15, 20]}},
+    // Jak 2's crate-950 (palroof)
+    {"trans": [252.7419, 407.9999, 696.8298], "etype": "crate", "game_task": 0, "quat": [0.0, 0.949, 0.0, 0.3154], "bsphere": [252.7419, 407.9999, 696.8298, 1.7321], "lump": {"name": "crate-950", "eco-info": ["int32", 20, 2]}}
   ]
 }

@@ -140,6 +140,8 @@ Jak is in one of them."
           (mod-jak2-haven-city-warp-button "Dead Town" "hj2-ruins-start")
           (mod-jak2-haven-city-warp-button "Dead Town: the Sage's hut" "hj2-ruins-hut")
           (mod-jak2-haven-city-warp-button "Inside the fortress" "hj2-forresca-start")
+          (mod-jak2-haven-city-warp-button "Fortress: the prison" "hj2-prison-start")
+          (mod-jak2-haven-city-warp-button "Fortress: the way out" "hj2-forexita-start")
           (mod-jak2-haven-city-warp-button "Stadium race track" "hj2-stadiumd-start")
           (mod-jak2-haven-city-warp-button "Construction site" "hj2-consite-start")
           (mod-jak2-haven-city-warp-button "Pumping station" "hj2-atoll-start")

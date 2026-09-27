@@ -1,0 +1,43 @@
+;;-*-Lisp-*-
+(in-package goal)
+
+;; name: hj2-fexb-obs.gc
+;; name in dgo: hj2-fexb-obs
+;; dgos: HKG
+
+;; og:jak2-haven-city Level code for hj2-fexb, the end of Jak 2's way out of the fortress
+;; (levels/fortress/fortress-obs.gc there): the pool's surface. Its model is Jak 2's, rebuilt by
+;; build-actor (hj2-fort-pool.glb, made by custom_assets/jak3/levels/havenj2/gen_havenj2_links.py).
+;; The slide is Jak 3's slide-control (the same as Jak 2's). Not ported: the trap doors, broken for
+;; good by the escape, the pool's ripples, the particles.
+
+;; Jak 2's water-anim-fortress: the pool under the trap doors, its surface (look 21, the model, at
+;; the water's height), tinted like Jak 2's. Jak swims in it through its water region (the pool's
+;; water-vol, made by the generator).
+(deftype hj2-fort-pool (process-drawable)
+  ()
+  (:state-methods
+    idle
+    )
+  )
+
+
+(def-actor hj2-fort-pool
+  :bounds (0 0 0 51)
+  )
+
+;; still
+(defstate idle (hj2-fort-pool)
+  :virtual #t
+  :code sleep-code
+  )
+
+(defmethod init-from-entity! ((this hj2-fort-pool) (arg0 entity-actor))
+  "Jak 2's water-anim-fortress setup: placement, skeleton, Jak 2's tint."
+  (set! (-> this root) (new 'process 'trsqv))
+  (process-drawable-from-entity! this arg0)
+  (initialize-skeleton this *hj2-fort-pool-sg* (the-as pair 0))
+  (set-vector! (-> this draw color-mult) 0.01 0.45 0.5 0.75)
+  (ja-post)
+  (go (method-of-object this idle))
+  )

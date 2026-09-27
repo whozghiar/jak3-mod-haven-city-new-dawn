@@ -1,0 +1,320 @@
+;;-*-Lisp-*-
+(in-package goal)
+
+;; name: hj2-prison-obs.gc
+;; name in dgo: hj2-prison-obs
+;; dgos: HKE
+
+;; og:jak2-haven-city Level code for hj2-prison, Jak 2's fortress prison (levels/fortress/prison/
+;; prison-obs.gc there), as it is at the end of the game: the cell doors shut, the vent fans, the
+;; torture machine, the cells hanging from their rail and the warp gate. Their models are Jak 2's,
+;; rebuilt by build-actor (hj2-prsn-*.glb and hj2-warp-gate-b.glb, made by
+;; custom_assets/jak3/levels/havenj2/gen_havenj2_links.py). Not ported: the lightning of the
+;; torture cutscene, the chair (a cutscene prop), the particles, Jak 2's sounds.
+
+;; Cell doors /////////////////////////////////////////////////////////////////////////////////////
+
+;; Jak 2's prsn-cell-door: shut (Jak 2 only opens them in the rescue's cutscene), solid.
+(deftype hj2-prsn-cell-door (process-drawable)
+  ((root  collide-shape :override)
+   )
+  (:state-methods
+    idle
+    )
+  )
+
+
+(def-actor hj2-prsn-cell-door
+  :bounds (-2.5 3.25 0 4.25)
+  :origin-joint-index 3
+  )
+
+;; shut: the first frame of its opening
+(defstate idle (hj2-prsn-cell-door)
+  :virtual #t
+  :code (behavior ()
+    (ja :num-func num-func-identity :frame-num 0.0)
+    (transform-post)
+    (sleep-code)
+    )
+  )
+
+(defmethod init-from-entity! ((this hj2-prsn-cell-door) (arg0 entity-actor))
+  "Jak 2's prsn-cell-door setup: solid (the hull of its model, main joint), shut."
+  (let ((s4-0 (new 'process 'collide-shape this (collide-list-enum hit-by-player))))
+    (let ((v1-2 (new 'process 'collide-shape-prim-mesh s4-0 (the-as uint 0) (the-as uint 0))))
+      (set! (-> v1-2 prim-core collide-as) (collide-spec obstacle))
+      (set! (-> v1-2 prim-core collide-with) (collide-spec jak player-list))
+      (set! (-> v1-2 prim-core action) (collide-action solid))
+      (set! (-> v1-2 transform-index) 3)
+      (set-vector! (-> v1-2 local-sphere) -10240.0 13312.0 0.0 17408.0)
+      (set! (-> s4-0 total-prims) (the-as uint 1))
+      (set! (-> s4-0 root-prim) v1-2)
+      )
+    (set! (-> s4-0 nav-radius) (* 0.75 (-> s4-0 root-prim local-sphere w)))
+    (let ((v1-5 (-> s4-0 root-prim)))
+      (set! (-> s4-0 backup-collide-as) (-> v1-5 prim-core collide-as))
+      (set! (-> s4-0 backup-collide-with) (-> v1-5 prim-core collide-with))
+      )
+    (set! (-> this root) s4-0)
+    )
+  (process-drawable-from-entity! this arg0)
+  (initialize-skeleton this *hj2-prsn-cell-door-sg* (the-as pair 0))
+  (go (method-of-object this idle))
+  )
+
+;; Vent fans //////////////////////////////////////////////////////////////////////////////////////
+
+;; Jak 2's prsn-vent-fan: its blades turning in their animation.
+(deftype hj2-prsn-vent-fan (process-drawable)
+  ()
+  (:state-methods
+    idle
+    )
+  )
+
+
+;; (Jak 2's bounds are the cell door's: these are its model's)
+(def-actor hj2-prsn-vent-fan
+  :bounds (0 0.25 0 3)
+  :origin-joint-index 3
+  )
+
+;; its animation in a loop
+(defstate idle (hj2-prsn-vent-fan)
+  :virtual #t
+  :code (behavior ()
+    (until #f
+      (ja-no-eval :group! (ja-group) :num! (seek!) :frame-num 0.0)
+      (until (ja-done? 0)
+        (suspend)
+        (ja :num! (seek!))
+        )
+      )
+    #f
+    )
+  :post ja-post
+  )
+
+(defmethod init-from-entity! ((this hj2-prsn-vent-fan) (arg0 entity-actor))
+  "Jak 2's prsn-vent-fan setup: placement and skeleton, no collision."
+  (set! (-> this root) (new 'process 'trsqv))
+  (process-drawable-from-entity! this arg0)
+  (initialize-skeleton this *hj2-prsn-vent-fan-sg* (the-as pair 0))
+  (go (method-of-object this idle))
+  )
+
+;; Torture machine ////////////////////////////////////////////////////////////////////////////////
+
+;; Jak 2's prsn-torture: the machine over the chair, its arms moving in their animation, each part
+;; solid on its joint and pushing Jak away.
+(deftype hj2-prsn-torture (process-drawable)
+  ((root  collide-shape :override)
+   )
+  (:state-methods
+    idle
+    )
+  )
+
+
+(def-actor hj2-prsn-torture
+  :bounds (0 0 0 20)
+  :origin-joint-index 3
+  )
+
+;; its animation in a loop
+(defstate idle (hj2-prsn-torture)
+  :virtual #t
+  :code (behavior ()
+    (until #f
+      (ja-no-eval :group! (ja-group) :num! (seek!) :frame-num 0.0)
+      (until (ja-done? 0)
+        (suspend)
+        (ja :num! (seek!))
+        )
+      )
+    #f
+    )
+  :post transform-post
+  )
+
+;; its 9 collide meshes (the hulls made by the generator, in this order): the joint each follows
+;; (transform index) and its bounds, Jak 2's
+(define *hj2-prsn-torture-prims*
+  (new 'static 'inline-array vector 9
+    (new 'static 'vector :x 3.0 :y -10240.0 :w 16384.0)
+    (new 'static 'vector :x 10.0 :y -4096.0 :w 10240.0)
+    (new 'static 'vector :x 11.0 :y -5120.0 :w 8192.0)
+    (new 'static 'vector :x 24.0 :y 4096.0 :w 10240.0)
+    (new 'static 'vector :x 25.0 :y -2662.4 :w 6144.0)
+    (new 'static 'vector :x 27.0 :y -819.2 :w 4096.0)
+    (new 'static 'vector :x 51.0 :y 4096.0 :w 10240.0)
+    (new 'static 'vector :x 52.0 :y 2457.6 :w 6144.0)
+    (new 'static 'vector :x 54.0 :y 819.2 :w 4096.0)
+    )
+  )
+
+(defmethod init-from-entity! ((this hj2-prsn-torture) (arg0 entity-actor))
+  "Jak 2's prsn-torture setup: its parts solid on their joints (*hj2-prsn-torture-prims*: x the
+transform index, y the sphere's height, w its radius), placement and skeleton."
+  (let ((s4-0 (new 'process 'collide-shape this (collide-list-enum usually-hit-by-player))))
+    (set! (-> s4-0 penetrated-by) (penetrate))
+    (let ((s3-0 (new 'process 'collide-shape-prim-group s4-0 (the-as uint 9) 0)))
+      (set! (-> s4-0 total-prims) (the-as uint 10))
+      (set! (-> s3-0 prim-core collide-as) (collide-spec pusher))
+      (set! (-> s3-0 prim-core collide-with) (collide-spec jak player-list))
+      (set! (-> s3-0 prim-core action) (collide-action solid))
+      (set! (-> s3-0 transform-index) 2)
+      (set-vector! (-> s3-0 local-sphere) 0.0 -14336.0 0.0 32768.0)
+      (set! (-> s4-0 root-prim) s3-0)
+      )
+    (pusher-init s4-0)
+    (dotimes (i 9)
+      (let ((spec (-> *hj2-prsn-torture-prims* i))
+            (prim (new 'process 'collide-shape-prim-mesh s4-0 (the-as uint i) (the-as uint 0)))
+            )
+        (set! (-> prim prim-core collide-as) (collide-spec pusher))
+        (set! (-> prim prim-core collide-with) (collide-spec jak player-list))
+        (set! (-> prim prim-core action) (collide-action solid))
+        (set! (-> prim transform-index) (the int (-> spec x)))
+        (set-vector! (-> prim local-sphere) 0.0 (-> spec y) 0.0 (-> spec w))
+        )
+      )
+    (set! (-> s4-0 nav-radius) (* 0.75 (-> s4-0 root-prim local-sphere w)))
+    (let ((v1-30 (-> s4-0 root-prim)))
+      (set! (-> s4-0 backup-collide-as) (-> v1-30 prim-core collide-as))
+      (set! (-> s4-0 backup-collide-with) (-> v1-30 prim-core collide-with))
+      )
+    (set! (-> this root) s4-0)
+    )
+  (process-drawable-from-entity! this arg0)
+  (initialize-skeleton this *hj2-prsn-torture-sg* (the-as pair 0))
+  (go (method-of-object this idle))
+  )
+
+;; Hanging cells //////////////////////////////////////////////////////////////////////////////////
+
+;; Jak 2's prsn-hang-cell: 8 cells hanging from a rail around the prison, one lap every 100 seconds.
+;; The entity is the first; it spawns the 7 others, spread along the rail (the entity's path).
+;; path-u: where it is on the rail (0 to 1), path-du: its speed (laps per second).
+(deftype hj2-prsn-hang-cell (process-drawable)
+  ((path-u   float)
+   (path-du  float)
+   )
+  (:state-methods
+    idle
+    )
+  )
+
+
+(def-actor hj2-prsn-hang-cell
+  :bounds (0 -9.5 0 10)
+  )
+
+;; riding the rail, swinging in its animation
+(defstate idle (hj2-prsn-hang-cell)
+  :virtual #t
+  :code (behavior ()
+    (let* ((f0-2 (* (/ 1.0 (-> self path-du)) (-> self path-u)))
+           (f0-3 (- f0-2 (* (the float (the int f0-2)) 1.0)))
+           )
+      (ja-no-eval :group! (ja-group) :num! (loop!) :frame-num f0-3)
+      )
+    (until #f
+      (suspend)
+      (ja :num! (loop!))
+      )
+    #f
+    )
+  :post (behavior ()
+    (seek! (-> self path-u) 1.0 (* (-> self path-du) (seconds-per-frame)))
+    (if (>= (-> self path-u) 1.0)
+        (set! (-> self path-u) 0.0)
+        )
+    (get-point-at-percent-along-path! (-> self path) (-> self root trans) (-> self path-u) 'interp)
+    (ja-post)
+    )
+  )
+
+(defbehavior hj2-prsn-hang-cell-init-by-other hj2-prsn-hang-cell ((ent entity-actor) (lev level) (u float))
+  "One of the 7 cells the first spawns: the rail of its entity (ent), its level, where it starts."
+  (set! (-> self level) lev)
+  (set! (-> self root) (new 'process 'trsqv))
+  (initialize-skeleton self *hj2-prsn-hang-cell-sg* (the-as pair 0))
+  (logclear! (-> self mask) (process-mask actor-pause))
+  (set! (-> self path) (new 'process 'path-control self 'path 0.0 ent #f))
+  (set! (-> self path-u) u)
+  (set! (-> self path-du) 0.01)
+  (go-virtual idle)
+  )
+
+(defmethod init-from-entity! ((this hj2-prsn-hang-cell) (arg0 entity-actor))
+  "Jak 2's prsn-hang-cell setup: the first cell, where the clock puts it on the rail (a lap every
+100 seconds), and the 7 others, an eighth of a lap apart."
+  (set! (-> this root) (new 'process 'trsqv))
+  (process-drawable-from-entity! this arg0)
+  (initialize-skeleton this *hj2-prsn-hang-cell-sg* (the-as pair 0))
+  (logclear! (-> this mask) (process-mask actor-pause))
+  (set! (-> this path) (new 'process 'path-control this 'path 0.0 arg0 #f))
+  (set! (-> this path-du) 0.01)
+  (let ((f0-2 (* 300.0 (/ 1.0 (-> this path-du))))
+        (f1-3 (the float (current-time)))
+        )
+    (set! (-> this path-u) (/ (- f1-3 (* (the float (the int (/ f1-3 f0-2))) f0-2)) f0-2))
+    )
+  (let ((u (-> this path-u)))
+    (dotimes (i 7)
+      (+! u 0.125)
+      (process-spawn
+        hj2-prsn-hang-cell
+        :init hj2-prsn-hang-cell-init-by-other
+        arg0
+        (-> this level)
+        (if (>= u 1.0)
+            (+ -1.0 u)
+            u
+            )
+        :to this
+        )
+      )
+    )
+  (go (method-of-object this idle))
+  )
+
+;; Warp gate ///////////////////////////////////////////////////////////////////////////////////////
+
+;; Jak 2's warp-gate-b: Jak 3's warp gate with Jak 2's model (without the energy it shows while it
+;; goes somewhere). At the end of the game Jak 2's goes to the strip mine, which isn't ported: its
+;; entity has no on-notice, so it goes nowhere, still.
+(deftype hj2-warp-gate-b (warp-gate)
+  ()
+  )
+
+
+(def-actor hj2-warp-gate-b
+  :bounds (0 3 0 4)
+  :origin-joint-index 3
+  )
+
+(defmethod init-skel-and-collide! ((this hj2-warp-gate-b))
+  "Jak 2's warp-gate-b's model and collision (the hull of its model, main joint)."
+  (let ((s5-0 (new 'process 'collide-shape this (collide-list-enum usually-hit-by-player))))
+    (set! (-> s5-0 penetrated-by) (penetrate))
+    (let ((v1-2 (new 'process 'collide-shape-prim-mesh s5-0 (the-as uint 0) (the-as uint 0))))
+      (set! (-> v1-2 prim-core collide-as) (collide-spec obstacle))
+      (set! (-> v1-2 prim-core action) (collide-action solid))
+      (set! (-> v1-2 transform-index) 3)
+      (set-vector! (-> v1-2 local-sphere) 0.0 -12288.0 0.0 16384.0)
+      (set! (-> s5-0 total-prims) (the-as uint 1))
+      (set! (-> s5-0 root-prim) v1-2)
+      )
+    (set! (-> s5-0 nav-radius) (* 0.75 (-> s5-0 root-prim local-sphere w)))
+    (let ((v1-5 (-> s5-0 root-prim)))
+      (set! (-> s5-0 backup-collide-as) (-> v1-5 prim-core collide-as))
+      (set! (-> s5-0 backup-collide-with) (-> v1-5 prim-core collide-with))
+      )
+    (set! (-> this root) s5-0)
+    )
+  (initialize-skeleton this *hj2-warp-gate-b-sg* (the-as pair 0))
+  (none)
+  )

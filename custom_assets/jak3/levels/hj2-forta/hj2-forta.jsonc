@@ -25,12 +25,6 @@
     // Jak 2's crate-833 (forresca)
     {"trans": [719.9246, 8.25, 240.6064], "etype": "crate", "game_task": 0, "quat": [0.0, 0.6747, 0.0, 0.7381], "bsphere": [719.9246, 8.25, 240.6064, 1.7321], "lump": {"name": "crate-833", "eco-info": ["int32", 15, 20]}},
     // Jak 2's crate-834 (forresca)
-    {"trans": [717.9241, 8.25, 237.8142], "etype": "crate", "game_task": 0, "quat": [0.0, 0.5377, 0.0, 0.8431], "bsphere": [717.9241, 8.25, 237.8142, 1.7321], "lump": {"name": "crate-834", "eco-info": ["int32", 16, 10]}},
-    // Jak 2's crate-933 (forresca)
-    {"trans": [722.0937, 8.25, 241.2878], "etype": "crate", "game_task": 0, "quat": [0.0, 0.8455, 0.0, 0.5339], "bsphere": [722.0937, 8.25, 241.2878, 1.7321], "lump": {"name": "crate-933", "eco-info": ["int32", 15, 20]}},
-    // Jak 2's crate-934 (forresca)
-    {"trans": [717.9832, 8.25, 242.5337], "etype": "crate", "game_task": 0, "quat": [0.0, 0.5501, 0.0, 0.8351], "bsphere": [717.9832, 8.25, 242.5337, 1.7321], "lump": {"name": "crate-934", "eco-info": ["int32", 16, 10]}},
-    // Jak 2's crate-935 (forresca)
-    {"trans": [717.2314, 8.25, 234.9801], "etype": "crate", "game_task": 0, "quat": [0.0, 0.7308, 0.0, 0.6825], "bsphere": [717.2314, 8.25, 234.9801, 1.7321], "lump": {"name": "crate-935", "eco-info": ["int32", 15, 20]}}
+    {"trans": [717.9241, 8.25, 237.8142], "etype": "crate", "game_task": 0, "quat": [0.0, 0.5377, 0.0, 0.8431], "bsphere": [717.9241, 8.25, 237.8142, 1.7321], "lump": {"name": "crate-834", "eco-info": ["int32", 16, 10]}}
   ]
 }

@@ -55,15 +55,20 @@ PROPS = {
     "ctyn-lamp": ("post", METAL),
     "burning-bush": (None, None),
     "lurker-pipe-lid": (None, None),
-    "baron-statue": (None, None),
     "barons-ship-lores": (None, None),
+    # the palace plaza at the end of the game (Mar's tomb found, canyon-insert-items-resolution): the
+    # Baron's statue broken on the plaza, the wall under it broken. Jak 2's broken statue has no
+    # collision; the broken wall's collide mesh isn't in the rip, and a box would shut the tomb's way
+    # through it (the rubble around is background, solid)
+    "ctypal-baron-statue-broken": (None, None),
+    "ctypal-broke-wall": (None, None),
 }
 # Not kept: the market props, the farm crops and the propaganda speakers, which are actors
 # (gen_havenj2_props.py), the
 # force-field walls (security-wall, stadium-barrier: open or shut with the story), the searchlights
-# and the guard turrets (they move, the turrets hide underground), the palace plaza after its
-# destruction (ctypal-broke-wall, ctypal-baron-statue-broken), and the cutscene or mission actors
-# (barge, air-train, farthy, mecha-daxter).
+# and the guard turrets (they move, the turrets hide underground), the Baron's statue standing (Jak 2
+# kills it once Mar's tomb is found, baron-statue in ctywide-obs.gc), and the cutscene or mission
+# actors (barge, air-train, farthy, mecha-daxter).
 
 POST_WIDTH = 0.6  # meters
 # Jak 2's sun directions (mood-tables.gc *mood-direction-table*), palettes 1-4

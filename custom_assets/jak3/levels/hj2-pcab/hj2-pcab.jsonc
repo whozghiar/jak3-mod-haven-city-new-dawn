@@ -19,6 +19,18 @@
   "art_groups": ["com-airlock-outer-ag"],
   "actors": [
     // Jak 2's com-airlock-outer-17 (palcab)
-    {"trans": [229.3022, 440.4217, -156.4315], "etype": "com-airlock-outer", "game_task": 0, "quat": [0.0, -0.0274, 0.0, 0.9996], "bsphere": [229.3022, 440.4217, -156.4315, 29.4449], "lump": {"name": "com-airlock-outer-17", "on-activate": ["pair", "(want-load 'hj2-pshaft 'hj2-pcab 'hj2-proof)"], "on-enter": ["pair", "(want-display 'hj2-pshaft 'display)"], "on-notice": ["pair", "'(hj2-pshaft)"], "next-actor": ["string", "com-airlock-inner-23"]}}
+    {"trans": [229.3022, 440.4217, -156.4315], "etype": "com-airlock-outer", "game_task": 0, "quat": [0.0, -0.0274, 0.0, 0.9996], "bsphere": [229.3022, 440.4217, -156.4315, 29.4449], "lump": {"name": "com-airlock-outer-17", "on-activate": ["pair", "(want-load 'hj2-pshaft 'hj2-pcab 'hj2-proof)"], "on-enter": ["pair", "(want-display 'hj2-pshaft 'display)"], "on-notice": ["pair", "'(hj2-pshaft)"], "next-actor": ["string", "com-airlock-inner-23"]}},
+    // Jak 2's crate-730 (palcab)
+    {"trans": [205.7258, 388.0493, 218.4313], "etype": "crate", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [205.7258, 388.0493, 218.4313, 1.7321], "lump": {"name": "crate-730", "eco-info": ["int32", 20, 2]}},
+    // Jak 2's crate-731 (palcab)
+    {"trans": [207.9108, 388.0493, 217.9881], "etype": "crate", "game_task": 0, "quat": [0.0, -0.8087, 0.0, 0.5882], "bsphere": [207.9108, 388.0493, 217.9881, 1.7321], "lump": {"name": "crate-731", "eco-info": ["int32", 20, 2]}},
+    // Jak 2's crate-732 (palcab)
+    {"trans": [217.9429, 390.1465, 116.7637], "etype": "crate", "game_task": 0, "quat": [0.0, -0.8087, 0.0, 0.5882], "bsphere": [217.9429, 390.1465, 116.7637, 1.7321], "lump": {"name": "crate-732", "eco-info": ["int32", 20, 2]}},
+    // Jak 2's swingpole-132 (palcab)
+    {"trans": [216.38, 375.8866, 273.6071], "etype": "swingpole", "game_task": 0, "quat": [0.0111, -0.0328, -0.7098, 0.7036], "bsphere": [216.38, 375.8866, 273.6071, 12.1244], "lump": {"name": "swingpole-132"}},
+    // Jak 2's swingpole-133 (palcab)
+    {"trans": [230.9842, 385.3161, 4.1557], "etype": "swingpole", "game_task": 0, "quat": [0.0111, -0.0328, -0.7098, 0.7036], "bsphere": [230.9842, 385.3161, 4.1557, 12.1244], "lump": {"name": "swingpole-133"}},
+    // Jak 2's swingpole-134 (palcab)
+    {"trans": [230.9842, 384.3067, 13.1649], "etype": "swingpole", "game_task": 0, "quat": [0.0111, -0.0328, -0.7098, 0.7036], "bsphere": [230.9842, 384.3067, 13.1649, 12.0956], "lump": {"name": "swingpole-134"}}
   ]
 }

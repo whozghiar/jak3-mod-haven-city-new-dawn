@@ -139,14 +139,16 @@ class Translator:
     renames:     Jak 2 entity name -> ours, for events sent to other entities by name
     drop_events: (event, first argument) pairs to remove, e.g. ("jump-to", "'top")
     cameras:     the names of the fixed cameras that are ported (camera-191...)
+    source:      the Jak 2 level holding the script
     """
 
     def __init__(self, level_map, all_levels, city, owner, story, continues, renames=None,
-                 drop_events=(), cameras=()):
+                 drop_events=(), cameras=(), source=None):
         self.level_map = level_map
         self.all_levels = set(all_levels) | set(level_map)
         self.city = city
         self.owner = owner
+        self.source = source
         self.story = story
         self.continues = continues
         self.renames = renames or {}
@@ -370,9 +372,11 @@ class Translator:
         lev = self.level(args[0])
         if not lev:
             return DROP
-        if lev == self.city and self.owner == self.city:
-            # Jak 2 showed and hid districts around this spot while the one holding it stayed:
-            # the whole city is one level here, always shown while Jak is in it
+        jak2 = str(args[0][1] if is_quoted(args[0]) else args[0])
+        if lev == self.owner and (lev == self.city or jak2 != self.source):
+            # Jak 2 showed and hid levels around this spot while the one holding it stayed: they're
+            # one level here (the city's districts, the levels merged into a place), always shown
+            # while Jak is in it
             return DROP
         mode = args[1] if len(args) > 1 else [QUOTE, Sym("display")]
         shown = is_quoted(mode) and mode[1] == Sym("display")

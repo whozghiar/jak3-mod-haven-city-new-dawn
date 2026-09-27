@@ -366,6 +366,7 @@ set(RUNTIME_SOURCE
         sce/stubs.cpp
         settings/settings.cpp
         system/background_worker.cpp
+        system/crash_report.cpp
         system/Deci2Server.cpp
         system/hid/devices/dualsense_effects.cpp
         system/hid/devices/game_controller.cpp

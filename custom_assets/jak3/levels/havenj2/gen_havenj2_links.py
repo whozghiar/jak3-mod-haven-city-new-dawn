@@ -65,10 +65,8 @@ CITY_LEVELS = [
 ]
 
 # One custom level per Jak 2 place reached from the city.
-#   memory: the level-memory-mode. Jak 3's level heap has 18 chunks: havenj2 (large) takes 12,
-#           a small-edge 6 (at either end), a small-center the 6 in the middle. So a place loaded
-#           next to the city must be small-edge, and each set of three places Jak 2 loads without
-#           the city needs one small-center: palroof is, its partners (palshaft, palcab) aren't.
+#   memory: the level-memory-mode, Jak 2's by default (see memory_modes)
+#   merge:  more Jak 2 levels merged into this one (their background, actors and regions)
 #   sky:    Jak 2's :sky (the sky is only drawn when an active level has it)
 PLACES = [
     dict(name="hj2-hiphog", nick="hjh", iso="HJ2HIPHG", index=0x12A, base_id=21500,
@@ -83,15 +81,12 @@ PLACES = [
          jak2="oracle", what="the Oracle", sky=False),
     dict(name="hj2-garage", nick="hjk", iso="HJ2GARAG", index=0x12F, base_id=22000,
          jak2="garage", what="Keira's garage, behind the stadium grounds", sky=False),
-    # Dead Town: its sea is Jak 2's own ocean map (hj2-ruins-ocean.gc), its platforms Jak 2's
-    # (hj2-ruins-obs.gc, the floating ones Jak 3's rigid-body-platform, linked here too)
+    # Dead Town, with the Sage's hut at its far end: Jak 2's continues load the hut with Dead Town
+    # (shown 'special: drawn, not a level Jak is in), so they're one level here. Its sea is Jak 2's
+    # own ocean map (hj2-ruins-ocean.gc), its beams Jak 2's (hj2-ruins-obs.gc)
     dict(name="hj2-ruins", nick="hjr", iso="HJ2RUINS", index=0x131, base_id=22200,
-         jak2="ruins", what="Dead Town, through the slums airlock", sky=True,
-         ocean="*ocean-map-hj2-ruins*",
-         code=["rigid-body-plat.o", "hj2-ruins-ocean.o", "hj2-ruins-obs.o"]),
-    # the Sage's hut, at the far end of Dead Town: Jak 2 loads it with ruins, without the city
-    dict(name="hj2-sage", nick="hjw", iso="HJ2SAGE", index=0x141, base_id=23700,
-         jak2="sagehut", what="the Sage's hut, at the far end of Dead Town", sky=True),
+         jak2="ruins", merge=["sagehut"], what="Dead Town and the Sage's hut, through the slums airlock",
+         sky=True, ocean="*ocean-map-hj2-ruins*", code=["hj2-ruins-ocean.o", "hj2-ruins-obs.o"]),
     dict(name="hj2-consb", nick="hjb", iso="HJ2CONSB", index=0x133, base_id=22300,
          jak2="consiteb", what="the tunnel to the construction site, from the industrial section",
          sky=True),
@@ -101,7 +96,7 @@ PLACES = [
          jak2="palshaft", what="the palace pillars: the palace lobby and the cable pillar",
          sky=True),
     dict(name="hj2-proof", nick="hjp", iso="HJ2PROOF", index=0x136, base_id=22600,
-         jak2="palroof", memory="small-center", what="the palace roof", sky=True, ocean=True),
+         jak2="palroof", what="the palace roof", sky=True, ocean=True),
     # palcab's backdrop (the city seen from above) spreads over kilometers, collision included: keep
     # the collision of the palace top, the pillar tops and the cable between them, else the collide
     # hash grid alone makes a 67MB level
@@ -116,7 +111,7 @@ PLACES = [
          jak2="atollext", what="the way to the pumping station, from the slums airlock", sky=True),
     # like palcab, the collision of their backdrops spreads over kilometers: keep the playable area
     dict(name="hj2-atoll", nick="hjl", iso="HJ2ATOLL", index=0x139, base_id=22900,
-         jak2="atoll", memory="large", what="the pumping station", sky=True, ocean=True,
+         jak2="atoll", what="the pumping station", sky=True, ocean=True,
          code=["hj2-atoll-obs.o"], collision_bounds=[120, -80, -1420, 900, 250, -660]),
     # Haven Forest: the gardens airlock opens on the foot of the mountain (mountain), whose warp gate
     # leads to its top (mountain again, with the temple outside, mtnext, as a backdrop); there
@@ -129,7 +124,7 @@ PLACES = [
          jak2="mtnext", what="the outside of the mountain temple, seen from the mountain top",
          sky=True),
     dict(name="hj2-forest", nick="hjf", iso="HJ2FORST", index=0x13C, base_id=23200,
-         jak2="forest", memory="large", what="Haven Forest", sky=True, ocean=True),
+         jak2="forest", what="Haven Forest", sky=True, ocean=True),
     dict(name="hj2-forstb", nick="hjn", iso="HJ2FORSB", index=0x13D, base_id=23300,
          jak2="forestb", what="the far end of Haven Forest", sky=True, ocean=True),
     # the dig: the castle pad (caspad), reached by the port's air train (AIR_TRAINS) or on foot from
@@ -138,7 +133,7 @@ PLACES = [
     dict(name="hj2-caspad", nick="hjy", iso="HJ2CASPD", index=0x13E, base_id=23400,
          jak2="caspad", what="the castle pad, above the dig", sky=True),
     dict(name="hj2-dig", nick="hjt", iso="HJ2DIG", index=0x13F, base_id=23500,
-         jak2="dig3a", memory="large", what="the dig", sky=False,
+         jak2="dig3a", what="the dig", sky=False,
          code=["rigid-body-plat.o", "hj2-dig-obs.o"]),
     dict(name="hj2-digb", nick="hju", iso="HJ2DIGB", index=0x140, base_id=23600,
          jak2="dig3b", what="the far end of the dig", sky=False),
@@ -148,6 +143,20 @@ PLACES = [
          jak2="forresca", what="the fortress, behind its gate in the slums", sky=False),
     dict(name="hj2-fortb", nick="hjj", iso="HJ2FORRB", index=0x143, base_id=23900,
          jak2="forrescb", what="the far end of the fortress", sky=False),
+    # the fortress's far gate opens on the prison (its cells, torture machine, warp gate), whose
+    # tunnels lead to Jak 2's way out of the fortress: forexita (its lifts), then forexitb (the pool
+    # under the broken trap doors, the slide), whose gate opens on the slums. Jak 2's escape from
+    # the fortress, open at the end of the game. Actor ids: 1000 per place (the prison's particles
+    # alone are 382 part spawners).
+    dict(name="hj2-prison", nick="hke", iso="HJ2PRISN", index=0x145, base_id=50000,
+         jak2="prison", what="the fortress prison, behind the far gate of the fortress", sky=False,
+         code=["hj2-prison-obs.o"]),
+    dict(name="hj2-fexa", nick="hkf", iso="HJ2FEXA", index=0x146, base_id=51000,
+         jak2="forexita", what="the way out of the fortress, from the prison", sky=False,
+         code=["hj2-fexa-obs.o"]),
+    dict(name="hj2-fexb", nick="hkg", iso="HJ2FEXB", index=0x147, base_id=52000,
+         jak2="forexitb", what="the end of the way out of the fortress, with its gate to the slums",
+         sky=False, code=["hj2-fexb-obs.o"]),
     # the stadium's race track (the class 1 race's, the one Jak 2 loads at the end of the game),
     # loaded with the city when Jak comes near the stadium
     dict(name="hj2-stadd", nick="hjz", iso="HJ2STADD", index=0x144, base_id=24000,
@@ -155,18 +164,26 @@ PLACES = [
     # Not ported: the inside of the palace (palent, throne), only reached in Jak 2's missions.
 ]
 PLACE_BY_NAME = {p["name"]: p for p in PLACES}
+
+
+def place_levels(place):
+    """The Jak 2 levels of a place: its own, then the ones merged into it."""
+    return [place["jak2"]] + place.get("merge", [])
+
+
 LEVEL_MAP = {lev: CITY for lev in CITY_LEVELS}
-LEVEL_MAP.update({p["jak2"]: p["name"] for p in PLACES})
+LEVEL_MAP.update({lev: p["name"] for p in PLACES for lev in place_levels(p)})
+# our level -> its level-memory-mode: the city's, the places' are set by memory_modes
 MEMORY = {CITY: "large"}
 # part-engine-max of the places with particles (write_place): their static part spawners
 PART_ENGINE_MAX = {}
-MEMORY.update({p["name"]: p.get("memory", "small-edge") for p in PLACES})
 # Jak 2 levels that are only a backdrop: a door waiting for them to be loaded doesn't need them
 BACKDROP_LEVELS = {"palout"}
 
-# The story state the scripts are evaluated in: the end of the game, except for the palace, which
-# is kept open (Jak 2 closes its doors once the sneak-in mission is over).
-OPEN_TASKS = {"palace-sneak-in-meeting"}
+# The story state the scripts are evaluated in, the one the actors are placed in too
+# (jak2_actors.py): the end of the game, except for the palace, which is kept open (Jak 2 closes its
+# doors once the sneak-in mission is over).
+OPEN_TASKS = jak2_actors.OPEN_TASKS
 # Per region, tasks taken as not done yet, to pick another of Jak 2's branches:
 #   528: the palace pillar elevator goes to the roof first (see PALACE_ELEVATOR), so passing this
 #        plane on the way up loads the roof, like before the sneak-in mission
@@ -212,6 +229,10 @@ DOORS = [
     # parts
     ("ctysluma", "fort-entry-gate-17"), ("forresca", "fort-entry-gate-7"),
     ("forrescb", "fort-entry-gate-8"), ("forrescb", "fort-entry-gate-9"),
+    # the prison: the fortress's far gate and its other side; the way out of the fortress: its gate
+    # and the slums' gate it opens on
+    ("forrescb", "fort-entry-gate-11"), ("prison", "fort-entry-gate-20"),
+    ("forexitb", "fort-entry-gate-5"), ("ctyslumb", "fort-entry-gate-19"),
 ]
 CLOSED = [
     # the castle (not ported), from the castle pad
@@ -225,8 +246,6 @@ CLOSED = [
     # own here). Not placed at all, like every actor Jak 2 never spawns (jak2_actors.py): the lobby
     # airlock com-airlock-outer-20 (Jak 2's doorway there is open) and the Hip Hog's hip-door-a-7.
     ("palshaft", "com-airlock-inner-36"), ("palshaft", "com-airlock-inner-37"),
-    # the fortress's other gates: to its exit (forexitb) and to the prison, not ported
-    ("ctyslumb", "fort-entry-gate-19"), ("forrescb", "fort-entry-gate-11"),
 ]
 # script changes, by (Jak 2 level, name): script -> replacement (None removes it)
 SCRIPT_OVERRIDES = {
@@ -456,18 +475,6 @@ ACTOR_MODELS = {
     # the fortress gate: its two leaves, each solid, bound to its joint
     "hj2-fort-gate": ("hj2-fort-gate", f"{RIPS}/ctysluma/fort-entry-gate-lod0.glb", None,
                       [{"hull": None, "joint": "frontdoorL"}, {"hull": None, "joint": "frontdoorR"}]),
-    # Dead Town (hj2-ruins-obs.gc)
-    "hj2-ruins-drop-plat-a": ("hj2-ruins-drop-plat-a", f"{RIPS}/ruins/ruins-drop-plat-a-lod0.glb", None,
-                              {"hull": None}),
-    "hj2-ruins-drop-plat-b": ("hj2-ruins-drop-plat-b", f"{RIPS}/ruins/ruins-drop-plat-b-lod0.glb", None,
-                              {"hull": None}),
-    "hj2-ruins-drop-plat-c": ("hj2-ruins-drop-plat-c", f"{RIPS}/ruins/ruins-drop-plat-c-lod0.glb", None,
-                              {"hull": None}),
-    "hj2-ruins-bridge": ("hj2-ruins-bridge", f"{RIPS}/ruins/ruins-bridge-1-lod0.glb", None,
-                         {"hull": None}),
-    "hj2-ruins-sinking-plat": ("hj2-ruins-sinking-plat", f"{RIPS}/ruins/sinking-plat-lod0.glb", None,
-                               {"hull": None}),
-    "hj2-ruins-flag": ("hj2-ruins-flag", f"{RIPS}/ruins/flag-lod0.glb", None, None),
     # the construction site (hj2-cons-obs.gc)
     # the silo doors: each leaf bound to its joint, like Jak 2's collide meshes
     "hj2-cons-silo-doors": ("hj2-cons-silo-doors", f"{RIPS}/consite/consite-silo-doors-lod0.glb",
@@ -478,12 +485,42 @@ ACTOR_MODELS = {
     "hj2-cons-bomb-elevator": ("hj2-cons-bomb-elevator",
                                f"{RIPS}/consite/consite-bomb-elevator-lod0.glb", None,
                                {"hull": -5.0, "y_max": 4.5}),
+    # the prison (hj2-prison-obs.gc)
+    "hj2-prsn-cell-door": ("hj2-prsn-cell-door", f"{RIPS}/prison/prsn-cell-door-lod0.glb", None,
+                           {"hull": None}),
+    "hj2-prsn-vent-fan": ("hj2-prsn-vent-fan", f"{RIPS}/prison/prsn-vent-fan-lod0.glb", None, None),
+    # the torture machine: its body and its three arms, each part solid on its joint, like Jak 2's
+    # collide meshes (TORTURE_JOINTS)
+    "hj2-prsn-torture": ("hj2-prsn-torture", f"{RIPS}/prison/prsn-torture-lod0.glb", None,
+                         [{"hull": None, "joint": joint} for joint in (
+                             "main", "C_arm_shoulder", "C_arm_elbow", "R_shoulder", "R_arm_elbow",
+                             "R_hand_extender_main_END", "L_shoulder", "L_arm_elbow",
+                             "L_hand_extender_main_END")]),
+    "hj2-prsn-hang-cell": ("hj2-prsn-hang-cell", f"{RIPS}/prison/prsn-hang-cell-lod0.glb", None,
+                           None),
+    # the warp gate without its energy (primitives 0 and 1, drawn by Jak 2 only while the gate goes
+    # somewhere)
+    "hj2-warp-gate-b": ("hj2-warp-gate-b", f"{RIPS}/prison/warp-gate-b-lod0.glb", [2, 3],
+                        {"hull": None}),
+    # the way out of the fortress (hj2-fexa-obs.gc, hj2-fexb-obs.gc): the lift's deck (the joint
+    # platscale, rideable), its arm and its base, like Jak 2's collide meshes; the pool's surface
+    "hj2-fort-lift-plat": ("hj2-fort-lift-plat", f"{RIPS}/forexita/fort-lift-plat-lod0.glb", None,
+                           [{"hull": None, "joint": "platscale"},
+                            {"hull": None, "joint": "armrotate"},
+                            {"hull": None, "joint": "main"}]),
+    "hj2-fort-pool": ("hj2-fort-pool", f"{RIPS}/forexitb/water-anim-fortress-exitb-pool-lod0.glb",
+                      None, None),
 }
 # models with more than their first animation: by model, [(rip, animation, our name)]
 MODEL_ANIMS = {
     # the beams slide when Jak comes near (hj2-ruins-obs.gc)
     "hj2-ruins-beam": [(f"{RIPS}/ruins/beam-lod0.glb", "beam-idle", "hj2-ruins-beam-idle"),
                        (f"{RIPS}/ruins/beam-lod0.glb", "beam-slide-center", "hj2-ruins-beam-slide")],
+    # the lift raising its deck, and its pose while it rides its path (hj2-fexa-obs.gc)
+    "hj2-fort-lift-plat": [
+        (f"{RIPS}/forexita/fort-lift-plat-lod0.glb", "fort-lift-plat-idle", "hj2-fort-lift-plat-idle"),
+        (f"{RIPS}/forexita/fort-lift-plat-lod0.glb", "fort-lift-plat-scale",
+         "hj2-fort-lift-plat-scale")],
 }
 ACTOR_MODELS["hj2-ruins-beam"] = ("hj2-ruins-beam", f"{RIPS}/ruins/beam-lod0.glb", None, None)
 # the bomb elevator's hinges, a model of their own drawn with it (no actor)
@@ -505,7 +542,8 @@ DIG_TRAPEZE_MODEL = ("hj2-dig-trapeze", f"{RIPS}/dig3a/dig-balloon-lurker-trapez
 # classes are in goal_src/jak3/levels/havenj2/hj2-atoll-obs.gc, hj2-mount-obs.gc and
 # hj2-dig-obs.gc. Not ported from the dig: its enemies, the spiky spheres its doors roll (the doors
 # stay, still) and the stomp blocks.
-PORTED_LEVELS = {"atoll", "mountain", "dig3a", "ruins", "consite"}
+PORTED_LEVELS = {"atoll", "mountain", "dig3a", "ruins", "consite", "prison", "forexita",
+                 "forexitb"}
 PORTED_ACTORS = {
     "piston": ("hj2-piston", {"move-range": "float", "sync": "float"}),
     "turbine": ("hj2-turbine", {"rotspeed": "float", "rise-height": "float"}),
@@ -535,22 +573,37 @@ PORTED_ACTORS = {
     "dig-button": ("hj2-dig-button", {}),
     "dig-totem": ("hj2-dig-totem", {}),
     "dig-spikey-sphere-door": ("hj2-dig-sphere-door", {}),
-    # Dead Town: the swinging bars are Jak 3's swingpole (the bar is background), the slabs that
-    # give way, the floating platforms, the beams and the flag of the tower
-    "swingpole": ("swingpole", {}),
-    "ruins-drop-plat": (None, {}),
-    "ruins-bridge": ("hj2-ruins-bridge", {}),
-    "sinking-plat": ("hj2-ruins-sinking-plat", {}),
+    # Dead Town's beams (at the end of the game, its slabs, bridge, floating platforms and flag are
+    # gone with the tower: Jak 2 only spawns them before the tower falls, see jak2_actors.py)
     "beam": ("hj2-ruins-beam", {}),
-    "flag": ("hj2-ruins-flag", {}),
+    # the swinging bars, in every place (GENERIC_ETYPES): Jak 3's swingpole (the bar itself is
+    # background), same lumps
+    "swingpole": ("swingpole", {}),
+    # the slides, in every place: Jak 3's slide-control (target-tube.gc, the same as Jak 2's), its
+    # curve
+    "slide-control": ("slide-control", {"path": "vector", "path-k": "float"}),
+    # the prison: its cell doors (shut), vent fans, torture machine, hanging cells (on their rail,
+    # the path) and warp gate (going nowhere until the strip mine is ported)
+    "prsn-cell-door": ("hj2-prsn-cell-door", {}),
+    "prsn-vent-fan": ("hj2-prsn-vent-fan", {}),
+    "prsn-torture": ("hj2-prsn-torture", {}),
+    "prsn-hang-cell": ("hj2-prsn-hang-cell", {"path": "vector"}),
+    "warp-gate-b": ("hj2-warp-gate-b", {}),
+    # the way out of the fortress: its lifts (Jak 3's plat, the user18 option raises the deck in
+    # place) and the pool's surface. Its trap doors are broken for good by the escape (Jak 2 marks
+    # them dead), so they're left out.
+    "fort-lift-plat": ("hj2-fort-lift-plat", {"path": "vector", "sync": "float", "options": "uint32",
+                                              "initial-spline-pos": "float"}),
+    "water-anim-fortress": ("hj2-fort-pool", {}),
     # the construction site's silo doors and bomb elevator
     "consite-silo-doors": ("hj2-cons-silo-doors", {}),
     "consite-bomb-elevator": ("hj2-cons-bomb-elevator", {}),
 }
 
-# Jak 2's crates of the places, as Jak 3's (a wood crate, its art in GAME), with their pickups. Jak 3
-# added eco-pill-light (8) and lightjak (14) to pickup-type, and three guns of each color.
-CRATE_LEVELS = {"atoll", "mountain", "forest", "dig3a", "ruins", "forresca", "forrescb"}
+# PORTED_ACTORS placed in every place, not only in PORTED_LEVELS (Jak 3 has their class in GAME)
+GENERIC_ETYPES = {"swingpole", "slide-control"}
+# Jak 2's crates of every place, as Jak 3's (a wood crate, its art in GAME), with their pickups.
+# Jak 3 added eco-pill-light (8) and lightjak (14) to pickup-type, and three guns of each color.
 JAK2_PICKUP = {**{n: n for n in range(8)},
                8: 9, 9: 10, 10: 11, 11: 12, 12: 13, 13: 15, 14: 16, 15: 17, 16: 18, 17: 19, 18: 20,
                19: 21, 20: 22, 21: 23, 22: 24, 23: 25, 24: 26, 25: 29, 26: 32, 27: 35}
@@ -578,31 +631,52 @@ REGION_ID_OFFSET = 1000
 # story state of the background ###################################################################
 # Jak 2 shows or hides some background prototypes (TIE, shrub) depending on the story, in
 # level-method-22 (engine/game/task/task-control.gc, prototypes-game-visible-set!), which also
-# disables their collision. Kept here: the state before the event that changes them, the one most
-# of the game shows. By Jak 2 level, the prototypes left out (the builder drops their collision
-# too, tagged by the decompiler).
+# disables their collision. Kept here: their state at the end of the game, every task done. By Jak 2
+# level, the prototypes hidden then (the builder drops their collision too, tagged by the
+# decompiler). The ones shown at the end (the construction site's broken scaffolding, the statue's
+# rubble...) need nothing: every prototype is shown by default.
 HIDDEN_PROTOTYPES = {
-    # the palace plaza before Mar's tomb is found (canyon-insert-items-shard): the Baron's statue
-    # stands on its wall, no rubble
-    "ctypal": ["ctyp-statue-rubble-a.mb", "ctyp-statue-rubble-b.mb", "ctyp-statue-rubble-big-a.mb"],
-    # the market roof before the tanker crashes into it (city-intercept-tanker)
-    "ctymarkb": ["city-mark-roof-broken.mb"],
-    # the Hip Hog's paintings before the nest boss (nest-boss-resolution)
-    "hiphog": ["hip-paintings-bar-b.mb", "hip-paintings-wall-reflection-b.mb",
-               "hip-paintings-wall-b.mb"],
-    # Dead Town's tower still standing (ruins-tower)
-    "ruins": ["ruins-board-task2.mb", "ruins-lgcollision-task2.mb", "ruins-plank-task2.mb",
-              "ruins-smlcollision-task2.mb", "ruins-support-task2.mb", "ruin-tower-junk.mb"],
-    # the construction site before the Baron's fight (consite-find-baron-resolution)
-    "consite": ["consite-barrel-broken.mb", "consite-cor-sheet-8x16-hi-broken.mb",
-                "consite-scaffold-assmb-24m-mid-broken.mb", "consite-scaffold-beam-4m-broken.mb",
-                "consite-scaffold-beam-8m-broken.mb", "consite-scaffold-i-hook-broken.mb",
-                "consite-scaffold-i-span-broken.mb", "consite-scaffold-t-connector-broken.mb",
-                "consite-scaffold-x-connector-corner-broken.mb",
-                "consite-scaffold-x-connector-corner-out-broken.mb",
-                "consite-plank-double-broken.mb", "consite-plank-single-broken.mb",
-                "consite-rope-14m-broken.mb", "consite-rope-8m-broken.mb",
-                "consite-rope-ring-broken.mb", "consite-scaffold-x-connector-broken.mb"],
+    # the palace plaza once Mar's tomb is found (canyon-insert-items-shard): the wall under the
+    # Baron's statue is gone, the statue lies in rubble
+    "ctypal": ["ctyp-statue-wall-breakable.mb"],
+    # the market roof broken by the tanker (city-intercept-tanker-roof-explode)
+    "ctymarkb": ["city-mark-roof-before-broken.mb"],
+    # the Hip Hog's paintings changed after the nest boss (nest-boss-resolution)
+    "hiphog": ["hip-paintings-bar-a.mb", "hip-paintings-wall-reflection-a.mb",
+               "hip-paintings-wall-a.mb"],
+    # Dead Town's tower fallen (ruins-tower): its standing pieces and the swinging bars on it
+    "ruins": ["ruin-balcony-01-tower.mb", "ruin-balcony-02-tower.mb", "ruin-bar-01-tower.mb",
+              "ruin-bar-02-tower.mb", "ruin-bar-03-tower.mb", "ruin-bridge-01-tower.mb",
+              "ruin-lamp-post-01-tower.mb", "ruin-lamp-post-03-tower.mb",
+              "ruin-lamp-post-04-tower.mb", "ruin-lampbase-02-tower.mb",
+              "ruin-lamplite-01-tower.mb", "ruin-pillar-broken-01-tower.mb",
+              "ruin-pillar-broken-03-tower.mb", "ruin-top-tower.mb", "ruin-tower-window-01.mb",
+              "ruin-window-01-tower.mb", "ruins-city-corner-roof-tower.mb",
+              "ruins-city-roof-01-tower.mb", "ruins-cracked-roof-tower.mb",
+              "ruins-pipe-2m-end-tower.mb", "ruins-pipe-elbow-tower.mb", "ruins-pipe-mid-tower.mb",
+              "ruins-pipe-ring-tower.mb", "ruins-support-01-tower.mb", "ruins-support-02-tower.mb",
+              "swingpole-geo.mb", "ruin-top-brick-01.mb", "ruin-brick-side-01.mb"],
+    # the pumping station: Sig's tank gone (atoll-sig), and the castle seen in the distance, blown up
+    # (castle-boss-resolution)
+    "atoll": ["atoll-tank.mb", "lowres-casboss.mb"],
+    # the castle pad after the castle boss: its tanks, crane, tower and scaffolding are gone
+    "caspad": ["cpad-bigtank-side.mb", "cpad-bigtank-top.mb", "cpad-bigtank-top-details.mb",
+               "cpad-crane.mb", "cpad-crane-base.mb", "cpad-elev-scaffolding.mb",
+               "cpad-elev-shaft-ex.mb", "cpad-elev-shaft-ex-detail.mb", "cpad-elev-shaft-roof.mb",
+               "cpad-liltank-side.mb", "cpad-liltank-top.mb", "cpad-pipe-base.mb",
+               "cpad-pipe-flat.mb", "cpad-pipe-lil-elbo.mb", "cpad-pipe-lil-strt.mb",
+               "cpad-pipe-med-elbo.mb", "cpad-pipe-med-strt.mb", "cpad-pipe-tank-45.mb",
+               "cpad-pipe-tank-strt.mb", "cpad-scaffold-structure.mb", "cpad-scaff-x-beam.mb",
+               "cpad-stonework.mb", "cpad-top.mb", "cpad-tower-bottom.mb",
+               "cpad-tower-centrifuse.mb", "cpad-tower-generator.mb",
+               "cpad-tower-generator-panels.mb", "cpad-tower-smokestack.mb",
+               "cpad-tower-supports-lower.mb", "cpad-tower-turbine.mb",
+               "cpad-tower-walkway-lower.mb", "cpad-x-beam.mb"],
+    # the sewers: the door of the hover-board mission (sewer-board) is gone
+    "sewer": ["sewer-hover-door.mb"],
+    "sewerb": ["sewer-hover-door.mb"],
+    "sewesc": ["sewer-hover-door.mb"],
+    "sewescb": ["sewer-hover-door.mb"],
 }
 
 # continues #######################################################################################
@@ -633,8 +707,9 @@ EXTRA_CONTINUES = {
     "cable-pillar": ("ctygenb", "com-airlock-outer-15", 8.0),
 }
 # continues of the other places: all of Jak 2's for that level (the respawn points, see
-# havenj2-update-continue in GAME), but the title, intro, demo and cutscene ones
-SKIPPED_CONTINUE_FLAGS = {"demo", "demo-end", "title", "intro"}
+# havenj2-update-continue in GAME), but the title, intro, new game (the prison), demo and cutscene
+# ones (scene-wait: waiting for a cutscene)
+SKIPPED_CONTINUE_FLAGS = {"demo", "demo-end", "title", "intro", "game-start", "scene-wait"}
 SKIPPED_CONTINUE_NAMES = ("movie", "demo")
 # the continue flags kept from Jak 2's: no-auto (Jak 3 never picks it by itself), warp-gate (Jak
 # arrives jumping out of the closest warp gate), no-blackout
@@ -873,7 +948,8 @@ class Context:
     def translator(self, jak2_level, open_tasks=()):
         closed = lambda task: task not in OPEN_TASKS and task not in open_tasks  # noqa: E731
         return Translator(LEVEL_MAP, self.all_levels | BACKDROP_LEVELS, CITY, LEVEL_MAP[jak2_level],
-                          closed, self.continue_names, RENAMES, DROP_EVENTS, self.camera_names)
+                          closed, self.continue_names, RENAMES, DROP_EVENTS, self.camera_names,
+                          source=jak2_level)
 
 
 def translate_notice(tr, text):
@@ -1140,21 +1216,19 @@ def ported_actors(ctx, place):
     """(comment, actor) list of Jak 2's platforms, props (PORTED_ACTORS) and crates of a place."""
     out = []
     for (level, name), actor in sorted(ctx.actors.items(), key=lambda kv: str(kv[0])):
-        if level != place["jak2"]:
+        if level not in place_levels(place):
             continue
         src = actor["lump"]
         trans = [r4(x) for x in actor["trans"][:3]]
-        if actor["etype"] == "crate" and level in CRATE_LEVELS:
+        if actor["etype"] == "crate":
             lump = {"name": name}
             if src.get("eco-info"):
                 kind, amount = src["eco-info"][:2]
                 lump["eco-info"] = ["int32", JAK2_PICKUP.get(int(kind), 0), int(amount)]
             etype = "crate"
-        elif actor["etype"] in PORTED_ACTORS and level in PORTED_LEVELS:
+        elif actor["etype"] in PORTED_ACTORS and (level in PORTED_LEVELS or
+                                                  actor["etype"] in GENERIC_ETYPES):
             etype, kept = PORTED_ACTORS[actor["etype"]]
-            if actor["etype"] == "ruins-drop-plat":
-                # its model (a, b or c) by its art-name (ruins-drop-plat-a-1...)
-                etype = "hj2-ruins-drop-plat-" + src["art-name"].split("-")[3]
             lump = {"name": name}
             for key, kind in kept.items():
                 if key in src:
@@ -1317,7 +1391,7 @@ def water_regions(place, actors, jak2_regions):
     regions = []
     if place.get("ocean"):
         for region in sorted(jak2_regions.values(), key=lambda r: r["id"]):
-            if (region["level"] != place["jak2"] or region["tree"] != "water" or
+            if (region["level"] not in place_levels(place) or region["tree"] != "water" or
                     not region["sphere"] or
                     not region["scripts"].get("on-inside", "").startswith("(water ocean")):
                 continue
@@ -1330,7 +1404,8 @@ def water_regions(place, actors, jak2_regions):
                 "on-inside": "(water ocean 0.0 (swim wade))",
             })
     for (level, _), actor in sorted(actors.items(), key=lambda kv: str(kv[0])):
-        if level != place["jak2"] or actor["etype"] != "water-vol" or "vol" not in actor["lump"]:
+        if (level not in place_levels(place) or actor["etype"] != "water-vol" or
+                "vol" not in actor["lump"]):
             continue
         lo = [-1e9] * 3
         hi = [1e9] * 3
@@ -1341,7 +1416,9 @@ def water_regions(place, actors, jak2_regions):
                 hi[axis] = min(hi[axis], limit)
             else:
                 lo[axis] = max(lo[axis], limit)
-        height = actor["lump"]["water-height"][0] / METER
+        # its water height, else the top of its box (a pool whose surface is a water-anim)
+        height = (actor["lump"]["water-height"][0] / METER if "water-height" in actor["lump"]
+                  else hi[1])
         hi[1] = max(hi[1], height + 2.0)
         center = [(lo[i] + hi[i]) / 2 for i in range(3)]
         radius = sum((hi[i] - center[i]) ** 2 for i in range(3)) ** 0.5
@@ -1516,25 +1593,12 @@ def translate_wants(jak2_wants):
     return [(lev, "'display" if shown else "#f") for lev, shown in out.items()]
 
 
-def check_memory(levels):
-    """Jak 3's level heap: 18 chunks, large = 12 (either end), small-edge = 6 at an end,
-    small-center = the 6 in the middle."""
-    modes = [MEMORY[lv] for lv in levels]
-    large, center, edge = modes.count("large"), modes.count("small-center"), modes.count("small-edge")
-    ok = large <= 1 and center <= 1 and edge <= 2 and not (large and center) and not (
-        large and edge > 1)
-    if not ok:
-        raise ValueError(f"levels {levels} don't fit in the level heap together")
-
-
-def select_continues(ctx):
-    """(our level, continue name, Jak 2 continue) for every continue point to write."""
-    chosen = []
-    for jak2_name in CITY_CONTINUES:
-        chosen.append((CITY, continue_name(jak2_name), jak2_name))
+def continue_candidates(ctx):
+    """(our level, Jak 2 continue, the levels it loads) for the continues of the places, but the
+    title, intro, demo and cutscene ones."""
     for place in PLACES:
         for jak2_name, cont in ctx.continues.items():
-            if cont["level"] != place["jak2"]:
+            if cont["level"] not in place_levels(place):
                 continue
             if jak2_name not in CONTINUE_WANTS and jak2_name not in KEPT_CONTINUES and (
                     cont["flags"] & SKIPPED_CONTINUE_FLAGS or
@@ -1544,15 +1608,135 @@ def select_continues(ctx):
             levels = [lev for lev, _ in wants]
             if place["name"] not in levels:
                 levels.append(place["name"])
-            try:
-                check_memory(levels)
-            except ValueError:
-                print(f"  continue {jak2_name}: its levels {levels} don't fit together, left out")
-                continue
-            chosen.append((place["name"], continue_name(jak2_name), jak2_name))
+            yield place["name"], jak2_name, levels
+
+
+def select_continues(ctx):
+    """(our level, continue name, Jak 2 continue) for every continue point to write."""
+    chosen = []
+    for jak2_name in CITY_CONTINUES:
+        chosen.append((CITY, continue_name(jak2_name), jak2_name))
+    for level, jak2_name, levels in continue_candidates(ctx):
+        try:
+            check_memory(levels)
+        except ValueError:
+            print(f"  continue {jak2_name}: its levels {levels} don't fit together, left out")
+            continue
+        chosen.append((level, continue_name(jak2_name), jak2_name))
     for _, ours, jak2_name in chosen:
         ctx.continue_names[jak2_name] = ours
     return chosen
+
+
+# memory ##########################################################################################
+# Jak 3's level heap is 18 chunks. A level of each memory mode takes one of these chunk sets (the
+# plain case of level-group::alloc-levels!, goal_src/jak3/engine/level/level.gc, no micro or tiny
+# level loaded), so levels fit together when they can take chunk sets that don't overlap. Jak 2's
+# load-buffer-mode has the same four names (small-edge when a level has none).
+CHUNKS = {
+    "large": [0xFFF, 0x3FFC0],
+    "medium": [0x1FF, 0x3FE00],
+    "small-center": [0xFC0],
+    "small-edge": [0x3F, 0x3F000],
+}
+CHUNK_COUNT = {mode: bin(masks[0]).count("1") for mode, masks in CHUNKS.items()}
+WANT_LOAD = re.compile(r"\(want-load((?: '[\w-]+)+)\)")
+
+
+def fits(modes):
+    """Can levels of these memory modes be loaded together?"""
+    def place(i, used):
+        return i == len(modes) or any(not mask & used and place(i + 1, used | mask)
+                                      for mask in CHUNKS[modes[i]])
+    return place(0, 0)
+
+
+def check_memory(levels):
+    if not fits([MEMORY[lv] for lv in levels]):
+        raise ValueError(f"levels {levels} don't fit in the level heap together")
+
+
+def jak2_memory_modes():
+    """Jak 2 level -> its load-buffer-mode."""
+    src = open(JAK2_LEVEL_INFO, encoding="utf-8").read()
+    out = {}
+    for block in re.split(r"\n\(define ", src):
+        name = re.search(r":name '([\w-]+)", block)
+        if not name or "level-load-info" not in block[:200]:
+            continue
+        mode = re.search(r":memory-mode \(load-buffer-mode ([\w-]+)\)", block)
+        out[name.group(1)] = mode.group(1) if mode else "small-edge"
+    return out
+
+
+def load_sets(ctx, regions):
+    """Every set of our levels loaded together: the want-load lists of the translated door,
+    elevator and region scripts, and the levels of the continues."""
+    sets = set()
+
+    def add_script(text):
+        for m in WANT_LOAD.finditer(text or ""):
+            levels = tuple(sorted(set(re.findall(r"'([\w-]+)", m.group(1)))))
+            if len(levels) > 1:
+                sets.add(levels)
+
+    for jak2_level, name in DOORS + [(PALACE_ELEVATOR["level"], PALACE_ELEVATOR["name"])]:
+        actor = ctx.actors[(jak2_level, name)]
+        for text in translate_lumps(ctx, jak2_level, name, actor["lump"]).values():
+            add_script(text)
+    for region in regions.values():
+        if region["tree"] not in ("target", "camera") or region["level"] not in LEVEL_MAP:
+            continue
+        tr = ctx.translator(region["level"], REGION_OPEN_TASKS.get(region["id"], ()))
+        for text in region["scripts"].values():
+            add_script(tr.script(text))
+        for text in REGION_SCRIPT_OVERRIDES.get(region["id"], {}).values():
+            add_script(text)
+    for _, _, levels in continue_candidates(ctx):
+        if len(set(levels)) > 1:
+            sets.add(tuple(sorted(set(levels))))
+    return sets
+
+
+def memory_modes(ctx, regions):
+    """Each place's memory mode: Jak 2's (the largest of its levels'), unless a set of levels it's
+    loaded with (load_sets) can't fit in the heap. Then, set by set, the change that makes it fit
+    with the fewest sets left that don't: a place loaded next to the city (12 chunks) can only be
+    small-edge, the third place of a set loaded without it small-center."""
+    jak2 = jak2_memory_modes()
+    order = ["small-edge", "small-center", "medium", "large"]
+    modes = {CITY: "large"}
+    for p in PLACES:
+        modes[p["name"]] = max((jak2.get(lv, "small-edge") for lv in place_levels(p)),
+                               key=order.index)
+    sets = sorted(load_sets(ctx, regions))
+
+    def failing():
+        return [s for s in sets if not fits([modes[lv] for lv in s])]
+
+    for _ in range(100):
+        bad = failing()
+        if not bad:
+            return {lv: m for lv, m in modes.items() if lv != CITY}
+        options = []
+        for lv in bad[0]:
+            if lv == CITY:
+                continue
+            old = modes[lv]
+            for alt in order:
+                if alt == old or CHUNK_COUNT[alt] > CHUNK_COUNT[old]:
+                    continue
+                modes[lv] = alt
+                if fits([modes[x] for x in bad[0]]):
+                    options.append((len(failing()), -CHUNK_COUNT[alt], lv, alt))
+                modes[lv] = old
+        if not options:
+            raise ValueError(f"levels {bad[0]} can't fit in the level heap together")
+        _, _, lv, alt = min(options)
+        others = ", ".join(x for x in bad[0] if x != lv)
+        print(f"  memory: {lv} {modes[lv]} -> {alt}, loaded with {others}")
+        modes[lv] = alt
+    raise ValueError("memory modes: no solution")
 
 
 def int16(x):
@@ -1745,7 +1929,7 @@ def write_place(ctx, place, regions):
     os.makedirs(folder, exist_ok=True)
     import_fr3 = {
         "game": "jak2",
-        "levels": [place["jak2"]],
+        "levels": place_levels(place),
         "tfrag": True,
         "tie": True,
         "shrub": True,
@@ -1753,7 +1937,7 @@ def write_place(ctx, place, regions):
     }
     if "collision_bounds" in place:
         import_fr3["collision_bounds"] = place["collision_bounds"]
-    hidden = hidden_prototypes([place["jak2"]])
+    hidden = hidden_prototypes(place_levels(place))
     if hidden:
         import_fr3["hide_prototypes"] = hidden
     region_files = []
@@ -1776,7 +1960,7 @@ def write_place(ctx, place, regions):
         "{",
         f"  // {GENERATED_HEADER}",
         f"  // {what}, reached from havenj2 (Jak 2's Haven City),",
-        f"  // imported from Jak 2's extracted {place['jak2']}.",
+        f"  // imported from Jak 2's extracted {', '.join(place_levels(place))}.",
         f'  "long_name": "{place["name"]}",',
         f'  "iso_name": "{place["iso"]}",',
         f'  "nickname": "{place["nick"]}",',
@@ -1943,8 +2127,10 @@ def write_level_info(ctx, chosen):
             [(35, "hj2-place-activate"), (36, "hj2-place-deactivate")],
             (place["ocean"] if isinstance(place.get("ocean"), str) else
              "*ocean-map-havenj2*" if place.get("ocean") else None),
-            f";; {what} (custom_assets/jak3/levels/{place['name']}), Jak 2's {place['jak2']}.\n"
-            f";; memory: {memory} (see PLACES in gen_havenj2_links.py).",
+            f";; {what} (custom_assets/jak3/levels/{place['name']}), Jak 2's "
+            f"{', '.join(place_levels(place))}.\n"
+            f";; memory: {memory} (Jak 2's where the level heap allows, see memory_modes in\n"
+            ";; gen_havenj2_links.py).",
             "10.0", place["sky"], PART_ENGINE_MAX.get(place["name"], 0)))
     out.append(freehq_gate_continue())
     write_if_changed(LEVEL_INFO_OUT, "\n".join(out))
@@ -1954,6 +2140,8 @@ def main():
     actors = load_actors()
     ctx = Context(actors)
     regions = load_regions()
+    MEMORY.update(memory_modes(ctx, regions))
+    print("memory: " + ", ".join(f"{p['name']} {MEMORY[p['name']]}" for p in PLACES))
     chosen = select_continues(ctx)
     check_pairs(ctx)
     nav_gen.main()

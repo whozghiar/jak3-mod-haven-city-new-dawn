@@ -19,6 +19,7 @@
 #include "common/versions/versions.h"
 
 #include "game/common/game_common_types.h"
+#include "game/system/crash_report.h"
 #include "graphics/gfx_test.h"
 
 #include "third-party/CLI11.hpp"
@@ -240,6 +241,8 @@ int main(int argc, char** argv) {
     lg::error("Failed to setup logging: {}", e.what());
     return 1;
   }
+  // where the runtime crashed, written to the log (Windows)
+  crash_report::install(game_name);
 
   bool force_debug_next_time = false;
   bool force_retail_next_time = false;

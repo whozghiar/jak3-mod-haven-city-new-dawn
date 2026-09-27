@@ -5,7 +5,7 @@
   "long_name": "hj2-hiphog",
   "iso_name": "HJ2HIPHG",
   "nickname": "hjh",
-  "import_fr3": {"game": "jak2", "levels": ["hiphog"], "tfrag": true, "tie": true, "shrub": true, "collision": true, "hide_prototypes": ["hip-paintings-bar-b.mb", "hip-paintings-wall-reflection-b.mb", "hip-paintings-wall-b.mb"]},
+  "import_fr3": {"game": "jak2", "levels": ["hiphog"], "tfrag": true, "tie": true, "shrub": true, "collision": true, "hide_prototypes": ["hip-paintings-bar-a.mb", "hip-paintings-wall-reflection-a.mb", "hip-paintings-wall-a.mb"]},
   "base_id": 21500,
   "base_region_id": 21500,
   // Jak 2's fixed cameras of this place (elevator rides, camera regions)

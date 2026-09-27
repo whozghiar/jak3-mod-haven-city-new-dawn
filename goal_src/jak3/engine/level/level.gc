@@ -15,7 +15,11 @@
 
 (defglobalconstant LEVEL_HEAP_SIZE (* NUM_LEVEL_PAGES LEVEL_PAGE_SIZE))
 ;(defglobalconstant DEBUG_LEVEL_HEAP_MULT 1.5) ;; level heap in debug mode is 1.5x larger
-(defglobalconstant DEBUG_LEVEL_HEAP_MULT 15.0) ;; og:preserve-this PC port: ~262 MB total level heap for custom actors/entities
+;; og:preserve-this PC port: ~180 MB total level heap for custom actors/entities. Not more: the level
+;; heaps must end below #x10000000 (256 MB), as a texture's shader links (shader-ptr) hold 24 bits of
+;; (address / 16). Past it a level's shader links point elsewhere, and unloading a level writes
+;; there (15.0 ended them at #x12935000: GAME code overwritten, init-level-system checks it).
+(defglobalconstant DEBUG_LEVEL_HEAP_MULT 10.0)
 (defglobalconstant DEBUG_LEVEL_PAGE_SIZE (* 1024 (* DEBUG_LEVEL_HEAP_MULT LEVEL_PAGE_SIZE_KB)))
 (defglobalconstant DEBUG_LEVEL_HEAP_SIZE (* NUM_LEVEL_PAGES DEBUG_LEVEL_PAGE_SIZE))
 
@@ -2554,6 +2558,10 @@
       (set! (-> gp-1 current) (-> gp-1 base))
       (set! (-> gp-1 top-base) (&+ (-> gp-1 base) s5-1))
       (set! (-> gp-1 top) (-> gp-1 top-base))
+      ;; og:preserve-this shader links can't point past #x10000000 (see DEBUG_LEVEL_HEAP_MULT)
+      (if (< #x10000000 (the-as int (-> gp-1 top-base)))
+          (format 0 "ERROR: the level heaps end at #x~X, past #x10000000: shader links can't reach it~%" (-> gp-1 top-base))
+          )
       )
     (kmemclose)
     )

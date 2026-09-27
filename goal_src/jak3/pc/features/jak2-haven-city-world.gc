@@ -428,13 +428,7 @@ weights."
   (none)
   )
 
-;; Sage's hut, fortress, stadium //////////////////////////////////////////////////////////////////
-
-(defbehavior update-mood-hj2-sage time-of-day-proc ((arg0 mood-context) (arg1 float) (arg2 int))
-  "Mood of hj2-sage, the Sage's hut: Dead Town's (Jak 2's sagehut uses update-mood-ruins)."
-  (update-mood-hj2-ruins arg0 arg1 arg2)
-  (none)
-  )
+;; Fortress, stadium ///////////////////////////////////////////////////////////////////////////////
 
 (defun hj2-fortress-lights ((arg0 mood-context))
   "Jak 2's update-fortress-lights: the fortress's four light groups."
@@ -506,6 +500,79 @@ turrets, not ported) off."
       (update-mood-electricity arg0 7 16 0.8 1.0)
       (dotimes (v1-5 4)
         (set! (-> arg0 times (+ v1-5 2) w) 0.0)
+        )
+      )
+    )
+  0
+  (none)
+  )
+
+(defbehavior update-mood-hj2-fexa time-of-day-proc ((arg0 mood-context) (arg1 float) (arg2 int))
+  "Mood of hj2-fexa, the way out of the fortress (Jak 2's update-mood-fortress): the fortress's
+lights, palettes 0 and 1 on, 7 pulsing."
+  (update-mood-interior arg0 #t)
+  (hj2-mood-no-fog arg0)
+  (hj2-fortress-lights arg0)
+  (cond
+    ((hj2-mood-special?)
+     (palette-select-special arg0)
+     )
+    (else
+      (set! (-> arg0 times 0 w) 1.0)
+      (set! (-> arg0 times 1 w) 1.0)
+      (update-mood-pulse arg0 7 0 0.75 0.25 (* 65536.0 (seconds-per-frame)) 0.0)
+      )
+    )
+  0
+  (none)
+  )
+
+(defbehavior update-mood-hj2-fexb time-of-day-proc ((arg0 mood-context) (arg1 float) (arg2 int))
+  "Mood of hj2-fexb, the end of the way out of the fortress: hj2-fexa's (Jak 2's forexitb uses
+update-mood-fortress too)."
+  (update-mood-hj2-fexa arg0 arg1 arg2)
+  (none)
+  )
+
+;; the prison's pulsing light (Jak 2's prison-states, without the torture chair's light)
+(deftype hj2-prison-states (structure)
+  ((pulse  float)
+   (angle  float)
+   )
+  )
+
+
+(defbehavior update-mood-hj2-prison time-of-day-proc ((arg0 mood-context) (arg1 float) (arg2 int))
+  "Mood of hj2-prison, the fortress prison (Jak 2's update-mood-prison, at the end of the game): a
+dim ambient light, palettes 0, 1, 3, 4, 5 and 7 on (7: once Jak's friends are rescued), 6 pulsing,
+2 off (the torture chair's light, only on in the torture cutscene)."
+  (update-mood-interior arg0 #t)
+  (hj2-mood-no-fog arg0)
+  (let ((v1-0 (-> arg0 light-group)))
+    (set-vector! (-> v1-0 0 dir0 color) 0.0 0.0 0.0 1.0)
+    (set-vector! (-> v1-0 0 ambi color) 0.2 0.2 0.2 1.0)
+    )
+  (set! (-> arg0 light-group 0 dir0 extra x) 0.0)
+  (cond
+    ((hj2-mood-special?)
+     (palette-select-special arg0)
+     )
+    (else
+      (let ((gp-0 (the-as hj2-prison-states (-> arg0 state))))
+        (set! (-> arg0 times 0 w) 1.0)
+        (set! (-> arg0 times 1 w) 1.0)
+        (set! (-> arg0 times 2 w) 0.0)
+        (set! (-> arg0 times 3 w) 1.0)
+        (set! (-> arg0 times 4 w) 1.0)
+        (set! (-> arg0 times 5 w) 1.0)
+        (set! (-> arg0 times 6 w) (-> gp-0 pulse))
+        (set! (-> arg0 times 7 w) 1.0)
+        (when (not (paused?))
+          (set! (-> gp-0 pulse) (+ 1.125 (* 0.125 (cos (-> gp-0 angle)))))
+          (let ((f0-14 (+ (-> gp-0 angle) (* 32768.0 (seconds-per-frame)))))
+            (set! (-> gp-0 angle) (- f0-14 (* (the float (the int (/ f0-14 65536.0))) 65536.0)))
+            )
+          )
         )
       )
     )

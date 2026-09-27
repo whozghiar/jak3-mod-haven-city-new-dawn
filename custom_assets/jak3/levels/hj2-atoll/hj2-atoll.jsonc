@@ -5,7 +5,7 @@
   "long_name": "hj2-atoll",
   "iso_name": "HJ2ATOLL",
   "nickname": "hjl",
-  "import_fr3": {"game": "jak2", "levels": ["atoll"], "tfrag": true, "tie": true, "shrub": true, "collision": true, "collision_bounds": [120, -80, -1420, 900, 250, -660]},
+  "import_fr3": {"game": "jak2", "levels": ["atoll"], "tfrag": true, "tie": true, "shrub": true, "collision": true, "collision_bounds": [120, -80, -1420, 900, 250, -660], "hide_prototypes": ["atoll-tank.mb", "lowres-casboss.mb"]},
   // Jak 2's load regions of this place (translated), and its water volumes (water-vol)
   "region_tree_files": ["custom_assets/jak3/levels/hj2-atoll/hj2-atoll-regions.json", "custom_assets/jak3/levels/hj2-atoll/hj2-atoll-water-regions.json"],
   "base_id": 22900,

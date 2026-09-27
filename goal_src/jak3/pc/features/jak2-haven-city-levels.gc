@@ -11,7 +11,7 @@
 ;; at boot (warps, saves). Moods and callbacks: jak2-haven-city-world.gc.
 
 ;; every level of this mod (the clock stays as set while one of them is active)
-(define *havenj2-levels* '(havenj2 hj2-hiphog hj2-gun hj2-vin hj2-hide hj2-oracle hj2-garage hj2-ruins hj2-sage hj2-consb hj2-cons hj2-pshaft hj2-proof hj2-pcab hj2-atollx hj2-atoll hj2-mount hj2-mtnx hj2-forest hj2-forstb hj2-caspad hj2-dig hj2-digb hj2-forta hj2-fortb hj2-stadd))
+(define *havenj2-levels* '(havenj2 hj2-hiphog hj2-gun hj2-vin hj2-hide hj2-oracle hj2-garage hj2-ruins hj2-consb hj2-cons hj2-pshaft hj2-proof hj2-pcab hj2-atollx hj2-atoll hj2-mount hj2-mtnx hj2-forest hj2-forstb hj2-caspad hj2-dig hj2-digb hj2-forta hj2-fortb hj2-prison hj2-fexa hj2-fexb hj2-stadd))
 
 ;; Jak 2's whole Haven City as one custom level (custom_assets/jak3/levels/havenj2). Kept at
 ;; Jak 2's world coordinates, so it must never be loaded together with Jak 3's own city levels.
@@ -858,7 +858,8 @@
 (cons! *level-load-list* 'havenj2)
 
 ;; The Hip Hog saloon (custom_assets/jak3/levels/hj2-hiphog), Jak 2's hiphog.
-;; memory: small-edge (see PLACES in gen_havenj2_links.py).
+;; memory: small-edge (Jak 2's where the level heap allows, see memory_modes in
+;; gen_havenj2_links.py).
 (define hj2-hiphog
   (new 'static 'level-load-info
     :name 'hj2-hiphog
@@ -900,22 +901,6 @@
           )
         :want-sound (new 'static 'array symbol 3 #f #f #f)
         )
-      (new 'static 'continue-point
-        :name "hj2-hiphog-outro"
-        :level 'hj2-hiphog
-        :trans (static-vectorm -79.5834 8.8797 1316.3188)
-        :camera-trans (static-vectorm -73.5610 12.5048 1318.1564)
-        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 32331 0 -5308))
-        :camera-rot (new 'static 'array int16 9 -10279 0 31112 -8090 31637 -2674 -30041 -8523 -9925)
-        :on-goto #f
-        :vis-nick 'hj2-hiphog
-        :vehicle-type #x1b
-        :want-count 1
-        :want (new 'static 'inline-array level-buffer-state-small 1
-          (new 'static 'level-buffer-state-small :name 'hj2-hiphog :display? 'display)
-          )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
-        )
       )
     :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
     :borrow #f
@@ -930,7 +915,8 @@
 (cons! *level-load-list* 'hj2-hiphog)
 
 ;; The gun course (custom_assets/jak3/levels/hj2-gun), Jak 2's gungame.
-;; memory: small-edge (see PLACES in gen_havenj2_links.py).
+;; memory: small-edge (Jak 2's where the level heap allows, see memory_modes in
+;; gen_havenj2_links.py).
 (define hj2-gun
   (new 'static 'level-load-info
     :name 'hj2-gun
@@ -986,7 +972,8 @@
 (cons! *level-load-list* 'hj2-gun)
 
 ;; Vin's power station room (custom_assets/jak3/levels/hj2-vin), Jak 2's vinroom.
-;; memory: small-edge (see PLACES in gen_havenj2_links.py).
+;; memory: small-edge (Jak 2's where the level heap allows, see memory_modes in
+;; gen_havenj2_links.py).
 (define hj2-vin
   (new 'static 'level-load-info
     :name 'hj2-vin
@@ -1096,7 +1083,8 @@
 (cons! *level-load-list* 'hj2-vin)
 
 ;; The Underground's hideout (custom_assets/jak3/levels/hj2-hide), Jak 2's hideout.
-;; memory: small-edge (see PLACES in gen_havenj2_links.py).
+;; memory: small-edge (Jak 2's where the level heap allows, see memory_modes in
+;; gen_havenj2_links.py).
 (define hj2-hide
   (new 'static 'level-load-info
     :name 'hj2-hide
@@ -1170,7 +1158,8 @@
 (cons! *level-load-list* 'hj2-hide)
 
 ;; The Oracle (custom_assets/jak3/levels/hj2-oracle), Jak 2's oracle.
-;; memory: small-edge (see PLACES in gen_havenj2_links.py).
+;; memory: small-edge (Jak 2's where the level heap allows, see memory_modes in
+;; gen_havenj2_links.py).
 (define hj2-oracle
   (new 'static 'level-load-info
     :name 'hj2-oracle
@@ -1226,7 +1215,8 @@
 (cons! *level-load-list* 'hj2-oracle)
 
 ;; Keira's garage, behind the stadium grounds (custom_assets/jak3/levels/hj2-garage), Jak 2's garage.
-;; memory: small-edge (see PLACES in gen_havenj2_links.py).
+;; memory: small-edge (Jak 2's where the level heap allows, see memory_modes in
+;; gen_havenj2_links.py).
 (define hj2-garage
   (new 'static 'level-load-info
     :name 'hj2-garage
@@ -1300,8 +1290,9 @@
 
 (cons! *level-load-list* 'hj2-garage)
 
-;; Dead Town, through the slums airlock (custom_assets/jak3/levels/hj2-ruins), Jak 2's ruins.
-;; memory: small-edge (see PLACES in gen_havenj2_links.py).
+;; Dead Town and the Sage's hut, through the slums airlock (custom_assets/jak3/levels/hj2-ruins), Jak 2's ruins, sagehut.
+;; memory: small-edge (Jak 2's where the level heap allows, see memory_modes in
+;; gen_havenj2_links.py).
 (define hj2-ruins
   (new 'static 'level-load-info
     :name 'hj2-ruins
@@ -1354,10 +1345,9 @@
         :on-goto #f
         :vis-nick 'hj2-ruins
         :vehicle-type #x1b
-        :want-count 2
-        :want (new 'static 'inline-array level-buffer-state-small 2
+        :want-count 1
+        :want (new 'static 'inline-array level-buffer-state-small 1
           (new 'static 'level-buffer-state-small :name 'hj2-ruins :display? 'display)
-          (new 'static 'level-buffer-state-small :name 'hj2-sage :display? #f)
           )
         :want-sound (new 'static 'array symbol 3 #f #f #f)
         )
@@ -1371,10 +1361,9 @@
         :on-goto #f
         :vis-nick 'hj2-ruins
         :vehicle-type #x1b
-        :want-count 2
-        :want (new 'static 'inline-array level-buffer-state-small 2
+        :want-count 1
+        :want (new 'static 'inline-array level-buffer-state-small 1
           (new 'static 'level-buffer-state-small :name 'hj2-ruins :display? 'display)
-          (new 'static 'level-buffer-state-small :name 'hj2-sage :display? 'display)
           )
         :want-sound (new 'static 'array symbol 3 #f #f #f)
         )
@@ -1389,10 +1378,9 @@
         :on-goto #f
         :vis-nick 'hj2-ruins
         :vehicle-type #x1b
-        :want-count 2
-        :want (new 'static 'inline-array level-buffer-state-small 2
+        :want-count 1
+        :want (new 'static 'inline-array level-buffer-state-small 1
           (new 'static 'level-buffer-state-small :name 'hj2-ruins :display? 'display)
-          (new 'static 'level-buffer-state-small :name 'hj2-sage :display? #f)
           )
         :want-sound (new 'static 'array symbol 3 #f #f #f)
         )
@@ -1409,49 +1397,9 @@
 
 (cons! *level-load-list* 'hj2-ruins)
 
-;; The Sage's hut, at the far end of Dead Town (custom_assets/jak3/levels/hj2-sage), Jak 2's sagehut.
-;; memory: small-edge (see PLACES in gen_havenj2_links.py).
-(define hj2-sage
-  (new 'static 'level-load-info
-    :name 'hj2-sage
-    :visname 'hj2-sage-vis
-    :nickname 'hjw
-    :dbname 'hj2-sage
-    :taskname 'default
-    :index #x141
-    :master-level #f
-    :level-flags (level-flags sky)
-    :packages '()
-    :run-packages '("common")
-    :memory-mode (level-memory-mode small-edge)
-    :music-bank #f
-    :extra-sound-bank #f
-    :mood-func 'update-mood-hj2-sage
-    :special-mood #f
-    :ocean #f
-    :ocean-alpha 1.0
-    :priority 100
-    :draw-priority 10.0
-    :part-engine-max 0
-    :base-task-mask (task-mask task0)
-    :bigmap-id (bigmap-id none)
-    :continues '(
-
-      )
-    :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
-    :borrow #f
-    :bottom-height (meters -100)
-    :fog-height (meters 80)
-    :max-rain 1.0
-    :mood-range (new 'static 'mood-range :max-cloud 1.0 :max-fog 1.0)
-    :fog-mult 1.0
-    )
-  )
-
-(cons! *level-load-list* 'hj2-sage)
-
 ;; The tunnel to the construction site, from the industrial section (custom_assets/jak3/levels/hj2-consb), Jak 2's consiteb.
-;; memory: small-edge (see PLACES in gen_havenj2_links.py).
+;; memory: small-edge (Jak 2's where the level heap allows, see memory_modes in
+;; gen_havenj2_links.py).
 (define hj2-consb
   (new 'static 'level-load-info
     :name 'hj2-consb
@@ -1508,7 +1456,8 @@
 (cons! *level-load-list* 'hj2-consb)
 
 ;; The construction site (custom_assets/jak3/levels/hj2-cons), Jak 2's consite.
-;; memory: small-edge (see PLACES in gen_havenj2_links.py).
+;; memory: large (Jak 2's where the level heap allows, see memory_modes in
+;; gen_havenj2_links.py).
 (define hj2-cons
   (new 'static 'level-load-info
     :name 'hj2-cons
@@ -1521,7 +1470,7 @@
     :level-flags (level-flags sky)
     :packages '()
     :run-packages '("common")
-    :memory-mode (level-memory-mode small-edge)
+    :memory-mode (level-memory-mode large)
     :music-bank #f
     :extra-sound-bank #f
     :mood-func 'update-mood-hj2-cons
@@ -1582,7 +1531,8 @@
 (cons! *level-load-list* 'hj2-cons)
 
 ;; The palace pillars: the palace lobby and the cable pillar (custom_assets/jak3/levels/hj2-pshaft), Jak 2's palshaft.
-;; memory: small-edge (see PLACES in gen_havenj2_links.py).
+;; memory: small-edge (Jak 2's where the level heap allows, see memory_modes in
+;; gen_havenj2_links.py).
 (define hj2-pshaft
   (new 'static 'level-load-info
     :name 'hj2-pshaft
@@ -1639,7 +1589,8 @@
 (cons! *level-load-list* 'hj2-pshaft)
 
 ;; The palace roof (custom_assets/jak3/levels/hj2-proof), Jak 2's palroof.
-;; memory: small-center (see PLACES in gen_havenj2_links.py).
+;; memory: small-edge (Jak 2's where the level heap allows, see memory_modes in
+;; gen_havenj2_links.py).
 (define hj2-proof
   (new 'static 'level-load-info
     :name 'hj2-proof
@@ -1652,7 +1603,7 @@
     :level-flags (level-flags sky ocean-near-translucent)
     :packages '()
     :run-packages '("common")
-    :memory-mode (level-memory-mode small-center)
+    :memory-mode (level-memory-mode small-edge)
     :music-bank #f
     :extra-sound-bank #f
     :mood-func 'update-mood-hj2-proof
@@ -1733,7 +1684,8 @@
 (cons! *level-load-list* 'hj2-proof)
 
 ;; The palace cable, between the pillar tops (custom_assets/jak3/levels/hj2-pcab), Jak 2's palcab.
-;; memory: small-edge (see PLACES in gen_havenj2_links.py).
+;; memory: small-center (Jak 2's where the level heap allows, see memory_modes in
+;; gen_havenj2_links.py).
 (define hj2-pcab
   (new 'static 'level-load-info
     :name 'hj2-pcab
@@ -1746,7 +1698,7 @@
     :level-flags (level-flags sky ocean-near-translucent)
     :packages '()
     :run-packages '("common")
-    :memory-mode (level-memory-mode small-edge)
+    :memory-mode (level-memory-mode small-center)
     :music-bank #f
     :extra-sound-bank #f
     :mood-func 'update-mood-hj2-pcab
@@ -1808,7 +1760,8 @@
 (cons! *level-load-list* 'hj2-pcab)
 
 ;; The way to the pumping station, from the slums airlock (custom_assets/jak3/levels/hj2-atollx), Jak 2's atollext.
-;; memory: small-edge (see PLACES in gen_havenj2_links.py).
+;; memory: small-edge (Jak 2's where the level heap allows, see memory_modes in
+;; gen_havenj2_links.py).
 (define hj2-atollx
   (new 'static 'level-load-info
     :name 'hj2-atollx
@@ -1849,7 +1802,8 @@
 (cons! *level-load-list* 'hj2-atollx)
 
 ;; The pumping station (custom_assets/jak3/levels/hj2-atoll), Jak 2's atoll.
-;; memory: large (see PLACES in gen_havenj2_links.py).
+;; memory: large (Jak 2's where the level heap allows, see memory_modes in
+;; gen_havenj2_links.py).
 (define hj2-atoll
   (new 'static 'level-load-info
     :name 'hj2-atoll
@@ -2026,7 +1980,8 @@
 (cons! *level-load-list* 'hj2-atoll)
 
 ;; The mountain, from the gardens airlock to the way to Haven Forest (custom_assets/jak3/levels/hj2-mount), Jak 2's mountain.
-;; memory: small-edge (see PLACES in gen_havenj2_links.py).
+;; memory: small-edge (Jak 2's where the level heap allows, see memory_modes in
+;; gen_havenj2_links.py).
 (define hj2-mount
   (new 'static 'level-load-info
     :name 'hj2-mount
@@ -2224,7 +2179,8 @@
 (cons! *level-load-list* 'hj2-mount)
 
 ;; The outside of the mountain temple, seen from the mountain top (custom_assets/jak3/levels/hj2-mtnx), Jak 2's mtnext.
-;; memory: small-edge (see PLACES in gen_havenj2_links.py).
+;; memory: medium (Jak 2's where the level heap allows, see memory_modes in
+;; gen_havenj2_links.py).
 (define hj2-mtnx
   (new 'static 'level-load-info
     :name 'hj2-mtnx
@@ -2237,7 +2193,7 @@
     :level-flags (level-flags sky)
     :packages '()
     :run-packages '("common")
-    :memory-mode (level-memory-mode small-edge)
+    :memory-mode (level-memory-mode medium)
     :music-bank #f
     :extra-sound-bank #f
     :mood-func 'update-mood-hj2-mtnx
@@ -2265,7 +2221,8 @@
 (cons! *level-load-list* 'hj2-mtnx)
 
 ;; Haven Forest (custom_assets/jak3/levels/hj2-forest), Jak 2's forest.
-;; memory: large (see PLACES in gen_havenj2_links.py).
+;; memory: medium (Jak 2's where the level heap allows, see memory_modes in
+;; gen_havenj2_links.py).
 (define hj2-forest
   (new 'static 'level-load-info
     :name 'hj2-forest
@@ -2278,7 +2235,7 @@
     :level-flags (level-flags sky ocean-near-translucent)
     :packages '()
     :run-packages '("common")
-    :memory-mode (level-memory-mode large)
+    :memory-mode (level-memory-mode medium)
     :music-bank #f
     :extra-sound-bank #f
     :mood-func 'update-mood-hj2-forest
@@ -2339,7 +2296,8 @@
 (cons! *level-load-list* 'hj2-forest)
 
 ;; The far end of Haven Forest (custom_assets/jak3/levels/hj2-forstb), Jak 2's forestb.
-;; memory: small-edge (see PLACES in gen_havenj2_links.py).
+;; memory: medium (Jak 2's where the level heap allows, see memory_modes in
+;; gen_havenj2_links.py).
 (define hj2-forstb
   (new 'static 'level-load-info
     :name 'hj2-forstb
@@ -2352,7 +2310,7 @@
     :level-flags (level-flags sky ocean-near-translucent)
     :packages '()
     :run-packages '("common")
-    :memory-mode (level-memory-mode small-edge)
+    :memory-mode (level-memory-mode medium)
     :music-bank #f
     :extra-sound-bank #f
     :mood-func 'update-mood-hj2-forstb
@@ -2380,7 +2338,8 @@
 (cons! *level-load-list* 'hj2-forstb)
 
 ;; The castle pad, above the dig (custom_assets/jak3/levels/hj2-caspad), Jak 2's caspad.
-;; memory: small-edge (see PLACES in gen_havenj2_links.py).
+;; memory: small-edge (Jak 2's where the level heap allows, see memory_modes in
+;; gen_havenj2_links.py).
 (define hj2-caspad
   (new 'static 'level-load-info
     :name 'hj2-caspad
@@ -2440,24 +2399,6 @@
           )
         :want-sound (new 'static 'array symbol 3 #f #f #f)
         )
-      (new 'static 'continue-point
-        :name "hj2-caspad-face-castle"
-        :level 'hj2-caspad
-        :trans (static-vectorm 269.3635 27.9993 -1640.2382)
-        :camera-trans (static-vectorm 281.5976 33.1492 -1637.6726)
-        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 25185 0 -20958))
-        :camera-rot (new 'static 'array int16 9 -6747 0 32063 -3903 32521 -819 -31823 -3988 -6698)
-        :flags (continue-flags no-auto)
-        :on-goto #f
-        :vis-nick 'hj2-caspad
-        :vehicle-type #x1b
-        :want-count 2
-        :want (new 'static 'inline-array level-buffer-state-small 2
-          (new 'static 'level-buffer-state-small :name 'hj2-caspad :display? 'display)
-          (new 'static 'level-buffer-state-small :name 'havenj2 :display? #f)
-          )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
-        )
       )
     :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
     :borrow #f
@@ -2472,7 +2413,8 @@
 (cons! *level-load-list* 'hj2-caspad)
 
 ;; The dig (custom_assets/jak3/levels/hj2-dig), Jak 2's dig3a.
-;; memory: large (see PLACES in gen_havenj2_links.py).
+;; memory: large (Jak 2's where the level heap allows, see memory_modes in
+;; gen_havenj2_links.py).
 (define hj2-dig
   (new 'static 'level-load-info
     :name 'hj2-dig
@@ -2581,7 +2523,8 @@
 (cons! *level-load-list* 'hj2-dig)
 
 ;; The far end of the dig (custom_assets/jak3/levels/hj2-digb), Jak 2's dig3b.
-;; memory: small-edge (see PLACES in gen_havenj2_links.py).
+;; memory: small-edge (Jak 2's where the level heap allows, see memory_modes in
+;; gen_havenj2_links.py).
 (define hj2-digb
   (new 'static 'level-load-info
     :name 'hj2-digb
@@ -2621,7 +2564,8 @@
 (cons! *level-load-list* 'hj2-digb)
 
 ;; The fortress, behind its gate in the slums (custom_assets/jak3/levels/hj2-forta), Jak 2's forresca.
-;; memory: small-edge (see PLACES in gen_havenj2_links.py).
+;; memory: small-edge (Jak 2's where the level heap allows, see memory_modes in
+;; gen_havenj2_links.py).
 (define hj2-forta
   (new 'static 'level-load-info
     :name 'hj2-forta
@@ -2677,7 +2621,8 @@
 (cons! *level-load-list* 'hj2-forta)
 
 ;; The far end of the fortress (custom_assets/jak3/levels/hj2-fortb), Jak 2's forrescb.
-;; memory: small-edge (see PLACES in gen_havenj2_links.py).
+;; memory: small-edge (Jak 2's where the level heap allows, see memory_modes in
+;; gen_havenj2_links.py).
 (define hj2-fortb
   (new 'static 'level-load-info
     :name 'hj2-fortb
@@ -2733,8 +2678,217 @@
 
 (cons! *level-load-list* 'hj2-fortb)
 
+;; The fortress prison, behind the far gate of the fortress (custom_assets/jak3/levels/hj2-prison), Jak 2's prison.
+;; memory: large (Jak 2's where the level heap allows, see memory_modes in
+;; gen_havenj2_links.py).
+(define hj2-prison
+  (new 'static 'level-load-info
+    :name 'hj2-prison
+    :visname 'hj2-prison-vis
+    :nickname 'hke
+    :dbname 'hj2-prison
+    :taskname 'default
+    :index #x145
+    :master-level #f
+    :packages '()
+    :run-packages '("common")
+    :memory-mode (level-memory-mode large)
+    :music-bank #f
+    :extra-sound-bank #f
+    :mood-func 'update-mood-hj2-prison
+    :special-mood #f
+    :ocean #f
+    :ocean-alpha 1.0
+    :priority 100
+    :draw-priority 10.0
+    :part-engine-max 0
+    :base-task-mask (task-mask task0)
+    :bigmap-id (bigmap-id none)
+    :continues '(
+      (new 'static 'continue-point
+        :name "hj2-prison-start"
+        :level 'hj2-prison
+        :trans (static-vectorm 474.2220 8.4178 67.2670)
+        :camera-trans (static-vectorm 469.0163 13.0434 58.0932)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 14948 0 29156))
+        :camera-rot (new 'static 'array int16 9 28475 0 -16210 2172 32469 3817 16066 -4391 28216)
+        :on-goto #f
+        :vis-nick 'hj2-prison
+        :vehicle-type #x1b
+        :want-count 2
+        :want (new 'static 'inline-array level-buffer-state-small 2
+          (new 'static 'level-buffer-state-small :name 'hj2-prison :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-fexa :display? #f)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      )
+    :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
+    :borrow #f
+    :bottom-height (meters -100)
+    :fog-height (meters 80)
+    :max-rain 0.0
+    :mood-range (new 'static 'mood-range)
+    :fog-mult 1.0
+    )
+  )
+
+(cons! *level-load-list* 'hj2-prison)
+
+;; The way out of the fortress, from the prison (custom_assets/jak3/levels/hj2-fexa), Jak 2's forexita.
+;; memory: small-edge (Jak 2's where the level heap allows, see memory_modes in
+;; gen_havenj2_links.py).
+(define hj2-fexa
+  (new 'static 'level-load-info
+    :name 'hj2-fexa
+    :visname 'hj2-fexa-vis
+    :nickname 'hkf
+    :dbname 'hj2-fexa
+    :taskname 'default
+    :index #x146
+    :master-level #f
+    :packages '()
+    :run-packages '("common")
+    :memory-mode (level-memory-mode small-edge)
+    :music-bank #f
+    :extra-sound-bank #f
+    :mood-func 'update-mood-hj2-fexa
+    :special-mood #f
+    :ocean #f
+    :ocean-alpha 1.0
+    :priority 100
+    :draw-priority 10.0
+    :part-engine-max 0
+    :base-task-mask (task-mask task0)
+    :bigmap-id (bigmap-id none)
+    :continues '(
+      (new 'static 'continue-point
+        :name "hj2-forexita-start"
+        :level 'hj2-fexa
+        :trans (static-vectorm 573.8794 26.0000 188.3541)
+        :camera-trans (static-vectorm 565.0037 30.6140 193.9475)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 -32613 0 -3149))
+        :camera-rot (new 'static 'array int16 9 -17969 0 -27396 3732 32459 -2448 27141 -4463 -17802)
+        :on-goto #f
+        :vis-nick 'hj2-fexa
+        :vehicle-type #x1b
+        :want-count 2
+        :want (new 'static 'inline-array level-buffer-state-small 2
+          (new 'static 'level-buffer-state-small :name 'hj2-fexa :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-prison :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      (new 'static 'continue-point
+        :name "hj2-forexita-mid"
+        :level 'hj2-fexa
+        :trans (static-vectorm 741.4888 72.2461 167.5933)
+        :camera-trans (static-vectorm 741.7166 77.3960 178.0922)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 -32128 0 -6432))
+        :camera-rot (new 'static 'array int16 9 -32760 0 629 -108 32253 -5764 -619 -5764 -32249)
+        :flags (continue-flags no-auto)
+        :on-goto #f
+        :vis-nick 'hj2-fexa
+        :vehicle-type #x1b
+        :want-count 2
+        :want (new 'static 'inline-array level-buffer-state-small 2
+          (new 'static 'level-buffer-state-small :name 'hj2-fexa :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-fexb :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      )
+    :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
+    :borrow #f
+    :bottom-height (meters -100)
+    :fog-height (meters 80)
+    :max-rain 0.0
+    :mood-range (new 'static 'mood-range)
+    :fog-mult 1.0
+    )
+  )
+
+(cons! *level-load-list* 'hj2-fexa)
+
+;; The end of the way out of the fortress, with its gate to the slums (custom_assets/jak3/levels/hj2-fexb), Jak 2's forexitb.
+;; memory: small-edge (Jak 2's where the level heap allows, see memory_modes in
+;; gen_havenj2_links.py).
+(define hj2-fexb
+  (new 'static 'level-load-info
+    :name 'hj2-fexb
+    :visname 'hj2-fexb-vis
+    :nickname 'hkg
+    :dbname 'hj2-fexb
+    :taskname 'default
+    :index #x147
+    :master-level #f
+    :packages '()
+    :run-packages '("common")
+    :memory-mode (level-memory-mode small-edge)
+    :music-bank #f
+    :extra-sound-bank #f
+    :mood-func 'update-mood-hj2-fexb
+    :special-mood #f
+    :ocean #f
+    :ocean-alpha 1.0
+    :priority 100
+    :draw-priority 10.0
+    :part-engine-max 0
+    :base-task-mask (task-mask task0)
+    :bigmap-id (bigmap-id none)
+    :continues '(
+      (new 'static 'continue-point
+        :name "hj2-forexitb-end"
+        :level 'hj2-fexb
+        :trans (static-vectorm 570.9273 30.0585 10.0699)
+        :camera-trans (static-vectorm 569.6841 35.2085 22.5079)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 32665 0 2556))
+        :camera-rot (new 'static 'array int16 9 -32616 0 -3126 380 32521 -3971 3103 -3988 -32374)
+        :flags (continue-flags no-auto)
+        :on-goto #f
+        :vis-nick 'hj2-fexb
+        :vehicle-type #x1b
+        :want-count 2
+        :want (new 'static 'inline-array level-buffer-state-small 2
+          (new 'static 'level-buffer-state-small :name 'hj2-fexb :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? #f)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      (new 'static 'continue-point
+        :name "hj2-forexita-tube"
+        :level 'hj2-fexb
+        :trans (static-vectorm 658.7272 59.9995 41.3640)
+        :camera-trans (static-vectorm 658.5444 65.1958 28.9104)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 -2746 0 32649))
+        :camera-rot (new 'static 'array int16 9 32764 0 -59 7 32505 4109 59 -4109 32505)
+        :flags (continue-flags no-auto)
+        :on-goto #f
+        :vis-nick 'hj2-fexb
+        :vehicle-type #x1b
+        :want-count 2
+        :want (new 'static 'inline-array level-buffer-state-small 2
+          (new 'static 'level-buffer-state-small :name 'hj2-fexa :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-fexb :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      )
+    :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
+    :borrow #f
+    :bottom-height (meters -100)
+    :fog-height (meters 80)
+    :max-rain 0.0
+    :mood-range (new 'static 'mood-range)
+    :fog-mult 1.0
+    )
+  )
+
+(cons! *level-load-list* 'hj2-fexb)
+
 ;; The stadium's race track, behind the stadium grounds (custom_assets/jak3/levels/hj2-stadd), Jak 2's stadiumd.
-;; memory: small-edge (see PLACES in gen_havenj2_links.py).
+;; memory: small-edge (Jak 2's where the level heap allows, see memory_modes in
+;; gen_havenj2_links.py).
 (define hj2-stadd
   (new 'static 'level-load-info
     :name 'hj2-stadd

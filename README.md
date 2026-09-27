@@ -28,10 +28,10 @@
 ---
 
 ## Overview
-Brings Jak 2's Haven City and the places around it into Jak 3: the whole city as one walkable
-level, with its interiors, the palace, Dead Town, the pumping station, the mountain, Haven Forest,
-the fortress, the stadium's race track and the dig site, all rebuilt from Jak 2's own extracted
-data and linked the way Jak 2 links them.
+Brings Jak 2's Haven City and the places around it into Jak 3, as they are at the end of Jak 2:
+the whole city as one walkable level, with its interiors, the palace, Dead Town, the pumping
+station, the mountain, Haven Forest, the fortress and its prison, the stadium's race track and the
+dig site, all rebuilt from Jak 2's own extracted data and linked the way Jak 2 links them.
 
 - **Target Game:** Jak 3
 - **Active Branch:** `jak3/features/jak2-haven-city`
@@ -39,12 +39,16 @@ data and linked the way Jak 2 links them.
 ## Key Features
 - **The whole city:** Jak 2's 14 districts, `ctywide` and the stadium grounds merged into one Jak 3
   level, with Jak 2's lighting, water, particles, neon signs and breakable market props.
-- **The places around it:** 25 more levels (the Hip Hog, the hideout, the Oracle, Vin's power
-  station, Keira's garage, the gun course, the palace pillar and roof, Dead Town and the Sage's
+- **The places around it:** 27 more levels (the Hip Hog, the hideout, the Oracle, Vin's power
+  station, Keira's garage, the gun course, the palace pillar and roof, Dead Town with the Sage's
   hut, the construction site, the pumping station, the mountain, Haven Forest, the inside of the
-  fortress, the stadium's race track, the castle pad and the dig), loaded through their doors,
-  elevators and airlocks like in Jak 2, with their moving platforms, swinging bars and crumbling
-  slabs.
+  fortress, its prison and the way out, the stadium's race track, the castle pad and the dig),
+  loaded through their doors, elevators, airlocks and gates like in Jak 2, in Jak 2's own memory
+  modes, with their moving platforms, lifts, swinging bars and slides.
+- **The end of Jak 2:** every level as it is once the game is finished: the Baron's statue in
+  rubble, the market roof broken, Dead Town's tower fallen, only what Jak 2 still places then.
+- **The fortress's escape:** its far gate opens on the prison (cells, torture machine, hanging
+  cells), whose tunnels lead out of the fortress, back to the slums.
 - **Breakable city:** the Baron's propaganda speakers break in two hits like in Jak 2, the farm
   crops are solid and burst when hit hard.
 - **Air trains:** the port's air train takes Jak to the dig site and back, in a short fade.
@@ -72,7 +76,7 @@ The menu's entries:
 | Warp to Haven City (Jak 2) | Warps to the city, in the slums |
 | Warp to a district | Warps to one of 15 spots, at least one in each district (slums, port, bazaar, industrial section, main town, gardens, palace plaza, stadium grounds) |
 | Warp to a key place | Warps in front of the construction site gate, the palace, Mar's tomb, the cable pillar, the Hip Hog, the gun course, the port's air train, Vin's power station or the fortress; or to the hideout, the palace roof, the Oracle or Keira's garage |
-| Warp outside the city | Warps to Dead Town, the Sage's hut, the inside of the fortress, the stadium's race track, the construction site, the pumping station, the mountain top, Haven Forest, the castle pad or the dig site |
+| Warp outside the city | Warps to Dead Town, the Sage's hut, the inside of the fortress, its prison, the way out of the fortress, the stadium's race track, the construction site, the pumping station, the mountain top, Haven Forest, the castle pad or the dig site |
 | Warp to the Freedom HQ (Jak 3) | Warps back to Jak 3's world, in the room of the time gate |
 | Time of day | 9:00, 12:00, 16:00 (default), 19:00, 23:00, or Jak 2's day and night |
 | Weather (whole game) | Changing (Jak 3's weather, default), or a fixed one |
@@ -91,7 +95,8 @@ The menu's entries:
 | 7, 8 | City traffic; its first crash fixed; the palace door that "never opens" explained (it doesn't exist in Jak 2) |
 | 9 | Denser traffic without popping; the castle pad and the dig site; the port's air train |
 | 10 | Weather for the whole game (8 choices, snow); smoke and fountains fixed; air train cutscenes; a time gate in Jak 3's Freedom HQ; warps to every district and key place (commit `dd14a7829`) |
-| 11 | Palace elevator death fixed; Jak 2's respawn points everywhere; air train as a fade; time gates between the Freedom HQ and the hideout; saves; construction site models; two-hit speakers; farm crops; Dead Town's water, bars, slabs, platforms and the Sage's hut; particles of Haven Forest and Dead Town; the fortress and the stadium; Keira's garage open (built, not played yet) |
+| 11 | Palace elevator death fixed; Jak 2's respawn points everywhere; air train as a fade; time gates between the Freedom HQ and the hideout; saves; construction site models; two-hit speakers; farm crops; Dead Town's water, bars, slabs, platforms and the Sage's hut; particles of Haven Forest and Dead Town; the fortress and the stadium; Keira's garage open (commit `e769d5e2a`) |
+| 12 | Dead Town and the Sage's hut as one level; Jak 2's memory modes; every level in its end-of-game state (actors, background, the broken statue); the fortress prison and the way out of the fortress, with their gates; crates, swinging bars and slides everywhere; the Freedom HQ time gate crash fixed (level heaps kept below 256 MB, checked in game); a crash report in the game's log |
 
 Details, causes and fixes: [change history](docs/modding/current_mod/jak2_haven_city_readme.md#13-change-history).
 
