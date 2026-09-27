@@ -10,15 +10,19 @@
 ;; The palace pillar elevator (hj2-elevator) is in GAME too, the mountain's actors in hj2-mount-obs.gc.
 
 ;; Jak 2's propaganda speakers (propa, levels/city/ctywide-obs.gc there): a pole projecting the
-;; Baron's hologram (a particle group, turned towards whoever is closest), solid, broken by a few
-;; hits. Its model is Jak 2's intact look (hj2-propa.glb, made by gen_havenj2_props.py, built by
-;; build-actor); Jak 2 switched to a damaged then a broken look, here it blows up when broken. The
-;; Baron's speeches (Jak 2's voice streams) aren't in Jak 3.
+;; Baron's hologram (a particle group, turned towards whoever is closest), solid. Like Jak 2's, the
+;; first hit damages it, the second breaks it (a strong hit, a gun shot or a vehicle, breaks it at
+;; once): its projector blows up and a stump is left. Jak 2 switches between its three looks with
+;; mesh masks; build-actor's models have none, so the looks are three models (hj2-propa.glb,
+;; hj2-propa-damaged.glb, hj2-propa-broken.glb, made by gen_havenj2_props.py), the other two drawn
+;; by a child process (hj2-propa-look). Each hit rings like an iron crate (Jak 3's sounds; Jak 2's
+;; and the Baron's speeches, voice streams, aren't in Jak 3).
 (deftype hj2-propa (process-focusable)
   ((handle              handle)
    (y-rot               float)
    (hit-points          int32)
    (incoming-attack-id  uint32)
+   (look                handle)
    )
   (:state-methods
     idle
@@ -29,6 +33,59 @@
 
 (def-actor hj2-propa
   :bounds (0 1.5 0 3)
+  )
+
+(def-actor hj2-propa-damaged
+  :bounds (0 1.5 0 3)
+  )
+
+(def-actor hj2-propa-broken
+  :bounds (0 0.7 0 1.5)
+  )
+
+;; one of the speaker's other looks (damaged, broken), standing where it stands
+(deftype hj2-propa-look (process-drawable)
+  ()
+  (:state-methods
+    idle
+    )
+  )
+
+
+;; still: its model's single frame
+(defstate idle (hj2-propa-look)
+  :virtual #t
+  :code sleep-code
+  )
+
+(defbehavior hj2-propa-look-init-by-other hj2-propa-look ((skel skeleton-group) (from trsqv))
+  "Init of a speaker's look (process-spawn from the speaker): skel's model at from's place."
+  (set! (-> self root) (new 'process 'trsqv))
+  (vector-copy! (-> self root trans) (-> from trans))
+  (quaternion-copy! (-> self root quat) (-> from quat))
+  (vector-copy! (-> self root scale) (-> from scale))
+  (initialize-skeleton self skel (the-as pair 0))
+  (logclear! (-> self mask) (process-mask actor-pause))
+  (ja-post)
+  (go-virtual idle)
+  )
+
+(defbehavior hj2-propa-show-look hj2-propa ((skel skeleton-group))
+  "Show one of the speaker's other looks (skel) instead of its intact one, or of the look before."
+  (let ((a0-1 (handle->process (-> self look))))
+    (if a0-1
+        (deactivate a0-1)
+        )
+    )
+  (logior! (-> self draw status) (draw-control-status no-draw))
+  (let ((v1-6 (process-spawn hj2-propa-look skel (-> self root) :name "hj2-propa-look" :to self)))
+    (set! (-> self look) (if v1-6
+                             (ppointer->handle v1-6)
+                             (the-as handle #f)
+                             )
+          )
+    )
+  (none)
   )
 
 (defun hj2-propa-pu->knocked-type ((arg0 penetrate))
@@ -105,14 +162,14 @@
   (none)
   )
 
-;; blown up: hidden and without collision, nothing left to do
+;; broken: the stump, without collision or hologram, nothing left to do
 (defstate broken (hj2-propa)
   :virtual #t
   :code sleep-code
   )
 
-;; standing: each hit takes hit points (the strongest attacks all 10 at once), below 3 it blows
-;; up; its post turns the hologram to the closest target
+;; standing: the first hit damages it, the second (or a strong one) breaks it; its post turns the
+;; hologram to the closest target
 (defstate idle (hj2-propa)
   :virtual #t
   :event (behavior ((proc process) (argc int) (message symbol) (block event-message-block))
@@ -123,23 +180,31 @@
            (set! (-> self incoming-attack-id) (-> v1-2 id))
            (let ((s5-1 (get-penetrate-using-from-attack-event (the-as process-drawable proc) block)))
              (if (and (not (logtest? (penetrate dark-skin) s5-1)) (zero? (hj2-propa-pu->knocked-type s5-1)))
-                 (set! (-> self hit-points) (- (-> self hit-points) (the int (penetrate-using->damage s5-1))))
-                 (+! (-> self hit-points) -10)
+                 (+! (-> self hit-points) -1)
+                 (set! (-> self hit-points) 0)
                  )
              )
-           (when (< (-> self hit-points) 3)
-             ;; blown up: no more pole, no more collision, no more hologram
-             (let ((v1-18 (-> self root root-prim)))
-               (set! (-> v1-18 prim-core collide-as) (collide-spec))
-               (set! (-> v1-18 prim-core collide-with) (collide-spec))
+           (cond
+             ((<= (-> self hit-points) 0)
+              ;; broken: the stump, no more collision, no more hologram
+              (sound-play "icrate-break")
+              (hj2-propa-show-look *hj2-propa-broken-sg*)
+              (let ((v1-18 (-> self root root-prim)))
+                (set! (-> v1-18 prim-core collide-as) (collide-spec))
+                (set! (-> v1-18 prim-core collide-with) (collide-spec))
+                )
+              (vector-copy!
+                (-> *launch-matrix* trans)
+                (vector+*! (new 'stack-no-clear 'vector) (-> self root trans) *up-vector* 8192.0)
+                )
+              (part-tracker-spawn part-tracker :to *entity-pool* :group group-kg-explosion)
+              (go-virtual broken)
+              )
+             (else
+               ;; damaged: cracked, still projecting
+               (sound-play "icrate-nobreak")
+               (hj2-propa-show-look *hj2-propa-damaged-sg*)
                )
-             (logior! (-> self draw status) (draw-control-status no-draw))
-             (vector-copy!
-               (-> *launch-matrix* trans)
-               (vector+*! (new 'stack-no-clear 'vector) (-> self root trans) *up-vector* 8192.0)
-               )
-             (part-tracker-spawn part-tracker :to *entity-pool* :group group-kg-explosion)
-             (go-virtual broken)
              )
            )
          )
@@ -178,8 +243,8 @@
   )
 
 (defmethod init-from-entity! ((this hj2-propa) (arg0 entity-actor))
-  "Jak 2's propa setup: solid and rideable (the collision box of its model, joint 3), 10 hit
-points, the hologram (group-ctywide-baron-propoganda-holo, in havenj2-part.gc)."
+  "Jak 2's propa setup: solid and rideable (the collision box of its model, joint 3), two hits to
+break it, the hologram (group-ctywide-baron-propoganda-holo, in havenj2-part.gc)."
   (let ((s5-0 (new 'process 'collide-shape this (collide-list-enum usually-hit-by-player))))
     (let ((v1-2 (new 'process 'collide-shape-prim-mesh s5-0 (the-as uint 0) (the-as uint 0))))
       (set! (-> v1-2 prim-core collide-as) (collide-spec crate))
@@ -203,7 +268,8 @@ points, the hologram (group-ctywide-baron-propoganda-holo, in havenj2-part.gc)."
   (set! (-> this part)
         (create-launch-control (-> *part-group-id-table* (-> *hj2-propa-holo-group-ids* 0)) this)
         )
-  (set! (-> this hit-points) 10)
+  (set! (-> this hit-points) 2)
+  (set! (-> this look) (the-as handle #f))
   (transform-post)
   (go (method-of-object this idle))
   )

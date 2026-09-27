@@ -27,12 +27,14 @@ Players only need the root [`README.md`](../../../README.md).
 | Feature | In game | Section |
 |---|---|---|
 | Haven City | Jak 2's whole city as one Jak 3 level, `havenj2`: 16 Jak 2 levels merged (`ctywide`, the 14 districts, the stadium grounds) with their lighting, collision, props, water, particles and neon signs | [5](#5-the-city-level) |
-| Places | 21 more levels, one per Jak 2 place reached from the city (Hip Hog, hideout, palace pillar and roof, Dead Town, construction site, pumping station, mountain, Haven Forest...), loaded and unloaded by Jak 2's own door, elevator and region scripts | [6](#6-places-and-level-loading) |
+| Places | 25 more levels, one per Jak 2 place reached from the city (Hip Hog, hideout, palace pillar and roof, Dead Town and the Sage's hut, construction site, pumping station, mountain, Haven Forest, the inside of the fortress, the stadium's race track...), loaded and unloaded by Jak 2's own door, elevator and region scripts | [6](#6-places-and-level-loading) |
 | Dig site | The castle pad and the dig, reached by the port's air train or on foot from the pumping station, with their moving platforms | [6.5](#65-the-dig) |
-| Air trains | "Press triangle to travel to the Dig Site", then Jak 3's boarding and landing cutscenes | [6.6](#66-air-trains) |
+| Dead Town, construction site | Dead Town's water, swinging bars, crumbling slabs, floating platforms and the Sage's hut; the construction site's silo doors and bomb elevator | [6.9](#69-dead-town), [6.10](#610-construction-site-fortress-and-stadium) |
+| Air trains | "Press triangle to travel to the Dig Site": a short fade, and Jak stands next to the other air train | [6.6](#66-air-trains) |
 | Traffic | Jak 3's citizens, guards, hover bikes and cars on Jak 2's navigation data, at Jak 2's density | [7](#7-navigation-and-traffic) |
 | Time and weather | A fixed hour or Jak 2's day and night; Jak 3's changing weather or a fixed one (sunny to thunderstorm, snow) in the whole game | [8](#8-moods-time-of-day-and-weather) |
-| Travelling | Mods menu warps to every district, key places and places outside the city; a time gate in Jak 3's Freedom HQ; respawn next to Jak | [9](#9-travelling) |
+| Travelling | Mods menu warps to every district, key places and places outside the city; two time gates between Jak 3's Freedom HQ and Jak 2's underground hideout; respawn next to Jak, at Jak 2's continue points | [9](#9-travelling) |
+| Saves | Saving anywhere in the mod's levels; the save screen names Jak 2's world on the slot | [9.4](#94-saves) |
 
 ## 2. How it is built
 
@@ -64,11 +66,11 @@ out/jak3/obj/*.go, out/jak3/fr3/*.fr3, out/jak3/iso/HJ*.DGO, GAME.CGO
 | Level builder | `goalc/build_level/common/` (`fr3_import`, `ResLump`, `Entity`, new `DataBlob`), `goalc/build_level/jak3/` (`build_level`, `Entity`, `LevelFile`), `goalc/data_compiler/DataObjectGenerator` | Merges Jak 2's `.fr3` files and writes what Jak 2's levels need into Jak 3 bsps ([4.2](#42-level-builder)) |
 | Tools | `tools/fr3_check.cpp` | Offline `.fr3` validator ([4.3](#43-fr3_check)) |
 | Generators | `custom_assets/jak3/levels/havenj2/*.py` | Turn Jak 2's data into level files, models, particles and level-load-infos (table below) |
-| Level data | `custom_assets/jak3/levels/havenj2/` and 21 `hj2-*/` folders | Generated `.jsonc`, `.gd` and region files; only the part of `havenj2.jsonc` outside its GENERATED markers is written by hand |
-| Models | `custom_assets/jak3/models/custom_levels/hj2-*.glb` (31) | Jak 2 models rebuilt for `build-actor` ([6.7](#67-rebuilding-jak-2s-models)) |
+| Level data | `custom_assets/jak3/levels/havenj2/` and 25 `hj2-*/` folders | Generated `.jsonc`, `.gd` and region files; only the part of `havenj2.jsonc` outside its GENERATED markers is written by hand |
+| Models | `custom_assets/jak3/models/custom_levels/hj2-*.glb` (42) | Jak 2 models rebuilt for `build-actor` ([6.7](#67-rebuilding-jak-2s-models)) |
 | Level code | `goal_src/jak3/levels/havenj2/` | Code linked into one level's DGO (table below) |
 | Game code | `goal_src/jak3/pc/features/jak2-haven-city-*.gc`, `levels/havenj2/havenj2-ocean.gc` | In GAME.CGO: what several levels share, and the Mods menu |
-| Vanilla edits | `goal_src/jak3/game.gp`, `goal_src/jak3/dgos/game.gd`, `goal_src/jak3/levels/city/traffic/citizen/guard.gc` | Build steps, GAME objects, one guard check ([7.2](#72-traffic)) |
+| Vanilla edits | `goal_src/jak3/game.gp`, `goal_src/jak3/dgos/game.gd`, `goal_src/jak3/dgos/freehq.gd`, `goal_src/jak3/levels/city/traffic/citizen/guard.gc`, `decompiler/config/jak3/jak3_config.jsonc` | Build steps, GAME objects, the Freedom HQ's time gate model ([9.2](#92-time-gates)), one guard check ([7.2](#72-traffic)) |
 
 The generators, in the order to run them from the repository root:
 
@@ -78,8 +80,9 @@ The generators, in the order to run them from the repository root:
 | `gen_havenj2_mesh.py` | The static props and pool surfaces as one mesh (`havenj2-mesh.glb`) |
 | `gen_havenj2_links.py` | Everything else: havenj2's actors and regions, `havenj2.gd`, every `hj2-*` level, `jak2-haven-city-levels.gc`, the `hj2-*.glb` models. It runs the three generators below |
 | `gen_havenj2_props.py` | Props as Jak 3 actors, model rebuilding (`write_actor_glb`) |
-| `gen_havenj2_particles.py` | `havenj2-part.gc`, the part spawners, the sprite texture list |
+| `gen_havenj2_particles.py` | `havenj2-part.gc` and the places' `hj2-*-part.gc`, the part spawners, the sprite texture lists |
 | `gen_havenj2_nav.py` | `havenj2-nav.json`, `havenj2-height-map.gc` |
+| `gen_havenj2_ocean.py` | `hj2-ruins-ocean.gc`, `hj2-mount-ocean.gc`: Jak 2's Dead Town and mountain ocean maps, copied from Jak 2's `goal_src` ([5.4](#54-water-and-ocean)). Independent of the others, run by hand |
 
 Their helpers: `jak2_scripts.py` (the script translator), `jak2_actors.py` (Jak 2's actors, without
 the ones Jak 2 never spawns), `convex_hull.py`, `nav_blob.py` (reads and writes navigation data),
@@ -90,16 +93,23 @@ The GOAL files:
 | File | DGO | Holds |
 |---|---|---|
 | `levels/havenj2/havenj2-obs.gc` | HJ2 | Palace gate, propaganda speakers |
+| `levels/havenj2/havenj2-farm.gc` | HJ2 | Farm crops ([5.2](#52-props)) |
 | `levels/havenj2/havenj2-part.gc` (generated) | HJ2 | Jak 2's city particles |
 | `levels/havenj2/havenj2-signs.gc` | HJ2 | Animated neon signs |
 | `levels/havenj2/havenj2-traffic.gc` | HJ2 | Traffic callbacks and density |
 | `levels/havenj2/havenj2-height-map.gc` (generated) | HJ2 | How high the vehicles fly |
+| `levels/havenj2/hj2-ruins-obs.gc` | HJR | Dead Town's slabs, bridge, floating platforms, beams and flag |
+| `levels/havenj2/hj2-ruins-ocean.gc` (generated) | HJR | Dead Town's ocean map |
+| `levels/havenj2/hj2-ruins-part.gc` (generated) | HJR | Dead Town's particles |
+| `levels/havenj2/hj2-cons-obs.gc` | HJC | Construction site's silo doors and bomb elevator |
 | `levels/havenj2/hj2-atoll-obs.gc` | HJL | Pumping station platforms and props |
 | `levels/havenj2/hj2-mount-obs.gc` | HJM | Mountain platforms and props |
+| `levels/havenj2/hj2-mount-ocean.gc` (generated) | HJM | The mountain's ocean map |
+| `levels/havenj2/hj2-forest-part.gc` (generated) | HJF | Haven Forest's particles |
 | `levels/havenj2/hj2-dig-obs.gc` | HJT | Dig platforms and props |
 | `levels/havenj2/havenj2-ocean.gc` | GAME | Jak 2's city ocean map |
-| `pc/features/jak2-haven-city-levels.gc` (generated) | GAME | 22 level-load-infos, 90 continue points |
-| `pc/features/jak2-haven-city-world.gc` | GAME | Moods, time of day, weather driver, sprite pages, elevators, air trains and their cutscenes, time gate, level callbacks, respawn, traffic switch |
+| `pc/features/jak2-haven-city-levels.gc` (generated) | GAME | 26 level-load-infos, 106 continue points, and the Freedom HQ's time gate arrival point |
+| `pc/features/jak2-haven-city-world.gc` | GAME | Moods, time of day, weather driver, sprite pages, elevators, fortress gate, air trains, time gates, level callbacks, respawn, saves, traffic switch |
 | `pc/features/jak2-haven-city-menu.gc` | GAME | Mods menu |
 
 ### 2.3 Design decisions
@@ -163,19 +173,30 @@ Every door, elevator and region of the mod follows the path of this one.
    task extract
    ```
 
-3. **Extract Jak 3.** Some sprite textures come from Jak 3's `.fr3` files, and the port's air train
-   cutscene stage from Jak 3's entity dump.
+3. **Extract Jak 3.** Some sprite textures come from Jak 3's `.fr3` files, and the Freedom HQ's
+   `.fr3` must hold the time gate's model (`extra_art_groups_by_dgo` in `jak3_config.jsonc`,
+   [9.2](#92-time-gates)).
 
    ```bash
    task set-game-jak3
    task extract
    ```
 
+   On a Jak 3 already extracted, only the Freedom HQ needs extracting again (a few seconds):
+
+   ```bash
+   out/build/Release/bin/decompiler.exe ./decompiler/config/jak3/jak3_config.jsonc ./iso_data ./decompiler_out --version ntsc_v1 --config-override '{"decompile_code": false, "levels_extract": true, "allowed_objects": [], "levels_to_extract": ["FREEHQ.DGO"]}'
+   ```
+
+   The log shows `extra_art_groups_by_dgo: baking 'warp-gate-ag' into FREEHQ.DGO`. Without it
+   the Freedom HQ has no gate (GAME checks that the model is there before spawning it).
+
 4. **Run the generators** from the repository root, in this order:
 
    ```bash
    python custom_assets/jak3/levels/havenj2/gen_havenj2_water.py
    python custom_assets/jak3/levels/havenj2/gen_havenj2_mesh.py
+   python custom_assets/jak3/levels/havenj2/gen_havenj2_ocean.py
    python custom_assets/jak3/levels/havenj2/gen_havenj2_links.py
    ```
 
@@ -197,6 +218,7 @@ What to redo after a change:
 | A `.gc` file | `(mi)` |
 | The level builder (`goalc/build_level`) | `task build-release-game`, touch the level's `.jsonc`, `(mi)` |
 | The decompiler | `task build-release-decomp`, extract the Jak 2 levels concerned again (below), rerun the generators, `(mi)` |
+| `extra_art_groups_by_dgo` in `jak3_config.jsonc` | Extract the Jak 3 levels concerned again (step 3), `(mi)` |
 
 A config override can now restrict an extraction to some levels (`levels_to_extract`, DGO names):
 the 16 city levels take about 20 seconds instead of a full extraction.
@@ -232,7 +254,8 @@ out/build/Release/bin/decompiler.exe ./decompiler/config/jak2/jak2_config.jsonc 
 | Door and elevator scripts | Res lump types `pair` (a script) and `string` (`next-actor` by name) | `lump` |
 | Jak 2's load regions | Region trees read from separate files | `region_tree_files` |
 | Fixed cameras | Entity cameras in the bsp's cameras array, found by name by `'use-camera` and by region settings | `cameras` |
-| Particle textures | Textures copied from Jak 2's or Jak 3's `.fr3` files into the level's pool, under texture page 1566 | `sprite_textures` |
+| Particle textures | Textures copied from Jak 2's or Jak 3's `.fr3` files into the level's pool, under a texture page of the level's own (1566 for the city, [5.3](#53-particles-and-sprite-textures)) | `sprite_textures` |
+| Jak 2's animated textures (waterfalls, the dig's lava) | Jak 2 draws them from animated texture slots, whose ids name Jak 2's slot table. The importer maps each to the slot's still texture (the slot's name without `-dest`, e.g. `waterfall`), the slot names read from the source game's table (`common/texture/texture_slots.cpp`); the log counts them. They don't move | `import_fr3` |
 | Navigation data | A `DataBlob` (words and their links: pointers, types, symbols) written as it is: its `city-level-info` root goes to the bsp's `city-level-info`, its `nav-mesh-*` roots to a `nav-meshes` array sorted by aid | `nav_data` |
 | The same art group extracted for every DGO | The processed list is shared by every DGO | `art_groups` |
 
@@ -263,9 +286,17 @@ by the particle generator). On a Jak 2 `.fr3` it prints the collision extent, to
 ### 5.2 Props
 
 - Jak 2 ignores the actor scale lump, so props keep their model size.
-- 1126 market and farm props (crates, baskets, sacks, fruit stands, crops) are Jak 3's own classes:
-  Jak 3 ships Jak 2's city props (`ctymark-obs`, `ctyfarm-obs` code, linked into HJ2; art from Jak
-  3's levels). They are solid and breakable; crops get a random yaw like Jak 2's.
+- 1126 market and farm props (crates, baskets, sacks, fruit stands, crops, sprinklers) are Jak 3's
+  own classes: Jak 3 ships Jak 2's city props (`ctymark-obs`, `ctyfarm-obs` code, linked into HJ2;
+  art from Jak 3's levels). They are solid and breakable; crops get a random yaw like Jak 2's.
+- **Farm crops** (marrows, beetrees, cabbages, small cabbages, chilirots): Jak 3 keeps them as
+  scenery, without collision. `havenj2-farm.gc` ports Jak 2's class as `hj2-farm-*`:
+  - solid (a sphere per crop);
+  - a light hit shakes its leaves (Jak 2's shakers);
+  - a strong hit (a vehicle, a gun shot, a dark attack) bursts it into pieces and particles.
+
+  The pieces are Jak 2's burst models, still in Jak 3's `farm-*-ag` art groups (elements 3 to 5),
+  thrown by Jak 3's `joint-exploder`. The particles are Jak 2's, in `havenj2-part.gc`.
 - The other static props and the pool surfaces are one mesh, `havenj2-mesh.glb`, lit like merc;
   solid ones get an invisible collision box.
 
@@ -293,6 +324,25 @@ by the particle generator). On a Jak 2 `.fr3` it prints the collision extent, to
   | Particle flags 12, 16, 20 and 21 | Fountain drops flying in random directions: their acceleration turned with the spawner | Moved to Jak 3's bits 13, 17, 19 and 20 (`CPUINFO_FLAGS`) |
 
 - `:part-engine-max 255` in havenj2's level-load-info, for the static lights.
+- **The places' particles** (`PLACE_PARTICLES` in `gen_havenj2_particles.py`): the same translation
+  for one place, in a `hj2-<place>-part.gc` linked into its DGO, with the place's own sprite page.
+  Callbacks Jak 3 doesn't have are copied from Jak 2's file (`COPIED_FUNCS`): renamed `hj2-*`, their
+  part ids moved, and Jak 2's matrix argument read as Jak 3's `sprite-vec-data-2d` (same layout).
+
+  | Place | Particles | Parts, groups | Spawners | Texture page | Ids |
+  |---|---|---|---|---|---|
+  | `hj2-forest` | Waterfalls' spray and drops, butterflies, fireflies, cattails | 53, 17 | 60 | 1594 | parts 2600-2799, groups 800-839 |
+  | `hj2-ruins` | Birds circling the moon, street lights' glows | 7, 2 | 90 | 1627 | parts 2800-2999, groups 840-879 |
+
+  Each place has its own id ranges, past the city's (parts 1200-2599, groups 300-799), so that a
+  place loaded with the city never overwrites the city's particles.
+- **Choosing a texture page id.** The PC texture pool (`TexturePool`) gives each page of Jak 3's
+  directory (`game/graphics/texture/jak3_tpage_dir.cpp`) as many slots as that page has textures,
+  one after the other. An id Jak 3 never uses has 0 slots, so every unused id of a run (1566 to
+  1572) starts at the same slot, and a page's textures spill over the slots of the pages after it.
+  Two pages loaded together must not share slots: 1594 starts 311 slots after 1566 (the city uses
+  206), 1627 starts 1309 after it. The first choice, 1567 and 1568, put texture 0 of the forest,
+  of Dead Town and of the city in the same slot.
 
 ### 5.4 Water and ocean
 
@@ -300,7 +350,16 @@ by the particle generator). On a Jak 2 `.fr3` it prints the collision extent, to
   (palace plaza and stadium). Places get volumes from Jak 2's `water-vol` actors, and the ocean ones
   Jak 2's ocean water spheres.
 - `*ocean-map-havenj2*` (GAME, `havenj2-ocean.gc`) is a generated copy of Jak 2's city ocean
-  tables, used by havenj2, hj2-atoll and Haven Forest.
+  tables, used by havenj2, the palace roof and cable, the pumping station and Haven Forest.
+- Dead Town's sea and the mountain's stream have maps of their own in Jak 2, copied by
+  `gen_havenj2_ocean.py` into their level code (`*ocean-map-hj2-ruins*`, `*ocean-map-hj2-mount*`).
+  Jak 3's `ocean-map` has no `ocean-spheres` field: the copy leaves them out.
+- **Which map is drawn.** Jak 3 draws the ocean of the first displayed level, in draw order
+  (`draw!` of `ocean`); levels are sorted by `draw-priority` (the city 9.0, the places 10.0), then by
+  load slot. So a level with another map still displayed could hide the water of the level Jak is
+  in: the mountain seen from Haven Forest. `hj2-update-ocean-order` (GAME, run by the respawn
+  process every frame) sets the `draw-priority` of the level Jak is in to 8.5 when it has an ocean
+  map, and the info's value back on the others.
 
 ### 5.5 Palace gate, propaganda speakers, neon signs
 
@@ -309,9 +368,14 @@ by the particle generator). On a Jak 2 `.fr3` it prints the collision extent, to
   unloaded above it. `build-actor` plays animations at 60 fps, so Jak 2's 15 fps frame numbers are
   scaled by 4 in `havenj2-obs.gc`. The glb holds only the vertices the gate uses and an invisible
   collision box bound to the sliding door joint.
-- **Propaganda speakers** (`hj2-propa`): Jak 2's intact model, solid, broken by a few hits, with
-  the Baron's hologram (a particle group turned towards the closest target). The Baron's speeches
-  are Jak 2 voice streams, not in Jak 3.
+- **Propaganda speakers** (`hj2-propa`): a pole projecting the Baron's hologram (a particle group
+  turned towards the closest target), solid. Like in Jak 2, the first hit damages its projector and
+  the second breaks it; a strong hit (a gun shot, a vehicle) breaks it at once. Each hit rings like
+  an iron crate (Jak 3's `icrate-nobreak` and `icrate-break`). Jak 2 switches between its three
+  looks with mesh masks, which build-actor's models don't have: the damaged and broken looks are
+  models of their own (`hj2-propa-damaged`, `hj2-propa-broken`), drawn by a child process
+  (`hj2-propa-look`) while the intact model is hidden. The Baron's speeches are Jak 2 voice
+  streams, not in Jak 3.
 - **Neon signs** (`havenj2-signs.gc`): the Baron's skull, Praxis' name and the Hip Hog's marquee,
   blinking random patterns like Jak 2's.
 
@@ -343,7 +407,10 @@ Region ids are Jak 2's plus 1000; water regions start at each level's `base_id`.
 |---|---|---|---|---|
 | `havenj2` | HJ2 | the city levels, `stadium` | large | one small-edge place |
 | `hj2-hiphog`, `hj2-gun`, `hj2-vin`, `hj2-hide`, `hj2-oracle`, `hj2-garage` | HJH, HJG, HJV, HJD, HJO, HJK | interiors | small-edge | the city |
-| `hj2-ruins` | HJR | `ruins` (Dead Town) | small-edge | the city, or alone deep in Dead Town |
+| `hj2-ruins` | HJR | `ruins` (Dead Town) | small-edge | the city, or `hj2-sage` deep in Dead Town |
+| `hj2-sage` | HJW | `sagehut` (the Sage's hut, old Samos') | small-edge | `hj2-ruins` |
+| `hj2-forta`, `hj2-fortb` | HJI, HJJ | `forresca`, `forrescb` (the inside of the fortress) | small-edge | `hj2-forta` with the city (the slums' fortress gate), then each other |
+| `hj2-stadd` | HJZ | `stadiumd` (the stadium's race track) | small-edge | the city (the stadium's regions) |
 | `hj2-consb`, `hj2-cons` | HJB, HJC | `consiteb`, `consite` | small-edge | `consiteb` with the city, then both without it |
 | `hj2-pshaft` | HJS | `palshaft` (palace pillar) | small-edge | the city, or the roof and cable |
 | `hj2-proof`, `hj2-pcab` | HJP, HJQ | `palroof`, `palcab` | small-center, small-edge | the pillar, never the city |
@@ -357,15 +424,38 @@ Region ids are Jak 2's plus 1000; water regions start at each level's `base_id`.
 
 Jak 3's level heap has 18 chunks: `large` takes 12, a `small-edge` 6 at either end, a
 `small-center` the 6 in the middle. The generator checks every continue's level list against these
-rules.
+rules, and leaves out a Jak 2 continue whose levels don't fit (it prints them).
+
+A custom level's name is at most 10 characters (the level builder asserts it): Jak 2's `sagehut`,
+`forresca` and `forrescb` became `hj2-sage`, `hj2-forta` and `hj2-fortb`. Their continue points keep
+Jak 2's names (`hj2-forresca-start`).
 
 ### 6.3 Doors and elevators
 
-- **Stand-in doors.** `hip-door-b`, `hide-door`, `oracle-door`, `vin-door` and `gar-door` use the
-  closest Jak 3 door class and model.
+- **Stand-in doors.** `hip-door-b`, `hide-door`, `oracle-door` and `vin-door` use the closest Jak
+  3 door class and model.
+- **Keira's garage has no doors:** its two sliding doors aren't placed, and the region that loaded
+  the garage also shows it now (`REGION_SCRIPT_OVERRIDES`, region 319): the door's `on-enter` did.
+- **Fortress gates** (`hj2-fort-gate`, GAME): Jak 2's `fort-entry-gate` (Jak 3 has no such door),
+  Jak 3's airlock with Jak 2's model and opening animation, each leaf solid on its joint. The slums'
+  gate opens on the inside of the fortress: Jak 2 pairs it with the dump's gate (`fordumpa`, not
+  ported), `NEXT_ACTOR_OVERRIDES` pairs it with `forresca`'s. The gates to the prison and to the
+  fortress's exit stay shut.
+- **Script changes by hand** (`SCRIPT_OVERRIDES`): a door script replaced or removed, by Jak 2 level
+  and actor name. The only one: the palace roof and cable outer doors lose their `on-deactivate`
+  ([10](#10-jak-2-and-jak-3-differences), "Airlock scripts at load").
+- **Door translation.** A door's `on-notice` (the levels it waits for) is evaluated for the story
+  state first (`strict_notice` in `jak2_scripts.py`): a branch naming a level that isn't ported
+  only shuts the door when it is the branch the end of the game takes. The slums' fortress gate was
+  shut by a branch of another story state.
 - **The inside of the palace isn't ported** (entrance hall, throne room: Jak 2 missions only). Its
   doors stay shut. Of the pillar's two elevators only `com-elevator-2` is kept: lobby to roof door,
   with its ride cameras.
+- **The palace elevator no longer kills Jak** on the way up. Jak 2's roof and cable outer doors run
+  `want-display hj2-pshaft #f` in their `on-deactivate`. Riding up loads the roof, whose door is
+  born closed with Jak on its front side (570 m below it): Jak 3 runs `on-deactivate` then, and
+  the game log showed `Turning level hj2-pshaft off` with Jak and the elevator in it. The scripts
+  are removed: the pillar is loaded with the roof and the cable anyway.
 - **`hj2-elevator`** (GAME) is Jak 2's `com-elevator`: Jak 3's elevator with Jak 2's model (12 x
   13 m, it fills the shafts), a floor box and a fence along its edges, solid only during the ride
   (Jak 3's elevator `fence` flag). No `prevent-jump`: Jak moves freely.
@@ -386,9 +476,12 @@ rules.
   classes ported as `hj2-*` (pistons, turbines, lift catwalks, rotating pipes, sliders, windmills,
   the temple's moving, long, flipping and buried platforms...), with Jak 2's models. Their story
   state is the end of the game: the station running, the temple's gap bridged.
-- **Crates** of the pumping station, the mountain, the forest and the dig are Jak 3's (wood look,
-  art in GAME), their pickups translated: Jak 3 inserted `eco-pill-light` and `lightjak` in
-  `pickup-type`.
+- **Crates** of the pumping station, the mountain, the forest, the dig, Dead Town and the fortress
+  are Jak 3's (wood look, art in GAME), their pickups translated: Jak 3 inserted `eco-pill-light`
+  and `lightjak` in `pickup-type`.
+- **Haven Forest's particles** (waterfalls' spray, butterflies, fireflies, cattails):
+  [5.3](#53-particles-and-sprite-textures). Its lake is Jak 2's sea (the city's ocean map, 0 m
+  high, like Jak 2's `forest`); Jak 2 places no other water object there.
 
 ### 6.5 The dig
 
@@ -417,31 +510,19 @@ rules.
 
 ### 6.6 Air trains
 
-Jak 3's `air-train` runs its `on-activate` script when used, and Jak 3's own air trains play
-cutscenes there (`scene-play`). The mod's air trains, `hj2-air-train` (GAME), are Jak 3's with a
+The mod's air trains, `hj2-air-train` (GAME), are Jak 3's `air-train` (its model and hover) with a
 prompt naming where they go, "Press triangle to travel to" followed by their `travel-name` lump:
 
 | Air train | Prompt | Trip |
 |---|---|---|
-| `air-train-1` (port) | Press triangle to travel to the Dig Site | The castle pad |
-| `air-train-3` (castle pad) | Press triangle to travel to Haven City | The port |
+| `air-train-1` (port) | Press triangle to travel to the Dig Site | The castle pad (`hj2-caspad-warp`) |
+| `air-train-3` (castle pad) | Press triangle to travel to Haven City | The port (`hj2-ctyport-warp`) |
 
-A trip is two of Jak 3's own scenes, played one after the other: Jak boards, then gets off at the
-other end. The scenes are copies (`load-scene`, in `jak2-haven-city-world.gc`) placed where Jak 3's
-play: Jak 3's port air train stands exactly where Jak 2's does, and Jak 3's desert air train stands
-28 m high like the castle pad's.
-
-| Scene | Jak 3 animation | Plays at | Shows | Leaves Jak at |
-|---|---|---|---|---|
-| `hj2-air-train-port-out` | `city-air-train-in-desert` | the port (`scene-stage-87`, copied from Jak 3's entity dump) | Jak boards | `hj2-caspad-warp` |
-| `hj2-air-train-caspad-in` | `desert-air-train-out` | the castle pad (`air-train-3`) | Jak gets off | `hj2-caspad-warp` |
-| `hj2-air-train-caspad-out` | `desert-air-train-in` | the castle pad | Jak boards | `hj2-ctyport-warp` |
-| `hj2-air-train-port-in` | `city-air-train-out` | the port | Jak gets off | `hj2-ctyport-warp` |
-
-The scenes' actors are Jak 3's cutscene models (`jakc-highres`, `daxter-highres`, `particleman`)
-and the air train, whose art groups are in the level each scene plays in (havenj2, hj2-caspad).
-Their animations stream from Jak 3's `STR` files. Jak 2 hides the port's air train once the game is
-over; here both always run.
+**The ride is a teleport.** Jak 3's air train plays boarding and landing cutscenes in its `use`
+state; `hj2-air-train` replaces that state: a 0.1 s fade to black (`set-blackout-frames`), then the
+destination continue loads (`start 'play`), and Jak stands next to the other air train. The
+prompt's drawing and conditions (`hj2-travel-idle`) are shared with the time gates. Jak 2 hides
+the port's air train once the game is over; here both always run.
 
 ### 6.7 Rebuilding Jak 2's models
 
@@ -457,6 +538,15 @@ over; here both always run.
 - **Borrowed animations:** a model can take its animations from another rip with the same joints.
   Jak 2 keeps the trapeze's swings in the balloon lurker's art group, and the rip exports them
   there.
+- **Rest pose:** `build-actor` needs at least one animation, and some rips have none (Dead Town's
+  slabs, the construction site's doors). `write_actor_glb` then writes a one-frame animation of the
+  skin's rest pose: each joint's local transform is the inverse bind matrix of its parent times
+  the inverse of its own (`rest_pose_anim`).
+- **Hull heights:** a hull can keep only the vertices between two heights (`{"hull": y_min,
+  "y_max": y}`), to keep a platform without what hangs under it (the construction site's bomb
+  elevator: its 20 m platform, not its 64 m screw).
+- **Models without an actor of their own:** `EXTRA_MODELS` builds a model that a class spawns as a
+  child (the bomb elevator's hinges).
 
 ### 6.8 Actors Jak 2 never spawns
 
@@ -464,6 +554,37 @@ An actor whose `kill-mask` has the task bit `never` is never born in Jak 2, but 
 still list it. Every generator reads Jak 2's actors through `jak2_actors.py`, which drops them: a
 palace lobby airlock (`com-airlock-outer-20`, where Jak 2's way from the gate to the elevator is
 open), a Hip Hog door, a burning bush and part spawners of other story states.
+
+### 6.9 Dead Town
+
+Dead Town (`hj2-ruins`) is reached through the slums' airlock. Its actors (`PORTED_ACTORS`,
+`hj2-ruins-obs.gc`, models rebuilt from Jak 2's):
+
+| In game | Jak 2 | Here |
+|---|---|---|
+| The sea | its own ocean map | `*ocean-map-hj2-ruins*` ([5.4](#54-water-and-ocean)) |
+| Bars Jak swings from | `swingpole` | Jak 3's `swingpole` (the bars themselves are background) |
+| Slabs on pillars and the tower's bridge, crumbling under Jak | `ruins-drop-plat`, `ruins-bridge` | `hj2-ruins-drop-plat-a/b/c`, `hj2-ruins-bridge` (the model letter picks the class). Jak 2 plays their fall from streamed animations Jak 3 doesn't have, and leaves them fallen. Here a slab shakes when Jak lands on it, falls 0.6 s later for 1.5 s, stays out of sight 5 s, then is back |
+| Platforms floating on the water, sinking under Jak | `sinking-plat` | `hj2-ruins-sinking-plat`: Jak 3's `rigid-body-platform` with Jak 2's constants (`rigid-body-plat.o` linked in HJR) |
+| The tower's beams, slipping down when Jak comes near | `beam` | `hj2-ruins-beam`: Jak 2's slide animation, once, when the camera is within 25 m |
+| The tower's flag | `ruins-scenes.gc` | `hj2-ruins-flag`, its animation in a loop |
+| Birds, street lights | `ruins-part` spawners | [5.3](#53-particles-and-sprite-textures) |
+| The Sage's hut (old Samos') | `sagehut` | `hj2-sage`, loaded by Dead Town's regions, lit like Dead Town. Mods menu: Dead Town: the Sage's hut |
+
+Not ported: the enemies, the walls and pillars the titan suit breaks (broken for good by the end of
+the game), the push blocks, Jak 2's sounds.
+
+### 6.10 Construction site, fortress and stadium
+
+- **Construction site** (`hj2-cons`, `hj2-cons-obs.gc`): the silo doors (each leaf solid on its
+  joint) and the bomb elevator (solid at its platform, its hinges drawn by a child process), still
+  like at the end of the game.
+- **The inside of the fortress** (`hj2-forta`, `hj2-fortb`, Jak 2's `forresca` and `forrescb`): the
+  slums' fortress gate opens on it ([6.3](#63-doors-and-elevators)), and its regions load the far
+  end. Their moods follow Jak 2's (the fortress's four light groups, flickering electricity).
+  Mods menu: Inside the fortress.
+- **The stadium's race track** (`hj2-stadd`, Jak 2's `stadiumd`): loaded by the stadium's regions,
+  with Jak 2's lights and shimmering force field (palettes 5 and 6). Mods menu: Stadium race track.
 
 ## 7. Navigation and traffic
 
@@ -516,8 +637,10 @@ navigation data, driven by Jak 3's traffic engine.
 
 Each level's mood (GAME) follows its Jak 2 mood. `update-mood-havenj2` follows Jak 2's
 `update-mood-ctysluma` (palettes 5 street lights, 6 flames, 7 neon signs). The places follow
-`palshaft`, `palroof`, `palcab`, `consite`, `consiteb`, `ruins`, `atoll`, `atollext`, `mountain`,
-`forest`, `caspad` and `dig1` (red fog and lights); interiors use fixed palette weights. The dig's
+`palshaft`, `palroof`, `palcab`, `consite`, `consiteb`, `ruins` (Dead Town and the Sage's hut),
+`atoll`, `atollext`, `mountain`, `forest`, `caspad`, `dig1` (red fog and lights), `forresca` and
+`forrescb` (the fortress's light groups, flickering palettes) and `stadiumb` (the race track's
+lights and force field); interiors use fixed palette weights. The dig's
 lava pulses use Jak 3's `update-mood-pulse` at full brightness. Interiors have no fog: `fog-dists`
 z 255 and w 254, never equal (see [10](#10-jak-2-and-jak-3-differences)).
 
@@ -572,8 +695,8 @@ level system unload every level it doesn't want before loading the new ones.
 | Warp to Haven City (Jak 2) | `havenj2-start` (Jak 2's `ctysluma-start`, in the slums near the hideout) |
 | Warp to a district | Slums (the hideout, the fortress, the Oracle), Port, Bazaar (Brutter's stall, the east side), Industrial Section (Vin's side, the south side), Main Town (west side, cable pillar, east side), Gardens (mountain airlock, north side), Palace plaza, Stadium grounds: one of Jak 2's continues in each |
 | Warp to a key place | In the city: construction site gate, in front of the palace, Mar's tomb, pillar to the palace (cable), Hip Hog saloon, gun course, air train (port), Vin's power station, the fortress. In their own level: underground hideout, palace roof, the Oracle, Keira's garage |
-| Warp outside the city | Dead Town, construction site, pumping station, mountain top, Haven Forest, castle pad, dig site |
-| Warp to the Freedom HQ (Jak 3) | `freehq-start`, where the time gate stands |
+| Warp outside the city | Dead Town, Dead Town: the Sage's hut, inside the fortress, stadium race track, construction site, pumping station, mountain top, Haven Forest, castle pad, dig site |
+| Warp to the Freedom HQ (Jak 3) | `freehq-start`, in the room where the time gate stands |
 | Time of day | [8.2](#82-time-of-day) |
 | Weather (whole game) | [8.3](#83-weather) |
 | City traffic | [7.2](#72-traffic) |
@@ -581,24 +704,67 @@ level system unload every level it doesn't want before loading the new ones.
 The cable pillar's continue (`hj2-cable-pillar`) is one Jak 2 doesn't have (`EXTRA_CONTINUES`): 8 m
 in front of the door, facing it, the camera behind Jak.
 
-### 9.2 Time gate
+### 9.2 Time gates
 
-A time gate stands in Jak 3's Freedom HQ (`freehq`), on the free floor at the back of the main room
-(710, 80.34, −565 m, found on the HQ's collision dump): a swirl of light (parts 5400 to 5402, group
-1650, ids no Jak 3 level uses). Within 3 m, it prompts "Press triangle to travel through the time
-(Jak 2)"; Jak jumps into it like into Jak 3's warp gates (`target-warp-out`, the warp gate's flash)
-and lands at `havenj2-start`.
+Two teleporters link the worlds, both Jak 3's warp gate (its model, its particles and sound, its
+conditions and Jak's jump into it, `target-warp-out`) as `hj2-time-gate` (GAME), with a prompt
+naming the world they lead to:
 
-`freehq` is one of Jak 3's own levels and has no level callbacks. GAME adds two to its
-level-load-info when it loads (slot 35 spawns the gate, slot 36 kills it), without editing
-`level-info.gc`.
+| Gate | Stands | Prompt | Jak arrives |
+|---|---|---|---|
+| Freedom HQ (Jak 3) | on the free floor at the back of the main room (710, 80.34, −565 m, found on the HQ's collision dump) | Press triangle to travel through the time (Jak 2) | jumping out of the hideout's gate (`hj2-hideout-gate`) |
+| Underground hideout (Jak 2) | in the free corner of the main room (`TIME_GATES`) | Press triangle to travel through the time (Jak 3) | standing in front of the Freedom HQ's gate (`hj2-freehq-gate`) |
+
+How each part is made:
+
+1. **The model in a vanilla level.** `freehq` is one of Jak 3's levels and doesn't ship the warp
+   gate. Two vanilla edits bring it: `warp-gate-ag.go` in `goal_src/jak3/dgos/freehq.gd` (the art
+   group, for the game), and `extra_art_groups_by_dgo` in `jak3_config.jsonc` (its geometry, baked
+   into freehq's `.fr3` for the PC renderer: re-extract FREEHQ, [3](#3-rebuilding-it-step-by-step)).
+2. **Spawning without an entity.** `freehq` has no level callbacks: GAME adds two to its
+   level-load-info when it loads (slot 35 spawns the gate, slot 36 kills it), without editing
+   `level-info.gc`. The gate is spawned into `*entity-pool*`, whose processes belong to the
+   default level: `hj2-time-gate-init` sets the process's level to `freehq` before the skeleton is
+   made, because a process looks its art up only in its own level. The gate only spawns when the
+   model is in freehq's art (`hj2-level-has-art?`).
+3. **The hideout's gate** is an actor of `hj2-hide`, written by the generator (`TIME_GATES`) with
+   its `on-notice` (the destination) and `travel-name` lumps.
+4. **The arrival points** (`GATE_CONTINUES`) stand 6 m in front of each gate, facing away from it,
+   the camera behind. The hideout's has the `warp-gate` flag: Jak 3 then looks for the closest warp
+   gate entity and plays Jak's jump out of it. The Freedom HQ's gate has no entity, so Jak just
+   stands there; that continue is appended to freehq's continue list by GAME.
 
 ### 9.3 Respawn points
 
-Jak 3 only picks the closest continue point when Jak enters a different level, and havenj2 is one
-level for the whole city. A process (`havenj2-continues-code`) picks it by distance while havenj2
-is active, so dying or saving respawns Jak near where he was. Places use Jak 2's continues
-(cutscene and demo ones removed), with Jak 2's level lists translated.
+Jak 3 only picks the closest continue point when Jak enters a different level, and never one
+flagged `no-auto`; havenj2 is one level for the whole city, and some places have only `no-auto`
+continues (the palace roof). A process (`havenj2-continues-code`, GAME) runs while any of the mod's
+levels is active and moves the current continue every frame:
+
+- to the closest of Jak 2's continues of the level Jak is in (`no-auto` ones too), or of any
+  active level of the mod when that level has none;
+- never to an arrival through a gate (`warp-gate` flag) or a `change-continue` one.
+
+Dying or saving respawns Jak near where he was, at one of Jak 2's own respawn points. Every place
+keeps all of Jak 2's continues but the title, intro, demo and cutscene ones, with Jak 2's level
+lists translated and Jak 2's `no-auto`, `warp-gate` and `no-blackout` flags (`KEPT_CONTINUE_FLAGS`).
+
+The same process also puts the ocean of the level Jak is in first ([5.4](#54-water-and-ocean)).
+
+### 9.4 Saves
+
+Saving works anywhere in the mod's levels: Jak 3 saves the current continue, one of the mod's.
+The save screen shows it on the slot:
+
+| Step | How |
+|---|---|
+| Mark the save | `save-game` of `game-info` is wrapped: Jak 3's runs, then the mark `HJ2S` (`#x484a3253`) goes into a word of the save's header Jak 3 leaves unused (`info-int32 4`) when the current continue is one of the mod's |
+| Read it back | Jak 3 copies that word into each slot's preview data (`blind-data 4` of `*progress-save-info*`) |
+| Show it | `draw-option` of `menu-memcard-slot-option` is wrapped: Jak 3's slot is drawn, then "Haven City (Jak 2)" under the slot's title |
+
+A method is wrapped by keeping Jak 3's in a global (`(method-of-type game-info save-game)`) and
+redefining it to call that first. The slot's level picture is still Jak 3's choice (from the
+current task's level).
 
 ## 10. Jak 2 and Jak 3 differences
 
@@ -608,7 +774,18 @@ What this port had to learn about Jak 3, as a reference for other ports:
 |---|---|---|
 | Particle texture ids | Texture ids name a page by number: Jak 2's `effects` is page 12, Jak 3's page 12 is `gamefont`; Jak 3's shared sprites are `level-default-sprite` (4) | Smoke and fire texture groups ([5.3](#53-particles-and-sprite-textures)) |
 | Particle flags | Same names in both games, but Jak 3's launcher reads some meanings at other bits (the particles' level index takes bits 9 to 12): Jak 2's 12 (time of day tint on relaunch), 16 (acceleration kept in world space), 20 (cone follows the launcher's yaw) and 21 (launch and cone scaled by the launcher's matrix) are Jak 3's 13, 17, 19 and 20 | `CPUINFO_FLAGS` in `gen_havenj2_particles.py` |
-| Particle groups | Jak 3's `defpartgroup` doesn't define the group's name; the known names are constants in `part-groups.gc`. A new group is reached by id in `*part-group-id-table*` | The time gate |
+| Particle groups | Jak 3's `defpartgroup` doesn't define the group's name; the known names are constants in `part-groups.gc`. A new group is reached by id in `*part-group-id-table*` | The groups code uses: the speakers' hologram, the crops' bursts (`*hj2-*-group-ids*`) |
+| Particle callbacks | A `:func` gets the particle's sprite data (`sprite-vec-data-2d`, or a vector); Jak 2's decompiled callbacks type it as a matrix, same layout (row 0 x y z sx, row 1 flag matrix rot sy) | Copied callbacks ([5.3](#53-particles-and-sprite-textures)) |
+| Texture pool slots | The PC pool gives each page of Jak 3's directory as many slots as it has textures: page ids Jak 3 never uses share their first slot, and spill over the next pages' | Sprite page ids ([5.3](#53-particles-and-sprite-textures)) |
+| Animated textures | Background draws name an animated texture slot of their game's slot table (`common/texture/texture_slots.cpp`), not a texture | Jak 2's waterfalls and lava ([4.2](#42-level-builder)) |
+| Ocean map | Jak 3's `ocean-map` has no `ocean-spheres`; the map drawn is the first displayed level's, in draw order | [5.4](#54-water-and-ocean) |
+| Airlock scripts at load | A door born closed (at level load) with Jak on its front side runs its `on-deactivate`, however far Jak is: the side is an infinite plane (`com-airlock-method-26`) | The palace elevator ([6.3](#63-doors-and-elevators)) |
+| Continue auto-pick | Jak 3 picks a continue only when Jak enters a level, never a `no-auto` or `change-continue` one | Respawn process ([9.3](#93-respawn-points)) |
+| Warp gate arrival | A continue with the `warp-gate` flag makes Jak jump out of the closest `warp-gate` entity (subtypes too); with none found, Jak just stands there | Time gates ([9.2](#92-time-gates)) |
+| Processes without an entity | A process spawned into `*entity-pool*` belongs to the default level: set its `level` before `initialize-skeleton` | The Freedom HQ's gate |
+| A model in a vanilla level | The art group's `.go` in the level's `.gd`, and its geometry baked into the level's `.fr3` by the decompiler (`extra_art_groups_by_dgo`) | `freehq` |
+| Save header | `info-int32 4` of a save is unused; the save screen reads it back as `blind-data 4` of the slot's preview | [9.4](#94-saves) |
+| Custom level names | At most 10 characters (level builder assert) | `hj2-sage`, `hj2-forta`, `hj2-fortb` |
 | Process init | `process-spawn` without `:init` calls `<type>-init-by-other` | The time gate (`:init hj2-time-gate-init`) |
 | Level callbacks | A level-load-info's `callback-list` holds (slot . function) pairs: 33 login, 34 logout, 35 activate, 36 deactivate. They can be added at runtime to one of Jak 3's own levels | Mod levels; `freehq` |
 | Art lookup | A process looks its art up only in its own level | Each level lists the art groups of the doors and scenes it holds |
@@ -646,6 +823,10 @@ rate than in a stock city.
 
 - **Validate a `.fr3` offline:** `out/build/Release/bin/fr3_check.exe out/jak3/fr3/<level>.fr3`
   ([4.3](#43-fr3_check)).
+- **Texture pool slots:** `fr3_check <level>.fr3 --textures ""` lists every texture with its page
+  and index (`combo 0xPPPPIIII`) and whether it takes a pool slot (`pool true`). Its slot is the sum
+  of the sizes of the pages before it in `jak3_tpage_dir.cpp`, plus its index. Two levels loaded
+  together must not put different textures in one slot: the particles would show the other's.
 - **Rebuild one level without the REPL:**
   `out/build/Release/bin/build_level.exe -g jak3 <level>.jsonc <output .go> --fr3`. The log prints
   every region's scripts.
@@ -671,9 +852,9 @@ rate than in a stock city.
 
 ## 13. Change history
 
-Phase 1 is commit `de9ec6962`; phases 2 to 10 are the commit that adds this history. Phases 1 to 9
-were played in game before the next one started; phase 10 is built (`(mi)` and `fr3_check` clean)
-but not played yet.
+Phase 1 is commit `de9ec6962`; phases 2 to 10 are commit `dd14a7829`; phase 11 is the commit that
+adds its row. Phases 1 to 10 were played in game before the next one started; phase 11 is built
+(`(mi)`, `fr3_check` and the texture pool check clean) but not played yet.
 
 | Phase | Asked | Done | Problems found: cause, fix |
 |---|---|---|---|
@@ -687,22 +868,35 @@ but not played yet.
 | 8 | Traffic crash, palace door | Attack controller, never-spawned actors filtered | First guard called a method on `#f`: allocate the attack controller. The palace door that "never opens" doesn't exist in Jak 2 (`kill-mask` never) |
 | 9 | More traffic without blinking; the dig site; the port's air train | Jak 2's densities, 50 m cells with whole-cell spheres, castle pad and dig with their platforms, `hj2-air-train` | Traffic blinking: small spheres and empty cells made cells leave the active set |
 | 10 | Weather everywhere, particle fixes, air train cutscenes, a time gate, warps | Weather driver and 8 weathers, texture id and flag remaps, 4 cutscenes, time gate, district and key place warps, `write_if_changed` | Squares: Jak 2's `effects` id is Jak 3's font page. Fountains: flag bits moved. Weather menu dead after a Jak 3 level: the weather was released to Jak 3's boot sky and nothing restored the choice, now held every frame |
+| 11 | Palace respawns and elevator death; air train as a teleport; real teleporters between the Freedom HQ and the hideout; Jak 2's respawn points; construction site models; speakers breaking like Jak 2's; Dead Town's water, bars, slabs and hut; Haven Forest; the fortress and the stadium; no garage doors; farm crops; saves | Respawn by the level Jak is in, Jak 2's continue flags; air train fade; two `hj2-time-gate`s and their arrival points; silo doors and bomb elevator; two-hit speakers with three looks; ocean maps of Dead Town and the mountain, Dead Town's platforms, beams, flag, swing poles, Sage's hut; particles of the forest and Dead Town; animated texture slots mapped; ocean order; fortress gates, fortress and stadium levels; `hj2-farm-*`; save mark and slot label | Elevator death: the roof's door ran `on-deactivate` at load and turned the pillar off, script removed. Fortress gate shut: a branch of another story state named an unported level, `strict_notice`. Level names over 10 characters: renamed. Place sprite pages sharing texture pool slots with the city's: ids 1594 and 1627 |
 
 ## 14. Not done yet
 
-- **Not played in game yet (phase 10):** the weather menu everywhere, snow, the smoke and fountain
-  fixes, the rain streaks seen standing still in the air (probably the same flag shift), the air
-  train cutscenes, the time gate, the new warps.
+- **Not played in game yet (phase 11):** everything in its row of [13](#13-change-history).
+- **Haven Forest's dark lake:** the forest's water is Jak 2's sea, drawn from the city's ocean map
+  (its mask covers the lake, its height is 0 m like Jak 2's). Phase 10 had that map set and the
+  lake still wasn't seen; the cause isn't found. Phase 11 adds the ocean order
+  ([5.4](#54-water-and-ocean)), which fixes one possible cause (another level's map drawn first).
+  To look in game, standing at the lake, in the REPL: `(= *ocean-map* *ocean-map-havenj2*)` should
+  be `#t`.
 - **Places not ported** (their doors stay shut): Mar's tomb, the canyon, the inside of the palace,
-  the sewers, the underport, the fortress, Onin's tent, the kiosk, Samos' hut.
+  the sewers, the underport, the fortress's dump and prison, Onin's tent, the kiosk.
+- **Particles** of the other places (only the city, the forest and Dead Town have theirs): the
+  construction site (135 spawners), the pumping station (197), the mountain (255), the dig (241),
+  the palace roof, pillar and cable (545), the fortress (338), the stadium's race track (121), the
+  interiors. Each is a `PLACE_PARTICLES` entry, with a texture page whose pool slots don't meet
+  another loaded level's ([5.3](#53-particles-and-sprite-textures)).
+- **Animated textures:** Jak 2's waterfalls and lava are still ([4.2](#42-level-builder)).
+- **Dead Town:** its enemies, the walls and pillars the titan suit breaks, the push blocks.
+- **The fortress:** its enemies, turrets and electric gates. **The stadium:** its races.
+- **The construction site:** the Baron's fight (its breaking scaffolds, the bomb).
+- **The farm:** the sprinklers' water.
 - **The mountain:** its pools (`water-anim`), its enemies.
-- **The dig:** its enemies, spiky spheres, stomp blocks, precursor orbs and particles. Its fixed
-  cameras and the castle pad's: Jak 2's `caspad`, `dig3a` and `dig3b` were extracted before the
-  camera export existed (a new Jak 2 extraction of these levels adds them; their camera regions are
-  dropped meanwhile).
+- **The dig:** its enemies, spiky spheres, stomp blocks and precursor orbs. Its fixed cameras and
+  the castle pad's: Jak 2's `caspad`, `dig3a` and `dig3b` were extracted before the camera export
+  existed (a new Jak 2 extraction of these levels adds them; their camera regions are dropped
+  meanwhile).
 - **Traffic:** the vehicles', citizens' and guards' sound effects ([7.2](#72-traffic)), Jak 2's
   citizen and guard models, the KG and Metal Head squads.
 - **Sounds and voices:** the Baron's speeches, Jak 2's object sounds.
-- **A time gate back** from Jak 2's world to Jak 3's (the Mods menu warps to the Freedom HQ).
-- **Texture page 1566** has no slot in the PC texture pool's page directory (`jak3_tpage_dir.cpp`):
-  its ids share the slots of the next pages (1567 and up). None of these is loaded with havenj2.
+- **The save slot's picture** is Jak 3's choice ([9.4](#94-saves)).

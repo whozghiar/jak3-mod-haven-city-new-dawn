@@ -98,9 +98,33 @@ std::vector<bool> hidden_mask(const std::vector<std::string>& proto_names,
 s32 Merger::remap_texture(const tfrag3::Level& src, s32 src_idx, std::vector<s32>& cache) {
   if (src_idx < 0) {
     // animated texture slot of the source game. Slot numbers are game-specific, so there is no
-    // meaningful equivalent in the destination game. Fall back to the first texture of the level.
+    // meaningful equivalent in the destination game: use the slot's source texture, still (the
+    // slot "waterfall-dest" animates "waterfall"), or the output texture itself, else the first
+    // texture of the level.
     m_stats.anim_slot_draws++;
+    const size_t slot = (size_t)(-src_idx - 1);
     src_idx = 0;
+    if (slot < m_options.anim_slot_names.size()) {
+      std::string name = m_options.anim_slot_names[slot];
+      const std::string dest_suffix = "-dest";
+      const std::string base = name.size() > dest_suffix.size() &&
+                                       name.compare(name.size() - dest_suffix.size(),
+                                                    dest_suffix.size(), dest_suffix) == 0
+                                   ? name.substr(0, name.size() - dest_suffix.size())
+                                   : name;
+      s32 found = -1;
+      for (const auto& wanted : {base, name}) {
+        for (size_t i = 0; i < src.textures.size() && found < 0; i++) {
+          if (src.textures[i].debug_name == wanted) {
+            found = (s32)i;
+          }
+        }
+      }
+      if (found >= 0) {
+        src_idx = found;
+        m_stats.anim_slot_draws_mapped++;
+      }
+    }
   }
   ASSERT((size_t)src_idx < src.textures.size());
   if (cache[src_idx] >= 0) {

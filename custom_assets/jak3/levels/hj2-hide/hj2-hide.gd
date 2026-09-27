@@ -3,5 +3,6 @@
 ("HJD.DGO"
  (
   "hip-door-a-ag.go"
+  "warp-gate-ag.go"
   "hj2-hide.go"
   ))

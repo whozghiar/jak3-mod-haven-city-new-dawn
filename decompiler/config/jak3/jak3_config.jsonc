@@ -122,6 +122,11 @@
 
   // turn this on to extract level background graphics data as .fr3 files in out/<game>/fr3
   "levels_extract": true,
+  // og:jak2-haven-city added: art groups baked into a level's .fr3 although its retail DGO doesn't
+  // ship them (their merc geometry, for the PC renderer), "<art-group>:<HOME.DGO>" (the level
+  // whose textures the model uses). The Freedom HQ's time gate is Jak 3's warp gate (its .go is
+  // added to goal_src/jak3/dgos/freehq.gd).
+  "extra_art_groups_by_dgo": {"FREEHQ.DGO": ["warp-gate-ag:VIN.DGO"]},
   // turn this on if you want extracted levels to be saved out as .glb files in decompiler_out/<game>/levels
   "rip_levels": false,
   // should we also extract collision meshes to the .fr3 files?

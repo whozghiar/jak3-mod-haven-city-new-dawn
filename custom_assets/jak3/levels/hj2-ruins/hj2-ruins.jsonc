@@ -8,6 +8,8 @@
   "import_fr3": {"game": "jak2", "levels": ["ruins"], "tfrag": true, "tie": true, "shrub": true, "collision": true, "hide_prototypes": ["ruins-board-task2.mb", "ruins-lgcollision-task2.mb", "ruins-plank-task2.mb", "ruins-smlcollision-task2.mb", "ruins-support-task2.mb", "ruin-tower-junk.mb"]},
   // Jak 2's load regions of this place (translated), and its water volumes (water-vol)
   "region_tree_files": ["custom_assets/jak3/levels/hj2-ruins/hj2-ruins-regions.json", "custom_assets/jak3/levels/hj2-ruins/hj2-ruins-water-regions.json"],
+  // the sprite textures of its particles, as texture page 1627 (hj2-ruins-part.gc)
+  "sprite_textures": {"page": 1627, "game": "jak2", "textures": [["ruins", "ruins-sprite", "seagull-wing"]]},
   "base_id": 22200,
   "base_region_id": 22200,
   // Jak 2's fixed cameras of this place (elevator rides, camera regions)
@@ -15,9 +17,281 @@
     {"trans": [1087.8107, 22.3847, -250.7424], "quat": [0.0, 0.7071, 0.0, 0.7071], "lump": {"campath": ["vector", [4455672.5, 121550.9453125, -1027040.9375, 1.0], [4455672.5, 134105.296875, -1027040.9375, 1.0], [4455672.5, 159214.015625, -1027040.9375, 1.0], [4455672.5, 196877.078125, -1027040.9375, 1.0], [4455672.5, 234540.140625, -1027040.9375, 1.0], [4455672.5, 259648.859375, -1027040.9375, 1.0], [4455672.5, 272203.21875, -1027040.9375, 1.0]], "campath-k": ["float", 0.0, 0.0, 0.0, 0.0, 0.25, 0.5, 0.75, 1.0, 1.0, 1.0, 1.0], "campoints": ["vector", [4455672.5, 96705.8671875, -1027040.9375, 1.0], [4455672.5, 247358.140625, -1027040.9375, 1.0]], "campoints-flags-off": ["int32", 0], "campoints-flags-on": ["int32", 0], "flags-off": ["int32", 0], "flags-on": ["int32", 2], "focalpull-flags-off": ["int32", 0], "focalpull-flags-on": ["int32", 0], "fov": ["float", 7261.2802734375], "fov-offset": ["float", 4366.06298828125], "id": ["int32", 0], "interpTime": ["float", 1.5], "maxAngle-offset": ["float", 361.1215515136719], "name": "camera-47", "pivot": ["vector", [4455672.5, 103048.4375, -1027040.9375, 1.0]], "pivot-offset": ["vector", [0.0, 12102.8603515625, 0.0, 1.0]], "rot-offset": ["vector", [0.0, 0.0, 0.0, 1.0]], "tiltAdjust-offset": ["float", 2660.178955078125], "trans-offset": ["vector", [6569.57421875, 35569.6640625, 219822.90625, 1.0]], "translation_info": ["vector", [3436544.0, 0.0, -1400832.0, 1.0]]}},
     {"trans": [945.7707, 42.506, -496.3707], "quat": [0.0, 1.0, 0.0, 0.0], "lump": {"campoints-flags-off": ["int32", 0], "campoints-flags-on": ["int32", 0], "flags-off": ["int32", 0], "flags-on": ["int32", 0], "focalpull-flags-off": ["int32", 0], "focalpull-flags-on": ["int32", 0], "fov": ["float", 7261.2802734375], "fov-offset": ["float", 4421.9140625], "id": ["int32", 1], "interpTime": ["float", 1.5], "name": "camera-270", "rot-offset": ["vector", [-0.07010000199079514, -0.8704000115394592, -0.1298999935388565, 0.46950000524520874]], "spline-follow-dist-offset": ["float", 0.0], "trans-offset": ["vector", [-33692.875, 18238.259765625, -126313.6796875, 1.0]], "translation_info": ["vector", [3436544.0, 0.0, -1400832.0, 1.0]]}}
   ],
+  // models of its custom actors, built by build-actor (goal_src/jak3/game.gp)
+  "custom_models": ["hj2-ruins-drop-plat-a", "hj2-ruins-bridge", "hj2-ruins-sinking-plat", "hj2-ruins-flag", "hj2-ruins-beam"],
   "art_groups": ["com-airlock-outer-ag"],
   "actors": [
     // Jak 2's com-airlock-outer-2 (ruins)
-    {"trans": [822.1983, 0.0654, -339.277], "etype": "com-airlock-outer", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [822.1983, 0.0654, -339.277, 13.8564], "lump": {"name": "com-airlock-outer-2", "distance": ["float", 81920.0], "on-activate": ["pair", "(want-load 'hj2-ruins 'havenj2)"], "on-deactivate": ["pair", "(want-display 'havenj2 #f)"], "on-enter": ["pair", "(want-display 'havenj2 'display)"], "on-notice": ["pair", "'(havenj2)"]}}
+    {"trans": [822.1983, 0.0654, -339.277], "etype": "com-airlock-outer", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [822.1983, 0.0654, -339.277, 13.8564], "lump": {"name": "com-airlock-outer-2", "distance": ["float", 81920.0], "on-activate": ["pair", "(want-load 'hj2-ruins 'havenj2)"], "on-deactivate": ["pair", "(want-display 'havenj2 #f)"], "on-enter": ["pair", "(want-display 'havenj2 'display)"], "on-notice": ["pair", "'(havenj2)"]}},
+    // Jak 2's beam-1 (ruins)
+    {"trans": [880.8583, 0.7061, -334.6779], "etype": "hj2-ruins-beam", "game_task": 0, "quat": [0.0, 0.9963, 0.0, -0.0858], "bsphere": [880.8583, 0.7061, -334.6779, 6.9282], "lump": {"name": "beam-1"}},
+    // Jak 2's beam-10 (ruins)
+    {"trans": [1141.9254, 17.8901, -398.6017], "etype": "hj2-ruins-beam", "game_task": 0, "quat": [0.0, 0.911, 0.0, 0.4124], "bsphere": [1141.9254, 17.8901, -398.6017, 6.9282], "lump": {"name": "beam-10"}},
+    // Jak 2's beam-11 (ruins)
+    {"trans": [926.2279, 12.2183, -240.584], "etype": "hj2-ruins-beam", "game_task": 0, "quat": [0.0, 0.9994, 0.0, -0.0354], "bsphere": [926.2279, 12.2183, -240.584, 6.9282], "lump": {"name": "beam-11"}},
+    // Jak 2's beam-12 (ruins)
+    {"trans": [878.0568, 0.778, -279.6192], "etype": "hj2-ruins-beam", "game_task": 0, "quat": [0.0, 0.9994, 0.0, -0.0354], "bsphere": [878.0568, 0.778, -279.6192, 6.9282], "lump": {"name": "beam-12"}},
+    // Jak 2's beam-2 (ruins)
+    {"trans": [936.3469, 0.3471, -367.2738], "etype": "hj2-ruins-beam", "game_task": 0, "quat": [0.0, -0.2444, 0.0, 0.9697], "bsphere": [936.3469, 0.3471, -367.2738, 6.9282], "lump": {"name": "beam-2"}},
+    // Jak 2's beam-3 (ruins)
+    {"trans": [912.1948, -0.123, -405.988], "etype": "hj2-ruins-beam", "game_task": 0, "quat": [0.0, 0.5367, 0.0, 0.8438], "bsphere": [912.1948, -0.123, -405.988, 6.9282], "lump": {"name": "beam-3"}},
+    // Jak 2's beam-4 (ruins)
+    {"trans": [919.2733, -2.0928, -418.8942], "etype": "hj2-ruins-beam", "game_task": 0, "quat": [0.0, 0.8621, 0.0, 0.5068], "bsphere": [919.2733, -2.0928, -418.8942, 6.9282], "lump": {"name": "beam-4"}},
+    // Jak 2's beam-5 (ruins)
+    {"trans": [934.0993, -1.3021, -445.5806], "etype": "hj2-ruins-beam", "game_task": 0, "quat": [0.0, 0.6535, 0.0, 0.7569], "bsphere": [934.0993, -1.3021, -445.5806, 6.9282], "lump": {"name": "beam-5"}},
+    // Jak 2's beam-6 (ruins)
+    {"trans": [1001.9232, -1.6419, -439.325], "etype": "hj2-ruins-beam", "game_task": 0, "quat": [0.0, -0.4926, 0.0, 0.8703], "bsphere": [1001.9232, -1.6419, -439.325, 6.9282], "lump": {"name": "beam-6"}},
+    // Jak 2's beam-7 (ruins)
+    {"trans": [948.288, -1.3021, -505.5786], "etype": "hj2-ruins-beam", "game_task": 0, "quat": [0.0, -0.3353, 0.0, 0.9421], "bsphere": [948.288, -1.3021, -505.5786, 6.9282], "lump": {"name": "beam-7"}},
+    // Jak 2's beam-8 (ruins)
+    {"trans": [880.7275, 23.9428, -567.086], "etype": "hj2-ruins-beam", "game_task": 0, "quat": [0.0, 0.3195, 0.0, 0.9476], "bsphere": [880.7275, 23.9428, -567.086, 6.9282], "lump": {"name": "beam-8"}},
+    // Jak 2's beam-9 (ruins)
+    {"trans": [914.1572, 23.9473, -554.9486], "etype": "hj2-ruins-beam", "game_task": 0, "quat": [0.0, -0.4023, 0.0, 0.9155], "bsphere": [914.1572, 23.9473, -554.9486, 6.9282], "lump": {"name": "beam-9"}},
+    // Jak 2's crate-425 (ruins)
+    {"trans": [879.9196, 0.1631, -345.3467], "etype": "crate", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [879.9196, 0.1631, -345.3467, 1.7321], "lump": {"name": "crate-425", "eco-info": ["int32", 15, 20]}},
+    // Jak 2's crate-426 (ruins)
+    {"trans": [882.9258, 0.338, -348.6002], "etype": "crate", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [882.9258, 0.338, -348.6002, 1.7321], "lump": {"name": "crate-426", "eco-info": ["int32", 16, 20]}},
+    // Jak 2's crate-427 (ruins)
+    {"trans": [885.9919, 0.3716, -351.9066], "etype": "crate", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [885.9919, 0.3716, -351.9066, 1.7321], "lump": {"name": "crate-427", "eco-info": ["int32", 15, 20]}},
+    // Jak 2's crate-428 (ruins)
+    {"trans": [923.4337, 0.1722, -380.6751], "etype": "crate", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [923.4337, 0.1722, -380.6751, 1.7321], "lump": {"name": "crate-428", "eco-info": ["int32", 15, 20]}},
+    // Jak 2's crate-429 (ruins)
+    {"trans": [958.3018, 12.0, -385.2932], "etype": "crate", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [958.3018, 12.0, -385.2932, 1.7321], "lump": {"name": "crate-429", "eco-info": ["int32", 16, 20]}},
+    // Jak 2's crate-430 (ruins)
+    {"trans": [957.6021, 12.0, -383.2686], "etype": "crate", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [957.6021, 12.0, -383.2686, 1.7321], "lump": {"name": "crate-430", "eco-info": ["int32", 15, 20]}},
+    // Jak 2's crate-431 (ruins)
+    {"trans": [997.4932, 0.5396, -448.2311], "etype": "crate", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [997.4932, 0.5396, -448.2311, 1.7321], "lump": {"name": "crate-431", "eco-info": ["int32", 15, 5]}},
+    // Jak 2's crate-432 (ruins)
+    {"trans": [1000.34, 0.2094, -448.2311], "etype": "crate", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [1000.34, 0.2094, -448.2311, 1.7321], "lump": {"name": "crate-432", "eco-info": ["int32", 20, 2]}},
+    // Jak 2's crate-433 (ruins)
+    {"trans": [1029.0, 1.454, -342.0], "etype": "crate", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [1029.0, 1.454, -342.0, 1.7321], "lump": {"name": "crate-433", "eco-info": ["int32", 15, 5]}},
+    // Jak 2's crate-434 (ruins)
+    {"trans": [1029.0, 1.2983, -337.0], "etype": "crate", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [1029.0, 1.2983, -337.0, 1.7321], "lump": {"name": "crate-434", "eco-info": ["int32", 16, 5]}},
+    // Jak 2's crate-435 (ruins)
+    {"trans": [1029.0, 1.3484, -339.3255], "etype": "crate", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [1029.0, 1.3484, -339.3255, 1.7321], "lump": {"name": "crate-435", "eco-info": ["int32", 15, 10]}},
+    // Jak 2's crate-436 (ruins)
+    {"trans": [1127.4594, 18.0, -377.2161], "etype": "crate", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [1127.4594, 18.0, -377.2161, 1.7321], "lump": {"name": "crate-436", "eco-info": ["int32", 17, 50]}},
+    // Jak 2's crate-437 (ruins)
+    {"trans": [1127.4594, 18.0, -374.1695], "etype": "crate", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [1127.4594, 18.0, -374.1695, 1.7321], "lump": {"name": "crate-437", "eco-info": ["int32", 17, 50]}},
+    // Jak 2's crate-438 (ruins)
+    {"trans": [1047.1078, 24.0091, -399.6965], "etype": "crate", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [1047.1078, 24.0091, -399.6965, 1.7321], "lump": {"name": "crate-438", "eco-info": ["int32", 17, 20]}},
+    // Jak 2's crate-763 (ruins)
+    {"trans": [924.5135, 12.4811, -246.9631], "etype": "crate", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [924.5135, 12.4811, -246.9631, 1.7321], "lump": {"name": "crate-763", "eco-info": ["int32", 20, 2]}},
+    // Jak 2's crate-764 (ruins)
+    {"trans": [924.5135, 12.4811, -249.578], "etype": "crate", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [924.5135, 12.4811, -249.578, 1.7321], "lump": {"name": "crate-764", "eco-info": ["int32", 20, 2]}},
+    // Jak 2's flag-1 (ruins)
+    {"trans": [1049.4647, 60.0, -225.9494], "etype": "hj2-ruins-flag", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [1049.4647, 60.0, -225.9494, 12.1244], "lump": {"name": "flag-1"}},
+    // Jak 2's ruins-bridge-1 (ruins)
+    {"trans": [1029.0, 24.0, -254.6274], "etype": "hj2-ruins-bridge", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [1029.0, 24.0, -254.6274, 12.1244], "lump": {"name": "ruins-bridge-1"}},
+    // Jak 2's ruins-drop-plat-17 (ruins)
+    {"trans": [1065.231, 36.0008, -225.929], "etype": "hj2-ruins-drop-plat-a", "game_task": 0, "quat": [0.0, -0.3201, 0.0, 0.9474], "bsphere": [1065.231, 36.0008, -225.929, 12.1244], "lump": {"name": "ruins-drop-plat-17"}},
+    // Jak 2's ruins-drop-plat-18 (ruins)
+    {"trans": [1072.9226, 36.0004, -221.4896], "etype": "hj2-ruins-drop-plat-a", "game_task": 0, "quat": [0.0, -0.1654, 0.0, 0.9862], "bsphere": [1072.9226, 36.0004, -221.4896, 12.1244], "lump": {"name": "ruins-drop-plat-18"}},
+    // Jak 2's ruins-drop-plat-19 (ruins)
+    {"trans": [1080.9479, 36.0008, -218.4519], "etype": "hj2-ruins-drop-plat-a", "game_task": 0, "quat": [0.0, -0.1106, 0.0, 0.9939], "bsphere": [1080.9479, 36.0008, -218.4519, 12.1244], "lump": {"name": "ruins-drop-plat-19"}},
+    // Jak 2's ruins-drop-plat-20 (ruins)
+    {"trans": [1119.5967, 43.0008, -247.8783], "etype": "hj2-ruins-drop-plat-a", "game_task": 0, "quat": [0.0, 0.8387, 0.0, 0.5446], "bsphere": [1119.5967, 43.0008, -247.8783, 12.1244], "lump": {"name": "ruins-drop-plat-20"}},
+    // Jak 2's ruins-drop-plat-21 (ruins)
+    {"trans": [1114.3594, 40.0008, -257.9864], "etype": "hj2-ruins-drop-plat-a", "game_task": 0, "quat": [0.0, 0.946, 0.0, 0.3241], "bsphere": [1114.3594, 40.0008, -257.9864, 12.1244], "lump": {"name": "ruins-drop-plat-21"}},
+    // Jak 2's ruins-drop-plat-22 (ruins)
+    {"trans": [1094.8667, 40.0008, -272.1937], "etype": "hj2-ruins-drop-plat-a", "game_task": 0, "quat": [0.0, 0.9484, 0.0, 0.317], "bsphere": [1094.8667, 40.0008, -272.1937, 12.1244], "lump": {"name": "ruins-drop-plat-22"}},
+    // Jak 2's ruins-drop-plat-23 (ruins)
+    {"trans": [1087.7334, 42.5008, -275.7056], "etype": "hj2-ruins-drop-plat-a", "game_task": 0, "quat": [0.0, 0.9765, 0.0, -0.2156], "bsphere": [1087.7334, 42.5008, -275.7056, 12.1244], "lump": {"name": "ruins-drop-plat-23"}},
+    // Jak 2's ruins-drop-plat-24 (ruins)
+    {"trans": [1079.0123, 45.0008, -271.8052], "etype": "hj2-ruins-drop-plat-a", "game_task": 0, "quat": [0.0, 0.9765, 0.0, -0.2156], "bsphere": [1079.0123, 45.0008, -271.8052, 12.1244], "lump": {"name": "ruins-drop-plat-24"}},
+    // Jak 2's sinking-plat-11 (ruins)
+    {"trans": [936.7906, -2.0, -337.9913], "etype": "hj2-ruins-sinking-plat", "game_task": 0, "quat": [0.0, -0.6694, 0.0, 0.7429], "bsphere": [936.7906, -2.0, -337.9913, 12.1244], "lump": {"name": "sinking-plat-11"}},
+    // Jak 2's sinking-plat-12 (ruins)
+    {"trans": [936.9414, -2.0, -329.0652], "etype": "hj2-ruins-sinking-plat", "game_task": 0, "quat": [0.0, 0.9492, 0.0, -0.3148], "bsphere": [936.9414, -2.0, -329.0652, 12.1244], "lump": {"name": "sinking-plat-12"}},
+    // Jak 2's sinking-plat-6 (ruins)
+    {"trans": [1005.6974, -1.9982, -419.923], "etype": "hj2-ruins-sinking-plat", "game_task": 0, "quat": [0.0086, -0.3307, -0.0285, 0.9433], "bsphere": [1005.6974, -1.9982, -419.923, 12.1244], "lump": {"name": "sinking-plat-6"}},
+    // Jak 2's sinking-plat-7 (ruins)
+    {"trans": [1003.0885, -2.0, -427.8909], "etype": "hj2-ruins-sinking-plat", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [1003.0885, -2.0, -427.8909, 12.1244], "lump": {"name": "sinking-plat-7"}},
+    // Jak 2's sinking-plat-8 (ruins)
+    {"trans": [1000.3171, -1.9998, -435.8379], "etype": "hj2-ruins-sinking-plat", "game_task": 0, "quat": [-0.0029, -0.8014, 0.0095, 0.5981], "bsphere": [1000.3171, -1.9998, -435.8379, 12.1244], "lump": {"name": "sinking-plat-8"}},
+    // Jak 2's swingpole-16 (ruins)
+    {"trans": [1101.4596, 51.0548, -215.7893], "etype": "swingpole", "game_task": 0, "quat": [0.691, 0.107, -0.149, 0.6991], "bsphere": [1101.4596, 51.0548, -215.7893, 12.1244], "lump": {"name": "swingpole-16"}},
+    // Jak 2's swingpole-17 (ruins)
+    {"trans": [1105.3287, 45.0071, -269.8016], "etype": "swingpole", "game_task": 0, "quat": [-0.2719, -0.6595, 0.6695, -0.2071], "bsphere": [1105.3287, 45.0071, -269.8016, 12.1244], "lump": {"name": "swingpole-17"}},
+    // Jak 2's ruins-part-1 (ruins): group-ruins-birds
+    {"trans": [1095.7574, 172.1104, -256.667], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [1095.7574, 172.1104, -256.667, 12.1244], "lump": {"name": "ruins-part-1", "art-name": "group-hj2-ruins-birds", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-86 (ruins): group-ruins-streetlight-glows
+    {"trans": [1092.5638, 59.5021, -214.065], "etype": "part-spawner", "game_task": 0, "quat": [0.0044, 0.6859, -0.0033, 0.7276], "bsphere": [1092.5638, 59.5021, -214.065, 6.9282], "lump": {"name": "ruins-part-86", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-87 (ruins): group-ruins-streetlight-glows
+    {"trans": [1121.493, 57.5936, -229.8114], "etype": "part-spawner", "game_task": 0, "quat": [0.0055, 0.9524, -0.0007, 0.3047], "bsphere": [1121.493, 57.5936, -229.8114, 6.9282], "lump": {"name": "ruins-part-87", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-44 (ruins): group-ruins-streetlight-glows
+    {"trans": [1122.0139, 30.6734, -383.5297], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.3827, 0.0, 0.9239], "bsphere": [1122.0139, 30.6734, -383.5297, 6.9282], "lump": {"name": "ruins-part-44", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-52 (ruins): group-ruins-streetlight-glows
+    {"trans": [1095.2274, 8.7264, -387.5019], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9239, 0.0, 0.3827], "bsphere": [1095.2274, 8.7264, -387.5019, 6.9282], "lump": {"name": "ruins-part-52", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-53 (ruins): group-ruins-streetlight-glows
+    {"trans": [1106.1707, 8.7264, -375.7916], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9239, 0.0, 0.3827], "bsphere": [1106.1707, 8.7264, -375.7916, 6.9282], "lump": {"name": "ruins-part-53", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-70 (ruins): group-ruins-streetlight-glows
+    {"trans": [1129.3313, 9.5181, -378.9194], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.3827, 0.0, 0.9239], "bsphere": [1129.3313, 9.5181, -378.9194, 6.9282], "lump": {"name": "ruins-part-70", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-83 (ruins): group-ruins-streetlight-glows
+    {"trans": [1091.89, 10.8324, -365.8125], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [1091.89, 10.8324, -365.8125, 6.9282], "lump": {"name": "ruins-part-83", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-72 (ruins): group-ruins-streetlight-glows
+    {"trans": [1140.9797, 8.4928, -433.4713], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9887, 0.0, 0.1499], "bsphere": [1140.9797, 8.4928, -433.4713, 6.9282], "lump": {"name": "ruins-part-72", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-54 (ruins): group-ruins-streetlight-glows
+    {"trans": [1138.9266, 23.8611, -400.0717], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.3827, 0.0, 0.9239], "bsphere": [1138.9266, 23.8611, -400.0717, 6.9282], "lump": {"name": "ruins-part-54", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-69 (ruins): group-ruins-streetlight-glows
+    {"trans": [1159.7959, 28.1651, -401.3534], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.3827, 0.0, 0.9239], "bsphere": [1159.7959, 28.1651, -401.3534, 6.9282], "lump": {"name": "ruins-part-69", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-71 (ruins): group-ruins-streetlight-glows
+    {"trans": [1153.9923, 8.4928, -404.4234], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.5427, 0.0, 0.8399], "bsphere": [1153.9923, 8.4928, -404.4234, 6.9282], "lump": {"name": "ruins-part-71", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-77 (ruins): group-ruins-streetlight-glows
+    {"trans": [1130.6364, 10.8324, -402.8291], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [1130.6364, 10.8324, -402.8291, 6.9282], "lump": {"name": "ruins-part-77", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-65 (ruins): group-ruins-streetlight-glows
+    {"trans": [1088.9634, 32.1077, -420.4792], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.3827, 0.0, 0.9239], "bsphere": [1088.9634, 32.1077, -420.4792, 6.9282], "lump": {"name": "ruins-part-65", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-74 (ruins): group-ruins-streetlight-glows
+    {"trans": [1104.6915, 8.4928, -433.8075], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.3827, 0.0, 0.9239], "bsphere": [1104.6915, 8.4928, -433.8075, 6.9282], "lump": {"name": "ruins-part-74", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-82 (ruins): group-ruins-streetlight-glows
+    {"trans": [1112.9774, 10.8324, -431.9858], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [1112.9774, 10.8324, -431.9858, 6.9282], "lump": {"name": "ruins-part-82", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-45 (ruins): group-ruins-streetlight-glows
+    {"trans": [1109.9122, 27.9743, -398.1933], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.3827, 0.0, 0.9239], "bsphere": [1109.9122, 27.9743, -398.1933, 6.9282], "lump": {"name": "ruins-part-45", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-55 (ruins): group-ruins-streetlight-glows
+    {"trans": [1125.9756, 23.8611, -413.2805], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.3827, 0.0, 0.9239], "bsphere": [1125.9756, 23.8611, -413.2805, 6.9282], "lump": {"name": "ruins-part-55", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-81 (ruins): group-ruins-streetlight-glows
+    {"trans": [1124.3141, 10.8324, -421.3277], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [1124.3141, 10.8324, -421.3277, 6.9282], "lump": {"name": "ruins-part-81", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-85 (ruins): group-ruins-streetlight-glows
+    {"trans": [1068.2316, 48.4705, -217.4751], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.52, 0.0, 0.8542], "bsphere": [1068.2316, 48.4705, -217.4751, 6.9282], "lump": {"name": "ruins-part-85", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-88 (ruins): group-ruins-streetlight-glows
+    {"trans": [1065.3687, 63.787, -267.2337], "etype": "part-spawner", "game_task": 0, "quat": [-0.0001, -0.2017, -0.0055, 0.9794], "bsphere": [1065.3687, 63.787, -267.2337, 6.9282], "lump": {"name": "ruins-part-88", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-89 (ruins): group-ruins-streetlight-glows
+    {"trans": [1063.8829, 72.5039, -246.3633], "etype": "part-spawner", "game_task": 0, "quat": [0.0019, 0.1762, -0.0052, 0.9843], "bsphere": [1063.8829, 72.5039, -246.3633, 6.9282], "lump": {"name": "ruins-part-89", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-35 (ruins): group-ruins-streetlight-glows
+    {"trans": [1015.7224, 32.3804, -263.1775], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, 0.0], "bsphere": [1015.7224, 32.3804, -263.1775, 6.9282], "lump": {"name": "ruins-part-35", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-36 (ruins): group-ruins-streetlight-glows
+    {"trans": [1014.767, 15.7619, -269.1082], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [1014.767, 15.7619, -269.1082, 6.9282], "lump": {"name": "ruins-part-36", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-37 (ruins): group-ruins-streetlight-glows
+    {"trans": [998.2129, 18.1685, -271.253], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [998.2129, 18.1685, -271.253, 6.9282], "lump": {"name": "ruins-part-37", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-84 (ruins): group-ruins-streetlight-glows
+    {"trans": [1046.885, 36.8734, -255.1207], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [1046.885, 36.8734, -255.1207, 6.9282], "lump": {"name": "ruins-part-84", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-90 (ruins): group-ruins-streetlight-glows
+    {"trans": [1052.5942, 46.156, -236.6028], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.2676, 0.0, 0.9635], "bsphere": [1052.5942, 46.156, -236.6028, 6.9282], "lump": {"name": "ruins-part-90", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-50 (ruins): group-ruins-streetlight-glows
+    {"trans": [1054.3284, 8.7264, -442.5452], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9239, 0.0, 0.3827], "bsphere": [1054.3284, 8.7264, -442.5452, 6.9282], "lump": {"name": "ruins-part-50", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-51 (ruins): group-ruins-streetlight-glows
+    {"trans": [1066.8691, 8.7264, -417.0031], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.5279, 0.0, 0.8493], "bsphere": [1066.8691, 8.7264, -417.0031, 6.9282], "lump": {"name": "ruins-part-51", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-60 (ruins): group-ruins-streetlight-glows
+    {"trans": [1065.1287, 32.1077, -402.2128], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.3827, 0.0, 0.9239], "bsphere": [1065.1287, 32.1077, -402.2128, 6.9282], "lump": {"name": "ruins-part-60", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-61 (ruins): group-ruins-streetlight-glows
+    {"trans": [1044.2341, 32.1077, -422.5248], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.3827, 0.0, 0.9239], "bsphere": [1044.2341, 32.1077, -422.5248, 6.9282], "lump": {"name": "ruins-part-61", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-46 (ruins): group-ruins-streetlight-glows
+    {"trans": [1081.601, 34.8697, -389.083], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9239, 0.0, 0.3827], "bsphere": [1081.601, 34.8697, -389.083, 6.9282], "lump": {"name": "ruins-part-46", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-34 (ruins): group-ruins-streetlight-glows
+    {"trans": [927.2239, 22.0657, -245.3288], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [927.2239, 22.0657, -245.3288, 6.9282], "lump": {"name": "ruins-part-34", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-28 (ruins): group-ruins-streetlight-glows
+    {"trans": [894.5029, 7.5679, -413.0838], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9239, 0.0, -0.3827], "bsphere": [894.5029, 7.5679, -413.0838, 6.9282], "lump": {"name": "ruins-part-28", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-32 (ruins): group-ruins-streetlight-glows
+    {"trans": [910.3604, 22.0657, -233.5817], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [910.3604, 22.0657, -233.5817, 6.9282], "lump": {"name": "ruins-part-32", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-27 (ruins): group-ruins-streetlight-glows
+    {"trans": [883.16, 7.5679, -401.6017], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9239, 0.0, -0.3827], "bsphere": [883.16, 7.5679, -401.6017, 6.9282], "lump": {"name": "ruins-part-27", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-31 (ruins): group-ruins-streetlight-glows
+    {"trans": [884.1424, 7.9846, -426.8364], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9239, 0.0, 0.3827], "bsphere": [884.1424, 7.9846, -426.8364, 6.9282], "lump": {"name": "ruins-part-31", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-33 (ruins): group-ruins-streetlight-glows
+    {"trans": [893.085, 22.0657, -233.5817], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [893.085, 22.0657, -233.5817, 6.9282], "lump": {"name": "ruins-part-33", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-24 (ruins): group-ruins-streetlight-glows
+    {"trans": [861.2624, 14.1135, -424.4715], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9239, 0.0, 0.3827], "bsphere": [861.2624, 14.1135, -424.4715, 6.9282], "lump": {"name": "ruins-part-24", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-66 (ruins): group-ruins-streetlight-glows
+    {"trans": [1122.0955, 30.7781, -468.0381], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9239, 0.0, 0.3827], "bsphere": [1122.0955, 30.7781, -468.0381, 6.9282], "lump": {"name": "ruins-part-66", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-80 (ruins): group-ruins-streetlight-glows
+    {"trans": [1094.3417, 10.8324, -463.8276], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [1094.3417, 10.8324, -463.8276, 6.9282], "lump": {"name": "ruins-part-80", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-63 (ruins): group-ruins-streetlight-glows
+    {"trans": [1106.3256, 32.1077, -444.6123], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9239, 0.0, 0.3827], "bsphere": [1106.3256, 32.1077, -444.6123, 6.9282], "lump": {"name": "ruins-part-63", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-67 (ruins): group-ruins-streetlight-glows
+    {"trans": [1126.66, 28.1651, -444.1248], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9239, 0.0, -0.3827], "bsphere": [1126.66, 28.1651, -444.1248, 6.9282], "lump": {"name": "ruins-part-67", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-68 (ruins): group-ruins-streetlight-glows
+    {"trans": [1147.7228, 28.1651, -442.5804], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9275, 0.0, 0.3739], "bsphere": [1147.7228, 28.1651, -442.5804, 6.9282], "lump": {"name": "ruins-part-68", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-73 (ruins): group-ruins-streetlight-glows
+    {"trans": [1114.54, 8.4928, -443.4001], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9239, 0.0, 0.3827], "bsphere": [1114.54, 8.4928, -443.4001, 6.9282], "lump": {"name": "ruins-part-73", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-76 (ruins): group-ruins-streetlight-glows
+    {"trans": [1107.2693, 10.8324, -444.9589], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [1107.2693, 10.8324, -444.9589, 6.9282], "lump": {"name": "ruins-part-76", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-78 (ruins): group-ruins-streetlight-glows
+    {"trans": [1074.5552, 10.8324, -450.5976], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [1074.5552, 10.8324, -450.5976, 6.9282], "lump": {"name": "ruins-part-78", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-62 (ruins): group-ruins-streetlight-glows
+    {"trans": [1086.5333, 32.1077, -465.2527], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9239, 0.0, 0.3827], "bsphere": [1086.5333, 32.1077, -465.2527, 6.9282], "lump": {"name": "ruins-part-62", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-75 (ruins): group-ruins-streetlight-glows
+    {"trans": [1079.7705, 8.4928, -472.6169], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9239, 0.0, 0.3827], "bsphere": [1079.7705, 8.4928, -472.6169, 6.9282], "lump": {"name": "ruins-part-75", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-38 (ruins): group-ruins-streetlight-glows
+    {"trans": [1033.5792, 47.6335, -464.056], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9239, 0.0, 0.3827], "bsphere": [1033.5792, 47.6335, -464.056, 6.9282], "lump": {"name": "ruins-part-38", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-39 (ruins): group-ruins-streetlight-glows
+    {"trans": [1024.0612, 49.2875, -452.7807], "etype": "part-spawner", "game_task": 0, "quat": [0.0893, 0.9196, 0.037, 0.3809], "bsphere": [1024.0612, 49.2875, -452.7807, 6.9282], "lump": {"name": "ruins-part-39", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-43 (ruins): group-ruins-streetlight-glows
+    {"trans": [1005.2292, 10.0699, -462.7331], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9239, 0.0, -0.3827], "bsphere": [1005.2292, 10.0699, -462.7331, 6.9282], "lump": {"name": "ruins-part-43", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-49 (ruins): group-ruins-streetlight-glows
+    {"trans": [1043.1339, 8.7264, -454.1291], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9239, 0.0, 0.3827], "bsphere": [1043.1339, 8.7264, -454.1291, 6.9282], "lump": {"name": "ruins-part-49", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-59 (ruins): group-ruins-streetlight-glows
+    {"trans": [1036.7982, 35.0764, -444.0762], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.3827, 0.0, 0.9239], "bsphere": [1036.7982, 35.0764, -444.0762, 6.9282], "lump": {"name": "ruins-part-59", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-64 (ruins): group-ruins-streetlight-glows
+    {"trans": [1062.0825, 32.1077, -446.7924], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9239, 0.0, -0.3827], "bsphere": [1062.0825, 32.1077, -446.7924, 6.9282], "lump": {"name": "ruins-part-64", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-40 (ruins): group-ruins-streetlight-glows
+    {"trans": [1003.3718, 46.5032, -501.8551], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9239, 0.0, -0.3827], "bsphere": [1003.3718, 46.5032, -501.8551, 6.9282], "lump": {"name": "ruins-part-40", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-79 (ruins): group-ruins-streetlight-glows
+    {"trans": [1055.8225, 10.8324, -470.7353], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [1055.8225, 10.8324, -470.7353, 6.9282], "lump": {"name": "ruins-part-79", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-58 (ruins): group-ruins-streetlight-glows
+    {"trans": [1057.9172, 35.0764, -465.8252], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.3827, 0.0, 0.9239], "bsphere": [1057.9172, 35.0764, -465.8252, 6.9282], "lump": {"name": "ruins-part-58", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-56 (ruins): group-ruins-streetlight-glows
+    {"trans": [992.782, 46.5032, -491.2756], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9239, 0.0, -0.3827], "bsphere": [992.782, 46.5032, -491.2756, 6.9282], "lump": {"name": "ruins-part-56", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-57 (ruins): group-ruins-streetlight-glows
+    {"trans": [991.9701, 46.5032, -472.5872], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.3827, 0.0, 0.9239], "bsphere": [991.9701, 46.5032, -472.5872, 6.9282], "lump": {"name": "ruins-part-57", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-42 (ruins): group-ruins-streetlight-glows
+    {"trans": [995.6869, 12.9881, -474.9111], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9239, 0.0, -0.3827], "bsphere": [995.6869, 12.9881, -474.9111, 6.9282], "lump": {"name": "ruins-part-42", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-48 (ruins): group-ruins-streetlight-glows
+    {"trans": [998.8788, 11.4562, -456.7857], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.3827, 0.0, 0.9239], "bsphere": [998.8788, 11.4562, -456.7857, 6.9282], "lump": {"name": "ruins-part-48", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-41 (ruins): group-ruins-streetlight-glows
+    {"trans": [975.3298, 50.5639, -486.0979], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.3827, 0.0, 0.9239], "bsphere": [975.3298, 50.5639, -486.0979, 6.9282], "lump": {"name": "ruins-part-41", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-47 (ruins): group-ruins-streetlight-glows
+    {"trans": [987.5247, 11.6116, -467.5405], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.3827, 0.0, 0.9239], "bsphere": [987.5247, 11.6116, -467.5405, 6.9282], "lump": {"name": "ruins-part-47", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-9 (ruins): group-ruins-streetlight-glows
+    {"trans": [957.0815, 47.4925, -520.3974], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.3827, 0.0, 0.9239], "bsphere": [957.0815, 47.4925, -520.3974, 6.9282], "lump": {"name": "ruins-part-9", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-10 (ruins): group-ruins-streetlight-glows
+    {"trans": [956.4376, 11.7255, -520.673], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.3827, 0.0, 0.9239], "bsphere": [956.4376, 11.7255, -520.673, 6.9282], "lump": {"name": "ruins-part-10", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-13 (ruins): group-ruins-streetlight-glows
+    {"trans": [964.5193, 49.8991, -528.2037], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9239, 0.0, -0.3827], "bsphere": [964.5193, 49.8991, -528.2037, 6.9282], "lump": {"name": "ruins-part-13", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-11 (ruins): group-ruins-streetlight-glows
+    {"trans": [977.9542, 12.1276, -498.8544], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.3827, 0.0, 0.9239], "bsphere": [977.9542, 12.1276, -498.8544, 6.9282], "lump": {"name": "ruins-part-11", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-12 (ruins): group-ruins-streetlight-glows
+    {"trans": [977.3103, 47.3052, -499.13], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.3827, 0.0, 0.9239], "bsphere": [977.3103, 47.3052, -499.13, 6.9282], "lump": {"name": "ruins-part-12", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-14 (ruins): group-ruins-streetlight-glows
+    {"trans": [940.7036, 47.0905, -539.4893], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.3827, 0.0, 0.9239], "bsphere": [940.7036, 47.0905, -539.4893, 6.9282], "lump": {"name": "ruins-part-14", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-4 (ruins): group-ruins-streetlight-glows
+    {"trans": [898.9453, 33.2042, -540.4399], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9239, 0.0, 0.3827], "bsphere": [898.9453, 33.2042, -540.4399, 6.9282], "lump": {"name": "ruins-part-4", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-7 (ruins): group-ruins-streetlight-glows
+    {"trans": [899.8984, 27.1561, -510.8216], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9239, 0.0, 0.3827], "bsphere": [899.8984, 27.1561, -510.8216, 6.9282], "lump": {"name": "ruins-part-7", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-25 (ruins): group-ruins-streetlight-glows
+    {"trans": [917.8088, 49.8058, -501.008], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9239, 0.0, 0.3827], "bsphere": [917.8088, 49.8058, -501.008, 6.9282], "lump": {"name": "ruins-part-25", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-26 (ruins): group-ruins-streetlight-glows
+    {"trans": [916.1083, 16.9901, -501.9722], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9239, 0.0, 0.3827], "bsphere": [916.1083, 16.9901, -501.9722, 6.9282], "lump": {"name": "ruins-part-26", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-3 (ruins): group-ruins-streetlight-glows
+    {"trans": [886.5996, 19.6584, -531.5782], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9239, 0.0, 0.3827], "bsphere": [886.5996, 19.6584, -531.5782, 6.9282], "lump": {"name": "ruins-part-3", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-30 (ruins): group-ruins-streetlight-glows
+    {"trans": [883.0825, 7.5679, -451.722], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9239, 0.0, -0.3827], "bsphere": [883.0825, 7.5679, -451.722, 6.9282], "lump": {"name": "ruins-part-30", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-5 (ruins): group-ruins-streetlight-glows
+    {"trans": [891.5848, 35.6108, -565.2612], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.3827, 0.0, 0.9239], "bsphere": [891.5848, 35.6108, -565.2612, 6.9282], "lump": {"name": "ruins-part-5", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-8 (ruins): group-ruins-streetlight-glows
+    {"trans": [898.2753, 45.9281, -502.4487], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.3827, 0.0, 0.9239], "bsphere": [898.2753, 45.9281, -502.4487, 6.9282], "lump": {"name": "ruins-part-8", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-29 (ruins): group-ruins-streetlight-glows
+    {"trans": [893.6635, 7.5679, -462.3], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9239, 0.0, -0.3827], "bsphere": [893.6635, 7.5679, -462.3, 6.9282], "lump": {"name": "ruins-part-29", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-15 (ruins): group-ruins-streetlight-glows
+    {"trans": [861.5378, 11.8374, -477.9641], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, -0.0], "bsphere": [861.5378, 11.8374, -477.9641, 6.9282], "lump": {"name": "ruins-part-15", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-20 (ruins): group-ruins-streetlight-glows
+    {"trans": [848.7119, 16.4816, -467.2848], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [848.7119, 16.4816, -467.2848, 6.9282], "lump": {"name": "ruins-part-20", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-6 (ruins): group-ruins-streetlight-glows
+    {"trans": [864.5129, 25.6358, -525.8572], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9239, 0.0, -0.3827], "bsphere": [864.5129, 25.6358, -525.8572, 6.9282], "lump": {"name": "ruins-part-6", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-19 (ruins): group-ruins-streetlight-glows
+    {"trans": [849.1448, 18.5608, -516.4796], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [849.1448, 18.5608, -516.4796, 6.9282], "lump": {"name": "ruins-part-19", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-2 (ruins): group-ruins-streetlight-glows
+    {"trans": [875.2048, 19.6584, -543.1315], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9239, 0.0, 0.3827], "bsphere": [875.2048, 19.6584, -543.1315, 6.9282], "lump": {"name": "ruins-part-2", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-16 (ruins): group-ruins-streetlight-glows
+    {"trans": [863.7556, 14.646, -496.1555], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, -0.0], "bsphere": [863.7556, 14.646, -496.1555, 6.9282], "lump": {"name": "ruins-part-16", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-17 (ruins): group-ruins-streetlight-glows
+    {"trans": [848.8531, 18.9708, -492.1452], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [848.8531, 18.9708, -492.1452, 6.9282], "lump": {"name": "ruins-part-17", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-18 (ruins): group-ruins-streetlight-glows
+    {"trans": [837.7292, 18.8489, -516.6127], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [837.7292, 18.8489, -516.6127, 6.9282], "lump": {"name": "ruins-part-18", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-21 (ruins): group-ruins-streetlight-glows
+    {"trans": [837.1771, 18.8489, -492.1014], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [837.1771, 18.8489, -492.1014, 6.9282], "lump": {"name": "ruins-part-21", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-22 (ruins): group-ruins-streetlight-glows
+    {"trans": [837.2997, 20.1706, -453.919], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.5385, 0.0, 0.8426], "bsphere": [837.2997, 20.1706, -453.919, 6.9282], "lump": {"name": "ruins-part-22", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}},
+    // Jak 2's ruins-part-23 (ruins): group-ruins-streetlight-glows
+    {"trans": [848.1998, 20.1706, -443.7725], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.3827, 0.0, 0.9239], "bsphere": [848.1998, 20.1706, -443.7725, 6.9282], "lump": {"name": "ruins-part-23", "art-name": "group-hj2-ruins-streetlight-glows", "vis-dist": ["float", 819200.0]}}
   ]
 }

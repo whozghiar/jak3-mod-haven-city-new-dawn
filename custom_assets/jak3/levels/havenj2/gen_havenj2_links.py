@@ -83,27 +83,35 @@ PLACES = [
          jak2="oracle", what="the Oracle", sky=False),
     dict(name="hj2-garage", nick="hjk", iso="HJ2GARAG", index=0x12F, base_id=22000,
          jak2="garage", what="Keira's garage, behind the stadium grounds", sky=False),
+    # Dead Town: its sea is Jak 2's own ocean map (hj2-ruins-ocean.gc), its platforms Jak 2's
+    # (hj2-ruins-obs.gc, the floating ones Jak 3's rigid-body-platform, linked here too)
     dict(name="hj2-ruins", nick="hjr", iso="HJ2RUINS", index=0x131, base_id=22200,
-         jak2="ruins", what="Dead Town, through the slums airlock", sky=True),
+         jak2="ruins", what="Dead Town, through the slums airlock", sky=True,
+         ocean="*ocean-map-hj2-ruins*",
+         code=["rigid-body-plat.o", "hj2-ruins-ocean.o", "hj2-ruins-obs.o"]),
+    # the Sage's hut, at the far end of Dead Town: Jak 2 loads it with ruins, without the city
+    dict(name="hj2-sage", nick="hjw", iso="HJ2SAGE", index=0x141, base_id=23700,
+         jak2="sagehut", what="the Sage's hut, at the far end of Dead Town", sky=True),
     dict(name="hj2-consb", nick="hjb", iso="HJ2CONSB", index=0x133, base_id=22300,
          jak2="consiteb", what="the tunnel to the construction site, from the industrial section",
          sky=True),
     dict(name="hj2-cons", nick="hjc", iso="HJ2CONS", index=0x134, base_id=22400,
-         jak2="consite", what="the construction site", sky=True),
+         jak2="consite", what="the construction site", sky=True, code=["hj2-cons-obs.o"]),
     dict(name="hj2-pshaft", nick="hjs", iso="HJ2PSHFT", index=0x135, base_id=22500,
          jak2="palshaft", what="the palace pillars: the palace lobby and the cable pillar",
          sky=True),
     dict(name="hj2-proof", nick="hjp", iso="HJ2PROOF", index=0x136, base_id=22600,
-         jak2="palroof", memory="small-center", what="the palace roof", sky=True),
+         jak2="palroof", memory="small-center", what="the palace roof", sky=True, ocean=True),
     # palcab's backdrop (the city seen from above) spreads over kilometers, collision included: keep
     # the collision of the palace top, the pillar tops and the cable between them, else the collide
     # hash grid alone makes a 67MB level
     dict(name="hj2-pcab", nick="hjq", iso="HJ2PCAB", index=0x137, base_id=22700,
-         jak2="palcab", what="the palace cable, between the pillar tops", sky=True,
+         jak2="palcab", what="the palace cable, between the pillar tops", sky=True, ocean=True,
          collision_bounds=[0, 200, -250, 400, 620, 800]),
     # the pumping station: the slums airlock opens on atollext (the way to it, loaded next to the
     # city), whose far airlock leads to atoll (the station itself, loaded without the city).
-    #   ocean: Jak 2's :ocean (the city's ocean map, havenj2-ocean.gc in GAME)
+    #   ocean: Jak 2's :ocean: True for the city's ocean map (havenj2-ocean.gc in GAME), else the
+    #          name of the level's own (written by gen_havenj2_ocean.py, in the level's code)
     dict(name="hj2-atollx", nick="hja", iso="HJ2ATOLX", index=0x138, base_id=22800,
          jak2="atollext", what="the way to the pumping station, from the slums airlock", sky=True),
     # like palcab, the collision of their backdrops spreads over kilometers: keep the playable area
@@ -115,7 +123,8 @@ PLACES = [
     # Jak 2's trans-plat rides down to Haven Forest (forest, then forestb at its far end).
     dict(name="hj2-mount", nick="hjm", iso="HJ2MOUNT", index=0x13A, base_id=23000,
          jak2="mountain", what="the mountain, from the gardens airlock to the way to Haven Forest",
-         sky=True, code=["hj2-mount-obs.o"], collision_bounds=[-1050, -60, -200, -330, 340, 620]),
+         sky=True, ocean="*ocean-map-hj2-mount*", code=["hj2-mount-ocean.o", "hj2-mount-obs.o"],
+         collision_bounds=[-1050, -60, -200, -330, 340, 620]),
     dict(name="hj2-mtnx", nick="hjx", iso="HJ2MTNX", index=0x13B, base_id=23100,
          jak2="mtnext", what="the outside of the mountain temple, seen from the mountain top",
          sky=True),
@@ -133,12 +142,24 @@ PLACES = [
          code=["rigid-body-plat.o", "hj2-dig-obs.o"]),
     dict(name="hj2-digb", nick="hju", iso="HJ2DIGB", index=0x140, base_id=23600,
          jak2="dig3b", what="the far end of the dig", sky=False),
+    # the fortress: its gate in the slums opens on forresca (the way of Jak 2's rescue of his
+    # friends, loaded next to the city), whose far end loads forrescb without the city
+    dict(name="hj2-forta", nick="hji", iso="HJ2FORRA", index=0x142, base_id=23800,
+         jak2="forresca", what="the fortress, behind its gate in the slums", sky=False),
+    dict(name="hj2-fortb", nick="hjj", iso="HJ2FORRB", index=0x143, base_id=23900,
+         jak2="forrescb", what="the far end of the fortress", sky=False),
+    # the stadium's race track (the class 1 race's, the one Jak 2 loads at the end of the game),
+    # loaded with the city when Jak comes near the stadium
+    dict(name="hj2-stadd", nick="hjz", iso="HJ2STADD", index=0x144, base_id=24000,
+         jak2="stadiumd", what="the stadium's race track, behind the stadium grounds", sky=True),
     # Not ported: the inside of the palace (palent, throne), only reached in Jak 2's missions.
 ]
 PLACE_BY_NAME = {p["name"]: p for p in PLACES}
 LEVEL_MAP = {lev: CITY for lev in CITY_LEVELS}
 LEVEL_MAP.update({p["jak2"]: p["name"] for p in PLACES})
 MEMORY = {CITY: "large"}
+# part-engine-max of the places with particles (write_place): their static part spawners
+PART_ENGINE_MAX = {}
 MEMORY.update({p["name"]: p.get("memory", "small-edge") for p in PLACES})
 # Jak 2 levels that are only a backdrop: a door waiting for them to be loaded doesn't need them
 BACKDROP_LEVELS = {"palout"}
@@ -170,8 +191,7 @@ DOORS = [
     # the Dead Town airlock: city door (outer + inner halves), then the Dead Town door
     ("ctyslumb", "com-airlock-outer-9"), ("ctyslumb", "com-airlock-inner-11"),
     ("ctyslumb", "com-airlock-inner-12"), ("ruins", "com-airlock-outer-2"),
-    # Keira's garage, in the stadium grounds
-    ("stadium", "gar-door-3"), ("stadium", "gar-door-4"),
+    # Keira's garage: no doors, its doorways are open (region 319 loads and shows it)
     # the palace: the gate to the lobby of the palace pillar, the airlock to the cable pillar, and
     # at the top of the pillars the doors to the roof and the cable
     ("ctypal", "palace-door-1"), ("palshaft", "com-airlock-inner-26"),
@@ -188,6 +208,10 @@ DOORS = [
     ("ctyfarma", "com-airlock-inner-38"), ("mountain", "com-airlock-outer-4"),
     # the castle pad's elevator down to the dig
     ("caspad", "cpad-elevator-1"),
+    # the fortress: its gate in the slums, the same gate from inside, and the gates between its two
+    # parts
+    ("ctysluma", "fort-entry-gate-17"), ("forresca", "fort-entry-gate-7"),
+    ("forrescb", "fort-entry-gate-8"), ("forrescb", "fort-entry-gate-9"),
 ]
 CLOSED = [
     # the castle (not ported), from the castle pad
@@ -201,9 +225,30 @@ CLOSED = [
     # own here). Not placed at all, like every actor Jak 2 never spawns (jak2_actors.py): the lobby
     # airlock com-airlock-outer-20 (Jak 2's doorway there is open) and the Hip Hog's hip-door-a-7.
     ("palshaft", "com-airlock-inner-36"), ("palshaft", "com-airlock-inner-37"),
+    # the fortress's other gates: to its exit (forexitb) and to the prison, not ported
+    ("ctyslumb", "fort-entry-gate-19"), ("forrescb", "fort-entry-gate-11"),
 ]
 # script changes, by (Jak 2 level, name): script -> replacement (None removes it)
-SCRIPT_OVERRIDES = {}
+SCRIPT_OVERRIDES = {
+    # The outer doors of the roof and of the cable hide the pillar (want-display hj2-pshaft #f) when
+    # they close. A door is born closed when its level loads, and runs that script if Jak is in
+    # front of it, however far: riding the cable pillar's elevator up loads the roof, whose door
+    # (570m away) then turned off hj2-pshaft, the elevator Jak stood on and the shaft around him.
+    # The pillar stays shown (it's loaded with the roof and the cable anyway).
+    ("palroof", "com-airlock-outer-18"): {"on-deactivate": None},
+    ("palcab", "com-airlock-outer-17"): {"on-deactivate": None},
+}
+# a door's pair (next-actor), when Jak 2's isn't placed: by (Jak 2 level, name)
+NEXT_ACTOR_OVERRIDES = {
+    # Jak 2 pairs the slums' fortress gate with the dump's (fordumpa, not ported); the rescue's gate
+    # (forresca) is its other side at the end of the game
+    ("ctysluma", "fort-entry-gate-17"): "fort-entry-gate-7",
+}
+# region script changes, by Jak 2 region id: script -> replacement (translated)
+REGION_SCRIPT_OVERRIDES = {
+    # Keira's garage has no doors (their on-enter showed it): the region that loads it shows it
+    319: {"on-enter": "(begin (want-load 'havenj2 'hj2-garage) (want-display 'hj2-garage 'display))"},
+}
 
 # Jak 3 has no class for some of Jak 2's doors: they get the closest Jak 3 door (every com-airlock
 # child runs the same scripts). All these classes are in Jak 3's GAME (airlock.gc), except the ones
@@ -225,6 +270,8 @@ JAK3_ETYPE = {
     "cas-front-door": "com-airlock-outer",
     # Jak 2's own gate, rebuilt from its model (see write_palace_door)
     "palace-door": "hj2-palace-door",
+    # Jak 2's fortress gate, rebuilt from its model (ACTOR_MODELS), class in GAME
+    "fort-entry-gate": "hj2-fort-gate",
     # Jak 3 has no com-elevator: hj2-elevator is Jak 3's elevator with Jak 2's model (ACTOR_MODELS)
     "com-elevator": "hj2-elevator",
     "cpad-elevator": "hj2-cpad-elevator",
@@ -232,6 +279,7 @@ JAK3_ETYPE = {
 # Jak 2's elevators among the DOORS (see make_elevator)
 ELEVATOR_ETYPES = {"com-elevator", "cpad-elevator"}
 # models of havenj2's custom actors, built by build-actor (goal_src/jak3/game.gp), added to its fr3
+# (the other ones, like the fortress gate's, come with their actors: ACTOR_MODELS)
 CITY_CUSTOM_MODELS = ["hj2-palace-door"]
 
 # Haven City's traffic (goal_src/jak3/levels/havenj2/havenj2-traffic.gc): Jak 3's traffic code, the
@@ -265,7 +313,8 @@ ART_GROUP = {
     "com-airlock-inner": "com-airlock-inner-ag",
     "warp-gate": "warp-gate-ag",
     "hj2-air-train": "air-train-ag",
-    "scene-stage": None,
+    "hj2-time-gate": "warp-gate-ag",
+    "swingpole": None,
     # built by build-actor (goal_src/jak3/game.gp), not extracted from Jak 3
     "hj2-palace-door": None,
     "hj2-elevator": None,
@@ -273,6 +322,7 @@ ART_GROUP = {
     "hj2-trans-plat": None,
     "hj2-iris-door": None,
     "hj2-mtn-elevator": None,
+    "hj2-fort-gate": None,
 }
 # Jak 2's com-elevator: a 12 x 13m platform, floor at its origin's height, from 0.85m behind its
 # origin to 12m in front (skel bounds: 5.6m in front). Its collision: the floor, and a fence along
@@ -312,25 +362,35 @@ PLACE_ETYPE = {"trans-plat": "hj2-trans-plat", "mtn-iris-door": "hj2-iris-door",
                "mtn-plat-elevator": "hj2-mtn-elevator"}
 
 # Jak 2's air trains between the port and the castle pad, as hj2-air-train (Jak 3's air train, in
-# GAME: jak2-haven-city-world.gc). Riding one plays Jak 3's own air train cutscenes (Jak 2's aren't
-# in Jak 3), their copies in jak2-haven-city-world.gc: Jak 3's air train stands at Jak 2's port, and
-# its desert one 28m high like the castle pad's, so Jak 3's scenes of those two places play around
-# ours. Its on-notice is Jak 3's: '("continue" (scene-play '(scenes)) #f (want-anim first scene)).
-# Jak 2 hides the port's once the game is over: here both always run. By Jak 2 level and name:
-# (Jak 2 continue, our scenes, the first scene's animation, the place named by the prompt).
+# GAME: jak2-haven-city-world.gc). Riding one is a teleport, a short fade to the continue next to the
+# other air train. Its on-notice is Jak 3's: '("continue" #f #f). Jak 2 hides the port's once the game
+# is over: here both always run. By Jak 2 level and name: (Jak 2 continue, the place named by the
+# prompt).
 AIR_TRAINS = [
-    # to the dig: Jak boards at the port, then gets off on the castle pad
-    ("ctyport", "air-train-1", "caspad-warp", ["hj2-air-train-port-out", "hj2-air-train-caspad-in"],
-     "city-air-train-in-desert", "the Dig Site"),
+    # to the dig: the castle pad above it
+    ("ctyport", "air-train-1", "caspad-warp", "the Dig Site"),
     # back to the port
-    ("caspad", "air-train-3", "ctyport-warp", ["hj2-air-train-caspad-out", "hj2-air-train-port-in"],
-     "desert-air-train-in", "Haven City"),
+    ("caspad", "air-train-3", "ctyport-warp", "Haven City"),
 ]
-# the scenes' actors (Jak, Daxter, the particle helper) are Jak 3's cutscene models, in the level
-# each scene plays in; the port's scenes take place at Jak 3's scene-stage-87, copied into havenj2
-AIR_TRAIN_SCENE_ART = ["jakc-highres-ag", "daxter-highres-ag", "particleman-ag"]
-JAK3_ENTITIES = "decompiler_out/jak3/entities"
-AIR_TRAIN_SCENE_STAGES = [("ctyport", "scene-stage-87")]
+
+# The time gates between the worlds (hj2-time-gate, Jak 3's warp gate, in GAME): the one in Jak 2's
+# hideout, an actor of hj2-hide, to the Freedom HQ (its arrival point, hj2-freehq-gate, is added to
+# Jak 3's freehq by GAME); the Freedom HQ's is spawned by GAME (no entity) and goes to the hideout's
+# arrival point. By Jak 2 level: (our actor name, position (m), facing (unit xz), destination, the
+# world named by the prompt). The hideout's stands in the free corner of its main room, facing the
+# room's middle.
+TIME_GATES = [
+    ("hideout", "hj2-time-gate-1", (1207.0, 3.1, 53.0), (-0.722, 0.692), "hj2-freehq-gate", "Jak 3"),
+]
+# The arrival points of the time gates: in front of the gate, facing away from it, the camera
+# behind. By our continue name: (Jak 2 level (None: a Jak 3 level), gate position, facing, how far
+# in front (m), Jak 3 level list). Jak jumps out of the hideout's gate (warp-gate flag); the Freedom
+# HQ's has no entity for Jak 3 to find, Jak just stands there.
+GATE_CONTINUES = {
+    "hj2-hideout-gate": ("hideout", (1207.0, 3.1, 53.0), (-0.722, 0.692), 6.0, None),
+    "hj2-freehq-gate": (None, (710.0, 80.338, -565.0), (-0.908, 0.418), 6.0,
+                        [("freehq", "'display"), ("ctyslumc", "#f"), ("freecast", "'special")]),
+}
 
 # Models rebuilt from Jak 2's, by our etype: (model, Jak 2's rip, the primitives kept, collision:
 # None for a box around the model, else its meshes of boxes). Written by
@@ -393,6 +453,43 @@ ACTOR_MODELS = {
     "hj2-dig-totem": ("hj2-dig-totem", f"{RIPS}/dig3a/dig-totem-lod0.glb", None, {"hull": None}),
     "hj2-dig-sphere-door": ("hj2-dig-sphere-door",
                             f"{RIPS}/dig3a/dig-spikey-sphere-door-lod0.glb", None, None),
+    # the fortress gate: its two leaves, each solid, bound to its joint
+    "hj2-fort-gate": ("hj2-fort-gate", f"{RIPS}/ctysluma/fort-entry-gate-lod0.glb", None,
+                      [{"hull": None, "joint": "frontdoorL"}, {"hull": None, "joint": "frontdoorR"}]),
+    # Dead Town (hj2-ruins-obs.gc)
+    "hj2-ruins-drop-plat-a": ("hj2-ruins-drop-plat-a", f"{RIPS}/ruins/ruins-drop-plat-a-lod0.glb", None,
+                              {"hull": None}),
+    "hj2-ruins-drop-plat-b": ("hj2-ruins-drop-plat-b", f"{RIPS}/ruins/ruins-drop-plat-b-lod0.glb", None,
+                              {"hull": None}),
+    "hj2-ruins-drop-plat-c": ("hj2-ruins-drop-plat-c", f"{RIPS}/ruins/ruins-drop-plat-c-lod0.glb", None,
+                              {"hull": None}),
+    "hj2-ruins-bridge": ("hj2-ruins-bridge", f"{RIPS}/ruins/ruins-bridge-1-lod0.glb", None,
+                         {"hull": None}),
+    "hj2-ruins-sinking-plat": ("hj2-ruins-sinking-plat", f"{RIPS}/ruins/sinking-plat-lod0.glb", None,
+                               {"hull": None}),
+    "hj2-ruins-flag": ("hj2-ruins-flag", f"{RIPS}/ruins/flag-lod0.glb", None, None),
+    # the construction site (hj2-cons-obs.gc)
+    # the silo doors: each leaf bound to its joint, like Jak 2's collide meshes
+    "hj2-cons-silo-doors": ("hj2-cons-silo-doors", f"{RIPS}/consite/consite-silo-doors-lod0.glb",
+                            None, [{"hull": None, "joint": "top_left"},
+                                   {"hull": None, "joint": "top_right"}]),
+    # the bomb elevator: a 20m platform on a screw 64m long, solid at the platform only (Jak 2's
+    # collide mesh)
+    "hj2-cons-bomb-elevator": ("hj2-cons-bomb-elevator",
+                               f"{RIPS}/consite/consite-bomb-elevator-lod0.glb", None,
+                               {"hull": -5.0, "y_max": 4.5}),
+}
+# models with more than their first animation: by model, [(rip, animation, our name)]
+MODEL_ANIMS = {
+    # the beams slide when Jak comes near (hj2-ruins-obs.gc)
+    "hj2-ruins-beam": [(f"{RIPS}/ruins/beam-lod0.glb", "beam-idle", "hj2-ruins-beam-idle"),
+                       (f"{RIPS}/ruins/beam-lod0.glb", "beam-slide-center", "hj2-ruins-beam-slide")],
+}
+ACTOR_MODELS["hj2-ruins-beam"] = ("hj2-ruins-beam", f"{RIPS}/ruins/beam-lod0.glb", None, None)
+# the bomb elevator's hinges, a model of their own drawn with it (no actor)
+EXTRA_MODELS = {
+    "hj2-cons-bomb-elevator": [("hj2-cons-bomb-hinges",
+                                f"{RIPS}/consite/consite-bomb-elevator-hinges-lod0.glb", None, None)],
 }
 # the balloon lurker's trapeze (spawned by hj2-dig-balloon-lurker, no actor of its own): Jak 2 keeps
 # its swings (Jak off and on the bar) in the balloon lurker's art group, (model, rip, animations)
@@ -408,7 +505,7 @@ DIG_TRAPEZE_MODEL = ("hj2-dig-trapeze", f"{RIPS}/dig3a/dig-balloon-lurker-trapez
 # classes are in goal_src/jak3/levels/havenj2/hj2-atoll-obs.gc, hj2-mount-obs.gc and
 # hj2-dig-obs.gc. Not ported from the dig: its enemies, the spiky spheres its doors roll (the doors
 # stay, still) and the stomp blocks.
-PORTED_LEVELS = {"atoll", "mountain", "dig3a"}
+PORTED_LEVELS = {"atoll", "mountain", "dig3a", "ruins", "consite"}
 PORTED_ACTORS = {
     "piston": ("hj2-piston", {"move-range": "float", "sync": "float"}),
     "turbine": ("hj2-turbine", {"rotspeed": "float", "rise-height": "float"}),
@@ -438,11 +535,22 @@ PORTED_ACTORS = {
     "dig-button": ("hj2-dig-button", {}),
     "dig-totem": ("hj2-dig-totem", {}),
     "dig-spikey-sphere-door": ("hj2-dig-sphere-door", {}),
+    # Dead Town: the swinging bars are Jak 3's swingpole (the bar is background), the slabs that
+    # give way, the floating platforms, the beams and the flag of the tower
+    "swingpole": ("swingpole", {}),
+    "ruins-drop-plat": (None, {}),
+    "ruins-bridge": ("hj2-ruins-bridge", {}),
+    "sinking-plat": ("hj2-ruins-sinking-plat", {}),
+    "beam": ("hj2-ruins-beam", {}),
+    "flag": ("hj2-ruins-flag", {}),
+    # the construction site's silo doors and bomb elevator
+    "consite-silo-doors": ("hj2-cons-silo-doors", {}),
+    "consite-bomb-elevator": ("hj2-cons-bomb-elevator", {}),
 }
 
 # Jak 2's crates of the places, as Jak 3's (a wood crate, its art in GAME), with their pickups. Jak 3
 # added eco-pill-light (8) and lightjak (14) to pickup-type, and three guns of each color.
-CRATE_LEVELS = {"atoll", "mountain", "forest", "dig3a"}
+CRATE_LEVELS = {"atoll", "mountain", "forest", "dig3a", "ruins", "forresca", "forrescb"}
 JAK2_PICKUP = {**{n: n for n in range(8)},
                8: 9, 9: 10, 10: 11, 11: 12, 12: 13, 13: 15, 14: 16, 15: 17, 16: 18, 17: 19, 18: 20,
                19: 21, 20: 22, 21: 23, 22: 24, 23: 25, 24: 26, 25: 29, 26: 32, 27: 35}
@@ -524,10 +632,13 @@ EXTRA_CONTINUES = {
     # the airlock of the palace's cable pillar, in the city's center
     "cable-pillar": ("ctygenb", "com-airlock-outer-15", 8.0),
 }
-# continues of the other places: all of Jak 2's for that level, but the cutscene and demo ones
-SKIPPED_CONTINUE_FLAGS = {"demo", "demo-end", "warp-gate", "scene-wait", "title", "intro",
-                          "change-continue"}
+# continues of the other places: all of Jak 2's for that level (the respawn points, see
+# havenj2-update-continue in GAME), but the title, intro, demo and cutscene ones
+SKIPPED_CONTINUE_FLAGS = {"demo", "demo-end", "title", "intro"}
 SKIPPED_CONTINUE_NAMES = ("movie", "demo")
+# the continue flags kept from Jak 2's: no-auto (Jak 3 never picks it by itself), warp-gate (Jak
+# arrives jumping out of the closest warp gate), no-blackout
+KEPT_CONTINUE_FLAGS = ("no-auto", "warp-gate", "no-blackout")
 # kept anyway: the destinations of the warp gates (the mountain's, the dig's to Vin's room) and of
 # the port's air train
 KEPT_CONTINUES = {"mountain-warp-top", "mountain-warp-bottom", "vinroom-warp", "caspad-warp"}
@@ -639,6 +750,40 @@ def extra_continues(actors):
     return out
 
 
+def facing_continue(pos, facing, distance, flags, wants):
+    """A continue (Jak 2 format, game units) in front of a gate at pos (m) facing (unit xz): Jak
+    stands distance meters in front of it, facing away from it, the camera behind him."""
+    fx, fz = facing
+    at = [pos[0] + fx * distance, pos[1], pos[2] + fz * distance]
+    yaw = math.atan2(fx, fz)
+    quat = [0.0, math.sin(yaw / 2), 0.0, math.cos(yaw / 2)]
+    cam = [at[0] - fx * 4.5, at[1] + 3.0, at[2] - fz * 4.5]
+    look = [at[0] - cam[0], at[1] + 1.5 - cam[1], at[2] - cam[2]]
+    n = math.sqrt(sum(c * c for c in look))
+    f = [c / n for c in look]
+    r = [f[2], 0.0, -f[0]]  # cross(y, f)
+    n = math.sqrt(sum(c * c for c in r))
+    r = [c / n for c in r]
+    u = [f[1] * r[2] - f[2] * r[1], f[2] * r[0] - f[0] * r[2], f[0] * r[1] - f[1] * r[0]]
+    return dict(trans=[c * METER for c in at] + [1.0], quat=quat,
+                camera_trans=[c * METER for c in cam] + [1.0], camera_rot=r + u + f,
+                flags=set(flags), wants=wants)
+
+
+def gate_continues():
+    """The time gates' arrival points in Jak 2's levels (GATE_CONTINUES), as Jak 2 continues: the
+    hideout's, Jak arriving by its gate (warp-gate flag)."""
+    out = {}
+    for name, (level, pos, facing, distance, _) in GATE_CONTINUES.items():
+        if level:
+            cont = facing_continue(pos, facing, distance, {"warp-gate"},
+                                   [(level, "'display"), ("ctywide", "'display"),
+                                    ("ctysluma", "'display")])
+            cont["level"] = level
+            out[name[len("hj2-"):]] = cont
+    return out
+
+
 def load_regions():
     src = open(JAK2_REGIONS, encoding="utf-8").read()
     regions = {}
@@ -719,6 +864,7 @@ class Context:
         self.all_levels = load_all_levels() | set(LEVEL_MAP)
         self.continues = load_continues()
         self.continues.update(extra_continues(actors))
+        self.continues.update(gate_continues())
         self.continue_names = {}  # Jak 2 name -> ours, filled by the continue selection
         self.aid_to_name = {a["aid"]: name for (lev, name), a in actors.items() if "aid" in a}
         self.cameras = load_cameras()
@@ -732,14 +878,9 @@ class Context:
 
 def translate_notice(tr, text):
     """on-notice: the levels a door waits for. A level that isn't ported (but a backdrop) keeps the
-    door shut: behind it there's nothing to walk on."""
-    for sym in re.findall(r"'\(([^()]*)\)", text):
-        for lev in sym.split():
-            if lev in LEVEL_MAP or lev in BACKDROP_LEVELS:
-                continue
-            if lev in tr.all_levels:
-                return None
-    return tr.script(text, value=True)
+    door shut: behind it there's nothing to walk on (only the branch the story state reaches
+    counts, see Translator.strict_notice)."""
+    return tr.strict_notice(text, BACKDROP_LEVELS)
 
 
 def translate_lumps(ctx, jak2_level, name, lump):
@@ -801,8 +942,9 @@ def make_door(ctx, jak2_level, name, closed):
         closed = True
     for key, text in scripts.items():
         lump[key] = script(text)
-    pair = ctx.aid_to_name.get(next_actor(actor))
-    if pair and not closed:
+    pair = NEXT_ACTOR_OVERRIDES.get((jak2_level, name), ctx.aid_to_name.get(next_actor(actor)))
+    placed = {nm for _, nm in DOORS}
+    if pair and pair in placed and not closed:
         lump["next-actor"] = ["string", pair]
     trans = [r4(x) for x in actor["trans"][:3]]
     return etype, closed, {
@@ -902,17 +1044,15 @@ def make_place_actor(ctx, jak2_level, name):
     }
 
 
-def make_air_train(ctx, jak2_level, name, dest, scenes, anim, travel_name):
+def make_air_train(ctx, jak2_level, name, dest, travel_name):
     """One of AIR_TRAINS: (comment, actor). Its on-notice is Jak 3's air train's: '("continue"
-    on-activate wait-for on-close)."""
+    on-activate wait-for)."""
     actor = ctx.actors[(jak2_level, name)]
     dest_name = continue_name(dest)
     assert dest in ctx.continue_names, f"{name}: continue {dest} isn't ported"
-    scene_list = " ".join(f'"{sc}"' for sc in scenes)
     lump = {
         "name": name,
-        "on-notice": script(f"'(\"{dest_name}\" (scene-play '({scene_list})) #f "
-                            f"(want-anim \"{anim}\"))"),
+        "on-notice": script(f"'(\"{dest_name}\" #f #f)"),
         # how close Jak must be to get on (Jak 2's)
         "distance": ["float", float(actor["lump"].get("distance", 20480.0))],
         # the prompt: Press <triangle> to travel to <travel-name>
@@ -930,18 +1070,21 @@ def make_air_train(ctx, jak2_level, name, dest, scenes, anim, travel_name):
     }
 
 
-def make_jak3_scene_stage(jak3_level, name):
-    """(comment, actor): a Jak 3 scene-stage (a cutscene's origin), where Jak 3 has it."""
-    with open(f"{JAK3_ENTITIES}/{jak3_level}-actors.json") as f:
-        actor = next(a for a in json.load(f) if a["lump"].get("name") == name)
-    trans = [r4(x) for x in actor["trans"][:3]]
-    return f"Jak 3's {name} ({jak3_level}): the origin of its air train cutscenes", {
+def make_time_gate(name, pos, facing, dest, travel_name):
+    """One of TIME_GATES: (comment, actor), Jak 3's warp gate model facing the room."""
+    yaw = math.atan2(facing[0], facing[1])
+    trans = [r4(c) for c in pos]
+    return f"the time gate to {dest} (hj2-time-gate, Jak 3's warp gate)", {
         "trans": trans,
-        "etype": "scene-stage",
+        "etype": "hj2-time-gate",
         "game_task": 0,
-        "quat": [r4(x) for x in actor["quat"]],
+        "quat": [0.0, r4(math.sin(yaw / 2)), 0.0, r4(math.cos(yaw / 2))],
         "bsphere": trans + [8.0],
-        "lump": {"name": name},
+        "lump": {
+            "name": name,
+            "on-notice": script(f"'(\"{dest}\" #f #f)"),
+            "travel-name": ["string", travel_name],
+        },
     }
 
 
@@ -975,13 +1118,12 @@ def make_actors(ctx, our_level):
     for jak2_level, name in PLACE_ACTORS:
         if LEVEL_MAP[jak2_level] == our_level:
             add(*make_place_actor(ctx, jak2_level, name))
-    for jak2_level, name, dest, scenes, anim, travel_name in AIR_TRAINS:
+    for jak2_level, name, dest, travel_name in AIR_TRAINS:
         if LEVEL_MAP[jak2_level] == our_level:
-            add(*make_air_train(ctx, jak2_level, name, dest, scenes, anim, travel_name))
-            art += [ag for ag in AIR_TRAIN_SCENE_ART if ag not in art]
-    for jak3_level, name in AIR_TRAIN_SCENE_STAGES:
-        if LEVEL_MAP[jak3_level] == our_level:
-            add(*make_jak3_scene_stage(jak3_level, name))
+            add(*make_air_train(ctx, jak2_level, name, dest, travel_name))
+    for jak2_level, name, pos, facing, dest, travel_name in TIME_GATES:
+        if LEVEL_MAP[jak2_level] == our_level:
+            add(*make_time_gate(name, pos, facing, dest, travel_name))
     return out, art
 
 
@@ -1010,6 +1152,9 @@ def ported_actors(ctx, place):
             etype = "crate"
         elif actor["etype"] in PORTED_ACTORS and level in PORTED_LEVELS:
             etype, kept = PORTED_ACTORS[actor["etype"]]
+            if actor["etype"] == "ruins-drop-plat":
+                # its model (a, b or c) by its art-name (ruins-drop-plat-a-1...)
+                etype = "hj2-ruins-drop-plat-" + src["art-name"].split("-")[3]
             lump = {"name": name}
             for key, kind in kept.items():
                 if key in src:
@@ -1035,9 +1180,15 @@ def custom_models(actor_list):
     models = []
     for etype, (model, src, prims, collide) in ACTOR_MODELS.items():
         if model not in models and any(actor["etype"] == etype for _, actor in actor_list):
-            verts, lo, hi = props_gen.write_actor_glb(src, model, prims, collide)
+            verts, lo, hi = props_gen.write_actor_glb(src, model, prims, collide,
+                                                      anims=MODEL_ANIMS.get(model))
             print(f"  {model}: {verts} vertices, bounds {lo} - {hi}")
             models.append(model)
+            for extra, extra_src, extra_prims, extra_collide in EXTRA_MODELS.get(model, []):
+                verts, lo, hi = props_gen.write_actor_glb(extra_src, extra, extra_prims,
+                                                          extra_collide)
+                print(f"  {extra}: {verts} vertices, bounds {lo} - {hi}")
+                models.append(extra)
     if "hj2-dig-balloon-lurker" in models:
         model, src, anims = DIG_TRAPEZE_MODEL
         verts, lo, hi = props_gen.write_actor_glb(src, model, None, anims=anims)
@@ -1110,6 +1261,7 @@ def make_regions(ctx, regions, our_level):
             out = tr.script(text)
             if out:
                 scripts[key] = out
+        scripts.update(REGION_SCRIPT_OVERRIDES.get(region["id"], {}))
         if scripts:
             trees.setdefault(region["tree"], []).append(
                 region_json(region, region["id"] + REGION_ID_OFFSET, scripts))
@@ -1388,6 +1540,15 @@ def select_continues(ctx):
                     cont["flags"] & SKIPPED_CONTINUE_FLAGS or
                     any(word in jak2_name for word in SKIPPED_CONTINUE_NAMES)):
                 continue
+            wants = translate_wants(CONTINUE_WANTS.get(jak2_name, cont["wants"]))
+            levels = [lev for lev, _ in wants]
+            if place["name"] not in levels:
+                levels.append(place["name"])
+            try:
+                check_memory(levels)
+            except ValueError:
+                print(f"  continue {jak2_name}: its levels {levels} don't fit together, left out")
+                continue
             chosen.append((place["name"], continue_name(jak2_name), jak2_name))
     for _, ours, jak2_name in chosen:
         ctx.continue_names[jak2_name] = ours
@@ -1412,8 +1573,7 @@ def continue_point(ctx, level, cont_name, jak2_name):
         f"          (new 'static 'level-buffer-state-small :name '{name} :display? {disp})"
         for name, disp in wants
     )
-    # no-auto: Jak 3 never picks it by itself (Jak 2's special spots)
-    flags = [f for f in ("no-auto",) if f in jak2["flags"]]
+    flags = [f for f in KEPT_CONTINUE_FLAGS if f in jak2["flags"]]
     flags_line = f"        :flags (continue-flags {' '.join(flags)})\n" if flags else ""
     return f"""      (new 'static 'continue-point
         :name "{cont_name}"
@@ -1491,9 +1651,11 @@ def write_havenj2(ctx, regions):
     part_actors, sprite_textures, part_stats = particles_gen.write(CITY_LEVELS)
     actor_list += part_actors
     # props with a model rebuilt from Jak 2's (the propaganda speakers)
-    custom_props, custom_models = props_gen.city_custom_prop_actors(CITY_LEVELS)
+    custom_props, prop_models = props_gen.city_custom_prop_actors(CITY_LEVELS)
     actor_list += custom_props
-    models = CITY_CUSTOM_MODELS + [m for m in custom_models if m not in CITY_CUSTOM_MODELS]
+    models = CITY_CUSTOM_MODELS + [m for m in prop_models if m not in CITY_CUSTOM_MODELS]
+    # the doors rebuilt from Jak 2's models (the fortress gate, ACTOR_MODELS)
+    models += [m for m in custom_models(actor_list) if m not in models]
     import_fr3 = {
         "game": "jak2",
         "levels": CITY_LEVELS,
@@ -1551,8 +1713,8 @@ def write_havenj2(ctx, regions):
     # the traffic code (TRAFFIC_CODE_DGO), then the props' (Jak 3's market and farms)
     gd += [f'  "{obj}"' for obj in code]
     # the ocean map (havenj2-ocean.o) is in GAME: the pumping station and the forest use it too
-    gd += ['  "havenj2-part.o"', '  "havenj2-signs.o"', '  "havenj2-obs.o"', '  "havenj2.go"', "  ))",
-           ""]
+    gd += ['  "havenj2-part.o"', '  "havenj2-signs.o"', '  "havenj2-obs.o"', '  "havenj2-farm.o"',
+           '  "havenj2.go"', "  ))", ""]
     print("  props as actors: " + ", ".join(f"{n} {e}" for e, n in sorted(prop_counts.items())))
     print(f"  particles: {part_stats}")
     write_if_changed(f"{LEVELS_DIR}/havenj2/havenj2.gd", "\n".join(gd))
@@ -1563,6 +1725,22 @@ def write_place(ctx, place, regions):
     actor_list, art = make_actors(ctx, place["name"])
     actor_list += ported_actors(ctx, place)
     models = custom_models(actor_list)
+    code = list(place.get("code", []))
+    # Jak 2's particle effects of the place (PLACE_PARTICLES in gen_havenj2_particles.py): its part
+    # spawners, <place>-part.gc and the sprite textures of its own texture page
+    sprite_lines = []
+    if place["name"] in particles_gen.PLACE_PARTICLES:
+        part_actors, sprite_textures, engine_max, stats = particles_gen.write_place(place["name"])
+        print(f"  {place['name']} particles: {stats}")
+        actor_list += part_actors
+        PART_ENGINE_MAX[place["name"]] = engine_max
+        code.append(f"{place['name']}-part.o")
+        if sprite_textures["textures"]:
+            sprite_lines = [
+                "  // the sprite textures of its particles, as texture page "
+                f"{sprite_textures['page']} ({place['name']}-part.gc)",
+                '  "sprite_textures": ' + json.dumps(sprite_textures) + ",",
+            ]
     folder = f"{LEVELS_DIR}/{place['name']}"
     os.makedirs(folder, exist_ok=True)
     import_fr3 = {
@@ -1604,6 +1782,7 @@ def write_place(ctx, place, regions):
         f'  "nickname": "{place["nick"]}",',
         '  "import_fr3": ' + json.dumps(import_fr3) + ",",
         *region_lines,
+        *sprite_lines,
         f'  "base_id": {place["base_id"]},',
         f'  "base_region_id": {place["base_id"]},',
         "  // Jak 2's fixed cameras of this place (elevator rides, camera regions)",
@@ -1628,10 +1807,45 @@ def write_place(ctx, place, regions):
     ]
     gd += [f'  "{ag}.go"' for ag in art]
     gd += [f'  "{m}-ag.go"' for m in models]
-    gd += [f'  "{obj}"' for obj in place.get("code", [])]
+    gd += [f'  "{obj}"' for obj in code]
     gd += [f'  "{place["name"]}.go"', "  ))", ""]
     write_if_changed(f"{folder}/{place['name']}.gd", "\n".join(gd))
     return len(actor_list), sum(len(t["regions"]) for t in trees.values())
+
+
+def freehq_gate_continue():
+    """The Freedom HQ's arrival point from the hideout's time gate (GATE_CONTINUES), added to Jak 3's
+    freehq by GAME (jak2-haven-city-world.gc): in front of the HQ's gate, with Jak 3's freehq-start
+    level list and sounds."""
+    _, pos, facing, distance, wants = GATE_CONTINUES["hj2-freehq-gate"]
+    cont = facing_continue(pos, facing, distance, set(), wants)
+    t, c, q = cont["trans"], cont["camera_trans"], cont["quat"]
+    rot = " ".join(str(int16(x)) for x in cont["camera_rot"])
+    want_lines = "\n".join(
+        f"      (new 'static 'level-buffer-state-small :name '{name} :display? {disp})"
+        for name, disp in wants)
+    return f""";; the Freedom HQ's arrival point from Jak 2's hideout (its time gate), in front of the HQ's
+;; gate (GAME adds it to freehq's continues)
+(define *hj2-freehq-gate-continue*
+  (new 'static 'continue-point
+    :name "hj2-freehq-gate"
+    :level 'freehq
+    :trans (static-vectorm {t[0] / METER:.4f} {t[1] / METER:.4f} {t[2] / METER:.4f})
+    :camera-trans (static-vectorm {c[0] / METER:.4f} {c[1] / METER:.4f} {c[2] / METER:.4f})
+    :quat (new 'static 'vector4h :data (new 'static 'array int16 4 {int16(q[0])} {int16(q[1])} {int16(q[2])} {int16(q[3])}))
+    :camera-rot (new 'static 'array int16 9 {rot})
+    :flags (continue-flags no-auto)
+    :on-goto #f
+    :vis-nick 'freehq
+    :vehicle-type #x1b
+    :want-count {len(wants)}
+    :want (new 'static 'inline-array level-buffer-state-small {len(wants)}
+{want_lines}
+      )
+    :want-sound (new 'static 'array symbol 3 'cityhq1 'cityhq2 'ctyslmch)
+    )
+  )
+"""
 
 
 def level_info(name, nick, index, memory_mode, flags, mood, continues, callbacks, ocean, comment,
@@ -1727,10 +1941,12 @@ def write_level_info(ctx, chosen):
             place["name"], place["nick"], place["index"], memory,
             flags or None, f"update-mood-{place['name']}", conts,
             [(35, "hj2-place-activate"), (36, "hj2-place-deactivate")],
-            "*ocean-map-havenj2*" if place.get("ocean") else None,
+            (place["ocean"] if isinstance(place.get("ocean"), str) else
+             "*ocean-map-havenj2*" if place.get("ocean") else None),
             f";; {what} (custom_assets/jak3/levels/{place['name']}), Jak 2's {place['jak2']}.\n"
             f";; memory: {memory} (see PLACES in gen_havenj2_links.py).",
-            "10.0", place["sky"]))
+            "10.0", place["sky"], PART_ENGINE_MAX.get(place["name"], 0)))
+    out.append(freehq_gate_continue())
     write_if_changed(LEVEL_INFO_OUT, "\n".join(out))
 
 

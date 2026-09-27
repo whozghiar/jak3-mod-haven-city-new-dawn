@@ -1,5 +1,6 @@
 #include "build_level.h"
 
+#include "common/texture/texture_slots.h"
 #include "decompiler/extractor/extractor_util.h"
 #include "decompiler/level_extractor/extract_collide_frags.h"
 #include "decompiler/level_extractor/extract_merc.h"
@@ -165,6 +166,8 @@ bool run_build_level(const std::string& input_file,
       opts.hidden_prototypes.insert(name);
     }
     const auto game = imp.value("game", std::string("jak2"));
+    opts.anim_slot_names =
+        game == "jak2" ? jak2_animated_texture_slots() : jak3_animated_texture_slots();
     fr3_import::Merger merger(pc_level, opts);
     for (const auto& lev : imp.at("levels").get<std::vector<std::string>>()) {
       const auto path = file_util::get_jak_project_dir() / "out" / game / "fr3" / (lev + ".fr3");
@@ -178,8 +181,10 @@ bool run_build_level(const std::string& input_file,
         st.levels, st.tfrag_trees, st.tfrag_trees_skipped, st.tie_trees, st.shrub_trees,
         st.textures_added, st.textures_deduplicated, st.collision_tris, st.collision_tris_clipped);
     if (st.anim_slot_draws) {
-      lg::warn("fr3 import: {} draws used a source-game animated texture slot, using a fallback",
-               st.anim_slot_draws);
+      lg::warn(
+          "fr3 import: {} draws used a source-game animated texture slot, {} of them with the "
+          "slot's still texture, the others with a fallback",
+          st.anim_slot_draws, st.anim_slot_draws_mapped);
     }
     if (!opts.hidden_prototypes.empty()) {
       lg::info("fr3 import: hidden prototypes: {} triangles, {} collision triangles",

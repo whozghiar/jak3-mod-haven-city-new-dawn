@@ -152,6 +152,9 @@ class Translator:
         self.renames = renames or {}
         self.drop_events = set(drop_events)
         self.cameras = set(cameras)
+        # set while translating a door's on-notice (see strict_notice): a quoted level list naming a
+        # level that isn't ported (but these ones, backdrops) then keeps the door shut
+        self.strict_levels = None
 
     # levels ######################################################################################
 
@@ -172,6 +175,17 @@ class Translator:
         return out
 
     # translation #################################################################################
+
+    def strict_notice(self, text, backdrops=()):
+        """A door's on-notice (the levels it waits for before it opens), translated: None when the
+        list the story state picks names a level that isn't ported (but a backdrop), since behind
+        the door there would be nothing to walk on. Only the branch the story state reaches counts
+        (a cond's other branches may name levels that aren't ported)."""
+        self.strict_levels = set(backdrops)
+        try:
+            return self.script(text, value=True)
+        finally:
+            self.strict_levels = None
 
     def script(self, text, value=False):
         """The translated script, or None when nothing is left.
@@ -333,6 +347,10 @@ class Translator:
         kept."""
         if isinstance(x, list) and x and all(isinstance(i, Sym) for i in x) and any(
                 str(i) in self.all_levels for i in x):
+            if self.strict_levels is not None and any(
+                    str(i) in self.all_levels and str(i) not in self.level_map
+                    and str(i) not in self.strict_levels for i in x):
+                return FALSE
             levels = self.level_list(x)
             return [QUOTE, [Sym(lv) for lv in levels]] if levels else FALSE
         if isinstance(x, list) and x and isinstance(x[0], Str):

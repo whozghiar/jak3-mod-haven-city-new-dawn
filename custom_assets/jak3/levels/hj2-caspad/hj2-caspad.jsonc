@@ -16,13 +16,13 @@
   ],
   // models of its custom actors, built by build-actor (goal_src/jak3/game.gp)
   "custom_models": ["hj2-cpad-elevator"],
-  "art_groups": ["com-airlock-outer-ag", "air-train-ag", "jakc-highres-ag", "daxter-highres-ag", "particleman-ag"],
+  "art_groups": ["com-airlock-outer-ag", "air-train-ag"],
   "actors": [
     // Jak 2's cpad-elevator-1 (caspad) [as hj2-cpad-elevator]
     {"trans": [351.7643, 20.0, -1713.3125], "etype": "hj2-cpad-elevator", "game_task": 0, "quat": [0.0, -0.3827, 0.0, 0.9239], "bsphere": [351.7643, 20.0, -1713.3125, 49.97], "lump": {"name": "cpad-elevator-1", "path": ["vector", [1440826.5, 81920.0, -7017728.0, 1.0], [1440826.5, -183581.4062, -7017728.0, 1.0]], "elevator-flags": ["uint32", 273], "elevator-move-rate": ["float", 73728.0], "elevator-xz-threshold": ["float", 327680.0], "elevator-y-threshold": ["float", 16384.0]}},
     // Jak 2's cas-front-door-1 (caspad), shut [as com-airlock-outer]
     {"trans": [28.1929, 54.3803, -1681.6317], "etype": "com-airlock-outer", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [28.1929, 54.3803, -1681.6317, 13.8564], "lump": {"name": "cas-front-door-1"}},
     // Jak 2's air-train-3 (caspad) [as hj2-air-train]: to hj2-ctyport-warp
-    {"trans": [270.8859, 28.0, -1653.0861], "etype": "hj2-air-train", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [270.8859, 28.0, -1653.0861, 6.9282], "lump": {"name": "air-train-3", "on-notice": ["pair", "'(\"hj2-ctyport-warp\" (scene-play '(\"hj2-air-train-caspad-out\" \"hj2-air-train-port-in\")) #f (want-anim \"desert-air-train-in\"))"], "distance": ["float", 61440.0], "travel-name": ["string", "Haven City"]}}
+    {"trans": [270.8859, 28.0, -1653.0861], "etype": "hj2-air-train", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [270.8859, 28.0, -1653.0861, 6.9282], "lump": {"name": "air-train-3", "on-notice": ["pair", "'(\"hj2-ctyport-warp\" #f #f)"], "distance": ["float", 61440.0], "travel-name": ["string", "Haven City"]}}
   ]
 }

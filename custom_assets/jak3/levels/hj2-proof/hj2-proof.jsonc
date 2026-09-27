@@ -17,6 +17,6 @@
   "art_groups": ["com-airlock-outer-ag"],
   "actors": [
     // Jak 2's com-airlock-outer-18 (palroof)
-    {"trans": [148.9558, 418.0259, 632.1289], "etype": "com-airlock-outer", "game_task": 0, "quat": [0.0, 0.9018, 0.0, 0.4321], "bsphere": [148.9558, 418.0259, 632.1289, 13.8564], "lump": {"name": "com-airlock-outer-18", "on-activate": ["pair", "(want-load 'hj2-pshaft 'hj2-pcab 'hj2-proof)"], "on-deactivate": ["pair", "(want-display 'hj2-pshaft #f)"], "on-enter": ["pair", "(want-display 'hj2-pshaft 'display)"], "on-notice": ["pair", "'(hj2-pshaft)"], "next-actor": ["string", "com-airlock-inner-25"]}}
+    {"trans": [148.9558, 418.0259, 632.1289], "etype": "com-airlock-outer", "game_task": 0, "quat": [0.0, 0.9018, 0.0, 0.4321], "bsphere": [148.9558, 418.0259, 632.1289, 13.8564], "lump": {"name": "com-airlock-outer-18", "on-activate": ["pair", "(want-load 'hj2-pshaft 'hj2-pcab 'hj2-proof)"], "on-enter": ["pair", "(want-display 'hj2-pshaft 'display)"], "on-notice": ["pair", "'(hj2-pshaft)"], "next-actor": ["string", "com-airlock-inner-25"]}}
   ]
 }

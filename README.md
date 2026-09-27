@@ -29,8 +29,9 @@
 
 ## Overview
 Brings Jak 2's Haven City and the places around it into Jak 3: the whole city as one walkable
-level, with its interiors, the palace, Dead Town, the pumping station, the mountain, Haven Forest
-and the dig site, all rebuilt from Jak 2's own extracted data and linked the way Jak 2 links them.
+level, with its interiors, the palace, Dead Town, the pumping station, the mountain, Haven Forest,
+the fortress, the stadium's race track and the dig site, all rebuilt from Jak 2's own extracted
+data and linked the way Jak 2 links them.
 
 - **Target Game:** Jak 3
 - **Active Branch:** `jak3/features/jak2-haven-city`
@@ -38,25 +39,31 @@ and the dig site, all rebuilt from Jak 2's own extracted data and linked the way
 ## Key Features
 - **The whole city:** Jak 2's 14 districts, `ctywide` and the stadium grounds merged into one Jak 3
   level, with Jak 2's lighting, water, particles, neon signs and breakable market props.
-- **The places around it:** 21 more levels (the Hip Hog, the hideout, the Oracle, Vin's power
-  station, Keira's garage, the gun course, the palace pillar and roof, Dead Town, the construction
-  site, the pumping station, the mountain, Haven Forest, the castle pad and the dig), loaded
-  through their doors, elevators and airlocks like in Jak 2.
-- **Air trains:** the port's air train flies Jak to the dig site and back, with Jak 3's boarding
-  cutscenes.
+- **The places around it:** 25 more levels (the Hip Hog, the hideout, the Oracle, Vin's power
+  station, Keira's garage, the gun course, the palace pillar and roof, Dead Town and the Sage's
+  hut, the construction site, the pumping station, the mountain, Haven Forest, the inside of the
+  fortress, the stadium's race track, the castle pad and the dig), loaded through their doors,
+  elevators and airlocks like in Jak 2, with their moving platforms, swinging bars and crumbling
+  slabs.
+- **Breakable city:** the Baron's propaganda speakers break in two hits like in Jak 2, the farm
+  crops are solid and burst when hit hard.
+- **Air trains:** the port's air train takes Jak to the dig site and back, in a short fade.
 - **City traffic:** Jak 3's citizens, Freedom League guards, hover bikes and cars, as many as in
   Jak 2.
 - **Time and weather:** a fixed hour or Jak 2's day and night; Jak 3's changing weather or a fixed
   one (sunny, cloudy, foggy, light rain, rain, thunderstorm, snow) in the whole game.
-- **Travelling:** warps to every district, key places and places outside the city, and a time gate
-  in Jak 3's Freedom HQ that leads to Jak 2's city.
+- **Travelling:** warps to every district, key places and places outside the city; two time gates,
+  one in Jak 3's Freedom HQ and one in Jak 2's underground hideout, lead to each other; dying
+  respawns Jak at Jak 2's closest respawn point.
+- **Saves:** save anywhere in Jak 2's world; the save screen shows "Haven City (Jak 2)" on the
+  slot.
 
 ## Controls
 
 | Action | How |
 |---|---|
 | Open the mod's menu | L3 + SELECT, then Mods ▸ jak2-haven-city (retail and debug boots) |
-| Take an air train or the time gate | Triangle, when the prompt shows |
+| Take an air train or a time gate | Triangle, when the prompt shows |
 
 The menu's entries:
 
@@ -65,8 +72,8 @@ The menu's entries:
 | Warp to Haven City (Jak 2) | Warps to the city, in the slums |
 | Warp to a district | Warps to one of 15 spots, at least one in each district (slums, port, bazaar, industrial section, main town, gardens, palace plaza, stadium grounds) |
 | Warp to a key place | Warps in front of the construction site gate, the palace, Mar's tomb, the cable pillar, the Hip Hog, the gun course, the port's air train, Vin's power station or the fortress; or to the hideout, the palace roof, the Oracle or Keira's garage |
-| Warp outside the city | Warps to Dead Town, the construction site, the pumping station, the mountain top, Haven Forest, the castle pad or the dig site |
-| Warp to the Freedom HQ (Jak 3) | Warps back to Jak 3's world, next to the time gate |
+| Warp outside the city | Warps to Dead Town, the Sage's hut, the inside of the fortress, the stadium's race track, the construction site, the pumping station, the mountain top, Haven Forest, the castle pad or the dig site |
+| Warp to the Freedom HQ (Jak 3) | Warps back to Jak 3's world, in the room of the time gate |
 | Time of day | 9:00, 12:00, 16:00 (default), 19:00, 23:00, or Jak 2's day and night |
 | Weather (whole game) | Changing (Jak 3's weather, default), or a fixed one |
 | City traffic | Switches the traffic on (default) or off |
@@ -83,7 +90,8 @@ The menu's entries:
 | 6 | Jak 2's elevators; the platforms of the pumping station and the mountain; crates |
 | 7, 8 | City traffic; its first crash fixed; the palace door that "never opens" explained (it doesn't exist in Jak 2) |
 | 9 | Denser traffic without popping; the castle pad and the dig site; the port's air train |
-| 10 | Weather for the whole game (8 choices, snow); smoke and fountains fixed; air train cutscenes; a time gate in Jak 3's Freedom HQ; warps to every district and key place |
+| 10 | Weather for the whole game (8 choices, snow); smoke and fountains fixed; air train cutscenes; a time gate in Jak 3's Freedom HQ; warps to every district and key place (commit `dd14a7829`) |
+| 11 | Palace elevator death fixed; Jak 2's respawn points everywhere; air train as a fade; time gates between the Freedom HQ and the hideout; saves; construction site models; two-hit speakers; farm crops; Dead Town's water, bars, slabs, platforms and the Sage's hut; particles of Haven Forest and Dead Town; the fortress and the stadium; Keira's garage open (built, not played yet) |
 
 Details, causes and fixes: [change history](docs/modding/current_mod/jak2_haven_city_readme.md#13-change-history).
 
@@ -137,9 +145,11 @@ task build-release-decomp
 ### 3. Asset Extraction
 - **Status:** Required for **both** Jak 2 and Jak 3.
 - **Details:** the levels merge Jak 2's extracted `.fr3` files and take some sprite textures from
-  Jak 3's, so both games must be extracted before building. The generated level files are in the
-  repository; regenerating them also needs Jak 2's model rips (`rip_levels`), see the technical
-  README.
+  Jak 3's, so both games must be extracted before building. Jak 3's Freedom HQ also gets the time
+  gate's model at extraction (`extra_art_groups_by_dgo`): a Jak 3 extracted before this branch
+  needs it again (the technical README gives a command for that level only). The generated level
+  files are in the repository; regenerating them also needs Jak 2's model rips (`rip_levels`), see
+  the technical README.
 ```bash
 task set-game-jak2
 task extract

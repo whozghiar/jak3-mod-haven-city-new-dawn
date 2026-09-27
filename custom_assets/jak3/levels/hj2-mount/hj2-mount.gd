@@ -12,6 +12,7 @@
   "hj2-mtn-plat-shoot-ag.go"
   "hj2-mtn-plat-buried-ag.go"
   "hj2-pal-windmill-ag.go"
+  "hj2-mount-ocean.o"
   "hj2-mount-obs.o"
   "hj2-mount.go"
   ))

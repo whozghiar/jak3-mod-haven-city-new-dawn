@@ -11,5 +11,6 @@
   "jakc-highres-ag.go"
   "torn-highres-ag.go"
   "freehq-sml-door-ag.go"
+  "warp-gate-ag.go" ;; added -- og:jak2-haven-city the time gate to Jak 2's world (jak2-haven-city-world.gc)
   "freehq.go"
  ))

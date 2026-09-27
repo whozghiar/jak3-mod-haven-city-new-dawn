@@ -138,6 +138,9 @@ Jak is in one of them."
       (new 'static 'popup-menu-submenu :label "Warp outside the city"
         :entries (new 'static 'boxed-array :type popup-menu-entry
           (mod-jak2-haven-city-warp-button "Dead Town" "hj2-ruins-start")
+          (mod-jak2-haven-city-warp-button "Dead Town: the Sage's hut" "hj2-ruins-hut")
+          (mod-jak2-haven-city-warp-button "Inside the fortress" "hj2-forresca-start")
+          (mod-jak2-haven-city-warp-button "Stadium race track" "hj2-stadiumd-start")
           (mod-jak2-haven-city-warp-button "Construction site" "hj2-consite-start")
           (mod-jak2-haven-city-warp-button "Pumping station" "hj2-atoll-start")
           (mod-jak2-haven-city-warp-button "Mountain top" "hj2-mountain-top")

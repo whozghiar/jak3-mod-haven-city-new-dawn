@@ -11,7 +11,7 @@
 ;; at boot (warps, saves). Moods and callbacks: jak2-haven-city-world.gc.
 
 ;; every level of this mod (the clock stays as set while one of them is active)
-(define *havenj2-levels* '(havenj2 hj2-hiphog hj2-gun hj2-vin hj2-hide hj2-oracle hj2-garage hj2-ruins hj2-consb hj2-cons hj2-pshaft hj2-proof hj2-pcab hj2-atollx hj2-atoll hj2-mount hj2-mtnx hj2-forest hj2-forstb hj2-caspad hj2-dig hj2-digb))
+(define *havenj2-levels* '(havenj2 hj2-hiphog hj2-gun hj2-vin hj2-hide hj2-oracle hj2-garage hj2-ruins hj2-sage hj2-consb hj2-cons hj2-pshaft hj2-proof hj2-pcab hj2-atollx hj2-atoll hj2-mount hj2-mtnx hj2-forest hj2-forstb hj2-caspad hj2-dig hj2-digb hj2-forta hj2-fortb hj2-stadd))
 
 ;; Jak 2's whole Haven City as one custom level (custom_assets/jak3/levels/havenj2). Kept at
 ;; Jak 2's world coordinates, so it must never be loaded together with Jak 3's own city levels.
@@ -900,6 +900,22 @@
           )
         :want-sound (new 'static 'array symbol 3 #f #f #f)
         )
+      (new 'static 'continue-point
+        :name "hj2-hiphog-outro"
+        :level 'hj2-hiphog
+        :trans (static-vectorm -79.5834 8.8797 1316.3188)
+        :camera-trans (static-vectorm -73.5610 12.5048 1318.1564)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 32331 0 -5308))
+        :camera-rot (new 'static 'array int16 9 -10279 0 31112 -8090 31637 -2674 -30041 -8523 -9925)
+        :on-goto #f
+        :vis-nick 'hj2-hiphog
+        :vehicle-type #x1b
+        :want-count 1
+        :want (new 'static 'inline-array level-buffer-state-small 1
+          (new 'static 'level-buffer-state-small :name 'hj2-hiphog :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
       )
     :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
     :borrow #f
@@ -1055,6 +1071,7 @@
         :camera-trans (static-vectorm 1119.8319 30.1423 1131.8370)
         :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 -32718 0 1746))
         :camera-rot (new 'static 'array int16 9 32760 0 -632 121 32125 6442 619 -6445 32118)
+        :flags (continue-flags warp-gate)
         :on-goto #f
         :vis-nick 'hj2-vin
         :vehicle-type #x1b
@@ -1111,6 +1128,24 @@
         :camera-trans (static-vectorm 1182.3671 7.9613 59.6748)
         :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 23818 0 22498))
         :camera-rot (new 'static 'array int16 9 118 0 -32764 5275 32338 16 32338 -5275 118)
+        :on-goto #f
+        :vis-nick 'hj2-hide
+        :vehicle-type #x1b
+        :want-count 2
+        :want (new 'static 'inline-array level-buffer-state-small 2
+          (new 'static 'level-buffer-state-small :name 'hj2-hide :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      (new 'static 'continue-point
+        :name "hj2-hideout-gate"
+        :level 'hj2-hide
+        :trans (static-vectorm 1202.6680 3.1000 57.1520)
+        :camera-trans (static-vectorm 1205.9170 6.1000 54.0380)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 -12860 0 30138))
+        :camera-rot (new 'static 'array int16 9 22673 0 23656 -7480 31086 7169 -22442 -10361 21510)
+        :flags (continue-flags warp-gate)
         :on-goto #f
         :vis-nick 'hj2-hide
         :vehicle-type #x1b
@@ -1276,7 +1311,7 @@
     :taskname 'default
     :index #x131
     :master-level #f
-    :level-flags (level-flags sky)
+    :level-flags (level-flags sky ocean-near-translucent)
     :packages '()
     :run-packages '("common")
     :memory-mode (level-memory-mode small-edge)
@@ -1284,7 +1319,7 @@
     :extra-sound-bank #f
     :mood-func 'update-mood-hj2-ruins
     :special-mood #f
-    :ocean #f
+    :ocean '*ocean-map-hj2-ruins*
     :ocean-alpha 1.0
     :priority 100
     :draw-priority 10.0
@@ -1319,9 +1354,10 @@
         :on-goto #f
         :vis-nick 'hj2-ruins
         :vehicle-type #x1b
-        :want-count 1
-        :want (new 'static 'inline-array level-buffer-state-small 1
+        :want-count 2
+        :want (new 'static 'inline-array level-buffer-state-small 2
           (new 'static 'level-buffer-state-small :name 'hj2-ruins :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-sage :display? #f)
           )
         :want-sound (new 'static 'array symbol 3 #f #f #f)
         )
@@ -1335,9 +1371,10 @@
         :on-goto #f
         :vis-nick 'hj2-ruins
         :vehicle-type #x1b
-        :want-count 1
-        :want (new 'static 'inline-array level-buffer-state-small 1
+        :want-count 2
+        :want (new 'static 'inline-array level-buffer-state-small 2
           (new 'static 'level-buffer-state-small :name 'hj2-ruins :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-sage :display? 'display)
           )
         :want-sound (new 'static 'array symbol 3 #f #f #f)
         )
@@ -1352,9 +1389,10 @@
         :on-goto #f
         :vis-nick 'hj2-ruins
         :vehicle-type #x1b
-        :want-count 1
-        :want (new 'static 'inline-array level-buffer-state-small 1
+        :want-count 2
+        :want (new 'static 'inline-array level-buffer-state-small 2
           (new 'static 'level-buffer-state-small :name 'hj2-ruins :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-sage :display? #f)
           )
         :want-sound (new 'static 'array symbol 3 #f #f #f)
         )
@@ -1370,6 +1408,47 @@
   )
 
 (cons! *level-load-list* 'hj2-ruins)
+
+;; The Sage's hut, at the far end of Dead Town (custom_assets/jak3/levels/hj2-sage), Jak 2's sagehut.
+;; memory: small-edge (see PLACES in gen_havenj2_links.py).
+(define hj2-sage
+  (new 'static 'level-load-info
+    :name 'hj2-sage
+    :visname 'hj2-sage-vis
+    :nickname 'hjw
+    :dbname 'hj2-sage
+    :taskname 'default
+    :index #x141
+    :master-level #f
+    :level-flags (level-flags sky)
+    :packages '()
+    :run-packages '("common")
+    :memory-mode (level-memory-mode small-edge)
+    :music-bank #f
+    :extra-sound-bank #f
+    :mood-func 'update-mood-hj2-sage
+    :special-mood #f
+    :ocean #f
+    :ocean-alpha 1.0
+    :priority 100
+    :draw-priority 10.0
+    :part-engine-max 0
+    :base-task-mask (task-mask task0)
+    :bigmap-id (bigmap-id none)
+    :continues '(
+
+      )
+    :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
+    :borrow #f
+    :bottom-height (meters -100)
+    :fog-height (meters 80)
+    :max-rain 1.0
+    :mood-range (new 'static 'mood-range :max-cloud 1.0 :max-fog 1.0)
+    :fog-mult 1.0
+    )
+  )
+
+(cons! *level-load-list* 'hj2-sage)
 
 ;; The tunnel to the construction site, from the industrial section (custom_assets/jak3/levels/hj2-consb), Jak 2's consiteb.
 ;; memory: small-edge (see PLACES in gen_havenj2_links.py).
@@ -1570,7 +1649,7 @@
     :taskname 'default
     :index #x136
     :master-level #f
-    :level-flags (level-flags sky)
+    :level-flags (level-flags sky ocean-near-translucent)
     :packages '()
     :run-packages '("common")
     :memory-mode (level-memory-mode small-center)
@@ -1578,7 +1657,7 @@
     :extra-sound-bank #f
     :mood-func 'update-mood-hj2-proof
     :special-mood #f
-    :ocean #f
+    :ocean '*ocean-map-havenj2*
     :ocean-alpha 1.0
     :priority 100
     :draw-priority 10.0
@@ -1664,7 +1743,7 @@
     :taskname 'default
     :index #x137
     :master-level #f
-    :level-flags (level-flags sky)
+    :level-flags (level-flags sky ocean-near-translucent)
     :packages '()
     :run-packages '("common")
     :memory-mode (level-memory-mode small-edge)
@@ -1672,7 +1751,7 @@
     :extra-sound-bank #f
     :mood-func 'update-mood-hj2-pcab
     :special-mood #f
-    :ocean #f
+    :ocean '*ocean-map-havenj2*
     :ocean-alpha 1.0
     :priority 100
     :draw-priority 10.0
@@ -1814,6 +1893,108 @@
         :want-sound (new 'static 'array symbol 3 #f #f #f)
         )
       (new 'static 'continue-point
+        :name "hj2-atoll-airlock"
+        :level 'hj2-atoll
+        :trans (static-vectorm 557.8424 2.4551 -811.6575)
+        :camera-trans (static-vectorm 556.8671 7.1582 -800.8685)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 32764 0 144))
+        :camera-rot (new 'static 'array int16 9 -32633 0 -2956 383 32485 -4250 2929 -4266 -32354)
+        :on-goto #f
+        :vis-nick 'hj2-atoll
+        :vehicle-type #x1b
+        :want-count 2
+        :want (new 'static 'inline-array level-buffer-state-small 2
+          (new 'static 'level-buffer-state-small :name 'hj2-atollx :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-atoll :display? #f)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      (new 'static 'continue-point
+        :name "hj2-sig0-hiding-behind-blocks"
+        :level 'hj2-atoll
+        :trans (static-vectorm 494.7778 13.1250 -946.6136)
+        :camera-trans (static-vectorm 498.9204 18.7993 -937.0636)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 22291 0 -24012))
+        :camera-rot (new 'static 'array int16 9 -28848 0 15535 -3391 31974 -6301 -15161 -7156 -28150)
+        :on-goto #f
+        :vis-nick 'hj2-atoll
+        :vehicle-type #x1b
+        :want-count 2
+        :want (new 'static 'inline-array level-buffer-state-small 2
+          (new 'static 'level-buffer-state-small :name 'hj2-atollx :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-atoll :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      (new 'static 'continue-point
+        :name "hj2-sig0-down-ramp"
+        :level 'hj2-atoll
+        :trans (static-vectorm 430.2450 13.1132 -983.2236)
+        :camera-trans (static-vectorm 420.2280 23.2632 -965.8907)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 -3 30804 0 11160))
+        :camera-rot (new 'static 'array int16 9 -28009 0 -17000 4446 31623 -7327 16410 -8572 -27033)
+        :on-goto #f
+        :vis-nick 'hj2-atoll
+        :vehicle-type #x1b
+        :want-count 2
+        :want (new 'static 'inline-array level-buffer-state-small 2
+          (new 'static 'level-buffer-state-small :name 'hj2-atollx :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-atoll :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      (new 'static 'continue-point
+        :name "hj2-sig0-charge-gun-for-sniper-c"
+        :level 'hj2-atoll
+        :trans (static-vectorm 379.0530 13.1132 -1166.8085)
+        :camera-trans (static-vectorm 369.5822 18.0242 -1173.5123)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 31522 0 -8936))
+        :camera-rot (new 'static 'array int16 9 17648 0 -27606 3984 32423 2546 27318 -4728 17462)
+        :on-goto #f
+        :vis-nick 'hj2-atoll
+        :vehicle-type #x1b
+        :want-count 2
+        :want (new 'static 'inline-array level-buffer-state-small 2
+          (new 'static 'level-buffer-state-small :name 'hj2-atollx :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-atoll :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      (new 'static 'continue-point
+        :name "hj2-sig0-cross-water"
+        :level 'hj2-atoll
+        :trans (static-vectorm 457.5681 1.5195 -1083.7366)
+        :camera-trans (static-vectorm 448.7966 6.6660 -1092.6838)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 11924 0 30519))
+        :camera-rot (new 'static 'array int16 9 23002 0 -23333 2828 32525 2788 23160 -3971 22832)
+        :on-goto #f
+        :vis-nick 'hj2-atoll
+        :vehicle-type #x1b
+        :want-count 2
+        :want (new 'static 'inline-array level-buffer-state-small 2
+          (new 'static 'level-buffer-state-small :name 'hj2-atollx :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-atoll :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      (new 'static 'continue-point
+        :name "hj2-sig0-show-sniper-e"
+        :level 'hj2-atoll
+        :trans (static-vectorm 559.8649 1.1981 -1041.3087)
+        :camera-trans (static-vectorm 540.5134 11.3585 -1046.3713)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 -43 -28461 10 -16233))
+        :camera-rot (new 'static 'array int16 9 7923 0 -31794 8251 31643 2054 30703 -8503 7651)
+        :on-goto #f
+        :vis-nick 'hj2-atoll
+        :vehicle-type #x1b
+        :want-count 2
+        :want (new 'static 'inline-array level-buffer-state-small 2
+          (new 'static 'level-buffer-state-small :name 'hj2-atollx :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-atoll :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      (new 'static 'continue-point
         :name "hj2-atoll-battle"
         :level 'hj2-atoll
         :trans (static-vectorm 436.1215 42.3271 -1192.7313)
@@ -1855,7 +2036,7 @@
     :taskname 'default
     :index #x13a
     :master-level #f
-    :level-flags (level-flags sky)
+    :level-flags (level-flags sky ocean-near-translucent)
     :packages '()
     :run-packages '("common")
     :memory-mode (level-memory-mode small-edge)
@@ -1863,7 +2044,7 @@
     :extra-sound-bank #f
     :mood-func 'update-mood-hj2-mount
     :special-mood #f
-    :ocean #f
+    :ocean '*ocean-map-hj2-mount*
     :ocean-alpha 1.0
     :priority 100
     :draw-priority 10.0
@@ -1895,6 +2076,7 @@
         :camera-trans (static-vectorm -584.8110 125.6519 208.4910)
         :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 25876 0 -20099))
         :camera-rot (new 'static 'array int16 9 282 0 -32764 4971 32387 43 32384 -4971 279)
+        :flags (continue-flags warp-gate no-blackout)
         :on-goto #f
         :vis-nick 'hj2-mount
         :vehicle-type #x1b
@@ -1929,6 +2111,7 @@
         :camera-trans (static-vectorm -481.0064 34.2114 193.5645)
         :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 4460 0 -32459))
         :camera-rot (new 'static 'array int16 9 -16977 0 -28022 4027 32426 -2438 27734 -4709 -16800)
+        :flags (continue-flags warp-gate)
         :on-goto #f
         :vis-nick 'hj2-mount
         :vehicle-type #x1b
@@ -2257,6 +2440,24 @@
           )
         :want-sound (new 'static 'array symbol 3 #f #f #f)
         )
+      (new 'static 'continue-point
+        :name "hj2-caspad-face-castle"
+        :level 'hj2-caspad
+        :trans (static-vectorm 269.3635 27.9993 -1640.2382)
+        :camera-trans (static-vectorm 281.5976 33.1492 -1637.6726)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 25185 0 -20958))
+        :camera-rot (new 'static 'array int16 9 -6747 0 32063 -3903 32521 -819 -31823 -3988 -6698)
+        :flags (continue-flags no-auto)
+        :on-goto #f
+        :vis-nick 'hj2-caspad
+        :vehicle-type #x1b
+        :want-count 2
+        :want (new 'static 'inline-array level-buffer-state-small 2
+          (new 'static 'level-buffer-state-small :name 'hj2-caspad :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? #f)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
       )
     :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
     :borrow #f
@@ -2418,3 +2619,268 @@
   )
 
 (cons! *level-load-list* 'hj2-digb)
+
+;; The fortress, behind its gate in the slums (custom_assets/jak3/levels/hj2-forta), Jak 2's forresca.
+;; memory: small-edge (see PLACES in gen_havenj2_links.py).
+(define hj2-forta
+  (new 'static 'level-load-info
+    :name 'hj2-forta
+    :visname 'hj2-forta-vis
+    :nickname 'hji
+    :dbname 'hj2-forta
+    :taskname 'default
+    :index #x142
+    :master-level #f
+    :packages '()
+    :run-packages '("common")
+    :memory-mode (level-memory-mode small-edge)
+    :music-bank #f
+    :extra-sound-bank #f
+    :mood-func 'update-mood-hj2-forta
+    :special-mood #f
+    :ocean #f
+    :ocean-alpha 1.0
+    :priority 100
+    :draw-priority 10.0
+    :part-engine-max 0
+    :base-task-mask (task-mask task0)
+    :bigmap-id (bigmap-id none)
+    :continues '(
+      (new 'static 'continue-point
+        :name "hj2-forresca-start"
+        :level 'hj2-forta
+        :trans (static-vectorm 732.1998 8.2465 225.7944)
+        :camera-trans (static-vectorm 744.5820 13.3656 225.3633)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 -18628 0 26954))
+        :camera-rot (new 'static 'array int16 9 1157 0 32744 -3942 32528 138 -32505 -3945 1150)
+        :on-goto #f
+        :vis-nick 'hj2-forta
+        :vehicle-type #x1b
+        :want-count 2
+        :want (new 'static 'inline-array level-buffer-state-small 2
+          (new 'static 'level-buffer-state-small :name 'hj2-forta :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-fortb :display? #f)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      )
+    :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
+    :borrow #f
+    :bottom-height (meters -100)
+    :fog-height (meters 80)
+    :max-rain 0.0
+    :mood-range (new 'static 'mood-range)
+    :fog-mult 1.0
+    )
+  )
+
+(cons! *level-load-list* 'hj2-forta)
+
+;; The far end of the fortress (custom_assets/jak3/levels/hj2-fortb), Jak 2's forrescb.
+;; memory: small-edge (see PLACES in gen_havenj2_links.py).
+(define hj2-fortb
+  (new 'static 'level-load-info
+    :name 'hj2-fortb
+    :visname 'hj2-fortb-vis
+    :nickname 'hjj
+    :dbname 'hj2-fortb
+    :taskname 'default
+    :index #x143
+    :master-level #f
+    :packages '()
+    :run-packages '("common")
+    :memory-mode (level-memory-mode small-edge)
+    :music-bank #f
+    :extra-sound-bank #f
+    :mood-func 'update-mood-hj2-fortb
+    :special-mood #f
+    :ocean #f
+    :ocean-alpha 1.0
+    :priority 100
+    :draw-priority 10.0
+    :part-engine-max 0
+    :base-task-mask (task-mask task0)
+    :bigmap-id (bigmap-id none)
+    :continues '(
+      (new 'static 'continue-point
+        :name "hj2-forrescb-mid"
+        :level 'hj2-fortb
+        :trans (static-vectorm 457.3016 13.5757 147.1367)
+        :camera-trans (static-vectorm 468.2325 18.3062 146.8656)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 -22026 0 24257))
+        :camera-rot (new 'static 'array int16 9 793 0 32757 -4214 32492 102 -32482 -4214 786)
+        :flags (continue-flags no-auto)
+        :on-goto #f
+        :vis-nick 'hj2-fortb
+        :vehicle-type #x1b
+        :want-count 2
+        :want (new 'static 'inline-array level-buffer-state-small 2
+          (new 'static 'level-buffer-state-small :name 'hj2-forta :display? #f)
+          (new 'static 'level-buffer-state-small :name 'hj2-fortb :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      )
+    :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
+    :borrow #f
+    :bottom-height (meters -100)
+    :fog-height (meters 80)
+    :max-rain 0.0
+    :mood-range (new 'static 'mood-range)
+    :fog-mult 1.0
+    )
+  )
+
+(cons! *level-load-list* 'hj2-fortb)
+
+;; The stadium's race track, behind the stadium grounds (custom_assets/jak3/levels/hj2-stadd), Jak 2's stadiumd.
+;; memory: small-edge (see PLACES in gen_havenj2_links.py).
+(define hj2-stadd
+  (new 'static 'level-load-info
+    :name 'hj2-stadd
+    :visname 'hj2-stadd-vis
+    :nickname 'hjz
+    :dbname 'hj2-stadd
+    :taskname 'default
+    :index #x144
+    :master-level #f
+    :level-flags (level-flags sky)
+    :packages '()
+    :run-packages '("common")
+    :memory-mode (level-memory-mode small-edge)
+    :music-bank #f
+    :extra-sound-bank #f
+    :mood-func 'update-mood-hj2-stadd
+    :special-mood #f
+    :ocean #f
+    :ocean-alpha 1.0
+    :priority 100
+    :draw-priority 10.0
+    :part-engine-max 0
+    :base-task-mask (task-mask task0)
+    :bigmap-id (bigmap-id none)
+    :continues '(
+      (new 'static 'continue-point
+        :name "hj2-stadiumd-start"
+        :level 'hj2-stadd
+        :trans (static-vectorm 34.0150 8.3320 -643.5665)
+        :camera-trans (static-vectorm 25.6689 13.2575 -651.7258)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 -8804 0 -31561))
+        :camera-rot (new 'static 'array int16 9 22950 0 -23386 2802 32528 2749 23215 -3929 22783)
+        :on-goto #f
+        :vis-nick 'hj2-stadd
+        :vehicle-type #x1b
+        :want-count 2
+        :want (new 'static 'inline-array level-buffer-state-small 2
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-stadd :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      (new 'static 'continue-point
+        :name "hj2-stadiumd-race-fail"
+        :level 'hj2-stadd
+        :trans (static-vectorm 19.3533 11.4999 -651.6810)
+        :camera-trans (static-vectorm 25.3535 16.3885 -661.5161)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 -4899 0 32397))
+        :camera-rot (new 'static 'array int16 9 27927 0 17134 -2097 32518 3418 -17003 -4011 27718)
+        :flags (continue-flags no-auto)
+        :on-goto #f
+        :vis-nick 'hj2-stadd
+        :vehicle-type #x1b
+        :want-count 2
+        :want (new 'static 'inline-array level-buffer-state-small 2
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-stadd :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      (new 'static 'continue-point
+        :name "hj2-stadiumd-race-retry"
+        :level 'hj2-stadd
+        :trans (static-vectorm 4.4123 -4.7010 -646.6990)
+        :camera-trans (static-vectorm -6.7342 -1.6959 -652.3554)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 17144 0 27921))
+        :camera-rot (new 'static 'array int16 9 14821 0 -29222 727 32754 367 29212 -816 14814)
+        :flags (continue-flags no-auto)
+        :on-goto #f
+        :vis-nick 'hj2-stadd
+        :vehicle-type #x1b
+        :want-count 2
+        :want (new 'static 'inline-array level-buffer-state-small 2
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-stadd :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      (new 'static 'continue-point
+        :name "hj2-stadiumd-race-r-retry"
+        :level 'hj2-stadd
+        :trans (static-vectorm 23.6681 -5.6908 -629.4592)
+        :camera-trans (static-vectorm 30.5633 -2.6857 -625.9633)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 -27921 0 17144))
+        :camera-rot (new 'static 'array int16 9 -14801 0 29231 -3182 32570 -1612 -29058 -3568 -14712)
+        :flags (continue-flags no-auto)
+        :on-goto #f
+        :vis-nick 'hj2-stadd
+        :vehicle-type #x1b
+        :want-count 2
+        :want (new 'static 'inline-array level-buffer-state-small 2
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-stadd :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      (new 'static 'continue-point
+        :name "hj2-stadiumd-record-path"
+        :level 'hj2-stadd
+        :trans (static-vectorm -260.1646 -22.1956 -447.3836)
+        :camera-trans (static-vectorm -264.2431 -19.1915 -443.6572)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 1035 -29458 377 -14300))
+        :camera-rot (new 'static 'array int16 9 -22118 0 -24172 7405 31188 -6776 23009 -10040 -21056)
+        :on-goto #f
+        :vis-nick 'hj2-stadd
+        :vehicle-type #x1b
+        :want-count 2
+        :want (new 'static 'inline-array level-buffer-state-small 2
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-stadd :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      )
+    :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
+    :borrow #f
+    :bottom-height (meters -100)
+    :fog-height (meters 80)
+    :max-rain 1.0
+    :mood-range (new 'static 'mood-range :max-cloud 1.0 :max-fog 1.0)
+    :fog-mult 1.0
+    )
+  )
+
+(cons! *level-load-list* 'hj2-stadd)
+
+;; the Freedom HQ's arrival point from Jak 2's hideout (its time gate), in front of the HQ's
+;; gate (GAME adds it to freehq's continues)
+(define *hj2-freehq-gate-continue*
+  (new 'static 'continue-point
+    :name "hj2-freehq-gate"
+    :level 'freehq
+    :trans (static-vectorm 704.5520 80.3380 -562.4920)
+    :camera-trans (static-vectorm 708.6380 83.3380 -564.3730)
+    :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 -17673 0 27592))
+    :camera-rot (new 'static 'array int16 9 13702 0 29765 -9416 31084 4335 -28236 -10366 12998)
+    :flags (continue-flags no-auto)
+    :on-goto #f
+    :vis-nick 'freehq
+    :vehicle-type #x1b
+    :want-count 3
+    :want (new 'static 'inline-array level-buffer-state-small 3
+      (new 'static 'level-buffer-state-small :name 'freehq :display? 'display)
+      (new 'static 'level-buffer-state-small :name 'ctyslumc :display? #f)
+      (new 'static 'level-buffer-state-small :name 'freecast :display? 'special)
+      )
+    :want-sound (new 'static 'array symbol 3 'cityhq1 'cityhq2 'ctyslmch)
+    )
+  )

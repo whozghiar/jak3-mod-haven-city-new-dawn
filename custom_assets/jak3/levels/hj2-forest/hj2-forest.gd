@@ -2,5 +2,6 @@
 ;; DGO definition file for hj2-forest: Haven Forest.
 ("HJF.DGO"
  (
+  "hj2-forest-part.o"
   "hj2-forest.go"
   ))

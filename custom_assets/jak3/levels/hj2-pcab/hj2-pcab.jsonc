@@ -19,6 +19,6 @@
   "art_groups": ["com-airlock-outer-ag"],
   "actors": [
     // Jak 2's com-airlock-outer-17 (palcab)
-    {"trans": [229.3022, 440.4217, -156.4315], "etype": "com-airlock-outer", "game_task": 0, "quat": [0.0, -0.0274, 0.0, 0.9996], "bsphere": [229.3022, 440.4217, -156.4315, 29.4449], "lump": {"name": "com-airlock-outer-17", "on-activate": ["pair", "(want-load 'hj2-pshaft 'hj2-pcab 'hj2-proof)"], "on-deactivate": ["pair", "(want-display 'hj2-pshaft #f)"], "on-enter": ["pair", "(want-display 'hj2-pshaft 'display)"], "on-notice": ["pair", "'(hj2-pshaft)"], "next-actor": ["string", "com-airlock-inner-23"]}}
+    {"trans": [229.3022, 440.4217, -156.4315], "etype": "com-airlock-outer", "game_task": 0, "quat": [0.0, -0.0274, 0.0, 0.9996], "bsphere": [229.3022, 440.4217, -156.4315, 29.4449], "lump": {"name": "com-airlock-outer-17", "on-activate": ["pair", "(want-load 'hj2-pshaft 'hj2-pcab 'hj2-proof)"], "on-enter": ["pair", "(want-display 'hj2-pshaft 'display)"], "on-notice": ["pair", "'(hj2-pshaft)"], "next-actor": ["string", "com-airlock-inner-23"]}}
   ]
 }

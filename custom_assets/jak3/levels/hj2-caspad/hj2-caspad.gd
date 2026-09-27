@@ -4,9 +4,6 @@
  (
   "com-airlock-outer-ag.go"
   "air-train-ag.go"
-  "jakc-highres-ag.go"
-  "daxter-highres-ag.go"
-  "particleman-ag.go"
   "hj2-cpad-elevator-ag.go"
   "hj2-caspad.go"
   ))

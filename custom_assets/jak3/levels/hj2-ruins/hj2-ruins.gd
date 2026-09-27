@@ -3,5 +3,14 @@
 ("HJR.DGO"
  (
   "com-airlock-outer-ag.go"
+  "hj2-ruins-drop-plat-a-ag.go"
+  "hj2-ruins-bridge-ag.go"
+  "hj2-ruins-sinking-plat-ag.go"
+  "hj2-ruins-flag-ag.go"
+  "hj2-ruins-beam-ag.go"
+  "rigid-body-plat.o"
+  "hj2-ruins-ocean.o"
+  "hj2-ruins-obs.o"
+  "hj2-ruins-part.o"
   "hj2-ruins.go"
   ))

@@ -1,0 +1,544 @@
+;;-*-Lisp-*-
+(in-package goal)
+
+;; name: havenj2-farm.gc
+;; name in dgo: havenj2-farm
+;; dgos: HJ2
+
+;; og:jak2-haven-city Jak 2's farm crops (levels/city/farm/ctyfarm-obs.gc there): solid, shaken when
+;; hit, burst by a strong hit (a vehicle, a gun shot, a dark attack, a mech punch) into pieces (a
+;; joint-exploder with their burst model) and a burst of particles. Jak 3 keeps them as scenery only
+;; (no collision, no hit), with Jak 3's classes of the same names, but its art groups still hold Jak
+;; 2's burst models. One class for the five crops, set up by their kind (the tables below); the
+;; burst particles are Jak 2's, translated in havenj2-part.gc.
+
+;; the group ids of the bursts (havenj2-part.gc, generated)
+(define-extern *hj2-farm-marrow-explode-group-ids* (array int32))
+(define-extern *hj2-farm-beetree-explode-group-ids* (array int32))
+(define-extern *hj2-farm-cabbage-explode-group-ids* (array int32))
+(define-extern *hj2-farm-small-cabbage-explode-group-ids* (array int32))
+(define-extern *hj2-farm-chilirots-explode-group-ids* (array int32))
+
+;; Jak 2's shaker: a joint's decaying swing after a hit, around an axis and around y
+(deftype hj2-farm-shaker (structure)
+  ((axis          vector  :inline)
+   (start-time    time-frame)
+   (decay-time    float)
+   (amplitude     float)
+   (freq          float)
+   (y-decay-time  float)
+   (y-amplitude   float)
+   (y-freq        float)
+   (shake         float)
+   (y-shake       float)
+   )
+  )
+
+
+(defun hj2-farm-shaker-update ((this hj2-farm-shaker))
+  "Jak 2's shaker-method-9: the swing angles now (a swing without a decay time stays still)."
+  (let ((f30-0 (the float (- (current-time) (-> this start-time)))))
+    (set! (-> this shake) (if (< 0.0 (-> this decay-time))
+                              (* (-> this amplitude)
+                                 (lerp-scale 1.0 0.0 f30-0 0.0 (-> this decay-time))
+                                 (cos (* 65536.0 (/ f30-0 (-> this freq))))
+                                 )
+                              0.0
+                              )
+          )
+    (set! (-> this y-shake) (if (< 0.0 (-> this y-decay-time))
+                                (* (-> this y-amplitude)
+                                   (lerp-scale 1.0 0.0 f30-0 0.0 (-> this y-decay-time))
+                                   (cos (* 65536.0 (/ f30-0 (-> this y-freq))))
+                                   )
+                                0.0
+                                )
+          )
+    )
+  (none)
+  )
+
+;; a crop. kind: 0 marrow, 1 beetree, 2 cabbage, 3 small cabbage, 4 chilirots (the tables below)
+(deftype hj2-farm-crop (process-focusable)
+  ((kind                int32)
+   (shakers             hj2-farm-shaker  5 :inline)
+   (incoming-attack-id  uint32)
+   )
+  (:state-methods
+    idle
+    die
+    )
+  )
+
+
+;; the burst models, in Jak 3's art groups of the crops (elements 3, 4 and 5 of each)
+(defskelgroup skel-hj2-farm-marrow-explode farm-marrow 3 5 ((4 (meters 999999))) :bounds (static-spherem 0 0 0 80))
+
+(defskelgroup skel-hj2-farm-beetree-explode farm-beetree 3 5 ((4 (meters 999999))) :bounds (static-spherem 0 0 0 80))
+
+(defskelgroup skel-hj2-farm-cabbage-explode farm-cabbage 3 5 ((4 (meters 999999))) :bounds (static-spherem 0 0 0 80))
+
+(defskelgroup skel-hj2-farm-small-cabbage-explode farm-small-cabbage 3 5 ((4 (meters 999999))) :bounds (static-spherem 0 0 0 80))
+
+(defskelgroup skel-hj2-farm-chilirots-explode farm-chilirots 3 5 ((4 (meters 999999))) :bounds (static-spherem 0 0 0 80))
+
+;; the pieces of each burst model (Jak 2's *farm-<crop>-exploder-params*)
+(define *hj2-farm-crop-pieces*
+  (new 'static 'boxed-array :type joint-exploder-static-params
+    (new 'static 'joint-exploder-static-params
+      :joints (new 'static 'boxed-array :type joint-exploder-static-joint-params
+        (new 'static 'joint-exploder-static-joint-params :joint-index 3 :parent-joint-index -1)
+        (new 'static 'joint-exploder-static-joint-params :joint-index 4 :parent-joint-index -1)
+        (new 'static 'joint-exploder-static-joint-params :joint-index 5 :parent-joint-index -1)
+        (new 'static 'joint-exploder-static-joint-params :joint-index 6 :parent-joint-index -1)
+        (new 'static 'joint-exploder-static-joint-params :joint-index 7 :parent-joint-index -1)
+        (new 'static 'joint-exploder-static-joint-params :joint-index 8 :parent-joint-index -1)
+        (new 'static 'joint-exploder-static-joint-params :joint-index 9 :parent-joint-index -1)
+        (new 'static 'joint-exploder-static-joint-params :joint-index 10 :parent-joint-index -1)
+        (new 'static 'joint-exploder-static-joint-params :joint-index 11 :parent-joint-index -1)
+        (new 'static 'joint-exploder-static-joint-params :joint-index 12 :parent-joint-index -1)
+        )
+      :collide-spec (collide-spec backgnd)
+      )
+    (new 'static 'joint-exploder-static-params
+      :joints (new 'static 'boxed-array :type joint-exploder-static-joint-params
+        (new 'static 'joint-exploder-static-joint-params :joint-index 3 :parent-joint-index -1)
+        (new 'static 'joint-exploder-static-joint-params :joint-index 4 :parent-joint-index -1)
+        (new 'static 'joint-exploder-static-joint-params :joint-index 5 :parent-joint-index -1)
+        (new 'static 'joint-exploder-static-joint-params :joint-index 6 :parent-joint-index -1)
+        (new 'static 'joint-exploder-static-joint-params :joint-index 7 :parent-joint-index -1)
+        (new 'static 'joint-exploder-static-joint-params :joint-index 8 :parent-joint-index -1)
+        (new 'static 'joint-exploder-static-joint-params :joint-index 9 :parent-joint-index -1)
+        (new 'static 'joint-exploder-static-joint-params :joint-index 10 :parent-joint-index -1)
+        (new 'static 'joint-exploder-static-joint-params :joint-index 11 :parent-joint-index -1)
+        (new 'static 'joint-exploder-static-joint-params :joint-index 12 :parent-joint-index -1)
+        )
+      :collide-spec (collide-spec backgnd)
+      )
+    (new 'static 'joint-exploder-static-params
+      :joints (new 'static 'boxed-array :type joint-exploder-static-joint-params
+        (new 'static 'joint-exploder-static-joint-params :joint-index 3 :parent-joint-index -1)
+        (new 'static 'joint-exploder-static-joint-params :joint-index 4 :parent-joint-index -1)
+        (new 'static 'joint-exploder-static-joint-params :joint-index 5 :parent-joint-index -1)
+        (new 'static 'joint-exploder-static-joint-params :joint-index 6 :parent-joint-index -1)
+        (new 'static 'joint-exploder-static-joint-params :joint-index 7 :parent-joint-index -1)
+        (new 'static 'joint-exploder-static-joint-params :joint-index 8 :parent-joint-index -1)
+        )
+      :collide-spec (collide-spec backgnd)
+      )
+    (new 'static 'joint-exploder-static-params
+      :joints (new 'static 'boxed-array :type joint-exploder-static-joint-params
+        (new 'static 'joint-exploder-static-joint-params :joint-index 3 :parent-joint-index -1)
+        (new 'static 'joint-exploder-static-joint-params :joint-index 4 :parent-joint-index -1)
+        (new 'static 'joint-exploder-static-joint-params :joint-index 5 :parent-joint-index -1)
+        (new 'static 'joint-exploder-static-joint-params :joint-index 6 :parent-joint-index -1)
+        (new 'static 'joint-exploder-static-joint-params :joint-index 7 :parent-joint-index -1)
+        (new 'static 'joint-exploder-static-joint-params :joint-index 8 :parent-joint-index -1)
+        (new 'static 'joint-exploder-static-joint-params :joint-index 9 :parent-joint-index -1)
+        (new 'static 'joint-exploder-static-joint-params :joint-index 10 :parent-joint-index -1)
+        )
+      :collide-spec (collide-spec backgnd)
+      )
+    (new 'static 'joint-exploder-static-params
+      :joints (new 'static 'boxed-array :type joint-exploder-static-joint-params
+        (new 'static 'joint-exploder-static-joint-params :joint-index 3 :parent-joint-index -1)
+        (new 'static 'joint-exploder-static-joint-params :joint-index 4 :parent-joint-index -1)
+        (new 'static 'joint-exploder-static-joint-params :joint-index 5 :parent-joint-index -1)
+        (new 'static 'joint-exploder-static-joint-params :joint-index 6 :parent-joint-index -1)
+        (new 'static 'joint-exploder-static-joint-params :joint-index 7 :parent-joint-index -1)
+        (new 'static 'joint-exploder-static-joint-params :joint-index 8 :parent-joint-index -1)
+        (new 'static 'joint-exploder-static-joint-params :joint-index 9 :parent-joint-index -1)
+        (new 'static 'joint-exploder-static-joint-params :joint-index 10 :parent-joint-index -1)
+        )
+      :collide-spec (collide-spec backgnd)
+      )
+    )
+  )
+
+(defun hj2-farm-crop-joints ((kind int))
+  "The joints a hit shakes, by crop kind (node-list indices, Jak 3's joint-nodes.gc): the vegetables
+first, then the leaves."
+  (case kind
+    ((0)
+     (new 'static 'boxed-array :type int32 6 7 8 4 5)
+     )
+    ((1)
+     (new 'static 'boxed-array :type int32 4 5)
+     )
+    ((2)
+     (new 'static 'boxed-array :type int32 4 5)
+     )
+    ((3)
+     (new 'static 'boxed-array :type int32 4)
+     )
+    (else
+      (new 'static 'boxed-array :type int32 4 5 6 7)
+      )
+    )
+  )
+
+(defun hj2-farm-crop-amplitudes ((kind int))
+  "How far each shaken joint swings (Jak 2's, an angle), by crop kind."
+  (case kind
+    ((0)
+     (new 'static 'boxed-array :type float 1820.4445 1820.4445 1820.4445 910.2222 910.2222)
+     )
+    ((1)
+     (new 'static 'boxed-array :type float 1820.4445 364.0889)
+     )
+    ((2)
+     (new 'static 'boxed-array :type float 1820.4445 364.0889)
+     )
+    ((3)
+     (new 'static 'boxed-array :type float 910.2222)
+     )
+    (else
+      (new 'static 'boxed-array :type float 1820.4445 1820.4445 1820.4445 1820.4445)
+      )
+    )
+  )
+
+(defun hj2-farm-crop-y-amplitudes ((kind int))
+  "How far each shaken joint also turns around y (Jak 2's, an angle), by crop kind."
+  (case kind
+    ((0)
+     (new 'static 'boxed-array :type float 0.0 0.0 0.0 -1820.4445 0.0)
+     )
+    ((1)
+     (new 'static 'boxed-array :type float 0.0 3640.889)
+     )
+    ((2)
+     (new 'static 'boxed-array :type float 0.0 910.2222)
+     )
+    ((3)
+     (new 'static 'boxed-array :type float 0.0)
+     )
+    (else
+      (new 'static 'boxed-array :type float 0.0 1820.4445 1820.4445 1820.4445)
+      )
+    )
+  )
+
+(defun hj2-farm-crop-explode-skel ((kind int))
+  "The burst model of a crop kind."
+  (case kind
+    ((0)
+     skel-hj2-farm-marrow-explode
+     )
+    ((1)
+     skel-hj2-farm-beetree-explode
+     )
+    ((2)
+     skel-hj2-farm-cabbage-explode
+     )
+    ((3)
+     skel-hj2-farm-small-cabbage-explode
+     )
+    (else
+      skel-hj2-farm-chilirots-explode
+      )
+    )
+  )
+
+(defun hj2-farm-crop-group ((kind int))
+  "The particle group of a crop kind's burst (havenj2-part.gc)."
+  (-> *part-group-id-table* (-> (case kind
+                                  ((0)
+                                   *hj2-farm-marrow-explode-group-ids*
+                                   )
+                                  ((1)
+                                   *hj2-farm-beetree-explode-group-ids*
+                                   )
+                                  ((2)
+                                   *hj2-farm-cabbage-explode-group-ids*
+                                   )
+                                  ((3)
+                                   *hj2-farm-small-cabbage-explode-group-ids*
+                                   )
+                                  (else
+                                    *hj2-farm-chilirots-explode-group-ids*
+                                    )
+                                  )
+                                0
+                                )
+      )
+  )
+
+(defun hj2-farm-shake-callback ((arg0 cspace) (arg1 transformq))
+  "A shaken joint's transform: its animation's, turned by its shaker (the cspace's param1 is the
+crop, param2 the shaker's index). The callback stops once the swing is over."
+  (let ((s4-0 (the-as hj2-farm-crop (-> arg0 param1)))
+        (s3-0 (the-as int (-> arg0 param2)))
+        )
+    (quaternion*! (-> arg1 quat) (-> arg1 quat) (quaternion-vector-angle!
+                                                  (new 'stack-no-clear 'quaternion)
+                                                  (-> s4-0 shakers s3-0 axis)
+                                                  (-> s4-0 shakers s3-0 shake)
+                                                  )
+                  )
+    (quaternion-rotate-local-y! (-> arg1 quat) (-> arg1 quat) (-> s4-0 shakers s3-0 y-shake))
+    (if (< (the int (fmax (-> s4-0 shakers s3-0 decay-time) (-> s4-0 shakers s3-0 y-decay-time)))
+           (- (current-time) (-> s4-0 shakers s3-0 start-time))
+           )
+        (set! (-> arg0 param0) #f)
+        )
+    )
+  (cspace<-parented-transformq-joint! arg0 arg1)
+  0
+  (none)
+  )
+
+(defbehavior hj2-farm-crop-shake hj2-farm-crop ((from vector))
+  "Shake the crop's joints away from a hit coming from from: each joint starts a little later and
+swings a little longer than the one before (Jak 2's timings)."
+  (let ((s5-0 (new 'stack-no-clear 'vector))
+        (s4-0 (hj2-farm-crop-joints (-> self kind)))
+        (s3-0 (hj2-farm-crop-amplitudes (-> self kind)))
+        (s2-0 (hj2-farm-crop-y-amplitudes (-> self kind)))
+        )
+    (vector-inv-orient-by-quat!
+      s5-0
+      (vector-cross!
+        (new 'stack-no-clear 'vector)
+        (vector-normalize! (vector-! (new 'stack-no-clear 'vector) from (-> self root trans)) 1.0)
+        *up-vector*
+        )
+      (-> self root quat)
+      )
+    (dotimes (i (-> s4-0 length))
+      (let ((v1-7 (-> self shakers i)))
+        (vector-copy! (-> v1-7 axis) s5-0)
+        (set! (-> v1-7 start-time) (- (current-time) (the-as time-frame (* i 18))))
+        (set! (-> v1-7 decay-time) (+ 300.0 (* 150.0 (the float i))))
+        (set! (-> v1-7 freq) 150.0)
+        (set! (-> v1-7 amplitude) (-> s3-0 i))
+        (set! (-> v1-7 y-amplitude) (-> s2-0 i))
+        (set! (-> v1-7 y-decay-time) (if (= (-> s2-0 i) 0.0)
+                                         0.0
+                                         450.0
+                                         )
+              )
+        (set! (-> v1-7 y-freq) 150.0)
+        )
+      (let ((a0-9 (-> self node-list data (-> s4-0 i))))
+        (set! (-> a0-9 param0) hj2-farm-shake-callback)
+        (set! (-> a0-9 param1) self)
+        (set! (-> a0-9 param2) (the-as basic i))
+        )
+      )
+    )
+  (none)
+  )
+
+(defbehavior hj2-farm-crop-burst hj2-farm-crop ((from vector))
+  "Burst the crop: its pieces fly away from from (a joint-exploder with its burst model), with its
+particles, and the crop goes."
+  (sound-play "veggie-burst")
+  (let ((gp-0 (new 'stack 'joint-exploder-tuning (the-as uint 1))))
+    (vector-copy! (-> gp-0 fountain-rand-transv-lo) from)
+    (set! (-> gp-0 fountain-rand-transv-hi x) (if (= (-> self kind) 2)
+                                                  40960.0
+                                                  4096.0
+                                                  )
+          )
+    (set! (-> gp-0 fountain-rand-transv-hi y) 122880.0)
+    (vector-copy! (-> *launch-matrix* trans) (-> self root trans))
+    (part-tracker-spawn part-tracker :to self :group (hj2-farm-crop-group (-> self kind)))
+    (process-spawn
+      joint-exploder
+      (hj2-farm-crop-explode-skel (-> self kind))
+      5
+      gp-0
+      (-> *hj2-farm-crop-pieces* (-> self kind))
+      :name "joint-exploder"
+      :to self
+      )
+    )
+  (go-virtual die)
+  (none)
+  )
+
+;; burst: hidden and without collision once its pieces and particles are done (it comes back when
+;; its level loads again)
+(defstate die (hj2-farm-crop)
+  :virtual #t
+  :code (behavior ()
+    (let ((v1-1 (-> self root root-prim)))
+      (set! (-> v1-1 prim-core collide-as) (collide-spec))
+      (set! (-> v1-1 prim-core collide-with) (collide-spec))
+      )
+    (logior! (-> self draw status) (draw-control-status no-draw))
+    (while (-> self child)
+      (suspend)
+      )
+    (sleep-code)
+    )
+  )
+
+;; growing: a hit shakes it, a strong one (Jak 2's knocked types: a vehicle, a gun shot, a dark
+;; attack, a mech punch) bursts it
+(defstate idle (hj2-farm-crop)
+  :virtual #t
+  :event (behavior ((proc process) (argc int) (message symbol) (block event-message-block))
+    (case message
+      (('attack)
+       (let ((v1-1 (the-as attack-info (-> block param 1))))
+         (when (!= (-> v1-1 id) (-> self incoming-attack-id))
+           (set! (-> self incoming-attack-id) (-> v1-1 id))
+           (let ((s5-0 (find-offending-process-focusable proc v1-1)))
+             (when s5-0
+               (let ((a0-4 (get-penetrate-using-from-attack-event (the-as process-drawable proc) block)))
+                 (cond
+                   ((and (not (logtest? (penetrate dark-skin) a0-4)) (zero? (hj2-propa-pu->knocked-type a0-4)))
+                    (sound-play "hit-veggies")
+                    (hj2-farm-crop-shake (-> s5-0 root trans))
+                    )
+                   (else
+                     (hj2-farm-crop-burst (-> s5-0 root trans))
+                     )
+                   )
+                 )
+               )
+             )
+           )
+         )
+       )
+      )
+    )
+  :code sleep-code
+  :post (behavior ()
+    (dotimes (gp-0 5)
+      (hj2-farm-shaker-update (-> self shakers gp-0))
+      )
+    (transform-post)
+    )
+  )
+
+(defmethod init-from-entity! ((this hj2-farm-crop) (arg0 entity-actor))
+  "A crop's setup, its kind set by its class (below): solid (a sphere around its middle, crate-like
+like Jak 2's), Jak 3's model of the crop, a slightly random size like Jak 2's (its angle is the
+entity's, see gen_havenj2_props.py)."
+  (let ((s5-0 (new 'process 'collide-shape this (collide-list-enum usually-hit-by-player))))
+    (let ((v1-2 (new 'process 'collide-shape-prim-sphere s5-0 (the-as uint 0))))
+      (set! (-> v1-2 prim-core collide-as) (collide-spec crate camera-blocker))
+      (set! (-> v1-2 prim-core collide-with) (collide-spec jak player-list tobot))
+      (set! (-> v1-2 prim-core action) (collide-action solid rideable))
+      (set! (-> v1-2 transform-index) 3)
+      (case (-> this kind)
+        ((0)
+         (set-vector! (-> v1-2 local-sphere) 0.0 (meters 1.8) 0.0 (meters 1.8))
+         )
+        ((1)
+         (set-vector! (-> v1-2 local-sphere) 0.0 (meters 1.5) 0.0 (meters 1.2))
+         )
+        ((2)
+         (set-vector! (-> v1-2 local-sphere) 0.0 (meters 1.5) 0.0 (meters 3))
+         )
+        ((3)
+         (set-vector! (-> v1-2 local-sphere) 0.0 (meters 0.8) 0.0 (meters 1.2))
+         )
+        (else
+          (set-vector! (-> v1-2 local-sphere) 0.0 (meters 1.5) 0.0 (meters 2))
+          )
+        )
+      (set! (-> s5-0 total-prims) (the-as uint 1))
+      (set! (-> s5-0 root-prim) v1-2)
+      )
+    (set! (-> s5-0 nav-radius) (* 0.75 (-> s5-0 root-prim local-sphere w)))
+    (let ((v1-5 (-> s5-0 root-prim)))
+      (set! (-> s5-0 backup-collide-as) (-> v1-5 prim-core collide-as))
+      (set! (-> s5-0 backup-collide-with) (-> v1-5 prim-core collide-with))
+      )
+    (set! (-> this root) s5-0)
+    )
+  (process-drawable-from-entity! this arg0)
+  (initialize-skeleton
+    this
+    (the-as skeleton-group (art-group-get-by-name
+                             *level*
+                             (case (-> this kind)
+                               ((0)
+                                "skel-farm-marrow"
+                                )
+                               ((1)
+                                "skel-farm-beetree"
+                                )
+                               ((2)
+                                "skel-farm-cabbage"
+                                )
+                               ((3)
+                                "skel-farm-small-cabbage"
+                                )
+                               (else
+                                 "skel-farm-chilirots"
+                                 )
+                               )
+                             (the-as (pointer level) #f)
+                             )
+            )
+    (the-as pair 0)
+    )
+  (logior! (-> this mask) (process-mask crate))
+  (let ((f0-0 (rand-vu-float-range 0.9 1.1)))
+    (set-vector! (-> this root scale) f0-0 f0-0 f0-0 1.0)
+    )
+  (transform-post)
+  (go (method-of-object this idle))
+  )
+
+;; the five crops, a kind each
+
+(deftype hj2-farm-marrow (hj2-farm-crop)
+  ()
+  )
+
+
+(defmethod init-from-entity! ((this hj2-farm-marrow) (arg0 entity-actor))
+  "Jak 2's farm-marrow."
+  (set! (-> this kind) 0)
+  (call-parent-method this arg0)
+  )
+
+(deftype hj2-farm-beetree (hj2-farm-crop)
+  ()
+  )
+
+
+(defmethod init-from-entity! ((this hj2-farm-beetree) (arg0 entity-actor))
+  "Jak 2's farm-beetree."
+  (set! (-> this kind) 1)
+  (call-parent-method this arg0)
+  )
+
+(deftype hj2-farm-cabbage (hj2-farm-crop)
+  ()
+  )
+
+
+(defmethod init-from-entity! ((this hj2-farm-cabbage) (arg0 entity-actor))
+  "Jak 2's farm-cabbage."
+  (set! (-> this kind) 2)
+  (call-parent-method this arg0)
+  )
+
+(deftype hj2-farm-small-cabbage (hj2-farm-crop)
+  ()
+  )
+
+
+(defmethod init-from-entity! ((this hj2-farm-small-cabbage) (arg0 entity-actor))
+  "Jak 2's farm-small-cabbage."
+  (set! (-> this kind) 3)
+  (call-parent-method this arg0)
+  )
+
+(deftype hj2-farm-chilirots (hj2-farm-crop)
+  ()
+  )
+
+
+(defmethod init-from-entity! ((this hj2-farm-chilirots) (arg0 entity-actor))
+  "Jak 2's farm-chilirots."
+  (set! (-> this kind) 4)
+  (call-parent-method this arg0)
+  )

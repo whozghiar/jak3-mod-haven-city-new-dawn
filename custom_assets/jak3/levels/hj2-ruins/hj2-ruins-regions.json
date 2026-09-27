@@ -3,8 +3,8 @@
     "bsphere": [
       984.6139,
       25.7099,
-      -327.1864,
-      214.5375
+      -344.5811,
+      227.8355
     ],
     "regions": [
       {
@@ -241,8 +241,8 @@
             ]
           ]
         },
-        "on-enter": "(want-load 'hj2-ruins)",
-        "on-exit": "(want-load 'hj2-ruins)"
+        "on-enter": "(want-load 'hj2-ruins 'hj2-sage)",
+        "on-exit": "(want-load 'hj2-ruins 'hj2-sage)"
       },
       {
         "id": 1063,
@@ -283,8 +283,49 @@
             ]
           ]
         },
-        "on-enter": "(want-load 'hj2-ruins)",
-        "on-exit": "(want-load 'hj2-ruins)"
+        "on-enter": "(want-load 'hj2-ruins 'hj2-sage)",
+        "on-exit": "(want-load 'hj2-ruins 'hj2-sage)"
+      },
+      {
+        "id": 1064,
+        "bsphere": [
+          843.195,
+          17.7906,
+          -511.38,
+          10.3799
+        ],
+        "shape": "face",
+        "face": {
+          "normal": [
+            -0.3169,
+            0.0,
+            0.9484,
+            -752.247986
+          ],
+          "points": [
+            [
+              850.6207,
+              23.8167,
+              -508.8987
+            ],
+            [
+              835.7692,
+              23.8167,
+              -513.8613
+            ],
+            [
+              850.6207,
+              11.7646,
+              -508.8987
+            ],
+            [
+              835.7692,
+              11.7646,
+              -513.8613
+            ]
+          ]
+        },
+        "on-enter": "(want-display 'hj2-sage 'display)"
       },
       {
         "id": 1136,
@@ -325,7 +366,7 @@
             ]
           ]
         },
-        "on-enter": "(want-load 'hj2-ruins)"
+        "on-enter": "(want-load 'hj2-ruins 'hj2-sage)"
       },
       {
         "id": 1137,
@@ -367,6 +408,57 @@
           ]
         },
         "on-enter": "(want-load 'hj2-ruins 'havenj2)"
+      }
+    ]
+  },
+  "camera": {
+    "bsphere": [
+      1031.1928,
+      37.4991,
+      -407.329,
+      21.4791
+    ],
+    "regions": [
+      {
+        "id": 1061,
+        "bsphere": [
+          1031.1928,
+          37.4991,
+          -407.329,
+          20.4791
+        ],
+        "shape": "face",
+        "face": {
+          "normal": [
+            0.6425,
+            0.0,
+            0.7662,
+            350.54718
+          ],
+          "points": [
+            [
+              1020.4673,
+              51.7544,
+              -398.3337
+            ],
+            [
+              1020.4673,
+              23.2438,
+              -398.3337
+            ],
+            [
+              1041.9182,
+              51.7544,
+              -416.3242
+            ],
+            [
+              1041.9182,
+              23.2438,
+              -416.3242
+            ]
+          ]
+        },
+        "on-enter": "(want-display 'hj2-sage 'display)"
       }
     ]
   }

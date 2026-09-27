@@ -53,6 +53,8 @@ JAK2_PART_FILES = [
     "goal_src/jak2/levels/city/generic/neon-praxis-part.gc",
     "goal_src/jak2/levels/city/farm/ctyfarma-part.gc",
     "goal_src/jak2/levels/city/farm/ctyfarmb-part.gc",
+    # the farm crops' bursts and the sprinklers' water (havenj2-farm.gc), defined with their classes
+    "goal_src/jak2/levels/city/farm/ctyfarm-obs.gc",
     "goal_src/jak2/levels/city/palace/ctypal-part.gc",
     "goal_src/jak2/levels/stadium/stadium-part.gc",
 ]
@@ -86,9 +88,10 @@ SPRITE_PAGE = 1566
 # the Jak 3 level code in havenj2 (ctymark-obs: parts 1117-1162, groups 248-253; ctyfarm-obs: parts
 # 4001-4047, groups 1134-1145; the traffic's vehicle-part: parts 916-952, groups 224-225, and
 # cty-guard-projectile: parts 1163-1164, group 254). The rest is free while havenj2 is loaded: no
-# Jak 3 level can be.
-PART_IDS = range(1200, 4000)
-GROUP_IDS = range(300, 1100)
+# Jak 3 level can be. The city takes them in order from the start of these ranges; past their end
+# are the places' ranges (PLACE_PARTICLES).
+PART_IDS = range(1200, 2600)
+GROUP_IDS = range(300, 800)
 
 # Jak 2 -> Jak 3 flag names (same bits)
 GROUP_FLAGS = {"use-local-clock": "sp0", "always-draw": "sp1", "screen-space": "sp2",
@@ -113,7 +116,12 @@ JAK3_TPAGES = {"level-default-sprite": 4, "common": 1}
 # callbacks Jak 3 has (GAME, or ctyfarm-obs which havenj2 includes)
 JAK3_FUNCS = {"sparticle-mode-animate", "sparticle-texture-day-night", "birth-func-texture-group",
               "sparticle-texture-animate", "check-drop-level-rain2", "sparticle-motion-blur",
-              "birth-func-ctyfarma-drip", "birth-func-ctyfarmb-drip"}
+              "birth-func-ctyfarma-drip", "birth-func-ctyfarmb-drip",
+              # the farm crops' pieces (ctyfarm-obs) and the sprinklers' drops (GAME, water.gc)
+              "check-farm-piece-ground", "check-water-level-drop-motion",
+              # the places' particles (GAME, sparticle-launcher.gc)
+              "birth-func-copy-rot-color", "birth-func-copy2-rot-color", "birth-func-copy-omega-to-z",
+              "birth-func-random-next-time", "check-drop-group-center"}
 # ported here
 PORTED_FUNCS = {
     "birth-func-ctywide-baron-propoganda-ticker-rotate": "hj2-birth-func-baron-ticker-rotate",
@@ -134,12 +142,47 @@ EXTRA_GROUPS = {
     "group-ctywide-baron-propoganda-holo": "*hj2-propa-holo-group-ids*",
     # the mission kiosks' hologram (burning-bush, shown off)
     "group-ctywide-burning-bush-holo-off": "*hj2-burning-bush-holo-group-ids*",
+    # the farm crops bursting and the sprinklers' water (havenj2-farm.gc)
+    "group-farm-marrow-explode": "*hj2-farm-marrow-explode-group-ids*",
+    "group-farm-beetree-explode": "*hj2-farm-beetree-explode-group-ids*",
+    "group-farm-cabbage-explode": "*hj2-farm-cabbage-explode-group-ids*",
+    "group-farm-small-cabbage-explode": "*hj2-farm-small-cabbage-explode-group-ids*",
+    "group-farm-chilirots-explode": "*hj2-farm-chilirots-explode-group-ids*",
+    "group-farm-sprinkler-barrels-water": "*hj2-farm-sprinkler-water-group-ids*",
 }
 # actors with their own particle code (havenj2-signs.gc)
 SIGN_ACTORS = {"neon-baron": "hj2-neon-baron", "city-neon-praxis": "hj2-neon-praxis",
                "hiphog-exterior-marquee": "hj2-hiphog-marquee"}
 # actor ids, past the props' (gen_havenj2_props.py)
 BASE_AID = 45000
+
+# Places with Jak 2 particles of their own, in a <place>-part.gc of their DGO (write_place): the
+# Jak 2 levels whose part spawners are placed there, Jak 2's particle files, the Jak 2 fr3 files
+# their sprite textures come from, their texture page, and the part and group ids they are moved to:
+# ranges of their own, past the city's, so that a place loaded together with the city or another
+# place never takes the ids of their particles.
+# The texture page is an id Jak 3 never uses, like SPRITE_PAGE, and must not share its slots in the
+# PC texture pool: the pool gives each page of Jak 3's directory (jak3_tpage_dir.cpp) as many slots
+# as it has textures, so the unused ids of a run (1566 to 1572) all start at the same slot, and a
+# page's textures spill over the next pages' slots. 1594 starts 311 slots past 1566 (the city uses
+# 206), 1627 1309 past it.
+PLACE_PARTICLES = {
+    # Haven Forest: its waterfalls' spray and drops, butterflies, fireflies, cattails
+    "hj2-forest": dict(nick="hjf", levels=["forest"],
+                       files=["goal_src/jak2/levels/forest/forest-part.gc"],
+                       fr3=["GAME", "forest"], page=1594,
+                       parts=range(2600, 2800), groups=range(800, 840)),
+    # Dead Town: its waterfalls, dripping water, falling rubble, dust, the birds around the moon
+    "hj2-ruins": dict(nick="hjr", levels=["ruins"],
+                      files=["goal_src/jak2/levels/ruins/ruins-part.gc"],
+                      fr3=["GAME", "ruins"], page=1627,
+                      parts=range(2800, 3000), groups=range(840, 880)),
+}
+# callbacks of the places' particles copied from Jak 2's particle files (copied_func_text): renamed
+# hj2-<name>, their part ids moved, Jak 2's matrix argument (the particle's sprite data) read as
+# Jak 3's sprite-vec-data-2d (the same layout: x y z sx, then flag matrix rot sy)
+COPIED_FUNCS = {"check-drop-level-ruins-rubble", "check-drop-level-ruins-tower-userdata",
+                "ruins-bird-bob-func", "sparticle-ruins-bird-moon"}
 
 
 # Jak 2 / Jak 3 texture tables ####################################################################
@@ -162,10 +205,10 @@ def load_textures(game):
     return out
 
 
-def fr3_texture_index():
-    """{(tpage, name): (fr3 level, w, h)} for the Jak 2 textures in TEXTURE_FR3."""
+def fr3_texture_index(levels):
+    """{(tpage, name): (fr3 level, w, h)} for the Jak 2 textures of these levels' fr3 files."""
     out = {}
-    for level in TEXTURE_FR3:
+    for level in levels:
         text = subprocess.run([FR3_CHECK, f"out/jak2/fr3/{level}.fr3", "--textures", "/"],
                               capture_output=True, text=True, check=True).stdout
         for m in re.finditer(r"^(\S+)/(\S+)\s+(\d+)x(\d+)\s", text, re.M):
@@ -176,19 +219,20 @@ def fr3_texture_index():
 
 
 class Textures:
-    def __init__(self):
+    def __init__(self, fr3_levels=TEXTURE_FR3, page=SPRITE_PAGE):
+        self.sprite_page = page
         self.j2_pages = load_tpages("jak2")
         self.j2_page_names = {v: k for k, v in self.j2_pages.items()}
         self.j2_tex = load_textures("jak2")
         self.j2_by_id = {(self.j2_pages[tp], idx): (tp, nm) for (tp, nm), idx in self.j2_tex.items()
                          if tp in self.j2_pages}
         self.j3_tex = load_textures("jak3")
-        self.fr3 = fr3_texture_index()
+        self.fr3 = fr3_texture_index(fr3_levels)
         self.page = []  # (fr3 level, tpage, name, w, h, game)
         self.page_index = {}
 
     def in_page(self, tpage, name):
-        """Index of a Jak 2 texture in havenj2's page (added on first use)."""
+        """Index of a Jak 2 texture in the level's page (added on first use)."""
         key = (tpage, name)
         if key not in self.page_index:
             if key not in self.fr3:
@@ -218,7 +262,7 @@ class Textures:
             return [Atom(name), Atom("common")]
         idx = self.in_page(tpage, name)
         return [Atom("new"), [QUOTE, Atom("static")], [QUOTE, Atom("texture-id")],
-                Atom(":index"), Atom(str(idx)), Atom(":page"), Atom(str(SPRITE_PAGE))]
+                Atom(":index"), Atom(str(idx)), Atom(":page"), Atom(str(self.sprite_page))]
 
     def remap_id(self, value):
         """A Jak 2 texture-id value -> ours, or None if it isn't one. The texture groups of the
@@ -235,20 +279,21 @@ class Textures:
         if jak3_tpage and (jak3_tpage, name) in self.j3_tex:
             return (JAK3_TPAGES[jak3_tpage] << 20) | (self.j3_tex[(jak3_tpage, name)] << 8)
         idx = self.in_page(tpage, name)
-        return (SPRITE_PAGE << 20) | (idx << 8)
+        return (self.sprite_page << 20) | (idx << 8)
 
 
 # Jak 2 definitions ###############################################################################
 
 
 class Defs:
-    def __init__(self):
+    def __init__(self, files=JAK2_PART_FILES):
         self.parts = {}    # id -> form
         self.groups = {}   # name -> form
         self.group_ids = {}  # id -> name
         self.funcs = {}    # name -> form
         self.data = {}     # define name -> form
-        for path in JAK2_PART_FILES:
+        self.func_files = {}  # name -> path
+        for path in files:
             for form in gl.read_all(open(path, encoding="utf-8").read()):
                 if not gl.is_list(form):
                     continue
@@ -260,6 +305,7 @@ class Defs:
                     self.group_ids[int(gl.keyword_args(form, 2)[":id"])] = str(form[1])
                 elif head == "defun":
                     self.funcs[str(form[1])] = form
+                    self.func_files[str(form[1])] = path
                 elif head == "define":
                     self.data[str(form[1])] = form
 
@@ -272,14 +318,17 @@ def walk(form):
 
 
 class Translator:
-    def __init__(self, defs, textures):
+    def __init__(self, defs, textures, part_ids=PART_IDS, group_ids=GROUP_IDS):
         self.defs = defs
         self.tex = textures
         self.part_map = {}
         self.group_map = {}  # jak 2 group name -> (new name, new id)
-        self.part_ids = iter([i for i in PART_IDS if not 1117 <= i <= 1162])
-        self.group_ids = iter([i for i in GROUP_IDS if not 1134 <= i <= 1145])
+        self.part_range = part_ids
+        self.group_range = group_ids
+        self.part_ids = iter([i for i in part_ids if not 1117 <= i <= 1162])
+        self.group_ids = iter([i for i in group_ids if not 1134 <= i <= 1145])
         self.drop_funcs = {}  # jak 2 name -> (new name, launched parts [(id, 3d?)])
+        self.copied_funcs = {}  # jak 2 name -> new name (COPIED_FUNCS)
         self.missing = set()  # parts referred to but never defined
 
     # ids
@@ -291,13 +340,19 @@ class Translator:
             if pid not in self.defs.parts:
                 self.missing.add(pid)
                 return None
-            self.part_map[pid] = next(self.part_ids)
+            new = next(self.part_ids, None)
+            if new is None:
+                raise ValueError(f"no part id left in {self.part_range}")
+            self.part_map[pid] = new
             self.scan_part(pid)
         return self.part_map[pid]
 
     def group(self, name):
         if name not in self.group_map:
-            self.group_map[name] = ("group-hj2-" + name[len("group-"):], next(self.group_ids))
+            new = next(self.group_ids, None)
+            if new is None:
+                raise ValueError(f"no group id left in {self.group_range}")
+            self.group_map[name] = ("group-hj2-" + name[len("group-"):], new)
             for item in gl.keyword_args(self.defs.groups[name], 2)[":parts"]:
                 self.part(int(item[1]))
                 args = gl.keyword_args(item, 2)
@@ -319,6 +374,13 @@ class Translator:
             return name
         if name in PORTED_FUNCS:
             return PORTED_FUNCS[name]
+        if name in COPIED_FUNCS and name in self.defs.funcs:
+            if name not in self.copied_funcs:
+                self.copied_funcs[name] = "hj2-" + name
+                for f in walk(self.defs.funcs[name]):
+                    if gl.is_list(f, "->") and len(f) == 3 and f[1] == Atom("*part-id-table*"):
+                        self.part(int(f[2]))
+            return self.copied_funcs[name]
         m = re.fullmatch(r"check-drop-level-([a-z0-9]+)-drop-userdata", name)
         if m:
             if name not in self.drop_funcs:
@@ -439,6 +501,46 @@ def drop_func_text(name, launched, part_map):
         system = ":system *sp-particle-system-3d* " if three_d else ""
         lines.append(f"      (launch-particles {system}(-> *part-id-table* {part_map[pid]}) s3-0)")
     lines += ["      )", "    )", "  (sparticle-motion-blur arg0 arg1 arg2)", "  (none)", "  )"]
+    return "\n".join(lines)
+
+
+# Jak 2 matrix rows read by the copied callbacks -> Jak 3's sprite-vec-data-2d fields
+SPRITE_ROWS = {(0, "x"): "x", (0, "y"): "y", (0, "z"): "z", (1, "z"): "rot"}
+
+
+def copied_func_text(name, tr):
+    """A callback of COPIED_FUNCS in Jak 3's form: renamed, its part ids moved, its matrix argument
+    typed sprite-vec-data-2d (Jak 3 hands the particle's sprite data)."""
+    form = tr.defs.funcs[name]
+    sprite = None
+    args = []
+    for arg in form[2]:
+        if gl.is_list(arg) and len(arg) == 2 and arg[1] == Atom("matrix"):
+            sprite = arg[0]
+            arg = [arg[0], Atom("sprite-vec-data-2d")]
+        args.append(arg)
+
+    def fix(f):
+        if not isinstance(f, list):
+            return f
+        if sprite is not None and gl.is_list(f, "->") and len(f) == 5 and f[1] == sprite:
+            key = (int(f[3]), str(f[4]))
+            if f[2] != Atom("vector") or key not in SPRITE_ROWS:
+                raise KeyError(f"{name}: no Jak 3 field for {gl.dump(f)}")
+            return [Atom("->"), sprite, Atom(SPRITE_ROWS[key])]
+        if gl.is_list(f, "->") and len(f) == 3 and f[1] == Atom("*part-id-table*"):
+            return [Atom("->"), f[1], Atom(str(tr.part_map[int(f[2])]))]
+        if gl.is_list(f, "sound-play"):
+            raise KeyError(f"{name} plays a sound (Jak 2's): not copied")
+        return [fix(x) for x in f]
+
+    body = form[3:]
+    if body and isinstance(body[0], Str):
+        body = body[1:]  # Jak 2's docstring
+    where = os.path.relpath(tr.defs.func_files[name], "goal_src/jak2").replace(os.sep, "/")
+    lines = [f"(defun {tr.copied_funcs[name]} {gl.dump(args)}", f'  "Jak 2\'s {name} ({where})."']
+    lines += ["  " + gl.pretty(fix(b), 2) for b in body]
+    lines.append("  )")
     return "\n".join(lines)
 
 
@@ -577,6 +679,109 @@ def city_part_actors(city_levels, tr):
     return out
 
 
+def place_part_actors(levels, tr):
+    """part-spawner actors of a place: (comment, actor) list. No actor id: the level builder gives
+    them the next ones of the place (its base_id)."""
+    out = []
+    for level in levels:
+        for actor in jak2_actors.level_actors(level):
+            lump = actor["lump"]
+            etype = actor["etype"]
+            if not ((etype.endswith("-part") or etype == "part-spawner")
+                    and lump.get("art-name") in tr.defs.groups):
+                continue
+            trans = [round(x, 4) for x in actor["trans"][:3]]
+            new_name, _ = tr.group(lump["art-name"])
+            entity = {
+                "trans": trans,
+                "etype": "part-spawner",
+                "game_task": 0,
+                "quat": [round(x, 4) for x in actor["quat"]],
+                "bsphere": trans + [round(actor["bsphere"][3], 4)],
+                "lump": {"name": lump["name"], "art-name": new_name},
+            }
+            if "vis-dist" in lump:
+                entity["lump"]["vis-dist"] = ["float", float(lump["vis-dist"])]
+            out.append((f"Jak 2's {lump['name']} ({level}): {lump['art-name']}", entity))
+    return out
+
+
+def static_launchers(defs, actors):
+    """How many launchers the static part spawners (group flag sp8, Jak 2's unk-8) hand to their
+    level's part engine: Jak 3 gives each level part-engine-max x 16 of them."""
+    total = 0
+    by_new = {}
+    for name in defs.groups:
+        by_new["group-hj2-" + name[len("group-"):]] = name
+    for _, actor in actors:
+        form = defs.groups[by_new[actor["lump"]["art-name"]]]
+        args = gl.keyword_args(form, 2)
+        if any(str(f) == "unk-8" for f in args.get(":flags", [])):
+            total += len(args[":parts"])
+    return total
+
+
+def write_place(name):
+    """<place>-part.gc of a place of PLACE_PARTICLES (level code, in its DGO), and its part
+    spawners. Returns (actors, sprite_textures, part-engine-max, stats)."""
+    cfg = PLACE_PARTICLES[name]
+    defs = Defs(cfg["files"])
+    textures = Textures(cfg["fr3"], cfg["page"])
+    tr = Translator(defs, textures, cfg["parts"], cfg["groups"])
+    actors = place_part_actors(cfg["levels"], tr)
+    # the copied callbacks' own parts are all known once every group is translated
+    parts_text = [tr.part_text(pid) for pid in sorted(tr.part_map, key=lambda p: tr.part_map[p])]
+    groups_text = [tr.group_text(n) for n in sorted(tr.group_map, key=lambda n: tr.group_map[n][1])]
+    drop_text = [drop_func_text(n, launched, tr.part_map)
+                 for n, launched in sorted(tr.drop_funcs.values())]
+    copied_text = [copied_func_text(n, tr) for n in sorted(tr.copied_funcs)]
+    names = " ".join(f'"{t[2]}"' for t in textures.page)
+    sizes = " ".join(f"#x{(t[4] << 16) | t[3]:x}" for t in textures.page)
+    var = f"*{name}-sprite"
+    page_text = ""
+    if textures.page:
+        page_text = f""";; {name}'s texture page {cfg['page']}: the sprite textures of its particles (their pixels are in
+;; its fr3, see sprite_textures in {name}.jsonc), as names and sizes (w | h << 16)
+(define {var}-names* (new 'static 'boxed-array :type string {names}))
+
+(define {var}-sizes* (new 'static 'boxed-array :type uint32 {sizes}))
+
+;; made while the level loads, handed to the texture system when it is activated (GAME,
+;; jak2-haven-city-world.gc)
+(hj2-sprite-page-register '{name} (hj2-sprite-page-new {cfg['page']} {var}-names* {var}-sizes*))
+"""
+    levels = ", ".join(cfg["levels"])
+    files = ", ".join(os.path.relpath(f, "goal_src/jak2").replace(os.sep, "/") for f in cfg["files"])
+    text = f""";;-*-Lisp-*-
+(in-package goal)
+
+;; name: {name}-part.gc
+;; name in dgo: {name}-part
+;; dgos: {cfg['nick'].upper()}
+
+;; og:jak2-haven-city GENERATED by custom_assets/jak3/levels/havenj2/gen_havenj2_particles.py, edit
+;; the script. Jak 2's particle effects of {levels}, translated from Jak 2's {files}:
+;; {len(tr.part_map)} parts (ids {cfg['parts'].start}-{cfg['parts'].stop - 1}), {len(tr.group_map)} groups (ids {cfg['groups'].start}-{cfg['groups'].stop - 1}), {len(textures.page)} sprite texture(s) in its own texture page.
+
+{page_text}
+;; callbacks ///////////////////////////////////////////////////////////////////////////////////////
+
+{chr(10).join(t + chr(10) for t in copied_text + drop_text)}
+;; parts ///////////////////////////////////////////////////////////////////////////////////////////
+
+{chr(10).join(t + chr(10) for t in parts_text)}
+;; groups //////////////////////////////////////////////////////////////////////////////////////////
+
+{chr(10).join(t + chr(10) for t in groups_text)}"""
+    write_if_changed(f"goal_src/jak3/levels/havenj2/{name}-part.gc", text.rstrip() + "\n")
+    sprite_textures = {"page": cfg["page"], "game": "jak2",
+                       "textures": [[t[0], t[1], t[2]] for t in textures.page]}
+    launchers = static_launchers(defs, actors)
+    return actors, sprite_textures, (launchers + 15) // 16, dict(
+        parts=len(tr.part_map), groups=len(tr.group_map), textures=len(textures.page),
+        actors=len(actors), static_launchers=launchers)
+
+
 # output ##########################################################################################
 
 
@@ -666,3 +871,5 @@ if __name__ == "__main__":
     import gen_havenj2_links as links
     actors, sprites, stats = write(links.CITY_LEVELS)
     print(stats)
+    for place in PLACE_PARTICLES:
+        print(place, write_place(place)[3])

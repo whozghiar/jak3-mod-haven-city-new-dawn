@@ -12,9 +12,15 @@
   "cameras": [
 
   ],
+  // models of its custom actors, built by build-actor (goal_src/jak3/game.gp)
+  "custom_models": ["hj2-cons-silo-doors", "hj2-cons-bomb-elevator", "hj2-cons-bomb-hinges"],
   "art_groups": ["com-airlock-outer-ag"],
   "actors": [
     // Jak 2's com-airlock-outer-34 (consite)
-    {"trans": [734.1934, 18.2794, 917.1318], "etype": "com-airlock-outer", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [734.1934, 18.2794, 917.1318, 13.8564], "lump": {"name": "com-airlock-outer-34", "distance": ["float", 81920.0], "idle-distance": ["float", 122880.0], "on-activate": ["pair", "(want-load 'hj2-cons 'hj2-consb)"], "on-deactivate": ["pair", "(want-display 'hj2-consb 'display)"], "on-enter": ["pair", "(want-display 'hj2-consb 'display)"], "on-notice": ["pair", "'(hj2-consb)"], "next-actor": ["string", "com-airlock-inner-40"]}}
+    {"trans": [734.1934, 18.2794, 917.1318], "etype": "com-airlock-outer", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [734.1934, 18.2794, 917.1318, 13.8564], "lump": {"name": "com-airlock-outer-34", "distance": ["float", 81920.0], "idle-distance": ["float", 122880.0], "on-activate": ["pair", "(want-load 'hj2-cons 'hj2-consb)"], "on-deactivate": ["pair", "(want-display 'hj2-consb 'display)"], "on-enter": ["pair", "(want-display 'hj2-consb 'display)"], "on-notice": ["pair", "'(hj2-consb)"], "next-actor": ["string", "com-airlock-inner-40"]}},
+    // Jak 2's consite-bomb-elevator-1 (consite)
+    {"trans": [664.7227, -9.9791, 843.0958], "etype": "hj2-cons-bomb-elevator", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [664.7227, -9.9791, 843.0958, 6.9282], "lump": {"name": "consite-bomb-elevator-1"}},
+    // Jak 2's consite-silo-doors-1 (consite)
+    {"trans": [664.728, -11.454, 843.0977], "etype": "hj2-cons-silo-doors", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [664.728, -11.454, 843.0977, 6.9282], "lump": {"name": "consite-silo-doors-1"}}
   ]
 }

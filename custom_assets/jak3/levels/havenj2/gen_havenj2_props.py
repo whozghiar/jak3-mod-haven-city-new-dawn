@@ -32,18 +32,20 @@ ACTOR_PROPS = {
     "market-sack-a": ("market-sack-a", "market-sack-a-ag"),
     "market-sack-b": ("market-sack-b", "market-sack-b-ag"),
     "cty-fruit-stand": ("fruit-stand", "cty-fruit-stand-ag"),
-    "farm-marrow": ("farm-marrow", "farm-marrow-ag"),
-    "farm-beetree": ("farm-beetree", "farm-beetree-ag"),
-    "farm-chilirots": ("farm-chilirots", "farm-chilirots-ag"),
-    "farm-cabbage": ("farm-cabbage", "farm-cabbage-ag"),
-    "farm-small-cabbage": ("farm-small-cabbage", "farm-small-cabbage-ag"),
+    # the crops: Jak 3's art (it still has Jak 2's burst models), Jak 2's behavior (solid, shaken
+    # by hits, burst by strong ones): havenj2-farm.gc
+    "farm-marrow": ("hj2-farm-marrow", "farm-marrow-ag"),
+    "farm-beetree": ("hj2-farm-beetree", "farm-beetree-ag"),
+    "farm-chilirots": ("hj2-farm-chilirots", "farm-chilirots-ag"),
+    "farm-cabbage": ("hj2-farm-cabbage", "farm-cabbage-ag"),
+    "farm-small-cabbage": ("hj2-farm-small-cabbage", "farm-small-cabbage-ag"),
     "farm-sprinkler-barrels": ("farm-sprinkler-barrels", "farm-sprinkler-barrels-ag"),
 }
 # Jak 3 level code holding those classes, compiled with Jak 3 (listed in havenj2.gd, before the
 # level's own code)
 CODE = ["ctymark-obs-h.o", "ctymark-obs.o", "ctyfarm-obs.o"]
-# Jak 2 turned its crops to a random angle when they spawned (farm-marrow etc. init-from-entity!),
-# Jak 3's don't: the angle is set here, the same on every run.
+# Jak 2 turned its crops to a random angle when they spawned (farm-marrow etc. init-from-entity!):
+# the angle is set here, the same on every run.
 RANDOM_YAW = {"farm-marrow", "farm-beetree", "farm-chilirots", "farm-cabbage", "farm-small-cabbage"}
 # actor ids of havenj2's props, past every custom level's own ids
 BASE_AID = 40000
@@ -98,10 +100,14 @@ def city_prop_actors(city_levels):
 
 MODELS_DIR = "custom_assets/jak3/models/custom_levels"
 # Jak 2 etype -> (our etype, the rip, the primitives kept). Jak 2's propaganda speaker has three
-# looks switched with setup-masks (intact, damaged, broken); only the intact one is kept (it
-# explodes away when broken).
+# looks switched with setup-masks (intact: primitives 3 and 4, damaged: 1 and 2, broken: 0, the
+# stump); build-actor models have no mask table, so each look is a model of its own
+# (CUSTOM_PROP_LOOKS), drawn by a child process (havenj2-obs.gc).
 CUSTOM_PROPS = {
     "propa": ("hj2-propa", "decompiler_out/jak2/levels/ctywide/propa-lod0.glb", [3, 4]),
+}
+CUSTOM_PROP_LOOKS = {
+    "hj2-propa": [("hj2-propa-damaged", [1, 2]), ("hj2-propa-broken", [0])],
 }
 # actor ids of the custom props
 CUSTOM_BASE_AID = 44000
@@ -134,14 +140,61 @@ def load_glb(path):
     return gltf, read
 
 
+def mat_from_gltf(m):
+    """A glTF matrix (16 floats, column major) as rows."""
+    return [[m[c * 4 + r] for c in range(4)] for r in range(4)]
+
+
+def mat_mul(a, b):
+    return [[sum(a[r][k] * b[k][c] for k in range(4)) for c in range(4)] for r in range(4)]
+
+
+def mat_inverse(m):
+    """Gauss-Jordan inverse of a 4x4 matrix (rows)."""
+    a = [list(row) + [1.0 if i == j else 0.0 for j in range(4)] for i, row in enumerate(m)]
+    for col in range(4):
+        pivot = max(range(col, 4), key=lambda r: abs(a[r][col]))
+        a[col], a[pivot] = a[pivot], a[col]
+        f = a[col][col]
+        a[col] = [x / f for x in a[col]]
+        for r in range(4):
+            if r != col and a[r][col] != 0.0:
+                g = a[r][col]
+                a[r] = [x - g * y for x, y in zip(a[r], a[col])]
+    return [row[4:] for row in a]
+
+
+def mat_decompose(m):
+    """(translation, rotation quaternion x y z w, scale) of an affine matrix (rows)."""
+    trans = [m[0][3], m[1][3], m[2][3]]
+    cols = [[m[r][c] for r in range(3)] for c in range(3)]
+    scale = [math.sqrt(sum(x * x for x in col)) or 1.0 for col in cols]
+    r = [[cols[c][row] / scale[c] for c in range(3)] for row in range(3)]
+    tr = r[0][0] + r[1][1] + r[2][2]
+    if tr > 0:
+        s4 = math.sqrt(tr + 1.0) * 2
+        q = [(r[2][1] - r[1][2]) / s4, (r[0][2] - r[2][0]) / s4, (r[1][0] - r[0][1]) / s4, 0.25 * s4]
+    elif r[0][0] > r[1][1] and r[0][0] > r[2][2]:
+        s4 = math.sqrt(1.0 + r[0][0] - r[1][1] - r[2][2]) * 2
+        q = [0.25 * s4, (r[0][1] + r[1][0]) / s4, (r[0][2] + r[2][0]) / s4, (r[2][1] - r[1][2]) / s4]
+    elif r[1][1] > r[2][2]:
+        s4 = math.sqrt(1.0 + r[1][1] - r[0][0] - r[2][2]) * 2
+        q = [(r[0][1] + r[1][0]) / s4, 0.25 * s4, (r[1][2] + r[2][1]) / s4, (r[0][2] - r[2][0]) / s4]
+    else:
+        s4 = math.sqrt(1.0 + r[2][2] - r[0][0] - r[1][1]) * 2
+        q = [(r[0][2] + r[2][0]) / s4, (r[1][2] + r[2][1]) / s4, 0.25 * s4, (r[1][0] - r[0][1]) / s4]
+    n = math.sqrt(sum(x * x for x in q)) or 1.0
+    return trans, [x / n for x in q], scale
+
+
 def write_actor_glb(src, name, keep_prims, collide=None, anims=None):
     """<name>.glb for build-actor from a ripped Jak 2 model: the kept primitives with only the
     vertices they use (the rip shares one buffer), its first animation renamed <name>-idle (the
     name build-actor's def-actor looks up), no collision from the render mesh, and invisible
     collision meshes (build-actor's gen-mesh makes one collide mesh per node, in order). collide:
       None: one box around the model,
-      {"hull": y_min}: the convex hull of the model's vertices above y_min (None: all), for the
-        models of a single joint (convex_hull.py),
+      {"hull": y_min}: the convex hull of the model's vertices above y_min (None: all), and below
+        "y_max" when given, for the models of a single joint (convex_hull.py),
       a list of meshes, each a list of boxes (lo, hi) in the model's space, or {"hull": y_min,
         "joint": name}: the hull of that joint's vertices (its part of the model), in the joint's
         space (the game moves a collide mesh with the joint its prim names: transform index =
@@ -234,9 +287,11 @@ def write_actor_glb(src, name, keep_prims, collide=None, anims=None):
     def hull_mesh(mesh_name, spec):
         import convex_hull
         y_min = spec["hull"]
+        y_max = spec.get("y_max")
         points = joint_points(spec["joint"]) if "joint" in spec else pts
         verts, tris = convex_hull.hull_mesh(
-            [tuple(p) for p in points if y_min is None or p[1] >= y_min])
+            [tuple(p) for p in points
+             if (y_min is None or p[1] >= y_min) and (y_max is None or p[1] <= y_max)])
         center = [sum(v[i] for v in verts) / len(verts) for i in range(3)]
         normals = []
         for v in verts:
@@ -269,6 +324,34 @@ def write_actor_glb(src, name, keep_prims, collide=None, anims=None):
                              "interpolation": s.get("interpolation", "LINEAR")})
         return {"name": new_name, "channels": anim["channels"], "samplers": samplers}
 
+    def rest_pose_anim(new_name):
+        """One frame holding every joint at its bind pose, for a rip without animations: build-actor
+        needs one (def-actor looks up <name>-idle). A joint's pose relative to its parent is
+        IBM(parent) x inverse(IBM(joint))."""
+        joints = skin["joints"]
+        ibms = [mat_from_gltf(m) for m in read(skin["inverseBindMatrices"])]
+        parent = {}
+        for j, node_idx in enumerate(joints):
+            for child in gltf["nodes"][node_idx].get("children", []):
+                if child in joints:
+                    parent[joints.index(child)] = j
+        time = add([(0.0,)], "f", "SCALAR", 5126, minmax=True, target=None)
+        channels, samplers = [], []
+        for j, node_idx in enumerate(joints):
+            local = mat_inverse(ibms[j])
+            if j in parent:
+                local = mat_mul(ibms[parent[j]], local)
+            trans, rot, scale = mat_decompose(local)
+            for path, value, fmt, kind in (("translation", trans, "3f", "VEC3"),
+                                           ("rotation", rot, "4f", "VEC4"),
+                                           ("scale", scale, "3f", "VEC3")):
+                samplers.append({"input": time,
+                                 "output": add([tuple(value)], fmt, kind, 5126, target=None),
+                                 "interpolation": "LINEAR"})
+                channels.append({"sampler": len(samplers) - 1,
+                                 "target": {"node": node_idx, "path": path}})
+        return {"name": new_name, "channels": channels, "samplers": samplers}
+
     if anims:
         out_anims = []
         for rip, anim_name, new_name in anims:
@@ -278,6 +361,8 @@ def write_actor_glb(src, name, keep_prims, collide=None, anims=None):
     else:
         out_anims = [copy_anim(anim, gltf, read, f"{name}-idle")
                      for anim in gltf.get("animations", [])[:1]]
+        if not out_anims and "inverseBindMatrices" in skin:
+            out_anims = [rest_pose_anim(f"{name}-idle")]
 
     if "inverseBindMatrices" in skin:
         skin["inverseBindMatrices"] = add(read(skin["inverseBindMatrices"]), "16f", "MAT4", 5126,
@@ -322,6 +407,9 @@ def city_custom_prop_actors(city_levels):
     for etype, (ours, src, prims) in CUSTOM_PROPS.items():
         write_actor_glb(src, ours, prims)
         models.append(ours)
+        for look, look_prims in CUSTOM_PROP_LOOKS.get(ours, []):
+            write_actor_glb(src, look, look_prims)
+            models.append(look)
     for level in city_levels:
         for actor in jak2_actors.level_actors(level):
             if actor["etype"] not in CUSTOM_PROPS:

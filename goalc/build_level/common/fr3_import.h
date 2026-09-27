@@ -31,6 +31,9 @@ struct Options {
   // TIE prototype is only known if the source fr3 was extracted with the prototype tags, see
   // collision_proto_tag.
   std::unordered_set<std::string> hidden_prototypes;
+  // the source game's animated texture slots, by slot (common/texture/texture_slots.h): a draw
+  // using a slot gets the slot's source texture (its name without -dest), static
+  std::vector<std::string> anim_slot_names;
 };
 
 struct Stats {
@@ -42,6 +45,7 @@ struct Stats {
   int tie_trees = 0;
   int shrub_trees = 0;
   int anim_slot_draws = 0;
+  int anim_slot_draws_mapped = 0;  // of which a static texture of the slot's name was found
   size_t collision_tris = 0;
   size_t collision_tris_clipped = 0;
   size_t hidden_proto_tris = 0;            // render triangles of hidden prototypes left out

@@ -3,8 +3,8 @@
     "bsphere": [
       445.883,
       15.5286,
-      652.8699,
-      1221.5399
+      525.0462,
+      1341.8345
     ],
     "regions": [
       {
@@ -253,6 +253,48 @@
           ]
         },
         "on-enter": "(want-vis 'havenj2)"
+      },
+      {
+        "id": 1317,
+        "bsphere": [
+          74.886,
+          21.4412,
+          -723.9636,
+          20.1547
+        ],
+        "shape": "face",
+        "face": {
+          "normal": [
+            0.5216,
+            0.0,
+            0.8531,
+            -578.577393
+          ],
+          "points": [
+            [
+              60.3389,
+              31.2168,
+              -715.0684
+            ],
+            [
+              60.3389,
+              11.6656,
+              -715.0684
+            ],
+            [
+              89.4331,
+              31.2168,
+              -732.8589
+            ],
+            [
+              89.4331,
+              11.6656,
+              -732.8589
+            ]
+          ]
+        },
+        "on-enter": "(want-display 'hj2-stadd 'display)",
+        "on-exit": "(want-display 'hj2-stadd #f)"
       },
       {
         "id": 1679,
@@ -1158,7 +1200,7 @@
             ]
           ]
         },
-        "on-enter": "(want-load 'havenj2)"
+        "on-enter": "(want-load 'hj2-forta 'havenj2)"
       },
       {
         "id": 1211,
@@ -2019,7 +2061,7 @@
             ]
           ]
         },
-        "on-enter": "(want-load 'havenj2 'hj2-garage)"
+        "on-enter": "(begin (want-load 'havenj2 'hj2-garage) (want-display 'hj2-garage 'display))"
       },
       {
         "id": 1320,
@@ -2718,7 +2760,7 @@
             ]
           ]
         },
-        "on-enter": "(want-load 'havenj2)"
+        "on-enter": "(want-load 'havenj2 'hj2-stadd)"
       },
       {
         "id": 1558,
