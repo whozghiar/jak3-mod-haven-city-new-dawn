@@ -14,7 +14,7 @@
 ;; first hit damages it, the second breaks it (a strong hit, a gun shot or a vehicle, breaks it at
 ;; once): its projector blows up and a stump is left. Jak 2 switches between its three looks with
 ;; mesh masks; build-actor's models have none, so the looks are three models (hj2-propa.glb,
-;; hj2-propa-damaged.glb, hj2-propa-broken.glb, made by gen_havenj2_props.py), the other two drawn
+;; hj2-propa-damaged.glb, hj2-propa-broken.glb, made by the level port), the other two drawn
 ;; by a child process (hj2-propa-look). Each hit rings like an iron crate (Jak 3's sounds; Jak 2's
 ;; and the Baron's speeches, voice streams, aren't in Jak 3).
 (deftype hj2-propa (process-focusable)
@@ -277,7 +277,7 @@ break it, the hologram (group-ctywide-baron-propoganda-holo, in havenj2-part.gc)
 ;; Jak 2's palace gate (palace-door, levels/city/palace/ctypal-obs.gc there), the door between the
 ;; palace plaza and the lobby of the palace pillar (the level hj2-pshaft). Jak 3 has no such door:
 ;; its model, skeleton and opening animation are Jak 2's, rebuilt as a custom actor by build-actor
-;; (hj2-palace-door.glb, made by custom_assets/jak3/levels/havenj2/gen_havenj2_links.py). It must
+;; (hj2-palace-door.glb, made by the level port, scripts/level_port). It must
 ;; really close: like in Jak 2, the city is hidden while Jak is in the lobby and unloaded while he
 ;; rides up the pillar, and the gate only opens again once the city is back.
 (deftype hj2-palace-door (com-airlock)

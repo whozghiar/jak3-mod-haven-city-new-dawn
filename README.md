@@ -96,7 +96,8 @@ The menu's entries:
 | 9 | Denser traffic without popping; the castle pad and the dig site; the port's air train |
 | 10 | Weather for the whole game (8 choices, snow); smoke and fountains fixed; air train cutscenes; a time gate in Jak 3's Freedom HQ; warps to every district and key place (commit `dd14a7829`) |
 | 11 | Palace elevator death fixed; Jak 2's respawn points everywhere; air train as a fade; time gates between the Freedom HQ and the hideout; saves; construction site models; two-hit speakers; farm crops; Dead Town's water, bars, slabs, platforms and the Sage's hut; particles of Haven Forest and Dead Town; the fortress and the stadium; Keira's garage open (commit `e769d5e2a`) |
-| 12 | Dead Town and the Sage's hut as one level; Jak 2's memory modes; every level in its end-of-game state (actors, background, the broken statue); the fortress prison and the way out of the fortress, with their gates; crates, swinging bars and slides everywhere; the Freedom HQ time gate crash fixed (level heaps kept below 256 MB, checked in game); a crash report in the game's log |
+| 12 | Dead Town and the Sage's hut as one level; Jak 2's memory modes; every level in its end-of-game state (actors, background, the broken statue); the fortress prison and the way out of the fortress, with their gates; crates, swinging bars and slides everywhere; the Freedom HQ time gate crash fixed (level heaps kept below 256 MB, checked in game); a crash report in the game's log (commit `051725569`) |
+| 13 | No change in game: the level files are made by a generic tool (`scripts/level_port`) from the mod's data (`custom_assets/jak3/ports/jak2-haven-city`) |
 
 Details, causes and fixes: [change history](docs/modding/current_mod/jak2_haven_city_readme.md#13-change-history).
 

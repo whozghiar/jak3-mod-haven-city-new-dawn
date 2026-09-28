@@ -7,7 +7,7 @@
 
 ;; og:jak2-haven-city Level code for hj2-atoll, Jak 2's pumping station (levels/atoll/atoll-obs.gc
 ;; there): its moving platforms and props. Their models are Jak 2's, rebuilt by build-actor
-;; (hj2-*.glb, made by custom_assets/jak3/levels/havenj2/gen_havenj2_links.py); their collision is
+;; (hj2-*.glb, made by the level port, scripts/level_port); their collision is
 ;; the convex hull of the model, bound to its main joint (transform index 3) like Jak 2's mesh. The
 ;; story state is the end of the game: the pumping station is running (atoll-sig and atoll-water
 ;; done), so every piston moves, the turbines are risen, the lift catwalks are down and the hatch is

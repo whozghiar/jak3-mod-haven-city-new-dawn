@@ -1,14 +1,15 @@
-"""Reads Jak 2's entity and region scripts and translates them for the havenj2 levels.
+"""Translates the scripts a game stores in its entities and regions for the port's levels.
 
-Jak 2 drives its level loading with small GOAL scripts stored in door, elevator and region data
-(want-load, want-display, want-vis...). Jak 3 runs the same script language, so the scripts are
+Jak 2 and Jak 3 drive their level loading with small GOAL scripts stored in door, elevator and
+region data (want-load, want-display, want-vis...), in the same script language. The scripts are
 kept as they are, with these changes:
-  - level names: Jak 2's city levels are all havenj2, the other places their hj2-* level; a level
-    that isn't ported is dropped from the lists (a door only leading there never opens),
+  - level names: each source level becomes the port's level holding it; a level that isn't ported
+    is dropped from the lists (a door only leading there never opens),
   - story checks (task-closed? / task-open?) are evaluated here, for one fixed state of the story,
-  - calls that mean nothing in Jak 3 (Jak 2 sounds, dialogs, cutscenes, settings...) are
-    removed. Fixed cameras are kept when the camera itself is ported (the level's cameras).
-Used by gen_havenj2_links.py.
+  - calls that mean nothing in the target game (the source game's sounds, dialogs, cutscenes,
+    settings...) are removed. Fixed cameras are kept when the camera itself is ported.
+What the target game keeps is the game pair's (convert/<source>_<target>.py: DROPPED_CALLS,
+KEPT_SELF_EVENTS, KEPT_QUERIES, KEPT_OTHER_EVENTS).
 """
 
 import re
@@ -113,40 +114,29 @@ def no_effect(form):
     return not isinstance(form, list) or is_quoted(form)
 
 
-# calls that do nothing in Jak 3 (or only concern things that aren't ported): removed
-DROPPED_CALLS = {
-    "want-sound", "want-anim", "want-force-vis", "want-force-inside", "task-close!",
-    "setting-unset", "talker-spawn", "scene-play", "part-tracker", "sound-play-loop", "alive",
-    "yes-play!", "mark-played!", "endlessfall", "show-hud", "entity-status?", "setting-value",
-    "print", "want-vehicle",
-}
-# events of Jak 3's com-airlock and elevator kept when a script sends them to itself
-KEPT_SELF_EVENTS = {"front", "back", "distance", "player-ridden?", "query", "sound", "status?"}
-KEPT_QUERIES = {"going-up?", "going-down?", "player-standing-on?"}
-# events kept when sent to another (renamed) entity
-KEPT_OTHER_EVENTS = {"query", "jump-to", "trigger"}
-
-
 class Translator:
-    """Translates the scripts of one Jak 2 entity or region.
+    """Translates the scripts of one entity or region of the source game.
 
-    level_map:   Jak 2 level -> our level, for the levels that are ported
-    all_levels:  every Jak 2 level name (to recognize the ones that aren't ported)
-    city:        our level of the city (havenj2)
+    pair:        the game pair's tables (convert/<source>_<target>.py)
+    level_map:   source level -> our level, for the levels that are ported
+    all_levels:  every source level name (to recognize the ones that aren't ported)
+    shown:       our levels always shown while Jak is in them (a level merging many source levels,
+                 like a whole city: its scripts showing or hiding its parts are dropped)
     owner:       our level holding the script (where Jak is when it runs)
     story:       function(task name) -> True when that task is closed in the chosen story state
-    continues:   Jak 2 continue name -> ours
-    renames:     Jak 2 entity name -> ours, for events sent to other entities by name
+    continues:   source continue name -> ours
+    renames:     source entity name -> ours, for events sent to other entities by name
     drop_events: (event, first argument) pairs to remove, e.g. ("jump-to", "'top")
     cameras:     the names of the fixed cameras that are ported (camera-191...)
-    source:      the Jak 2 level holding the script
+    source:      the source level holding the script
     """
 
-    def __init__(self, level_map, all_levels, city, owner, story, continues, renames=None,
+    def __init__(self, pair, level_map, all_levels, shown, owner, story, continues, renames=None,
                  drop_events=(), cameras=(), source=None):
+        self.pair = pair
         self.level_map = level_map
         self.all_levels = set(all_levels) | set(level_map)
-        self.city = city
+        self.shown = set(shown)
         self.owner = owner
         self.source = source
         self.story = story
@@ -161,7 +151,7 @@ class Translator:
     # levels ######################################################################################
 
     def level(self, form):
-        """Our level for a (quoted) Jak 2 level symbol, None if not ported."""
+        """Our level for a (quoted) source level symbol, None if not ported."""
         if is_quoted(form):
             form = form[1]
         if form == FALSE:
@@ -214,7 +204,7 @@ class Translator:
             if value and last:
                 out.append(FALSE if t is DROP else t)
             elif t is not DROP and not no_effect(t) and dump(t) not in [dump(o) for o in out]:
-                # two districts shown or hidden in a row are now the same city level
+                # two source levels shown or hidden in a row may now be the same level
                 out.append(t)
         return out
 
@@ -265,7 +255,7 @@ class Translator:
             return self.logic(name, args)
         if name == "not":
             return self.negate(self.cond_value(args[0]))
-        if name in DROPPED_CALLS:
+        if name in self.pair.DROPPED_CALLS:
             return FALSE if value else DROP
         handler = getattr(self, "f_" + name.replace("-", "_").replace("?", "_p").replace("!", "_x"),
                           None)
@@ -372,11 +362,11 @@ class Translator:
         lev = self.level(args[0])
         if not lev:
             return DROP
-        jak2 = str(args[0][1] if is_quoted(args[0]) else args[0])
-        if lev == self.owner and (lev == self.city or jak2 != self.source):
-            # Jak 2 showed and hid levels around this spot while the one holding it stayed: they're
-            # one level here (the city's districts, the levels merged into a place), always shown
-            # while Jak is in it
+        source = str(args[0][1] if is_quoted(args[0]) else args[0])
+        if lev == self.owner and (lev in self.shown or source != self.source):
+            # the source game showed and hid levels around this spot while the one holding it
+            # stayed: they're one level here (a city's districts, the levels merged into a place),
+            # always shown while Jak is in it
             return DROP
         mode = args[1] if len(args) > 1 else [QUOTE, Sym("display")]
         shown = is_quoted(mode) and mode[1] == Sym("display")
@@ -404,8 +394,8 @@ class Translator:
         return TRUE
 
     def f_focus_test_p(self, args, value):
-        if any(str(a) == "mech" for a in args[1:]):
-            return FALSE  # no mech here
+        if any(str(a) in self.pair.ABSENT_FOCUS for a in args[1:]):
+            return FALSE  # e.g. no mech in the port
         return [Sym("focus-test?")] + list(args)
 
     def f_movie_p(self, args, value):
@@ -435,14 +425,14 @@ class Translator:
                 if cam == FALSE or (isinstance(cam, Str) and str(cam) in self.cameras):
                     return [Sym("send-event")] + list(args)
                 return lost
-            if ev not in KEPT_SELF_EVENTS:
+            if ev not in self.pair.KEPT_SELF_EVENTS:
                 return lost
             if ev == "query" and not (rest and is_quoted(rest[0]) and
-                                      str(rest[0][1]) in KEPT_QUERIES):
+                                      str(rest[0][1]) in self.pair.KEPT_QUERIES):
                 return lost
             return [Sym("send-event")] + list(args)
         name = self.renames.get(str(target))
-        if not name or ev not in KEPT_OTHER_EVENTS:
+        if not name or ev not in self.pair.KEPT_OTHER_EVENTS:
             return lost
         if (ev, dump(rest[0]) if rest else None) in self.drop_events:
             return lost

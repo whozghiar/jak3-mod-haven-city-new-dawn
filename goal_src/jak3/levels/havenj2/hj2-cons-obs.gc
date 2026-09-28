@@ -7,8 +7,8 @@
 
 ;; og:jak2-haven-city Level code for hj2-cons, Jak 2's construction site (levels/consite/consite-obs.gc
 ;; there): the silo doors and the bomb elevator, still like at the end of the game. Their models are
-;; Jak 2's, rebuilt by build-actor (hj2-cons-*.glb, made by
-;; custom_assets/jak3/levels/havenj2/gen_havenj2_links.py); their collision is the convex hull of the
+;; Jak 2's, rebuilt by build-actor (hj2-cons-*.glb, made by the level
+;; port, scripts/level_port); their collision is the convex hull of the
 ;; parts Jak 2's collide meshes cover (each door leaf on its joint, the elevator's platform). Not
 ;; ported: the Baron's fight (its breaking scaffolds, the bomb), Jak 2's sounds.
 

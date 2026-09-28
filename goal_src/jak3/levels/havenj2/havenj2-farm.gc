@@ -417,7 +417,7 @@ particles, and the crop goes."
 (defmethod init-from-entity! ((this hj2-farm-crop) (arg0 entity-actor))
   "A crop's setup, its kind set by its class (below): solid (a sphere around its middle, crate-like
 like Jak 2's), Jak 3's model of the crop, a slightly random size like Jak 2's (its angle is the
-entity's, see gen_havenj2_props.py)."
+entity's, see random_yaw in the port)."
   (let ((s5-0 (new 'process 'collide-shape this (collide-list-enum usually-hit-by-player))))
     (let ((v1-2 (new 'process 'collide-shape-prim-sphere s5-0 (the-as uint 0))))
       (set! (-> v1-2 prim-core collide-as) (collide-spec crate camera-blocker))

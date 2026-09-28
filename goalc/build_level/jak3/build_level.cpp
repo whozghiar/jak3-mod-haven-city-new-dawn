@@ -82,7 +82,7 @@ bool run_build_level(const std::string& input_file,
     }
   }
   // nav_data: a DataBlob holding the level's city-level-info and nav meshes (for havenj2, Jak 2's
-  // city's, made by custom_assets/jak3/levels/havenj2/gen_havenj2_nav.py). The nav meshes keep
+  // city's, made by scripts/level_port's nav step). The nav meshes keep
   // their ids (the nav graph refers to them), which must not be an actor's.
   if (level_json.contains("nav_data")) {
     file.nav_data = DataBlob::from_json_file(level_json.at("nav_data").get<std::string>());

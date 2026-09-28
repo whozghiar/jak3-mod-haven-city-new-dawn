@@ -7,7 +7,7 @@
 
 ;; og:jak2-haven-city Level code for hj2-dig, Jak 2's dig (levels/dig/dig-obs.gc and dig3-obs.gc
 ;; there): its platforms and props. Their models are Jak 2's, rebuilt by build-actor (hj2-*.glb,
-;; made by custom_assets/jak3/levels/havenj2/gen_havenj2_links.py); their collision is the convex
+;; made by the level port, scripts/level_port); their collision is the convex
 ;; hull of the model (or of a joint's part of it), bound to that joint like Jak 2's mesh. The story
 ;; state is the end of the game: the log is raised and its buttons are down. Not ported: the enemies,
 ;; the spiky spheres rolled out of their doors, the stomp blocks, and Jak 2's sounds of these objects

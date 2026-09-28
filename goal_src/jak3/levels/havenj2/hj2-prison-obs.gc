@@ -8,8 +8,8 @@
 ;; og:jak2-haven-city Level code for hj2-prison, Jak 2's fortress prison (levels/fortress/prison/
 ;; prison-obs.gc there), as it is at the end of the game: the cell doors shut, the vent fans, the
 ;; torture machine, the cells hanging from their rail and the warp gate. Their models are Jak 2's,
-;; rebuilt by build-actor (hj2-prsn-*.glb and hj2-warp-gate-b.glb, made by
-;; custom_assets/jak3/levels/havenj2/gen_havenj2_links.py). Not ported: the lightning of the
+;; rebuilt by build-actor (hj2-prsn-*.glb and hj2-warp-gate-b.glb, made by the level port,
+;; scripts/level_port). Not ported: the lightning of the
 ;; torture cutscene, the chair (a cutscene prop), the particles, Jak 2's sounds.
 
 ;; Cell doors /////////////////////////////////////////////////////////////////////////////////////

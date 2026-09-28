@@ -1,5 +1,5 @@
-"""A small reader and printer for GOAL source code, used to translate Jak 2's decompiled particle
-definitions (defpart, defpartgroup) for Jak 3 (gen_havenj2_particles.py).
+"""A small reader and printer for GOAL source code, used to translate a game's decompiled particle
+definitions (defpart, defpartgroup) for another (steps/particles.py).
 
 Forms are Python lists; atoms are Atom (symbols, numbers, keywords, #x/#b literals, kept as their
 source text) or Str (string literals). 'x reads as [Atom("quote"), x].

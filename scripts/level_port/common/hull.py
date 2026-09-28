@@ -1,6 +1,6 @@
-"""Convex hulls for the collision of the actors rebuilt from Jak 2's models (gen_havenj2_props.py).
+"""Convex hulls, for the collision of the models rebuilt from ripped ones (glb.rebuild_model).
 
-Jak 2's actors collide with meshes of their art groups, which the model rips don't have. The hull
+A game's actors collide with meshes of their art groups, which the model rips don't have. The hull
 of a model's vertices stands in for them: build-actor makes a collide mesh of it (at most 255
 vertices, so the hull is taken over the model's extreme points in a set of directions).
 """
