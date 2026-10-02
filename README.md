@@ -22,7 +22,7 @@
 > because `master-dev` moved on without a new push landing here — run `task modding-branch-status`
 > or check GitHub Actions to audit fleet-wide mergeability.
 
-> **Contents:** [Overview](#overview) · [Key Features](#key-features) · [Controls](#controls) · [Modding Changes Log](#modding-changes-log) · [Download & Play](#download--play-via-opengoal-launcher-players) · [Developer Setup](#developer-setup--local-compilation) · [Demo Video](#demonstration-video) · [Compliance Checklist](#compliance-checklist) · [Technical Documentation](#technical-documentation)
+> **Contents:** [Overview](#overview) · [Key Features](#key-features) · [Controls](#controls) · [Download & Play](#download--play-via-opengoal-launcher-players) · [Developer Setup](#developer-setup--local-compilation) · [Demo Video](#demonstration-video) · [Technical Documentation](#technical-documentation)
 
 ---
 
@@ -83,25 +83,6 @@ The menu's entries:
 | Time of day | 9:00, 12:00, 16:00 (default), 19:00, 23:00, or Jak 2's day and night |
 | Weather (whole game) | Changing (Jak 3's weather, default), or a fixed one |
 | City traffic | Switches the traffic on (default) or off |
-
-## Modding Changes Log
-
-| Phase | Changes |
-|---|---|
-| 1 | Jak 2's Haven City as one walkable Jak 3 level; warp from the Mods menu (commit `de9ec6962`) |
-| 2 | Jak 2's sky, water and vegetation |
-| 3 | Doors to the interiors; respawn next to Jak |
-| 4 | Places loaded and unloaded like in Jak 2; the palace gate; props; time of day |
-| 5 | Market and farm props, propaganda speakers, particles and neon signs, weather, fixed cameras; the pumping station, the mountain and Haven Forest |
-| 6 | Jak 2's elevators; the platforms of the pumping station and the mountain; crates |
-| 7, 8 | City traffic; its first crash fixed; the palace door that "never opens" explained (it doesn't exist in Jak 2) |
-| 9 | Denser traffic without popping; the castle pad and the dig site; the port's air train |
-| 10 | Weather for the whole game (8 choices, snow); smoke and fountains fixed; air train cutscenes; a time gate in Jak 3's Freedom HQ; warps to every district and key place (commit `dd14a7829`) |
-| 11 | Palace elevator death fixed; Jak 2's respawn points everywhere; air train as a fade; time gates between the Freedom HQ and the hideout; saves; construction site models; two-hit speakers; farm crops; Dead Town's water, bars, slabs, platforms and the Sage's hut; particles of Haven Forest and Dead Town; the fortress and the stadium; Keira's garage open (commit `e769d5e2a`) |
-| 12 | Dead Town and the Sage's hut as one level; Jak 2's memory modes; every level in its end-of-game state (actors, background, the broken statue); the fortress prison and the way out of the fortress, with their gates; crates, swinging bars and slides everywhere; the Freedom HQ time gate crash fixed (level heaps kept below 256 MB, checked in game); a crash report in the game's log (commit `051725569`) |
-| 13 | No change in game: the level files are made by a generic tool (`scripts/level_port`) from the mod's data (`custom_assets/jak3/ports/jak2-haven-city`) |
-
-Details, causes and fixes: [change history](docs/modding/current_mod/jak2_haven_city_readme.md#13-change-history).
 
 ## Download & Play via OpenGOAL Launcher (Players)
 
@@ -180,18 +161,6 @@ Then warp from the Mods menu (L3 + SELECT, Mods ▸ jak2-haven-city ▸ Warp to 
 
 > [!NOTE]
 > *Demonstration videos must be hosted externally on YouTube to prevent repository bloating. Replace `YOUR_VIDEO_ID` with your YouTube video ID (e.g. `MnqnybexhSA` from `https://youtu.be/MnqnybexhSA`).*
-
-## Compliance Checklist
-- [ ] **Native non-regression:** with the mod compiled but its toggle OFF, the game plays identically to stock.
-  *Not yet: the time gate always stands in Jak 3's Freedom HQ, whatever the menu says. The only vanilla code change is a faction manager check in `guard.gc`, which changes nothing where Jak 3's faction manager exists (Jak 3's own city).*
-- [x] **In-game Mods toggle [MANDATORY FOR FEATURES]:** the mod registers at least one enable/disable entry via `(mods-menu-register "jak2-haven-city" ...)` (Jak 2 / Jak 3, opens with **L3 + SELECT**, works in a retail boot) or a `jak2_haven_city`-prefixed **debug-only** submenu (Jak 1). See [`docs/modding/guides/mods_menu.md`](docs/modding/guides/mods_menu.md).
-- [x] **No direct `default-menu*.gc` edits.**
-- [ ] **Symbols prefixed** with the mod slug (`*mod-jak2_haven_city-*`, `mod-jak2_haven_city-*`).
-  *Partly: the menu's settings use `mod-jak2-haven-city-`; the levels' code uses the level prefixes `havenj2-` and `hj2-`.*
-- [ ] **Verified Lisp instructions** used by this mod are present in `docs/modding/lisp_instructions.md` (landed on `master-dev` via `task modding-land-doc`).
-  *Not yet: the verified Jak 3 facts are listed in the technical README, [Jak 2 and Jak 3 differences](docs/modding/current_mod/jak2_haven_city_readme.md#10-jak-2-and-jak-3-differences).*
-- [x] **In-code comments** on every new/overridden type, method, state, macro.
-- [ ] **Mod cover thumbnail:** Optional cover image deposited at `docs/img/mod/mod_cover.png` for OpenGOAL Launcher display.
 
 ## Technical Documentation
 For the complete technical breakdown, architecture, and developer notes, refer to:

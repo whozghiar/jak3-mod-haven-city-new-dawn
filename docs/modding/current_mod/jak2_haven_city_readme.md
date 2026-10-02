@@ -1089,3 +1089,11 @@ were checked against phase 12's, and `(mi)` builds them.
   citizen and guard models, the KG and Metal Head squads.
 - **Sounds and voices:** the Baron's speeches, Jak 2's object sounds.
 - **The save slot's picture** is Jak 3's choice ([9.4](#94-saves)).
+- **Native non-regression, not met yet:** the time gate always stands in Jak 3's Freedom HQ,
+  whatever the menu says. The only vanilla code change is a faction manager check in `guard.gc`,
+  which changes nothing where Jak 3's faction manager exists (Jak 3's own city).
+- **Symbols prefixed with the mod's slug, partly:** the menu's settings use
+  `mod-jak2-haven-city-`; the levels' code uses the level prefixes `havenj2-` and `hj2-`.
+- **Verified facts in the Lisp wiki, not yet:** the verified Jak 3 facts are listed in
+  [10](#10-jak-2-and-jak-3-differences); record them with the `kb` skill.
+- **Cover thumbnail:** none yet (`docs/img/mod/mod_cover.png`).
