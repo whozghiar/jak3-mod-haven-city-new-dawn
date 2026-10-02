@@ -3,7 +3,6 @@
 <p align="center">
   <img src="https://img.shields.io/badge/OpenGOAL-Mod-blue.svg" alt="OpenGOAL Mod">
   <img src="https://img.shields.io/badge/Game-Jak%203-orange.svg" alt="Target Game">
-  <img src="https://img.shields.io/badge/Branch-jak3%2Ffeatures%2Fjak2-haven-city-green.svg" alt="Branch">
   <img src="https://img.shields.io/badge/AI--assisted-Modding-purple.svg" alt="AI Assisted">
 </p>
 
@@ -27,6 +26,9 @@
 
 ---
 
+> [!NOTE]
+> This mod moved from the `jak3/features/jak2-haven-city` branch of [whozghiar/jak-project](https://github.com/whozghiar/jak-project) to this repository. Earlier releases stay installable from the launcher catalog.
+
 ## Overview
 Brings Jak 2's Haven City and the places around it into Jak 3, as they are at the end of Jak 2:
 the whole city as one walkable level, with its interiors, the palace, Dead Town, the pumping
@@ -34,7 +36,7 @@ station, the mountain, Haven Forest, the fortress and its prison, the stadium's 
 dig site, all rebuilt from Jak 2's own extracted data and linked the way Jak 2 links them.
 
 - **Target Game:** Jak 3
-- **Active Branch:** `jak3/features/jak2-haven-city`
+- **Repository:** [`whozghiar/jak3-mod-jak2-haven-city`](https://github.com/whozghiar/jak3-mod-jak2-haven-city)
 
 ## Key Features
 - **The whole city:** Jak 2's 14 districts, `ctywide` and the stadium grounds merged into one Jak 3
