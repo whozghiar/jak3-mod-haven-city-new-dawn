@@ -17,6 +17,7 @@ NAME = "jak2"
 TITLE = "Jak 2"
 METER = 4096.0
 
+ISO = "iso_data/jak2"
 ENTITIES = "decompiler_out/jak2/entities"
 RIPS = "decompiler_out/jak2/levels"
 FR3 = "out/jak2/fr3"
@@ -211,6 +212,18 @@ def level_names():
     names in the continues' level lists)."""
     src = open(LEVEL_INFO, encoding="utf-8").read()
     return set(re.findall(r"^\s*:name '([a-z0-9-]+)\s*$", src, re.M))
+
+
+@functools.cache
+def _nicknames():
+    src = open(LEVEL_INFO, encoding="utf-8").read()
+    return dict(re.findall(r"^\s*:name '([a-z0-9-]+)\s*\n(?:.*\n){0,8}?\s*:nickname '([a-z0-9-]+)",
+                           src, re.M))
+
+
+def dgo_of(level):
+    """The DGO holding a level: its nickname's (ctysluma: CTA.DGO)."""
+    return _nicknames()[level].upper() + ".DGO"
 
 
 def memory_modes():

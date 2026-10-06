@@ -15,16 +15,17 @@ game, target game or game pair is added next to the existing ones (see
 From the repository root:
 
 ```bash
-python scripts/level_port custom_assets/jak3/ports/jak2-haven-city/port.jsonc
+task level-port -- custom_assets/jak3/ports/jak2-haven-city/port.jsonc
 python scripts/level_port <manifest> --steps levels      # only some steps
 ```
 
 It needs:
 
-- the source game extracted (`task extract`), with `rip_levels` on in its decompiler config (the
-  model rips of `decompiler_out/<game>/levels/`),
-- the target game extracted (some textures and art come from it),
-- `fr3_check` built (`cmake --build out/build/Release --target fr3_check`): the particle step lists
+- both games' disc files in `iso_data/<game>`. The first step, `extract` ([steps/extract.py](steps/extract.py)),
+  checks the extractions the port reads and runs the decompiler for what is missing: the source
+  game's backgrounds, entity dumps and model rips (`rip_levels`; the whole game the first time,
+  then only the DGOs of the levels whose files are missing), the target game's backgrounds,
+- the decompiler and `fr3_check` built (`cmake --build out/build/Release --target fr3_check`): the particle step lists
   the textures of `.fr3` files with it,
 - the C++ side: the decompiler's exports (fixed cameras, navigation data, TIE collision tags) and the
   level builder's keys the generated `.jsonc` files use (`import_fr3`, `nav_data`, `cameras`,
@@ -38,6 +39,7 @@ changes, so `goalc` only rebuilds the levels that changed.
 
 | Step | Writes |
 |---|---|
+| `extract` | Nothing in git: the games' extractions it is missing (decompiler outputs in `decompiler_out/<game>` and `out/<game>/fr3`) |
 | `mesh` | `<level>-mesh.glb`: the source props kept as background, and the pool surfaces (`mesh`, `water`) |
 | `ocean` | `<level>-ocean.gc`: a level's own ocean map, copied from the source game (`ocean_source`) |
 | `nav` | `<level>-nav.json`: the traffic navigation data merged for the level (`nav`), and its height map |
@@ -61,12 +63,15 @@ scripts/level_port/
   convert/scripts.py     the translator of entity and region scripts (want-load, want-display...)
   convert/<a>_<b>.py     what changes between two games: door classes, pickup ids, particle flag
                          names and callbacks, continue flags, ocean maps...
-  steps/                 the steps, run in order: mesh, ocean, nav, levels (which runs
+  steps/                 the steps, run in order: extract, mesh, ocean, nav, levels (which runs
                          props.py, particles.py, water.py and sound.py for the levels)
 ```
 
 The data of a mod (its level names and ids, the doors it keeps, its own classes, its models...) is
-only in its manifest. The steps' docstrings describe their manifest blocks in detail.
+only in its manifest. What the port makes from the games' files isn't committed: a full run lists
+every file it writes in the `.gitignore` block of the manifest's `ignore_outputs`, so a mod's
+repository holds its manifest and its own code, and each machine makes the rest from its own
+discs. The steps' docstrings describe their manifest blocks in detail.
 
 ## The manifest
 
@@ -76,6 +81,7 @@ names (`callbacks_file`) are in the same folder. Top-level keys:
 | Key | Meaning |
 |---|---|
 | `name`, `source_game`, `target_game` | The port, and the games (`games/<game>.py`, `convert/<source>_<target>.py`) |
+| `ignore_outputs` | The `.gitignore` in which a full run lists the generated files (between two lines naming the `tag`) |
 | `tag`, `prefix` | The mark of the mod's generated files (`og:<mod>`), and the prefix of what the port names: continues, particle groups and callbacks. The mod's GAME code defines `<prefix>sprite-page-new` and `<prefix>sprite-page-register` for the particles' texture pages |
 | `paths` | `levels` (custom levels), `models` (build-actor models), `code` (the levels' GOAL code) |
 | `story` | The source game's story state the levels are ported in: `state` (`end`: every task done) and `open_tasks` |
@@ -142,5 +148,6 @@ Jak 1 and Jak 2 as targets need the level builder's import features in their own
 
 ## Checking a change
 
-The generated files are committed. After a change of the tool, run it and look at `git diff`: a
-change that only reorganizes the code must leave them as they were (the tool's own comments aside).
+The generated files aren't committed. Before a change of the tool, copy them aside (the
+`.gitignore` block lists them), run it after the change and compare: a change that only
+reorganizes the code must leave them as they were (the tool's own comments aside).

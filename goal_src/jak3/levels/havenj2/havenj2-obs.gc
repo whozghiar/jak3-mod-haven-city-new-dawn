@@ -505,6 +505,8 @@ bank, 'j2palca1, which hj2-pal's region by the gate loads, as Jak 2 does)."
     )
   )
 
+(define-extern *mod-jak2-haven-city-alert* symbol)
+
 (defun hj2-city-alert-level ()
   "The city's alert level: the Freedom League squad's (Jak 2's traffic engine alert), 0 while
 havenj2's squad doesn't exist. No side effects."
@@ -628,6 +630,7 @@ root's position. Returns a vector (mode 3: a static one, overwritten by the next
                     )
                  (focus-test? (the-as process-focusable gp-0) pilot)
                  (>= (hj2-city-alert-level) 1)
+                 *mod-jak2-haven-city-alert*
                  )
         (go-virtual hostile)
         )

@@ -3,6 +3,8 @@ points."""
 
 NAME = "jak3"
 TITLE = "Jak 3"
+ISO = "iso_data/jak3"
+FR3 = "out/jak3/fr3"
 METER = 4096.0
 
 # Jak 3's level heap is 18 chunks. A level of each memory mode takes one of these chunk sets (the

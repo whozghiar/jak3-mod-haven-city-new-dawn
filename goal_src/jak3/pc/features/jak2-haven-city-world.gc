@@ -44,9 +44,13 @@ itself (name): the city's districts and their hub make one group (respawn points
 
 (defun hj2-swap-in-district ((this load-state) (name symbol))
   "Make name (a city district, see hj2-hub-of) wanted in place of a district of its hub that is
-wanted but not shown, while the hub is wanted. #t if it did."
+wanted but not shown, while the hub is wanted; with no such district, when the hub and a single
+other level are wanted, in an empty slot (the hub and two districts fit the level heap: a
+small-center and two small-edge levels). #t if it did."
   (let ((hub (hj2-hub-of name))
         (hidden -1)
+        (empty -1)
+        (wanted 0)
         (hub-wanted? #f)
         )
     (when (!= hub name)
@@ -56,15 +60,27 @@ wanted but not shown, while the hub is wanted. #t if it did."
             ((= want name)
              (return #f)
              )
+            ((not want)
+             (if (< empty 0)
+                 (set! empty i)
+                 )
+             )
             ((= want hub)
              (set! hub-wanted? #t)
              )
-            ((and want (= (hj2-hub-of want) hub) (not (-> this want i display?)))
+            ((and (= (hj2-hub-of want) hub) (not (-> this want i display?)))
              (set! hidden i)
              )
             )
+          (if want
+              (+! wanted 1)
+              )
           )
         )
+      ;; no hidden district: the empty slot, if only the hub and one other level are wanted
+      (if (and (< hidden 0) (<= wanted 2))
+          (set! hidden empty)
+          )
       (when (and hub-wanted? (>= hidden 0))
         (dotimes (i 10)
           (set! (-> *hj2-want-names* i) (if (= i hidden)
@@ -1859,6 +1875,56 @@ while Jak's level is the hub or one of its districts. Returns nothing."
   (none)
   )
 
+;; Jak 2 sets the sound banks in the region scripts of each level's borders (want-sound), which run
+;; only while that level is loaded: a level loaded late misses them (its border was crossed before
+;; it loaded), and its sounds stay silent (the farm's sprinklers). So when the level Jak is in
+;; (vis-nick) becomes one of this mod's, its banks become those of its continue closest to Jak, as
+;; on a respawn there. The regions inside a level still change them as in Jak 2.
+
+(define *hj2-sound-level* (the-as symbol #f))
+
+(defun hj2-update-level-sounds ()
+  "Called every frame by the city's process: when vis-nick changes to one of this mod's levels, want
+the sound banks of that level's continue closest to Jak. Returns nothing."
+  (let ((nick (-> *load-state* vis-nick)))
+    (when (!= nick *hj2-sound-level*)
+      (set! *hj2-sound-level* nick)
+      (let ((lev (level-get *level* nick)))
+        (when (and lev (member nick *havenj2-levels*))
+          (let ((best (the-as continue-point #f))
+                (best-dist 0.0)
+                )
+            (let* ((p (-> lev info continues))
+                   (c (car p))
+                   )
+              (while (not (null? p))
+                (let ((d (vector-vector-distance (target-pos 0) (-> (the-as continue-point c) trans))))
+                  (when (or (not best) (< d best-dist))
+                    (set! best (the-as continue-point c))
+                    (set! best-dist d)
+                    )
+                  )
+                (set! p (cdr p))
+                (set! c (car p))
+                )
+              )
+            (when best
+              ;; want-sound-banks changes the array it is given: a copy of the continue's
+              (let ((banks (new 'stack-no-clear 'array 'symbol 3)))
+                (dotimes (i 3)
+                  (set! (-> banks i) (-> best want-sound i))
+                  )
+                (want-sound-banks *load-state* banks)
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+  (none)
+  )
+
 (defun hj2-update-ocean-order ()
   "Jak 3 draws the ocean map of the first displayed level in draw order (draw! of ocean, levels
 sorted by draw-priority): the level of this mod Jak is in comes first when it has one (its
@@ -1888,13 +1954,15 @@ map is still displayed (the mountain seen from Haven Forest)."
 (defbehavior havenj2-continues-code process ()
   "The city process's code, every frame: Jak's current level in the city (hj2-update-vis-nick, the
 respawn point follows it like in Jak 2), the water of the level Jak is in first
-(hj2-update-ocean-order), the city district under Jak shown (hj2-district-guard), and Jak 2's music
-variation for Jak's state (hj2-update-music-flava)."
+(hj2-update-ocean-order), the city district under Jak shown (hj2-district-guard), the sound banks
+of the level Jak enters (hj2-update-level-sounds), and Jak 2's music variation for Jak's state
+(hj2-update-music-flava)."
   (set! *hj2-music-flava* 0)
   (loop
     (when *target*
       (hj2-update-vis-nick)
       (hj2-district-guard)
+      (hj2-update-level-sounds)
       (hj2-update-music-flava)
       )
     (hj2-update-ocean-order)
@@ -2003,6 +2071,16 @@ named under the slot's title."
 
 ;; Jak 2's Freedom League Hellcats in havenj2's traffic (Mods menu: Hellcats), off by default
 (define *mod-jak2-haven-city-hellcats* #f)
+
+;; Jak 2's Crimson Guard bikes, flown by Freedom League guards, in havenj2's traffic (Mods menu:
+;; Guard bikes, havenj2-traffic.gc), off by default
+(define *mod-jak2-haven-city-guard-bikes* #f)
+
+;; Jak 2's alert in havenj2 (Mods menu: Jak 2's alert), on by default: hitting a guard raises the
+;; Freedom League's alert to 1, hitting a Hellcat to 2 (havenj2-traffic.gc), and the city's guard
+;; turrets pop up and fire at Jak flying a vehicle near them while the alert is up
+;; (hj2-cty-guard-turret, havenj2-obs.gc). Off: Jak 3's own alert only (citizens hit), no turrets.
+(define *mod-jak2-haven-city-alert* #t)
 
 ;; in havenj2's own code (levels/havenj2/havenj2-traffic.gc): only called while havenj2 is active
 (define-extern havenj2-traffic-start (function level symbol none))

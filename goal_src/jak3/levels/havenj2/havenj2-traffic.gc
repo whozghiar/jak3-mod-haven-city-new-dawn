@@ -22,7 +22,8 @@
 ;;
 ;; The traffic runs while havenj2 is active and *mod-jak2-haven-city-traffic* is on (Mods menu), see
 ;; hj2-traffic-refresh in jak2-haven-city-world.gc. Jak 2's Hellcats join it while
-;; *mod-jak2-haven-city-hellcats* is on (see "Freedom League Hellcats" below).
+;; *mod-jak2-haven-city-hellcats* is on (see "Freedom League Hellcats" below), its guard bikes while
+;; *mod-jak2-haven-city-guard-bikes* is on (see "Freedom League guard bikes").
 
 (define-extern restore-city-speeches (function none))
 ;; Jak 2's citizens' lines, defined in the level-info file (jak2-haven-city-levels.gc)
@@ -33,6 +34,15 @@
 (define-extern *hj2-civ-m-stealing-sounds* (array string))
 (define-extern *hj2-civ-m-cower-sounds* (array string))
 (define-extern *hj2-civ-f-cower-sounds* (array string))
+;; Jak 2's Crimson Guards' lines, defined in the level-info file too
+(define-extern *hj2-guard-chatter-sounds* (array string))
+(define-extern *hj2-guard-chatter-jak-sounds* (array string))
+(define-extern *hj2-guard-go-hostile-sounds* (array string))
+(define-extern *hj2-guard-hit-sounds* (array string))
+(define-extern *hj2-guard-victory-sounds* (array string))
+(define-extern *hj2-guard-change-targets-sounds* (array string))
+(define-extern *hj2-guard-bumped-sounds* (array string))
+(define-extern *hj2-guard-battle-sounds* (array string))
 
 ;; Citizens' speech. Jak 3's city gives its civ-* speech types no lines (its citizens are silent);
 ;; here they get Jak 2's citizens' lines (ctywide-speech.gc there: speech types 16 and 24 when they
@@ -98,6 +108,36 @@
                                    )
         )
 
+;; Guards' speech. The Freedom League guards speak Jak 2's Crimson Guards' lines (ctywide-speech.gc
+;; there): each of Jak 3's guard-* speech types gets the Jak 2 type said at the same moment of Jak
+;; 2's guard code (guard.gc, crimson-guard-level.gc there; Jak 3's guard.gc and guard-states.gc
+;; derive from them), with its channel, flags, priority and delays. Jak 3 has two voices per type
+;; (the type, and the next one for odd traffic ids: speech-control-method-13): both get Jak 2's
+;; lines. guard-witness-death has no Jak 2 equivalent and keeps Jak 3's lines.
+;; Jak 2's speech type 1, on patrol
+(define *hj2-guard-chatter-speech* (new 'static 'speech-type-info :channel #x0 :priority -10 :min-delay (seconds 8) :max-delay (seconds 20)))
+
+;; Jak 2's speech type 4, seeing Jak
+(define *hj2-guard-chatter-jak-speech* (new 'static 'speech-type-info :channel #x0 :min-delay (seconds 3) :max-delay (seconds 8)))
+
+;; Jak 2's speech type 3, going hostile
+(define *hj2-guard-go-hostile-speech* (new 'static 'speech-type-info :channel #x0 :priority 3 :request-timeout #x12c :min-delay (seconds 1) :max-delay (seconds 1)))
+
+;; Jak 2's speech type 11, attacked
+(define *hj2-guard-hit-speech* (new 'static 'speech-type-info :channel #x0 :priority 2 :min-delay (seconds 0.1) :max-delay (seconds 0.1)))
+
+;; Jak 2's speech type 10, Jak killed
+(define *hj2-guard-victory-speech* (new 'static 'speech-type-info :channel #x0 :flags (speech-type-flag random-order) :priority 10 :request-timeout #x258 :min-delay (seconds 2) :max-delay (seconds 4)))
+
+;; Jak 2's speech type 2, Jak seen again
+(define *hj2-guard-change-targets-speech* (new 'static 'speech-type-info :channel #x0 :priority 3 :request-timeout #x12c :min-delay (seconds 8) :max-delay (seconds 20)))
+
+;; Jak 2's speech type 14, bumped
+(define *hj2-guard-bumped-speech* (new 'static 'speech-type-info :channel #x0 :priority 10 :min-delay (seconds 1) :max-delay (seconds 1)))
+
+;; Jak 2's speech type 6 and 9, fighting
+(define *hj2-guard-battle-speech* (new 'static 'speech-type-info :channel #x0 :flags (speech-type-flag random-order) :min-delay (seconds 2) :max-delay (seconds 4)))
+
 (defun hj2-civ-speech ((type speech-type) (info speech-type-info) (lines (array string)))
   "Give a speech type (type) its info and lines. Returns nothing."
   (set! (-> info list) lines)
@@ -105,10 +145,28 @@
   (none)
   )
 
+(defun hj2-guard-speech ((type speech-type) (info speech-type-info) (lines (array string)))
+  "Give a guard speech type (type) and its second voice (the next type) the info and lines.
+Returns nothing."
+  (set! (-> info list) lines)
+  (speech-table-set! *speech-control* type info)
+  (speech-table-set! *speech-control* (the-as speech-type (+ (the-as int type) 1)) info)
+  (none)
+  )
+
 (defun hj2-restore-city-speeches ()
   "havenj2's restore-speech-callback (*traffic-info*): Jak 3's city speeches (its guards' lines), and
-Jak 2's citizens' lines for Jak 3's civ-* speech types. Returns nothing."
+Jak 2's citizens' lines for Jak 3's civ-* speech types, Jak 2's guards' for its guard-* types.
+Returns nothing."
   (restore-city-speeches)
+  (hj2-guard-speech (speech-type guard-chatter) *hj2-guard-chatter-speech* *hj2-guard-chatter-sounds*)
+  (hj2-guard-speech (speech-type guard-chatter-jak) *hj2-guard-chatter-jak-speech* *hj2-guard-chatter-jak-sounds*)
+  (hj2-guard-speech (speech-type guard-go-hostile) *hj2-guard-go-hostile-speech* *hj2-guard-go-hostile-sounds*)
+  (hj2-guard-speech (speech-type guard-hit) *hj2-guard-hit-speech* *hj2-guard-hit-sounds*)
+  (hj2-guard-speech (speech-type guard-battle-victory) *hj2-guard-victory-speech* *hj2-guard-victory-sounds*)
+  (hj2-guard-speech (speech-type guard-change-targets) *hj2-guard-change-targets-speech* *hj2-guard-change-targets-sounds*)
+  (hj2-guard-speech (speech-type guard-bumped-by-jak) *hj2-guard-bumped-speech* *hj2-guard-bumped-sounds*)
+  (hj2-guard-speech (speech-type guard-generic-battle) *hj2-guard-battle-speech* *hj2-guard-battle-sounds*)
   (hj2-civ-speech (speech-type civ-m-alert) *hj2-civ-m-alert-speech* *hj2-civ-m-alert-sounds*)
   (hj2-civ-speech (speech-type civ-f-alert) *hj2-civ-f-alert-speech* *hj2-civ-f-alert-sounds*)
   (hj2-civ-speech (speech-type civ-m-shot-by-player) *hj2-civ-m-shot-speech* *hj2-civ-m-shot-sounds*)
@@ -132,6 +190,37 @@ Jak 2's citizens' lines for Jak 3's civ-* speech types. Returns nothing."
     15 15 14 1 1 0 9 0 0 0 0 0 0 0 0 0 0
     ;; hover bikes and cars (17 to 22), none of the other vehicles (23 to 28)
     8 8 8 7 7 7 0 0 0 0 0 0
+    )
+  )
+
+;; Jak 2's alert ////////////////////////////////////////////////////////////////////////////////
+;;
+;; Jak 3's city raises the Freedom League's alert when Jak hits citizens (citizen's event-handler,
+;; citizen-method-210), not when he hits a guard or a guard vehicle: its guard's event-handler skips
+;; the citizen one on a hit, and vehicle-method-130 does nothing. Jak 2 raises it there (guard.gc's
+;; general-event-handler: trigger-alert 1; vehicle-guard's vehicle-method-130: 2). With
+;; *mod-jak2-haven-city-alert* on (Mods menu), havenj2 does it too. These methods replace Jak 3's
+;; in the guard and Hellcat classes of havenj2's DGO (their code, guard.o and car.o, is linked
+;; before this file there): Jak 3's city loads its own.
+
+(define-extern *mod-jak2-haven-city-alert* symbol)
+
+;; Jak 3's guard event handler, as linked before this file (havenj2's DGO)
+(define *hj2-stock-guard-event-handler* (method-of-type crimson-guard event-handler))
+
+(defmethod event-handler ((this crimson-guard) (arg0 process) (arg1 int) (arg2 symbol) (arg3 event-message-block))
+  "Jak 3's guard event handler, then, like Jak 2's (guard.gc there), a hit from Jak (or what he
+fires) raises the alert to 1 while *mod-jak2-haven-city-alert* is on. arg0: the sender, arg1: the
+parameter count, arg2: the event, arg3: its parameters. Returns Jak 3's answer."
+  (let ((answer (*hj2-stock-guard-event-handler* this arg0 arg1 arg2 arg3)))
+    (when (and *mod-jak2-haven-city-alert* (or (= arg2 'hit) (= arg2 'hit-flinch) (= arg2 'hit-knocked)))
+      (let ((attacker (as-type (handle->process (-> this incoming attacker-handle)) process-focusable)))
+        (if (and attacker (logtest? (-> attacker mask) (process-mask target)))
+            (citizen-method-210 this 1 attacker)
+            )
+        )
+      )
+    answer
     )
   )
 
@@ -178,13 +267,15 @@ Jak 2's citizens' lines for Jak 3's civ-* speech types. Returns nothing."
 
 (defmethod setup ((this hj2-hellcat-pilot))
   "Seat the pilot, show the meshes of a regular guard and play his seated stance
-   (crimson-guard-car-stance-ja). crimson-guard-ag holds every variant at once: the masks are the
-   ones crimson-guard-method-267 sets for a guard on foot (hide bits 1-4, then the blue body, 3),
-   without the weapon bit (8 rifle, 16 tazer/grenade) and never the dark guard body (5)."
+   (crimson-guard-car-stance-ja in a Hellcat, crimson-guard-bike-stance-ja on a guard bike: the
+   parent setup sets vr2 for a vehicle with a car stance). crimson-guard-ag holds every variant at
+   once: the masks are the ones crimson-guard-method-267 sets for a guard on foot (hide bits 1-4,
+   then the blue body, 3), without the weapon bit (8 rifle, 16 tazer/grenade) and never the dark
+   guard body (5)."
   (call-parent-method this)
   (setup-masks (-> this draw) 0 30)
   (setup-masks (-> this draw) 3 0)
-  (set! (-> this riding-anim) 36)
+  (set! (-> this riding-anim) (if (logtest? (-> this flags) (vehicle-rider-flag vr2)) 36 35))
   0
   (none)
   )
@@ -351,21 +442,38 @@ Jak 2's citizens' lines for Jak 3's civ-* speech types. Returns nothing."
   (none)
   )
 
+(defmethod vehicle-method-130 ((this h-hellcat))
+  "Jak hit the Hellcat while a guard flies it (vehicle's event handler; Jak 3's does nothing): like
+Jak 2's vehicle-guard, the alert goes to 2 while *mod-jak2-haven-city-alert* is on. Returns none."
+  (if (and *mod-jak2-haven-city-alert* *target*)
+      (vehicle-method-107 this 2 *target*)
+      )
+  0
+  (none)
+  )
+
+(defun hj2-guard-gunnery ((veh vehicle) (tc turret-control))
+  "Jak 2's player gunnery (vehicle-guard vehicle-method-94) for a guard vehicle Jak flies (veh), with
+   its front gun (tc): the gun aims straight ahead, 40 m out, with no spread, and R1 fires a round
+   every 0.35 s. Rounds are owned by Jak, so hitting citizens or guards raises the alert like his own
+   gun. Called every frame from the vehicle's vehicle-method-94. Returns nothing."
+  (let ((aim (new 'stack-no-clear 'vector)))
+    (vector+float*! aim (-> veh rbody position) (-> veh rbody matrix fvec) 163840.0)
+    (set! (-> tc inaccuracy) 0.0)
+    (turret-control-method-9 tc veh aim (vector-reset! (new 'stack-no-clear 'vector)))
+    )
+  (when (and (cpad-hold? 0 r1) (not *pause-lock*) (time-elapsed? (-> tc shoot-time) (seconds 0.35)))
+    (set! (-> tc owner-handle) (process->handle *target*))
+    (turret-control-method-17 tc veh)
+    (set! (-> tc owner-handle) (the-as handle #f))
+    )
+  (none)
+  )
+
 (defmethod vehicle-method-94 ((this h-hellcat))
   "Per-frame camera update while Jak flies the Hellcat (vehicle-method-77, camera flag), extended
-   with Jak 2's player gunnery (vehicle-guard vehicle-method-94): the front gun aims straight ahead,
-   40 m out, with no spread, and R1 fires a round every 0.35 s. Rounds are owned by Jak, so hitting
-   citizens or guards raises the alert like his own gun."
-  (let ((aim (new 'stack-no-clear 'vector)))
-    (vector+float*! aim (-> this rbody position) (-> this rbody matrix fvec) 163840.0)
-    (set! (-> this turret inaccuracy) 0.0)
-    (turret-control-method-9 (-> this turret) this aim (vector-reset! (new 'stack-no-clear 'vector)))
-    )
-  (when (and (cpad-hold? 0 r1) (not *pause-lock*) (time-elapsed? (-> this turret shoot-time) (seconds 0.35)))
-    (set! (-> this turret owner-handle) (process->handle *target*))
-    (turret-control-method-17 (-> this turret) this)
-    (set! (-> this turret owner-handle) (the-as handle #f))
-    )
+   with Jak 2's player gunnery (hj2-guard-gunnery)."
+  (hj2-guard-gunnery this (-> this turret))
   ((method-of-type hvehicle vehicle-method-94) this)
   0
   (none)
@@ -378,18 +486,200 @@ Jak 2's citizens' lines for Jak 3's civ-* speech types. Returns nothing."
   (none)
   )
 
+;; Freedom League guard bikes /////////////////////////////////////////////////////////////////////
+;;
+;; Jak 2's Crimson Guard bikes (guard-bike, bike.gc there) in the city's traffic, while
+;; *mod-jak2-haven-city-guard-bikes* is on (Mods menu, off by default), flown by the Hellcats' pilot
+;; (hj2-hellcat-pilot, in its bike stance). Like the Hellcats, they only fly the traffic lanes.
+;; Jak 3 keeps the traffic type guard-bike (the Freedom League squad's guard type 4) but has no
+;; class, vehicle type or art for it: the model is rebuilt from Jak 2's rip (hj2-guard-bike-ag, in
+;; havenj2's DGO: the port's "models" of havenj2), the class is Jak 3's hover bike with Jak 2's
+;; collision, seats and front gun, and hj2-traffic-object-spawn spawns it with vehicle-spawn-hack
+;; (no vehicle type: it takes the traffic's vehicle level, havenj2).
+
+;; How many guard bikes fly at once (Jak 2's number; 20 at most per traffic type)
+(defconstant HJ2_GUARD_BIKES 3)
+
+;; The model rebuilt from Jak 2's crimson-bike, joints kept: 3 main_ (the origin, like Jak 3's
+;; bikes), 4 wheel (the nose, which Jak 2's turret turns), 5 gun. Defines *hj2-guard-bike-sg*.
+(def-actor hj2-guard-bike
+  :bounds (0 0 0 3.4)
+  :origin-joint-index 3
+  )
+
+;; Jak 3's hover bike constants (*h-bike-a-constants*: Jak 2's guard bike has the same mass,
+;; physics and thrusters, so the control-point arrays stay consistent with cm-offset), with Jak 2's
+;; guard bike's (*guard-bike-constants* there) where they differ. Static (havenj2's heap), filled
+;; below when havenj2's code links, like Jak 3's own *v-marauder-b-constants* (wcar-marauder-b.gc).
+(define *hj2-guard-bike-constants* (new 'static 'rigid-body-vehicle-constants))
+
+(mem-copy! (the-as pointer *hj2-guard-bike-constants*) (the-as pointer *h-bike-a-constants*) (size-of rigid-body-vehicle-constants))
+
+(let ((c *hj2-guard-bike-constants*))
+  (set! (-> c name) '*hj2-guard-bike-constants*)
+  ;; a guard bike (Jak 2's flags): bit 2 makes a hit from Jak call vehicle-method-130
+  (set! (-> c flags) (the-as uint #x54))
+  (set! (-> c object-type) (traffic-type guard-bike))
+  (set! (-> c guard-type) (the-as uint 4))
+  ;; Jak 2's back seat, its one color (white)
+  (set! (-> c rider seat-array 1 pos-y) 0.0)
+  (set! (-> c setup color-option-count) 1)
+  ;; Jak 2's thrusters, exhausts, smoke and lights, on its own model
+  (let ((p (-> c particles)))
+    (set-vector! (-> p thruster-local-pos 0) 1024.0 0.0 -11878.4 1.0)
+    (set-vector! (-> p thruster-local-pos 1) -1024.0 0.0 -11878.4 1.0)
+    (set-vector! (-> p exhaust-local-pos 0) 2048.0 204.8 -3276.8 1.0)
+    (set-vector! (-> p exhaust-local-pos 1) -2048.0 204.8 -3276.8 1.0)
+    (set-vector! (-> p exhaust-local-dir 0) 0.7 0.0 -0.7 1.0)
+    (set-vector! (-> p exhaust-local-dir 1) -0.7 0.0 -0.7 1.0)
+    (set-vector! (-> p smoke-local-pos 0) 2048.0 204.8 -4505.6 1.0)
+    (set-vector! (-> p smoke-local-pos 1) -2048.0 204.8 -4505.6 1.0)
+    (set-vector! (-> p smoke-local-vel 0) 2048.0 0.0 0.0 1.0)
+    (set-vector! (-> p smoke-local-vel 1) -2048.0 0.0 0.0 1.0)
+    (set-vector! (-> p headlight-local-pos 0) 0.0 819.2 12288.0 1.0)
+    (set-vector! (-> p taillight-local-pos 0) 0.0 2867.2 -9420.8 1.0)
+    )
+  )
+
+(deftype hj2-guard-bike (h-bike-base)
+  ((turret-jm  joint-mod-rotate-local  :inline)
+   (turret     turret-control          :inline)
+   )
+  )
+
+
+(defmethod init-collision! ((this hj2-guard-bike))
+  "Jak 2's guard bike collision (allocate-and-init-cshape there): its spheres, with Jak 3's prim id
+   of the bikes' rider sphere (160, Jak 2's 96). Returns nothing; sets root."
+  (let ((s5-0 (new 'process 'collide-shape-moving this (collide-list-enum usually-hit-by-player))))
+    (set! (-> s5-0 dynam) (copy *standard-dynamics* 'process))
+    (set! (-> s5-0 reaction) cshape-reaction-default)
+    (set! (-> s5-0 no-reaction)
+          (the-as (function collide-shape-moving collide-query vector vector object) nothing)
+          )
+    (set! (-> s5-0 penetrate-using) (penetrate vehicle))
+    (let ((s4-0 (new 'process 'collide-shape-prim-group s5-0 (the-as uint 5) 0)))
+      (set! (-> s5-0 total-prims) (the-as uint 6))
+      (set! (-> s4-0 prim-core action) (collide-action solid))
+      (set-vector! (-> s4-0 local-sphere) 0.0 0.0 0.0 13312.0)
+      (set! (-> s5-0 root-prim) s4-0)
+      )
+    (let ((v1-11 (new 'process 'collide-shape-prim-sphere s5-0 (the-as uint 1))))
+      (set! (-> v1-11 prim-core action) (collide-action solid))
+      (set! (-> v1-11 transform-index) 0)
+      (set-vector! (-> v1-11 local-sphere) 0.0 0.0 4505.6 4300.8)
+      )
+    (let ((v1-13 (new 'process 'collide-shape-prim-sphere s5-0 (the-as uint 2))))
+      (set! (-> v1-13 prim-core action) (collide-action solid nav-sphere))
+      (set! (-> v1-13 transform-index) 0)
+      (set-vector! (-> v1-13 local-sphere) 0.0 0.0 -3686.4 4096.0)
+      (set! (-> v1-13 nav-radius) 7168.0)
+      )
+    (let ((v1-15 (new 'process 'collide-shape-prim-sphere s5-0 (the-as uint 160))))
+      (set! (-> v1-15 prim-core action) (collide-action solid))
+      (set! (-> v1-15 transform-index) 0)
+      (set-vector! (-> v1-15 local-sphere) 204.8 3276.8 1228.8 3276.8)
+      )
+    (let ((v1-17 (new 'process 'collide-shape-prim-sphere s5-0 (the-as uint 1))))
+      (set! (-> v1-17 prim-core action) (collide-action solid nav-sphere))
+      (set! (-> v1-17 transform-index) 0)
+      (set-vector! (-> v1-17 local-sphere) 0.0 0.0 9011.2 3686.4)
+      (set! (-> v1-17 nav-radius) 7168.0)
+      )
+    (let ((v1-19 (new 'process 'collide-shape-prim-sphere s5-0 (the-as uint 2))))
+      (set! (-> v1-19 prim-core action) (collide-action solid))
+      (set! (-> v1-19 transform-index) 0)
+      (set-vector! (-> v1-19 local-sphere) 0.0 -1638.4 -8192.0 3686.4)
+      )
+    (set! (-> s5-0 nav-radius) 16384.0)
+    (let ((v1-21 (-> s5-0 root-prim)))
+      (set! (-> s5-0 backup-collide-as) (-> v1-21 prim-core collide-as))
+      (set! (-> s5-0 backup-collide-with) (-> v1-21 prim-core collide-with))
+      )
+    (set! (-> s5-0 nav-flags) (nav-flags has-child-spheres))
+    (set! (-> this root) s5-0)
+    )
+  0
+  (none)
+  )
+
+(defmethod init-rbody-control! ((this hj2-guard-bike))
+  "Skeleton (hj2-guard-bike-ag, in havenj2's DGO), physics (*hj2-guard-bike-constants*), the front
+   gun (the Hellcat's turret settings: Jak 2's guard bike turret has the same, on joint 4), and the
+   Freedom League mark: a guard, never targeted by guards. Returns nothing."
+  (initialize-skeleton this *hj2-guard-bike-sg* (the-as pair 0))
+  (alloc-rbody-control! this *hj2-guard-bike-constants*)
+  (init (-> this turret-jm) this (the-as uint 4) (joint-mod-base-flags attached))
+  (set-info (-> this turret) *hj2-hellcat-turret*)
+  (set! (-> this turret ignore-handle) (process->handle this))
+  ;; the bike turret slot of the squad's alert settings (guard type 4)
+  (set! (-> this turret guard-settings) (if *ff-squad-control*
+                                            (get-unit-settings-by-idx *ff-squad-control* 4)
+                                            *hj2-hellcat-fire*
+                                            )
+        )
+  (logior! (-> this mask) (process-mask guard))
+  0
+  (none)
+  )
+
+(defmethod vehicle-method-79 ((this hj2-guard-bike))
+  "Joint mods: point the nose and its gun where the turret aims. Returns nothing."
+  (update-joint-mod (-> this turret) (-> this turret-jm))
+  0
+  (none)
+  )
+
+(defmethod vehicle-method-130 ((this hj2-guard-bike))
+  "Jak hit the bike while a guard flies it (vehicle's event handler, flag bit 2 of the constants):
+like Jak 2's vehicle-guard, the alert goes to 2 while *mod-jak2-haven-city-alert* is on. Returns
+nothing."
+  (if (and *mod-jak2-haven-city-alert* *target*)
+      (vehicle-method-107 this 2 *target*)
+      )
+  0
+  (none)
+  )
+
+(defmethod vehicle-method-94 ((this hj2-guard-bike))
+  "Per-frame camera update while Jak flies the bike (vehicle-method-77, camera flag), extended with
+   Jak 2's player gunnery (hj2-guard-gunnery). Returns nothing."
+  (hj2-guard-gunnery this (-> this turret))
+  ((method-of-type hvehicle vehicle-method-94) this)
+  0
+  (none)
+  )
+
+(defmethod vehicle-method-133 ((this hj2-guard-bike) (arg0 traffic-object-spawn-params))
+  "Rider spawn (arg0: the traffic's spawn parameters): a Freedom League pilot instead of a civilian.
+Returns nothing."
+  (vehicle-rider-spawn this hj2-hellcat-pilot arg0)
+  0
+  (none)
+  )
+
 ;; The traffic manager spawns every traffic object through traffic-object-spawn (traffic-manager.gc),
-;; which has no guard-car case. havenj2's DGO links its own copy of traffic-manager.o just before
-;; this file: the copy is wrapped here, in havenj2's code only (Jak 3's city links its own again).
+;; which has no guard-car or guard-bike case. havenj2's DGO links its own copy of traffic-manager.o
+;; just before this file: the copy is wrapped here, in havenj2's code only (Jak 3's city links its
+;; own again).
 (define *hj2-stock-traffic-object-spawn* traffic-object-spawn)
 
 (defun hj2-traffic-object-spawn ((arg0 process) (arg1 traffic-object-spawn-params))
-  "traffic-object-spawn with a guard-car case: a Hellcat (vehicle-spawn checks its level is loaded).
-Every other type goes to the stock function."
-  (if (= (-> arg1 object-type) (traffic-type guard-car))
-      (vehicle-spawn (vehicle-type h-hellcat) arg1)
+  "traffic-object-spawn (arg0: the traffic manager, arg1: the spawn parameters) with a guard-car
+case: a Hellcat (vehicle-spawn checks its level is loaded), and a guard-bike case: a guard bike
+(vehicle-spawn-hack: the traffic only spawns it while its level, havenj2, is active). Every other
+type goes to the stock function. Returns the spawned process, or #f."
+  (case (-> arg1 object-type)
+    (((traffic-type guard-car))
+     (vehicle-spawn (vehicle-type h-hellcat) arg1)
+     )
+    (((traffic-type guard-bike))
+     (vehicle-spawn-hack hj2-guard-bike arg1 arg0)
+     )
+    (else
       (*hj2-stock-traffic-object-spawn* arg0 arg1)
       )
+    )
   )
 
 (set! traffic-object-spawn hj2-traffic-object-spawn)
@@ -466,6 +756,9 @@ guards and the city's vehicles after it."
       (if *mod-jak2-haven-city-hellcats*
           (set! (-> *traffic-engine* object-type-info-array (traffic-type guard-car) want-count) HJ2_HELLCATS)
           )
+      (if *mod-jak2-haven-city-guard-bikes*
+          (set! (-> *traffic-engine* object-type-info-array (traffic-type guard-bike) want-count) HJ2_GUARD_BIKES)
+          )
       (add-squad-to-traffic-engine *ff-squad-control* *traffic-engine*)
       (squad-control-method-10 *ff-squad-control*)
       (restore-default-settings *traffic-engine*)
@@ -474,6 +767,10 @@ guards and the city's vehicles after it."
       ;; for guard type 1 (cty-protect.gc). After restore-default-settings, whose init-alert resets it
       (if *mod-jak2-haven-city-hellcats*
           (ff-squad-control-method-56 *ff-squad-control* 5 HJ2_HELLCATS HJ2_HELLCATS)
+          )
+      ;; the same for the guard bikes (guard type 4)
+      (if *mod-jak2-haven-city-guard-bikes*
+          (ff-squad-control-method-56 *ff-squad-control* 4 HJ2_GUARD_BIKES HJ2_GUARD_BIKES)
           )
       )
     )
@@ -492,6 +789,10 @@ guards and the city's vehicles after it."
     ;; the Hellcats (traffic type guard-car)
     (if *mod-jak2-haven-city-hellcats*
         (set! (-> info vehicle-levels (vehicle-type h-hellcat)) 'havenj2)
+        )
+    ;; the guard bikes: no vehicle type maps to their traffic type, so update-level-info keeps it
+    (if *mod-jak2-haven-city-guard-bikes*
+        (set! (-> info traffic-object-levels (traffic-type guard-bike)) 'havenj2)
         )
     )
   (update-level-info lev)

@@ -13,7 +13,7 @@ if not __package__:
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     __package__ = "level_port"
 
-from level_port.common.files import ROOT  # noqa: E402
+from level_port.common.files import OUTPUTS, ROOT, write_ignore_block  # noqa: E402
 
 
 def main():
@@ -39,6 +39,10 @@ def main():
         print(f"{name}:")
         STEPS[name](port)
         print(f"  ({time.time() - start:.1f} s)")
+    # a full run knows every generated file: the manifest's "ignore_outputs" .gitignore lists them
+    if not args.steps and port.get("ignore_outputs"):
+        if write_ignore_block(port["ignore_outputs"], port["tag"], OUTPUTS):
+            print(f"{port['ignore_outputs']}: {len(OUTPUTS)} generated files listed")
 
 
 if __name__ == "__main__":

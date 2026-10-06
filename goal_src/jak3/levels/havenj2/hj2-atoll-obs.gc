@@ -745,8 +745,10 @@ axis)."
 ;; idle, open and close animations, made by the level port).
 ;; Not ported: Jak 2's nav-enemy (its nav mesh moved it and told where its zone is: the zone is the
 ;; nav mesh's 71 polygons below, and it moves in a straight line, holding still when the point it
-;; follows leaves the zone), its banking, its splashes and wake (water-control), its 12 hit points
-;; (Jak can't destroy it), the guard voice line of its warning (cityv052).
+;; follows leaves the zone), its banking, its splashes and wake (water-control), the guard voice line
+;; of its warning (cityv052). Unlike Jak 2's (whose death the player never sees: it only fires at
+;; Jak swimming off), it can be destroyed: its 12 hit points (Jak 2's default-hit-points), taken by
+;; Jak's attacks while it is up, then it blows up for good (until the station loads again).
 ;; Sounds: Jak 2's, in its ATOLL3 and ATOLL4 banks (loaded where the buoy is): the gun-buoy-steady
 ;; ambient (louder as it surfaces), the buoy-alarm loop while it warns Jak, buoy-guns-in as it
 ;; closes its guns, buoy-shot as each shot fires.
@@ -871,9 +873,9 @@ repeated corner makes a null edge, ignored). Returns #t or #f. No side effects."
   )
 
 ;; Jak 2's gun-buoy-shot: a guard shot (Jak 3's guard-shot, GAME: its beam, glows and hit sparks)
-;; that turns towards Jak every frame (aimed 2m above his feet), flies through the background like
-;; Jak 2's (it only collides with Jak and his bots), 180m/s, gone after 2.78s, and kills Jak (Jak 2's
-;; 'explode attack, 1024 damage). Sound: Jak 2's buoy-shot as it fires (no hit sound, as in Jak 2).
+;; that turns towards Jak every frame (aimed 2m above his feet), 180m/s, gone after 2.78s, and kills
+;; Jak (Jak 2's 'explode attack, 1024 damage). Jak 2's flies through the background (it only collides
+;; with Jak and his bots): here it stops at walls and the ground, Jak behind cover is safe. Sound: Jak 2's buoy-shot as it fires (no hit sound, as in Jak 2).
 (deftype hj2-gun-buoy-shot (guard-shot)
   ()
   )
@@ -913,8 +915,8 @@ transv, trans, tail-pos; may go to impact. Returns none."
 
 (defmethod setup-collision! ((this hj2-gun-buoy-shot))
   "Jak 2's gun-buoy-shot collision: a 0.6m group holding a 0.2m solid deadly sphere and a 0.6m
-deadly sphere, colliding with Jak and his bots only (no background), guard-shot's ignored surfaces.
-Sets the shot's root. Returns none."
+deadly sphere, colliding with Jak, his bots and the background (Jak 2's goes through it),
+guard-shot's ignored surfaces. Sets the shot's root. Returns none."
   (let ((s5-0 (new 'process 'collide-shape-moving this (collide-list-enum hit-by-player))))
     (set! (-> s5-0 dynam) (copy *standard-dynamics* 'process))
     (set! (-> s5-0 reaction)
@@ -927,14 +929,14 @@ Sets the shot's root. Returns none."
     (let ((s4-0 (new 'process 'collide-shape-prim-group s5-0 (the-as uint 2) 0)))
       (set! (-> s5-0 total-prims) (the-as uint 3))
       (set! (-> s4-0 prim-core collide-as) (collide-spec projectile))
-      (set! (-> s4-0 prim-core collide-with) (collide-spec jak bot player-list))
+      (set! (-> s4-0 prim-core collide-with) (collide-spec backgnd jak bot player-list))
       (set! (-> s4-0 prim-core action) (collide-action solid))
       (set-vector! (-> s4-0 local-sphere) 0.0 0.0 0.0 2457.6)
       (set! (-> s5-0 root-prim) s4-0)
       )
     (let ((v1-13 (new 'process 'collide-shape-prim-sphere s5-0 (the-as uint 0))))
       (set! (-> v1-13 prim-core collide-as) (collide-spec projectile))
-      (set! (-> v1-13 prim-core collide-with) (collide-spec jak bot player-list))
+      (set! (-> v1-13 prim-core collide-with) (collide-spec backgnd jak bot player-list))
       (set! (-> v1-13 prim-core action) (collide-action solid deadly))
       (set-vector! (-> v1-13 local-sphere) 0.0 0.0 0.0 819.2)
       )
@@ -979,7 +981,9 @@ Sets the shot's root. Returns none."
 ;;   offset-y-angular: the offset's last turn (smoothing); elev-angle: the aim's tilt; y-offset: how
 ;;   deep it is under its floating height (0 surfaced, -20m sunk); y-speed: how fast it surfaces;
 ;;   warned?: it has already warned Jak once (next warnings are 0.1 s); kill?: a region told it to
-;;   kill Jak (no warning, fires until Jak dies); warning-id: the buoy-alarm loop's sound id.
+;;   kill Jak (no warning, fires until Jak dies); warning-id: the buoy-alarm loop's sound id;
+;;   hit-points: what Jak's attacks leave it (12); incoming-attack-id: the last attack taken (one
+;;   hit per attack).
 (deftype hj2-gun-buoy (process-drawable)
   ((root              collide-shape  :override)
    (start-pos         vector         :inline)
@@ -993,6 +997,8 @@ Sets the shot's root. Returns none."
    (warned?           symbol)
    (kill?             symbol)
    (warning-id        sound-id)
+   (hit-points        int32)
+   (incoming-attack-id uint32)
    )
   (:state-methods
     dormant
@@ -1002,6 +1008,7 @@ Sets the shot's root. Returns none."
     attack
     stare-down
     exit-ambush
+    explode
     )
   (:methods
     (fire-pair (_type_) none)
@@ -1159,6 +1166,73 @@ transform-post (joints, collision). Returns nothing."
   (none)
   )
 
+(defbehavior hj2-gun-buoy-hit hj2-gun-buoy ((proc process) (message symbol) (block event-message-block))
+  "The buoy's 'attack event while it is up (every state but dormant and explode), like the city
+turrets' (hj2-cty-guard-turret-event-handler): once per attack id, 10 hit points for a strong hit
+(a punch, a kick, a red or dark shot, an explosion), else the attack's damage; below 0 it blows up.
+proc: the sender, message: the event, block: its parameters. Returns #t for an attack taken, else
+#f. Side effects: hit-points, incoming-attack-id, the explode state."
+  (when (= message 'attack)
+    (let ((pen (get-penetrate-using-from-attack-event (the-as process-drawable proc) block))
+          (info (the-as attack-info (-> block param 1)))
+          )
+      (when (!= (-> info id) (-> self incoming-attack-id))
+        (set! (-> self incoming-attack-id) (-> info id))
+        (cond
+          ((logtest? (penetrate
+                       flop
+                       punch
+                       spin
+                       uppercut
+                       dark-punch
+                       dark-bomb
+                       dark-smack
+                       explode
+                       jak-red-shot
+                       jak-dark-shot
+                       )
+                     pen
+                     )
+           (+! (-> self hit-points) -10)
+           )
+          ((logtest? (attack-mask damage) (-> info mask))
+           (set! (-> self hit-points) (- (-> self hit-points) (the int (-> info damage))))
+           )
+          (else
+            (set! (-> self hit-points) (- (-> self hit-points) (penetrate-using->damage pen)))
+            )
+          )
+        (if (< (-> self hit-points) 0)
+            (go-virtual explode)
+            )
+        #t
+        )
+      )
+    )
+  )
+
+;; blown up: the explosion (Jak 3's guards' particles, Jak 2's vehicle-explode sound from CTYWIDE1,
+;; which the station loads), then gone: hidden, without collision, its sounds stopped, until the
+;; station loads again
+(defstate explode (hj2-gun-buoy)
+  :virtual #t
+  :enter (behavior ()
+    (sound-play "vehicle-explode")
+    (vector-copy!
+      (-> *launch-matrix* trans)
+      (vector+*! (new 'stack-no-clear 'vector) (-> self root trans) *up-vector* 8192.0)
+      )
+    (part-tracker-spawn part-tracker :to *entity-pool* :group group-kg-explosion)
+    (logior! (-> self draw status) (draw-control-status no-draw))
+    (let ((prim (-> self root root-prim)))
+      (set! (-> prim prim-core collide-as) (collide-spec))
+      (set! (-> prim prim-core collide-with) (collide-spec))
+      )
+    (stop! (-> self sound))
+    )
+  :code sleep-code
+  )
+
 ;; waiting under water, hidden; surfaces when Jak swims into its zone, or at once on 'kill-player
 (defstate dormant (hj2-gun-buoy)
   :virtual #t
@@ -1189,6 +1263,9 @@ transform-post (joints, collision). Returns nothing."
 ;; under him), 20m down (9m on the board), and rises to the surface, growing; then opens its guns
 (defstate ambush (hj2-gun-buoy)
   :virtual #t
+  :event (behavior ((proc process) (argc int) (message symbol) (block event-message-block))
+    (hj2-gun-buoy-hit proc message block)
+    )
   :enter (behavior ()
     (let ((tgt *target*))
       (cond
@@ -1256,6 +1333,9 @@ transform-post (joints, collision). Returns nothing."
 ;; Jak (still in its zone) or stares at him (gone). Jak moving faster than 25m/s: fires at once.
 (defstate open-guns (hj2-gun-buoy)
   :virtual #t
+  :event (behavior ((proc process) (argc int) (message symbol) (block event-message-block))
+    (hj2-gun-buoy-hit proc message block)
+    )
   :trans (behavior ()
     (if (and *target* (< 102400.0 (vector-length (get-transv *target*))))
         (go-virtual attack)
@@ -1305,6 +1385,9 @@ transform-post (joints, collision). Returns nothing."
        (set! (-> self kill?) #t)
        (go-virtual attack)
        )
+      (('attack)
+       (hj2-gun-buoy-hit proc message block)
+       )
       )
     )
   :enter (behavior ()
@@ -1349,6 +1432,9 @@ transform-post (joints, collision). Returns nothing."
 ;; kill); stares once Jak has left or is dead
 (defstate attack (hj2-gun-buoy)
   :virtual #t
+  :event (behavior ((proc process) (argc int) (message symbol) (block event-message-block))
+    (hj2-gun-buoy-hit proc message block)
+    )
   :trans (behavior ()
     (if (or (not *target*) (focus-test? *target* dead))
         (go-virtual stare-down)
@@ -1377,6 +1463,9 @@ transform-post (joints, collision). Returns nothing."
 ;; them again, else it sinks
 (defstate stare-down (hj2-gun-buoy)
   :virtual #t
+  :event (behavior ((proc process) (argc int) (message symbol) (block event-message-block))
+    (hj2-gun-buoy-hit proc message block)
+    )
   :enter (behavior ()
     (set-time! (-> self state-time))
     )
@@ -1411,6 +1500,9 @@ transform-post (joints, collision). Returns nothing."
 ;; sinking 20m (12m/s), shrinking, then back to its spot, hidden
 (defstate exit-ambush (hj2-gun-buoy)
   :virtual #t
+  :event (behavior ((proc process) (argc int) (message symbol) (block event-message-block))
+    (hj2-gun-buoy-hit proc message block)
+    )
   :trans (behavior ()
     (if (< (-> self y-offset) -81510.4)
         (go-virtual dormant)
@@ -1473,7 +1565,8 @@ buoy."
   "Jak 2's gun-buoy setup, from the entity arg0 (no lumps read): a solid sphere that can't be stood
 on (Jak 2's: 3m around its body, in a 3.4m group), placement, skeleton (shut), the guns' tilt
 joint-mod, aiming ahead, sunk, Jak 2's gun-buoy-steady ambient sound (80m falloff, silent until it
-surfaces). Not paused far away: it watches Jak anywhere in the station. Goes to dormant."
+surfaces), 12 hit points. Not paused far away: it watches Jak anywhere in the station. Goes to
+dormant."
   (let ((cshape (new 'process 'collide-shape this (collide-list-enum usually-hit-by-player))))
     (let ((group (new 'process 'collide-shape-prim-group cshape (the-as uint 1) 0)))
       (set! (-> cshape total-prims) (the-as uint 2))
@@ -1511,6 +1604,8 @@ surfaces). Not paused far away: it watches Jak anywhere in the station. Goes to 
   (set! (-> this warned?) #f)
   (set! (-> this kill?) #f)
   (set! (-> this warning-id) (new 'static 'sound-id))
+  (set! (-> this hit-points) 12)
+  (set! (-> this incoming-attack-id) (the-as uint 0))
   (set! (-> this sound)
         (new 'process 'ambient-sound (static-sound-spec "gun-buoy-steady" :group 0 :fo-max 80) (-> this root trans) 0.0)
         )

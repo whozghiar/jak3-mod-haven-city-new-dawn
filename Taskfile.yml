@@ -56,6 +56,10 @@ tasks:
         msg: "Couldn't locate decompiler executable in '{{.DECOMP_BIN_RELEASE_DIR}}/decompiler'"
     cmds:
       - '{{.DECOMP_BIN_RELEASE_DIR}}/decompiler "./decompiler/config/{{.DECOMP_CONFIG}}" "./iso_data" "./decompiler_out" --version "{{.DECOMP_CONFIG_VERSION}}" --config-override ''{"decompile_code": false, "levels_extract": true, "allowed_objects": []}'''
+  level-port:
+    desc: "Ports levels of one game into another (scripts/level_port): checks the games' extractions in iso_data, extracts what is missing, generates the levels. Usage: task level-port -- <manifest>"
+    cmds:
+      - "{{.PYTHON}} ./scripts/level_port {{.CLI_ARGS}}"
   boot-game:
     desc: "Boots the game, it will fail if it's not already compiled!"
     preconditions:

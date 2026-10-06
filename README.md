@@ -22,7 +22,7 @@
 > because `master-dev` moved on without a new push landing here — run `task modding-branch-status`
 > or check GitHub Actions to audit fleet-wide mergeability.
 
-> **Contents:** [Overview](#overview) · [Key Features](#key-features) · [Controls](#controls) · [Download & Play](#download--play-via-opengoal-launcher-players) · [Developer Setup](#developer-setup--local-compilation) · [Demo Video](#demonstration-video) · [Technical Documentation](#technical-documentation)
+> **Contents:** [Overview](#overview) · [Requirements](#requirements) · [Key Features](#key-features) · [Controls](#controls) · [Download & Play](#download--play-via-opengoal-launcher-players) · [Developer Setup](#developer-setup--local-compilation) · [Demo Video](#demonstration-video) · [Technical Documentation](#technical-documentation)
 
 ---
 
@@ -37,6 +37,23 @@ dig site, all rebuilt from Jak 2's own extracted data and linked the way Jak 2 l
 
 - **Target Game:** Jak 3
 - **Repository:** [`whozghiar/jak3-mod-jak2-haven-city`](https://github.com/whozghiar/jak3-mod-jak2-haven-city)
+
+## Requirements
+
+> [!IMPORTANT]
+> **You need an official copy of both Jak 2 and Jak 3**: your own PS2 discs, or ISOs dumped
+> from them (the NTSC-U releases, which OpenGOAL calls `ntsc_v1`). The mod contains nothing of
+> either game: its levels, models, textures, music, sounds and voices are all made on your machine
+> from your own Jak 2 and Jak 3. Owning Jak 3 alone is not enough. Both games must be **extracted
+> before the mod is built**:
+>
+> 1. copy each disc's files (the content of the ISO) into `iso_data/jak2` and `iso_data/jak3`;
+> 2. run `task level-port -- custom_assets/jak3/ports/jak2-haven-city/port.jsonc`: it extracts
+>    what it needs from both games (the first time, all of Jak 2 with its models: long, about
+>    11 GB) and generates the levels;
+> 3. build and play ([Developer Setup](#developer-setup--local-compilation)).
+>
+> Without Jak 2, the mod can't be built.
 
 ## Key Features
 - **The whole city:** Jak 2's 14 districts, `ctywide` and the stadium grounds, loaded district by
@@ -63,10 +80,14 @@ dig site, all rebuilt from Jak 2's own extracted data and linked the way Jak 2 l
 - **Air trains:** the port's air train takes Jak to the dig site and back, in a short fade.
 - **City traffic:** Jak 3's citizens, Freedom League guards, hover bikes and cars, as many as in
   Jak 2; Jak 2's Freedom League Hellcats as an option: they fly with the traffic without chasing
-  Jak, and Jak can steal one and fire its front gun.
+  Jak, and Jak can steal one and fire its front gun; Jak 2's Crimson Guard bikes, ridden by
+  Freedom League guards, as another option.
+- **Jak 2's alert:** hitting a guard or a Hellcat raises the alert like in Jak 2, and the city's
+  guard turrets pop up and fire at Jak while he flies a vehicle near them.
 - **Jak 2's sound:** each place's Jak 2 music (with its variations when Jak draws his gun, rides
   the board, turns dark or drives), ambiences and object sounds, the Baron's speeches from his
-  propaganda speakers and the citizens' lines, taken from your Jak 2 extraction.
+  propaganda speakers, the citizens' and the guards' lines (the Freedom League guards speak like
+  Jak 2's Crimson Guards), taken from your Jak 2 extraction.
 - **Time and weather:** a fixed hour or Jak 2's day and night; Jak 3's changing weather or a fixed
   one (sunny, cloudy, foggy, light rain, rain, thunderstorm, snow) in the whole game.
 - **Travelling:** warps to every district, key places and places outside the city; two time gates,
@@ -95,11 +116,14 @@ The menu's entries:
 | Weather (whole game) | Changing (Jak 3's weather, default), or a fixed one |
 | City traffic | Switches the traffic on (default) or off |
 | Hellcats in the traffic | Adds Jak 2's Freedom League Hellcats to the traffic (off by default) |
+| Guard bikes in the traffic | Adds Jak 2's Crimson Guard bikes, ridden by Freedom League guards (off by default) |
+| Jak 2's alert (turrets) | Hitting guards raises the alert, the turrets fire at Jak's vehicle (on by default) |
 
 ## Download & Play via OpenGOAL Launcher (Players)
 
 > [!WARNING]
-> Not available through the launcher yet: the level is built from a local Jak 2 extraction, see
+> Not available through the launcher yet: the launcher asks for one game's ISO only, and this mod
+> is built from both your Jak 2 and your Jak 3 extractions. See
 > [Developer Setup](#developer-setup--local-compilation).
 
 > [!TIP]
@@ -143,20 +167,17 @@ task build-release-game
 task build-release-decomp
 ```
 
-### 3. Asset Extraction
-- **Status:** Required for **both** Jak 2 and Jak 3.
-- **Details:** the levels merge Jak 2's extracted `.fr3` files and take some sprite textures from
-  Jak 3's, so both games must be extracted before building. Jak 3's Freedom HQ also gets the time
-  gate's model at extraction (`extra_art_groups_by_dgo`): a Jak 3 extracted before this branch
-  needs it again (the technical README gives a command for that level only). The build copies
-  Jak 2's music, sound banks and voice lines from Jak 2's extraction (`iso_data/jak2`); without it
-  the levels are silent. The generated level files are in the repository; regenerating them also needs Jak 2's model rips (`rip_levels`), see
-  the technical README.
+### 3. Asset Extraction and Level Generation
+- **Status:** Required for **both** Jak 2 and Jak 3, from official copies (NTSC-U, `ntsc_v1`).
+- **Details:** nothing of Jak 2 or Jak 3 is in the repository: the levels, models and level code
+  are made on your machine from your own discs or ISOs. Copy each disc's files into `iso_data/jak2` and
+  `iso_data/jak3`, then run the level port: it extracts what it needs (the first time, all of
+  Jak 2 with its models: long, 11 GB) and generates the levels. The build then copies Jak 2's
+  music, sound banks and voice lines from `iso_data/jak2`. Jak 3's Freedom HQ needs the time gate's
+  model at extraction: a Jak 3 extracted before this branch needs that level again (the technical
+  README gives the command).
 ```bash
-task set-game-jak2
-task extract
-task set-game-jak3
-task extract
+task level-port -- custom_assets/jak3/ports/jak2-haven-city/port.jsonc
 ```
 
 ### 4. Launch the Game

@@ -12,6 +12,9 @@
   // (continues, particle groups and callbacks; the GAME code defines <prefix>sprite-page-new and
   // <prefix>sprite-page-register, jak2-haven-city-world.gc)
   "tag": "og:jak2-haven-city",
+  // the files the port generates (from the player's Jak 2 and Jak 3 extractions) are kept out of git:
+  // a full run lists them in this .gitignore (scripts/level_port/__main__.py)
+  "ignore_outputs": ".gitignore",
   "prefix": "hj2-",
   "paths": {
     "levels": "custom_assets/jak3/levels",
@@ -60,8 +63,8 @@
     "extra_banks": {"ctywide1": ["citycarh"], "ctywide2": ["citypedh"], "ctywide3": ["cityffh"]},
     // Jak 2's voice lines, packed for Jak 3 by the build (goalc's pack-vags), j + their name (Jak 3's
     // code plays some of Jak 2's names: its propa class). Each list is defined in the level-info file:
-    // the speakers' speeches (havenj2-obs.gc) and the citizens' lines (Jak 2's ctywide-speech.gc,
-    // given to Jak 3's civ-* speech types in havenj2-traffic.gc).
+    // the speakers' speeches (havenj2-obs.gc), the citizens' and the guards' lines (Jak 2's
+    // ctywide-speech.gc, given to Jak 3's civ-* and guard-* speech types in havenj2-traffic.gc).
     "voice_prefix": "j",
     "voices": {
       "*hj2-propa-sounds*": ["prop009", "prop010", "prop011", "prop012", "prop013", "prop014", "prop015", "prop016", "prop017", "prop018", "prop019", "prop020", "prop021", "prop022", "prop023", "prop024", "prop025", "prop026", "prop028", "prop027", "prop029", "prop030", "prop031", "prop032", "prop033", "prop034", "prop035", "prop036", "prop037", "prop038", "prop039", "prop040", "prop041", "prop042", "prop043", "prop008", "prop006", "prop005", "prop004", "prop002", "prop003", "bar001", "prop044", "prop045", "prop046", "prop047", "prop048", "prop049", "prop051", "prop052", "prop053", "prop054", "prop055", "prop056"],
@@ -71,7 +74,16 @@
       "*hj2-civ-f-shot-sounds*": ["cit097c", "cit097d", "cit098c", "cit098d", "cit099c", "cit098d"],
       "*hj2-civ-m-stealing-sounds*": ["cit001", "cit004", "cit008", "cit010", "cit016", "cit033", "cit034", "cit035", "cit046", "cit047", "cit051", "cit053", "cit055", "cit056", "cit057", "cit058"],
       "*hj2-civ-m-cower-sounds*": ["cit099", "cit099a", "cit099b", "cit100", "cit100a", "cit100b", "cit101", "cit101a", "cit101b"],
-      "*hj2-civ-f-cower-sounds*": ["cit099c", "cit099d", "cit100c", "cit101c", "cit103", "cit103a", "cit104", "cit104a", "cit105", "cit120", "cit120a"]
+      "*hj2-civ-f-cower-sounds*": ["cit099c", "cit099d", "cit100c", "cit101c", "cit103", "cit103a", "cit104", "cit104a", "cit105", "cit120", "cit120a"],
+      // Jak 2's Crimson Guards' lines, for Jak 3's guard-* speech types (havenj2-traffic.gc)
+      "*hj2-guard-chatter-sounds*": ["kg007a", "kg010", "kg015", "kg030", "kg031", "kg032", "kg033", "kg007", "kg035a", "kg033a", "kg121a", "kg034", "kg030a", "kg031a", "kg034a", "kg128a", "kg035", "kg032a", "kg038", "kg129a", "kg041a", "kg042a", "kg043a", "kg121", "kg125", "kg124", "kg128", "kg125a", "kg129", "kg131", "kg124a", "kg131a"],
+      "*hj2-guard-chatter-jak-sounds*": ["kg029a", "kg036", "kg037", "kg051a", "kg052a", "kg053a", "kg037a", "kg054a", "kg055a", "kg056a", "kg036a", "kg057a", "kg058a", "kg059a", "kg060a", "kg061a", "kg029", "kg062a", "kg063a", "kg064a", "kg113a"],
+      "*hj2-guard-go-hostile-sounds*": ["kg070", "kg071a", "kg072a", "kg077", "kg073a", "kg074a", "kg070a", "kg075a", "kg076a", "kg077a"],
+      "*hj2-guard-hit-sounds*": ["kg386a", "kg387a", "kg388a", "kg389a", "kg390a", "kg391a", "kg392a", "kg393a", "kg394a", "kg395a", "kg396a", "kg397a", "kg398a", "kg399a", "kg400a", "kg401a", "kg402a", "kg403a", "kg404a", "kg090a", "kg405a", "kg406a", "kg407a", "kg408a", "kg409a", "kg410a", "kg411a", "kg412a", "kg413a", "kg414a", "kg415a", "kg416a", "kg417a", "kg418a", "kg419a", "kg420a", "kg421a", "kg422a", "kg423a", "kg424a", "kg425a", "kg426a", "kg427a", "kg428a", "kg089a"],
+      "*hj2-guard-victory-sounds*": ["kg009", "kg132", "kg132a", "kg133", "kg146", "kg147", "kg148", "kg149", "kg151", "kg152", "kg153", "kg154", "kg159", "kg165", "kg165a", "kg165b", "kg166", "kg166a", "kg166b", "kg167", "kg167a", "kg167b", "kg168", "kg168a", "kg168b", "kg169", "kg169a", "kg169b", "kg170", "kg170a", "kg170b", "kg171", "kg171a", "kg171b", "kg172", "kg172a", "kg172b", "kg173", "kg173a", "kg173b", "kg236a", "kg236b", "kg237a", "kg237b", "kg238a", "kg239a", "kg239b", "kg240a"],
+      "*hj2-guard-change-targets-sounds*": ["kg044a", "kg045a", "kg046a", "kg047a", "kg048a", "kg049a", "kg050a"],
+      "*hj2-guard-bumped-sounds*": ["kg387a", "kg396a", "kg399a"],
+      "*hj2-guard-battle-sounds*": ["kg001", "kg002", "kg004", "kg006", "kg001a", "kg013", "kg016", "kg018", "kg019", "kg020", "kg023", "kg024", "kg002a", "kg004a", "kg078a", "kg079a", "kg080a", "kg081a", "kg082a", "kg083a", "kg084a", "kg085a", "kg086a", "kg087a", "kg088a", "kg091a", "kg023a", "kg006a", "kg092a", "kg020a", "kg093a", "kg094a", "kg005a", "kg095a", "kg103a", "kg104a", "kg112a", "kg024a", "kg134", "kg136", "kg137", "kg138", "kg139", "kg140", "kg141", "kg014", "kg153", "kg135", "kg142", "kg144", "kg145", "kg150"]
     }
   },
 
@@ -185,6 +197,8 @@
       "continues": [],
       // the code of its districts' props, signs, palace gate, speakers and crops, after the traffic
       "code": ["ctymark-obs-h.o", "ctymark-obs.o", "ctyfarm-obs.o", "havenj2-part.o", "havenj2-signs.o", "havenj2-obs.o", "havenj2-farm.o"],
+      // the traffic's guard bikes (hj2-guard-bike, havenj2-traffic.gc), rebuilt from Jak 2's model
+      "models": ["hj2-guard-bike"],
       "level_info": {
         "callbacks": [[6, "*security-texture-anim-array*"], [33, "havenj2-login"], [34, "havenj2-logout"], [35, "havenj2-activate"], [36, "havenj2-deactivate"]],
         "draw_priority": "9.0",
@@ -529,7 +543,9 @@
       "sources": ["atoll"],
       "sky": true, "ocean": true,
       "code": ["hj2-atoll-obs.o"],
-      "collision_bounds": [120, -80, -1420, 900, 250, -660]
+      // the playable area, down to the walkway and tunnel to the castle pad (z -1540: the pad's
+      // ground starts at -1520); the far backdrops stay without collision
+      "collision_bounds": [120, -80, -1540, 900, 250, -660]
     },
     {
       // Haven Forest: the gardens airlock opens on the foot of the mountain (mountain), whose warp
@@ -1112,7 +1128,14 @@
     "hj2-fort-turret": {"model": "hj2-fort-turret", "rip": "forrescb/fort-turret-lod0.glb", "prims": null, "collide": [{"hull": null, "joint": "recoiltrans"}, {"hull": null, "joint": "secrotate"}, {"hull": null, "joint": "main"}], "anims": [["forrescb/fort-turret-lod0.glb", "fort-turret-idle", "hj2-fort-turret-idle"], ["forrescb/fort-turret-lod0.glb", "fort-turret-shoot", "hj2-fort-turret-shoot"], ["forrescb/fort-turret-lod0.glb", "fort-turret-rise", "hj2-fort-turret-rise"]]},
     // the port and the garage: Daxter's mech (farthy) and the garage's parked cars (hj2-common-
     // obs.gc), the port's barges (hj2-port-obs.gc, Jak 3's boat-manager and barge)
-    "hj2-farthy": {"model": "hj2-farthy", "rip": "ctyport/mecha-daxter-lod0.glb", "prims": null, "collide": null}
+    "hj2-farthy": {"model": "hj2-farthy", "rip": "ctyport/mecha-daxter-lod0.glb", "prims": null, "collide": null},
+    // Jak 2's Crimson Guard bike in the city's traffic (hj2-guard-bike, havenj2-traffic.gc; in
+    // havenj2's "models"). Jak 3 has no crimson-bike art: rebuilt from a Jak 2 rip, joints kept
+    // (the turret turns joint 4). Primitives 5-10: the intact rear and front, 18-21: the body and
+    // seat (0-1 and 2-4: the broken rear and front, 11-13 and 14-17: the damaged ones; Jak 2 swaps
+    // them with setup-masks, build-actor models have no mask table). Its collision is the class's
+    // spheres
+    "hj2-guard-bike": {"model": "hj2-guard-bike", "rip": "lwideb/crimson-bike-lod0.glb", "prims": [5, 6, 7, 8, 9, 10, 18, 19, 20, 21], "collide": null}
   },
 
   // Regions: Jak 2 region ids are unique over the whole game; ours are offset past the water
@@ -1123,10 +1146,12 @@
   // mountain temple's gully): starts and stops the avalanche (the translator drops its 'draw events).
   // 436 (Haven Forest, the way to its far end): loads hj2-forstb (the mother tree and the
   // Precursor stone head) and shows it at once; Jak 2 only shows it when the camera crosses the
-  // small face 434, which the camera can miss.
+  // small face 434, which the camera can miss. 489 (the port's corridor to the farm, a camera face
+  // every way there crosses): also loads hj2-farmb (Jak 2's loading face 487 can be walked around,
+  // the farm then loaded too late).
   "region_id_offset": 1000,
   "region_open_tasks": {"528": ["palace-sneak-in-introduction"]},
-  "region_script_overrides": {"436": {"on-enter": "(begin (want-load 'hj2-forest 'hj2-forstb) (want-display 'hj2-forstb 'display))"}, "429": {"on-enter": "(send-event \"pal-rot-gun-1\" 'trigger)", "on-exit": "(send-event \"pal-rot-gun-1\" 'untrigger)"}, "319": {"on-enter": "(begin (want-load 'havenj2 'hj2-stdm 'hj2-garage) (want-display 'hj2-garage 'display))"}, "894": {"on-enter": "(send-event \"mtn-aval-rocks-4\" 'draw #t)", "on-exit": "(begin (send-event \"mtn-aval-rocks-4\" 'draw #f) (want-continue \"hj2-mountain-top\"))"}, "177": {"on-enter": "(send-event \"gun-buoy-1\" 'kill-player)"}, "353": {"on-enter": "(send-event \"gun-buoy-1\" 'kill-player)"}, "873": {"on-enter": "(send-event \"gun-buoy-1\" 'kill-player)"}},
+  "region_script_overrides": {"489": {"on-enter": "(begin (want-load 'havenj2 'hj2-port 'hj2-farmb) (want-display 'hj2-farmb 'display))"}, "436": {"on-enter": "(begin (want-load 'hj2-forest 'hj2-forstb) (want-display 'hj2-forstb 'display))"}, "429": {"on-enter": "(send-event \"pal-rot-gun-1\" 'trigger)", "on-exit": "(send-event \"pal-rot-gun-1\" 'untrigger)"}, "319": {"on-enter": "(begin (want-load 'havenj2 'hj2-stdm 'hj2-garage) (want-display 'hj2-garage 'display))"}, "894": {"on-enter": "(send-event \"mtn-aval-rocks-4\" 'draw #t)", "on-exit": "(begin (send-event \"mtn-aval-rocks-4\" 'draw #f) (want-continue \"hj2-mountain-top\"))"}, "177": {"on-enter": "(send-event \"gun-buoy-1\" 'kill-player)"}, "353": {"on-enter": "(send-event \"gun-buoy-1\" 'kill-player)"}, "873": {"on-enter": "(send-event \"gun-buoy-1\" 'kill-player)"}},
 
   // Continue points. Our names: hj2-<Jak 2 name>, but havenj2-start (ctysluma-start). The places
   // get all of Jak 2's continues of their levels (the respawn points, see havenj2-update-continue in

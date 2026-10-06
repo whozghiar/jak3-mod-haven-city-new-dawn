@@ -37,6 +37,8 @@
 (define-extern hj2-apply-weather (function none))
 (define-extern *mod-jak2-haven-city-traffic* symbol)
 (define-extern *mod-jak2-haven-city-hellcats* symbol)
+(define-extern *mod-jak2-haven-city-guard-bikes* symbol)
+(define-extern *mod-jak2-haven-city-alert* symbol)
 (define-extern hj2-traffic-refresh (function level symbol none))
 
 (defun mod-jak2-haven-city-warp ((name string))
@@ -84,6 +86,14 @@ Jak is in one of them."
   "Turn the Hellcats of the city's traffic on or off, and restart the traffic now if it runs (its
 start sets the Hellcats' level and counts, havenj2-traffic.gc)."
   (set! *mod-jak2-haven-city-hellcats* on)
+  (mod-jak2-haven-city-set-traffic *mod-jak2-haven-city-traffic*)
+  (none)
+  )
+
+(defun mod-jak2-haven-city-set-guard-bikes ((on symbol))
+  "Turn Jak 2's guard bikes of the city's traffic on (on: #t) or off (#f), and restart the traffic
+now if it runs (its start sets the bikes' level and counts, havenj2-traffic.gc). Returns nothing."
+  (set! *mod-jak2-haven-city-guard-bikes* on)
   (mod-jak2-haven-city-set-traffic *mod-jak2-haven-city-traffic*)
   (none)
   )
@@ -211,6 +221,15 @@ start sets the Hellcats' level and counts, havenj2-traffic.gc)."
       (new 'static 'popup-menu-flag :label "Hellcats in the traffic"
            :is-toggled? (lambda () *mod-jak2-haven-city-hellcats*)
            :on-confirm (lambda () (mod-jak2-haven-city-set-hellcats (not *mod-jak2-haven-city-hellcats*)) (none))
+           )
+      (new 'static 'popup-menu-flag :label "Guard bikes in the traffic"
+           :is-toggled? (lambda () *mod-jak2-haven-city-guard-bikes*)
+           :on-confirm (lambda () (mod-jak2-haven-city-set-guard-bikes (not *mod-jak2-haven-city-guard-bikes*)) (none))
+           )
+      ;; read every frame by the guards, Hellcats and turrets: takes effect at once
+      (new 'static 'popup-menu-flag :label "Jak 2's alert (turrets)"
+           :is-toggled? (lambda () *mod-jak2-haven-city-alert*)
+           :on-confirm (lambda () (set! *mod-jak2-haven-city-alert* (not *mod-jak2-haven-city-alert*)) (none))
            )
       )
     )

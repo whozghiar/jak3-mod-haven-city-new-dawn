@@ -239,12 +239,19 @@ def base_lumps(actor, door_height=None, meter=4096.0):
     return lump
 
 
+# the kill-mask bit `special` (task-mask, bit 12 in Jak 2 and Jak 3): the only actors alive while their
+# level is shown as a 'special backdrop (the spawn loop of entity.gc kills the others there). Jak 2
+# gives it to the mountain's transport platform, which Jak rides into Haven Forest, the mountain
+# then shown 'special. The other bits are story bits, already resolved (games/<game>.py spawned).
+SPECIAL_KILL_MASK = 0x1000
+
+
 def placed(actor, etype, lump, trans=None):
-    """An actor of the level .jsonc, placed like the source actor. Its vis-dist isn't copied: the
-    source game only used it in levels without visibility data, never here (a door born on the way
-    up a pillar would run its scripts there)."""
+    """An actor of the level .jsonc, placed like the source actor, keeping its kill-mask's `special`
+    bit. Its vis-dist isn't copied: the source game only used it in levels without visibility data,
+    never here (a door born on the way up a pillar would run its scripts there)."""
     trans = trans or [r4(x) for x in actor["trans"][:3]]
-    return {
+    out = {
         "trans": trans,
         "etype": etype,
         "game_task": 0,
@@ -252,6 +259,9 @@ def placed(actor, etype, lump, trans=None):
         "bsphere": trans + [r4(actor["bsphere"][3])],
         "lump": lump,
     }
+    if int(actor["lump"].get("kill-mask", 0) or 0) & SPECIAL_KILL_MASK:
+        out["kill_mask"] = SPECIAL_KILL_MASK
+    return out
 
 
 def make_door(ctx, source_level, name, closed):
@@ -1020,11 +1030,18 @@ def write_full_level(ctx, level):
     return built
 
 
+# the rings of squares the district map grows around the streets (75 m with 25 m squares)
+GROW = 3
+
+
 def district_map(ctx, cfg):
     """GOAL data: which level with a hub (a city district) holds each square of a grid over the
-    levels' navigation, from the source game's traffic cells (they cover a district's streets): the
-    cell squares holding segments, each grid square going to the district with the most segments
-    there. cfg: "var" (the prefix of the defines), "cell" (meters)."""
+    levels' navigation, from the source game's traffic cells (they cover a district's streets): each
+    cell's segments shared by the squares it overlaps, in proportion to the overlap (cells are 25
+    or 50 m: a 50 m cell counted whole on every square it touches pushed a district over its
+    neighbor's ground), each square going to the district with the most there; then GROW rings of
+    empty squares around (sidewalks, alleys, the ground past the last street). cfg: "var" (the
+    prefix of the defines), "cell" (meters)."""
     port = ctx.port
     meter = ctx.meter
     size = cfg["cell"] * meter
@@ -1041,33 +1058,38 @@ def district_map(ctx, cfg):
                 if cell["segment_count"] <= 0:
                     continue
                 x, _, z, _ = cell["sphere"]
-                for ix in range(math.floor((x - half) / size), math.floor((x + half) / size) + 1):
-                    for iz in range(math.floor((z - half) / size),
-                                    math.floor((z + half) / size) + 1):
+                for ix in range(math.floor((x - half) / size), math.ceil((x + half) / size)):
+                    ox = min(x + half, (ix + 1) * size) - max(x - half, ix * size)
+                    for iz in range(math.floor((z - half) / size), math.ceil((z + half) / size)):
+                        oz = min(z + half, (iz + 1) * size) - max(z - half, iz * size)
+                        share = cell["segment_count"] * ox * oz / (4 * half * half)
+                        if share <= 0:
+                            continue
                         counts = squares.setdefault((ix, iz), {})
-                        counts[level.name] = counts.get(level.name, 0) + cell["segment_count"]
+                        counts[level.name] = counts.get(level.name, 0) + share
             if level.name not in names:
                 names.append(level.name)
-    x0 = min(ix for ix, _ in squares)
-    z0 = min(iz for _, iz in squares)
-    nx = max(ix for ix, _ in squares) - x0 + 1
-    nz = max(iz for _, iz in squares) - z0 + 1
+    x0 = min(ix for ix, _ in squares) - GROW
+    z0 = min(iz for _, iz in squares) - GROW
+    nx = max(ix for ix, _ in squares) - x0 + 1 + GROW
+    nz = max(iz for _, iz in squares) - z0 + 1 + GROW
     cells = [0] * (nx * nz)
     for (ix, iz), counts in squares.items():
         best = max(sorted(counts), key=lambda lv: counts[lv])
         cells[(ix - x0) + (iz - z0) * nx] = names.index(best) + 1
-    # one square more around the streets (sidewalks, alleys): an empty square takes the district
+    # GROW squares more around the streets, a ring at a time: an empty square takes the district
     # most of its 8 neighbors hold
-    grown = list(cells)
-    for iz in range(nz):
-        for ix in range(nx):
-            if cells[ix + iz * nx]:
-                continue
-            near = [cells[jx + jz * nx] for jz in range(max(0, iz - 1), min(nz, iz + 2))
-                    for jx in range(max(0, ix - 1), min(nx, ix + 2)) if cells[jx + jz * nx]]
-            if near:
-                grown[ix + iz * nx] = max(sorted(set(near)), key=near.count)
-    cells = grown
+    for _ in range(GROW):
+        grown = list(cells)
+        for iz in range(nz):
+            for ix in range(nx):
+                if cells[ix + iz * nx]:
+                    continue
+                near = [cells[jx + jz * nx] for jz in range(max(0, iz - 1), min(nz, iz + 2))
+                        for jx in range(max(0, ix - 1), min(nx, ix + 2)) if cells[jx + jz * nx]]
+                if near:
+                    grown[ix + iz * nx] = max(sorted(set(near)), key=near.count)
+        cells = grown
     var = cfg["var"]
     rows = [" ".join(str(c) for c in cells[i:i + 40]) for i in range(0, len(cells), 40)]
     return [
