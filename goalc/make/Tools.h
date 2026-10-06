@@ -133,6 +133,14 @@ class BuildSbkTool : public Tool {
   goos::Reader m_reader;
 };
 
+// Packs voice lines of a Jak 2 disc's VAG files into a Jak 3 style VAG directory and wads, which
+// the Jak 3 overlord adds to its own (game/overlord/jak3/iso.cpp).
+class PackVagsTool : public Tool {
+ public:
+  PackVagsTool();
+  bool run(const ToolInput& task, const PathMap& path_map) override;
+};
+
 class AppendSbkTool : public Tool {
  public:
   AppendSbkTool();

@@ -41,6 +41,23 @@ u32 EEVagAndVagWad(ISO_VAGCommand* cmd, char* name) {
 
   cmd->vag_dir_entry = get_file_system()->FindVAGFile(name_buff.data);
   if (cmd->vag_dir_entry) {
+    // added: a mod's line (see iso.cpp) is in the mod's wad of the language, else its English one
+    if (cmd->vag_dir_entry >= g_VagDir.entries + g_nModVagFirst) {
+      memcpy(name_buff.data, "VAGWADM ", 8);
+      strncpy(name_buff.data + 8, g_pszLanguage, 4);
+      auto* wad = get_file_system()->FindIN(&name_buff);
+      if (!wad) {
+        strncpy(name_buff.data + 8, "ENG", 4);
+        wad = get_file_system()->FindIN(&name_buff);
+      }
+      cmd->file_def = wad;
+      cmd->vag_file_def = wad;
+      if (wad) {
+        return 1;
+      }
+      cmd->vag_dir_entry = nullptr;
+      return 0;
+    }
     memcpy(name_buff.data, "VAGWAD  ", 8);
     strncpy(name_buff.data + 8, g_pszLanguage, 4);
     auto* file_def = get_file_system()->FindIN(&name_buff);

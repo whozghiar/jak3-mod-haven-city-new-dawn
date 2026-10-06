@@ -21,7 +21,7 @@
   "art_groups": [],
   "actors": [
     // Jak 2's com-airlock-outer-18 (palroof) [as hj2-airlock-outer]
-    {"trans": [148.9558, 418.0259, 632.1289], "etype": "hj2-airlock-outer", "game_task": 0, "quat": [0.0, 0.9018, 0.0, 0.4321], "bsphere": [148.9558, 418.0259, 632.1289, 13.8564], "lump": {"name": "com-airlock-outer-18", "height": ["vector", [81920.0, 81920.0, 0.0, 0.0]], "on-activate": ["pair", "(want-load 'hj2-pshaft 'hj2-pcab 'hj2-proof)"], "on-enter": ["pair", "(want-display 'hj2-pshaft 'display)"], "on-notice": ["pair", "'(hj2-pshaft)"], "next-actor": ["string", "com-airlock-inner-25"]}},
+    {"trans": [148.9558, 418.0259, 632.1289], "etype": "hj2-airlock-outer", "game_task": 0, "quat": [0.0, 0.9018, 0.0, 0.4321], "bsphere": [148.9558, 418.0259, 632.1289, 13.8564], "lump": {"name": "com-airlock-outer-18", "height": ["vector", [81920.0, 81920.0, 0.0, 0.0]], "on-activate": ["pair", "(begin (want-load 'hj2-pshaft 'hj2-pcab 'hj2-proof) (want-sound 'j2ctywi1 'j2palca1 'j2palca2))"], "on-enter": ["pair", "(want-display 'hj2-pshaft 'display)"], "on-notice": ["pair", "'(hj2-pshaft)"], "next-actor": ["string", "com-airlock-inner-25"]}},
     // Jak 2's crate-796 (palroof)
     {"trans": [225.2666, 407.9999, 532.1079], "etype": "crate", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [225.2666, 407.9999, 532.1079, 1.7321], "lump": {"name": "crate-796", "eco-info": ["int32", 15, 20]}},
     // Jak 2's crate-797 (palroof)

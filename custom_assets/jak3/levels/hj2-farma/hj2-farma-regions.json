@@ -135,10 +135,10 @@
   },
   "camera": {
     "bsphere": [
-      -241.2346,
+      -274.0223,
       20.4979,
-      92.347,
-      82.6408
+      92.1858,
+      185.373
     ],
     "regions": [
       {
@@ -182,6 +182,59 @@
         },
         "on-enter": "(want-display 'hj2-gena 'display)",
         "on-exit": "(want-display 'hj2-gena #f)"
+      },
+      {
+        "id": 1653,
+        "bsphere": [
+          -361.748,
+          20.4979,
+          -1.6976,
+          60.2059
+        ],
+        "shape": "face",
+        "face": {
+          "normal": [
+            0.4414,
+            0.0,
+            -0.8972,
+            -158.169113
+          ],
+          "points": [
+            [
+              -311.1133,
+              40.0005,
+              23.2136
+            ],
+            [
+              -311.1133,
+              0.9954,
+              23.2136
+            ],
+            [
+              -412.3828,
+              40.0005,
+              -26.6089
+            ],
+            [
+              -412.3828,
+              0.9954,
+              -26.6089
+            ]
+          ]
+        },
+        "on-enter": "(want-sound 'j2ctywi1 'j2ctywi2 'j2ctyfa1)",
+        "on-exit": "(want-sound 'j2ctywi1 'j2ctywi2 'j2ctywi3)"
+      },
+      {
+        "id": 1654,
+        "shape": "sphere",
+        "bsphere": [
+          -173.4912,
+          8.5246,
+          198.8748,
+          47.4004
+        ],
+        "on-inside": "(sound-play-loop \"water-veggies\")"
       }
     ]
   }

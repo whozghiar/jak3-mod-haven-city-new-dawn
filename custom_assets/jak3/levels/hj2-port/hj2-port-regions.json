@@ -1,10 +1,10 @@
 {
   "camera": {
     "bsphere": [
-      152.3154,
-      3.3151,
-      1557.5266,
-      538.5347
+      192.2949,
+      -0.9698,
+      1728.0919,
+      642.1289
     ],
     "regions": [
       {
@@ -216,6 +216,17 @@
         },
         "on-enter": "(want-vis 'hj2-pal)",
         "on-exit": "(want-vis 'hj2-port)"
+      },
+      {
+        "id": 1730,
+        "shape": "sphere",
+        "bsphere": [
+          192.2949,
+          -0.9698,
+          1750.1392,
+          557.9712
+        ],
+        "on-inside": "(sound-play-loop \"port-amb1\")"
       }
     ]
   },
@@ -596,7 +607,8 @@
             ]
           ]
         },
-        "on-exit": "(want-vis 'hj2-port)"
+        "on-enter": "(want-sound 'j2ctywi1 'j2under1 'j2under2)",
+        "on-exit": "(begin (want-vis 'hj2-port) (want-sound 'j2ctywi1 'j2ctywi2 'j2ctywi3))"
       },
       {
         "id": 1784,
@@ -637,7 +649,8 @@
             ]
           ]
         },
-        "on-exit": "(want-vis 'hj2-port)"
+        "on-enter": "(want-sound 'j2ctywi1 'j2under1 'j2under2)",
+        "on-exit": "(begin (want-vis 'hj2-port) (want-sound 'j2ctywi1 'j2ctywi2 'j2ctywi3))"
       }
     ]
   }

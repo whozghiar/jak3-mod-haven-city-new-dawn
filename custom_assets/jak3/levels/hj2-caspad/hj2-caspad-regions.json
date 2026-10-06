@@ -46,7 +46,8 @@
             ]
           ]
         },
-        "on-enter": "(want-load 'hj2-dig 'hj2-caspad)"
+        "on-enter": "(begin (want-load 'hj2-dig 'hj2-caspad) (want-sound 'j2dig6 'j2dig7 'j2dig8))",
+        "on-exit": "(want-sound 'j2ctywi1 #f #f)"
       },
       {
         "id": 1545,
@@ -211,7 +212,7 @@
             ]
           ]
         },
-        "on-enter": "(want-load 'havenj2 'hj2-caspad 'hj2-port)"
+        "on-enter": "(begin (want-load 'havenj2 'hj2-caspad 'hj2-port) (want-sound 'j2castl1 'j2castl2 'j2castl3))"
       },
       {
         "id": 1812,

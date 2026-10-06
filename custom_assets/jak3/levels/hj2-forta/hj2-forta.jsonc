@@ -19,7 +19,7 @@
   "art_groups": [],
   "actors": [
     // Jak 2's fort-entry-gate-7 (forresca) [as hj2-fort-gate]
-    {"trans": [745.9408, 11.3989, 227.0381], "etype": "hj2-fort-gate", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [745.9408, 11.3989, 227.0381, 13.8564], "lump": {"name": "fort-entry-gate-7", "distance": ["float", 81920.0], "idle-distance": ["float", 102400.0], "height": ["vector", [81920.0, 81920.0, 0.0, 0.0]], "on-deactivate": ["pair", "(begin (want-display 'hj2-slma #f) (want-display 'havenj2 #f) (want-load 'hj2-forta 'hj2-fortb))"], "on-notice": ["pair", "'(hj2-slma havenj2)"], "next-actor": ["string", "fort-entry-gate-17"]}},
+    {"trans": [745.9408, 11.3989, 227.0381], "etype": "hj2-fort-gate", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [745.9408, 11.3989, 227.0381, 13.8564], "lump": {"name": "fort-entry-gate-7", "distance": ["float", 81920.0], "idle-distance": ["float", 102400.0], "height": ["vector", [81920.0, 81920.0, 0.0, 0.0]], "on-deactivate": ["pair", "(begin (want-display 'hj2-slma #f) (want-display 'havenj2 #f) (want-load 'hj2-forta 'hj2-fortb) (want-sound 'j2ctywi1 'j2forre1 'j2forre2))"], "on-notice": ["pair", "'(hj2-slma havenj2)"], "next-actor": ["string", "fort-entry-gate-17"]}},
     // Jak 2's crate-832 (forresca)
     {"trans": [717.6429, 8.25, 240.1166], "etype": "crate", "game_task": 0, "quat": [0.0, 0.8455, 0.0, 0.5339], "bsphere": [717.6429, 8.25, 240.1166, 1.7321], "lump": {"name": "crate-832"}},
     // Jak 2's crate-833 (forresca)

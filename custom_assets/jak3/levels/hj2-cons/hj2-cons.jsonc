@@ -6,6 +6,8 @@
   "iso_name": "HJ2CONS",
   "nickname": "hjc",
   "import_fr3": {"game": "jak2", "levels": ["consite"], "tfrag": true, "tie": true, "shrub": true, "collision": true},
+  // Jak 2's load regions of this level (translated), and its water volumes
+  "region_tree_files": ["custom_assets/jak3/levels/hj2-cons/hj2-cons-regions.json"],
   "base_id": 22400,
   "base_region_id": 22400,
   // Jak 2's fixed cameras of this level (elevator rides, camera regions)

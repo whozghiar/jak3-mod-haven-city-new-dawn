@@ -1,12 +1,34 @@
 {
   "camera": {
     "bsphere": [
-      -657.7468,
-      41.2837,
-      650.5124,
-      160.9244
+      -558.3499,
+      -1.6018,
+      784.3092,
+      310.4366
     ],
     "regions": [
+      {
+        "id": 1325,
+        "shape": "sphere",
+        "bsphere": [
+          -558.3499,
+          -1.6018,
+          784.3092,
+          280.7983
+        ],
+        "on-inside": "(sound-play-loop \"forest-amb-1\")"
+      },
+      {
+        "id": 1334,
+        "shape": "sphere",
+        "bsphere": [
+          -734.9561,
+          4.9654,
+          641.7582,
+          97.9609
+        ],
+        "on-inside": "(sound-play-loop \"forest-falls\")"
+      },
       {
         "id": 1433,
         "bsphere": [
@@ -46,8 +68,8 @@
             ]
           ]
         },
-        "on-enter": "(want-display 'hj2-mount 'display)",
-        "on-exit": "(begin (want-display 'hj2-mount 'special) (want-vis 'hj2-forest))"
+        "on-enter": "(begin (want-display 'hj2-mount 'display) (want-sound 'j2mount1 'j2mount2 'j2mount3))",
+        "on-exit": "(begin (want-display 'hj2-mount 'special) (want-vis 'hj2-forest) (want-sound 'j2mount1 'j2fores1 'j2fores2))"
       },
       {
         "id": 1434,
@@ -137,12 +159,45 @@
   },
   "target": {
     "bsphere": [
-      -594.0755,
-      17.2704,
-      622.2462,
-      78.8689
+      -472.5026,
+      -0.2031,
+      727.1682,
+      236.6612
     ],
     "regions": [
+      {
+        "id": 1327,
+        "shape": "sphere",
+        "bsphere": [
+          -362.8995,
+          -0.2031,
+          806.9506,
+          84.4844
+        ],
+        "on-inside": "(sound-play-loop \"forest-stream\")"
+      },
+      {
+        "id": 1329,
+        "shape": "sphere",
+        "bsphere": [
+          -424.3851,
+          -0.2031,
+          746.3036,
+          84.4844
+        ],
+        "on-inside": "(sound-play-loop \"forest-stream\")"
+      },
+      {
+        "id": 1330,
+        "shape": "sphere",
+        "bsphere": [
+          -604.6876,
+          -2.7088,
+          697.2897,
+          29.6992
+        ],
+        "on-inside": "(sound-play-loop \"forest-brook\")"
+      },
       {
         "id": 1435,
         "bsphere": [
@@ -223,7 +278,8 @@
             ]
           ]
         },
-        "on-enter": "(begin (want-load 'hj2-forest 'hj2-forstb) (want-display 'hj2-forstb 'display))"
+        "on-enter": "(begin (want-load 'hj2-forest 'hj2-forstb) (want-display 'hj2-forstb 'display))",
+        "on-exit": "(want-sound 'j2fores1 'j2fores2 'j2mount1)"
       }
     ]
   }

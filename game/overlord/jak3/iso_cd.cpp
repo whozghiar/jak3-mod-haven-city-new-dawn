@@ -16,6 +16,7 @@ using namespace iop;
 
 namespace jak3 {
 VagDir g_VagDir;
+int g_nModVagFirst = 0;  // added
 MusicTweaks gMusicTweakInfo;
 CISOCDFile g_CISOCDFiles[kMaxOpenFiles];
 
@@ -32,6 +33,7 @@ void jak3_overlord_init_globals_iso_cd() {
   }
   g_FileDefs.clear();
   g_VagDir = {};
+  g_nModVagFirst = 0;  // added
   g_ISOCDFileSystem = std::make_unique<CISOCDFileSystem>();
   gMusicTweakInfo = {};
 }

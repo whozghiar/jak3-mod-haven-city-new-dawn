@@ -1316,10 +1316,14 @@ finds it by its prim id and turns it on and off, see the fence elevator flag)."
   )
 
 (defmethod init-sound! ((this hj2-elevator))
-  "The sounds of Jak 3's city elevator (cty-elevator)."
-  (set! (-> this sound-running-loop) (static-sound-spec "hqlift-loop" :group 0))
-  (set! (-> this sound-arrived) (static-sound-spec "hqlift-stop" :group 0))
-  (set! (-> this sound-start) (static-sound-spec "hqlift-start" :group 0))
+  "Jak 2's com-elevator sounds (levels/common/entities/com-elevator.gc there), in its PALCAB1 and
+PALENT1 banks, which the palace pillars (hj2-pshaft) load: com-elevator-s when the ride starts, the
+com-elevator-lp loop while it moves, com-elevator-e when it stops. Jak 3's elevator plays them at
+those moments (sound-start, sound-running-loop, sound-arrived). Side effects: sets those fields,
+then the parent's sound id and no ambient sound. Returns nothing."
+  (set! (-> this sound-running-loop) (static-sound-spec "com-elevator-lp" :group 0))
+  (set! (-> this sound-arrived) (static-sound-spec "com-elevator-e" :group 0))
+  (set! (-> this sound-start) (static-sound-spec "com-elevator-s" :group 0))
   (call-parent-method this)
   (none)
   )
@@ -1338,6 +1342,19 @@ finds it by its prim id and turns it on and off, see the fence elevator flag)."
 (defmethod get-art-group ((this hj2-cpad-elevator))
   "Jak 2's model (initialize-skeleton takes it as the skeleton group)."
   (the-as art-group *hj2-cpad-elevator-sg*)
+  )
+
+(defmethod init-sound! ((this hj2-cpad-elevator))
+  "Jak 2's cpad-elevator sounds (levels/castle/pad/caspad-obs.gc there), in its DIG7 bank, which the
+castle pad (hj2-caspad) loads: the dig-elevate loop while it moves, dig-elevate-end when it stops
+(Jak 2 plays no start sound). Jak 2's ambient cpad-elevator-l is in none of its banks: left out.
+Side effects: sets the loop and arrival sounds (no start sound), then the parent's sound id and no
+ambient sound. Returns nothing."
+  (set! (-> this sound-running-loop) (static-sound-spec "dig-elevate" :group 0))
+  (set! (-> this sound-arrived) (static-sound-spec "dig-elevate-end" :group 0))
+  (set! (-> this sound-start) #f)
+  (call-parent-method this)
+  (none)
   )
 
 ;; WARN: Return type mismatch collide-shape-moving vs none.
@@ -1401,7 +1418,10 @@ fence along its edges (mesh 1, solid during the ride)."
 
 (defmethod init-from-entity! ((this hj2-fort-gate) (arg0 entity-actor))
   "Jak 2's fort-entry-gate setup: its two leaves solid (frontdoorL, frontdoorR: transform indices 4
-and 5, like Jak 2's collide meshes), Jak 3's airlock sounds (Jak 2's door sounds aren't in Jak 3)."
+and 5, like Jak 2's collide meshes), Jak 2's door sounds. Those are in Jak 2's FOREXIT1 bank, which
+the fortress exits (hj2-fexb) and the prison load: like in Jak 2, the gates of the slums, the gun
+course and the fortress rescue (whose banks don't hold them) are silent. arg0: the entity. Goes to
+close (shut at once). Returns nothing."
   (stack-size-set! (-> this main-thread) 1024)
   (let ((s5-0 (new 'process 'collide-shape this (collide-list-enum usually-hit-by-player))))
     (set! (-> s5-0 penetrated-by) (penetrate))
@@ -1436,10 +1456,11 @@ and 5, like Jak 2's collide meshes), Jak 3's airlock sounds (Jak 2's door sounds
     )
   (initialize-skeleton this *hj2-fort-gate-sg* (the-as pair 0))
   (init-airlock! this)
-  (set! (-> this sound-open-loop) (static-sound-spec "airlock-open" :group 0))
-  (set! (-> this sound-open-stop) (static-sound-spec "airlock-hit" :group 0))
-  (set! (-> this sound-close-loop) (static-sound-spec "airlock-open" :group 0))
-  (set! (-> this sound-close-stop) (static-sound-spec "airlock-hit" :group 0))
+  ;; Jak 2's sounds (FOREXIT1)
+  (set! (-> this sound-open-loop) (static-sound-spec "door-open" :group 0))
+  (set! (-> this sound-open-stop) (static-sound-spec "door-stop-open" :group 0))
+  (set! (-> this sound-close-loop) (static-sound-spec "door-close" :group 0))
+  (set! (-> this sound-close-stop) (static-sound-spec "door-stop-close" :group 0))
   (go (method-of-object this close) #t)
   )
 
@@ -1741,6 +1762,68 @@ freehq's fr3 by the decompiler's extra_art_groups_by_dgo): without it, no gate."
       )
   )
 
+;; Sound //////////////////////////////////////////////////////////////////////////////////////////
+;; The levels keep Jak 2's sound, renamed j2* by the level port (scripts/level_port/steps/sound.py)
+;; and copied from Jak 2's extracted disc by the build: the sound banks of their scripts and
+;; continues (want-sound), their looped ambiences (sound-play-loop) and their music (:music-bank,
+;; Jak 2's MIDI music, played by game/overlord/jak3/srpc.cpp). Jak 2 loaded 3 banks; Jak 3 has room
+;; for 3 full banks or 6 half ones. Jak 2's are taken for half ones (on PC a bank's size doesn't
+;; matter), so the city's 3 leave room for Jak 3's traffic sounds: its cars, citizens and Freedom
+;; League guards (citycarh, citypedh, cityffh: havenj2's :extra-sound-bank).
+
+(define *hj2-stock-sound-bank-name->mode* sound-bank-name->mode)
+
+(defun hj2-sound-bank-name->mode ((name symbol))
+  "sound-bank-name->mode (level.gc), Jak 2's banks (named j2*) taken for half banks. name: a sound
+bank's name, or #f. Returns its sound-bank-mode."
+  (let ((s (if name
+               (symbol->string name)
+               (the-as string #f)
+               )
+           )
+        )
+    (if (and s (>= (length s) 2) (= (-> s data 0) #\j) (= (-> s data 1) #\2))
+        (sound-bank-mode half)
+        (*hj2-stock-sound-bank-name->mode* name)
+        )
+    )
+  )
+
+(set! sound-bank-name->mode hj2-sound-bank-name->mode)
+
+;; Jak 2's music has variations (its flava: MIDI register 14) for Jak's state, set in
+;; target-gun.gc, target-board.gc, target-darkjak.gc and vehicle-states.gc there. Jak 3 never sets
+;; it (its music is streamed): the city's process sets it like Jak 2 did.
+
+(define *hj2-music-flava* 0)
+
+(defun hj2-music-flava ()
+  "Jak 2's music flava for Jak's state: 5 driving, 4 dark, 2 on the board, 1 gun out, else 0."
+  (cond
+    ((focus-test? *target* pilot) 5)
+    ((focus-test? *target* dark) 4)
+    ((focus-test? *target* board) 2)
+    ((focus-test? *target* gun) 1)
+    (else 0)
+    )
+  )
+
+(defbehavior hj2-update-music-flava process ()
+  "Called every frame by the city's process (havenj2-continues-code): set the music flava for Jak's
+state (hj2-music-flava) when it changes, as a setting of this process (gone with it). Returns
+nothing."
+  (let ((flava (hj2-music-flava)))
+    (when (!= flava *hj2-music-flava*)
+      (set! *hj2-music-flava* flava)
+      (if (zero? flava)
+          (remove-setting! 'sound-flava)
+          (set-setting! 'sound-flava #f 30.0 flava)
+          )
+      )
+    )
+  (none)
+  )
+
 ;; Respawn points /////////////////////////////////////////////////////////////////////////////////
 
 ;; Jak 2 and Jak 3 pick the respawn point the same way (level-group update, level.gc): when Jak's
@@ -1805,11 +1888,14 @@ map is still displayed (the mountain seen from Haven Forest)."
 (defbehavior havenj2-continues-code process ()
   "The city process's code, every frame: Jak's current level in the city (hj2-update-vis-nick, the
 respawn point follows it like in Jak 2), the water of the level Jak is in first
-(hj2-update-ocean-order), and the city district under Jak shown (hj2-district-guard)."
+(hj2-update-ocean-order), the city district under Jak shown (hj2-district-guard), and Jak 2's music
+variation for Jak's state (hj2-update-music-flava)."
+  (set! *hj2-music-flava* 0)
   (loop
     (when *target*
       (hj2-update-vis-nick)
       (hj2-district-guard)
+      (hj2-update-music-flava)
       )
     (hj2-update-ocean-order)
     (suspend)

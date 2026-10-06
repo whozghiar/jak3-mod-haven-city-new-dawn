@@ -1,10 +1,10 @@
 {
   "target": {
     "bsphere": [
-      984.6139,
+      998.024,
       25.7099,
       -327.1864,
-      214.5375
+      223.9343
     ],
     "regions": [
       {
@@ -367,6 +367,91 @@
           ]
         },
         "on-enter": "(want-load 'havenj2 'hj2-ruins 'hj2-slmb)"
+      },
+      {
+        "id": 1323,
+        "shape": "sphere",
+        "bsphere": [
+          1137.269,
+          21.8113,
+          -418.8503,
+          42.1748
+        ],
+        "on-inside": "(sound-play-loop \"ruins-amb-high\")"
+      }
+    ]
+  },
+  "camera": {
+    "bsphere": [
+      960.8679,
+      0.0427,
+      -379.4973,
+      231.2101
+    ],
+    "regions": [
+      {
+        "id": 1132,
+        "bsphere": [
+          868.3224,
+          7.9729,
+          -292.7658,
+          53.6532
+        ],
+        "shape": "face",
+        "face": {
+          "normal": [
+            -0.5332,
+            0.0,
+            -0.8459,
+            -215.359619
+          ],
+          "points": [
+            [
+              908.1196,
+              -16.7687,
+              -317.8516
+            ],
+            [
+              828.5252,
+              -16.7687,
+              -267.6799
+            ],
+            [
+              908.1196,
+              32.7146,
+              -317.8516
+            ],
+            [
+              828.5252,
+              32.7146,
+              -267.6799
+            ]
+          ]
+        },
+        "on-enter": "(want-sound 'j2ruins1 'j2ruins3 'j2mech)",
+        "on-exit": "(want-sound 'j2ruins1 'j2ruins2 'j2ctywi1)"
+      },
+      {
+        "id": 1324,
+        "shape": "sphere",
+        "bsphere": [
+          952.4001,
+          0.0427,
+          -386.8345,
+          176.6475
+        ],
+        "on-inside": "(sound-play-loop \"ruins-amb-low\")"
+      },
+      {
+        "id": 1706,
+        "shape": "sphere",
+        "bsphere": [
+          1084.9424,
+          60.1577,
+          -256.5535,
+          61.0408
+        ],
+        "on-inside": "(sound-play-loop \"tower-wind\")"
       }
     ]
   }

@@ -25,6 +25,103 @@
 ;; *mod-jak2-haven-city-hellcats* is on (see "Freedom League Hellcats" below).
 
 (define-extern restore-city-speeches (function none))
+;; Jak 2's citizens' lines, defined in the level-info file (jak2-haven-city-levels.gc)
+(define-extern *hj2-civ-m-alert-sounds* (array string))
+(define-extern *hj2-civ-f-alert-sounds* (array string))
+(define-extern *hj2-civ-m-shot-sounds* (array string))
+(define-extern *hj2-civ-f-shot-sounds* (array string))
+(define-extern *hj2-civ-m-stealing-sounds* (array string))
+(define-extern *hj2-civ-m-cower-sounds* (array string))
+(define-extern *hj2-civ-f-cower-sounds* (array string))
+
+;; Citizens' speech. Jak 3's city gives its civ-* speech types no lines (its citizens are silent);
+;; here they get Jak 2's citizens' lines (ctywide-speech.gc there: speech types 16 and 24 when they
+;; see danger, 19 and 27 when Jak shoots them, 22 when he takes their vehicle, 20 and 28), with the
+;; same channel, flags, priority and delays. The lines are Jak 2's voice files, packed for Jak 3 by
+;; the build (*hj2-civ-...-sounds*, see "voices" in the port): without Jak 2's disc, they stay
+;; silent. The traffic manager calls hj2-restore-city-speeches when it starts, and clears every
+;; speech type when it stops (traffic-manager deactivate): the lines are only the city's.
+(define *hj2-civ-m-alert-speech* (new 'static 'speech-type-info
+                                   :channel #x1
+                                   :flags (speech-type-flag random-order)
+                                   :min-delay (seconds 3)
+                                   :max-delay (seconds 7)
+                                   )
+        )
+
+(define *hj2-civ-f-alert-speech* (new 'static 'speech-type-info
+                                   :channel #x1
+                                   :flags (speech-type-flag random-order)
+                                   :min-delay (seconds 3)
+                                   :max-delay (seconds 7)
+                                   )
+        )
+
+(define *hj2-civ-m-shot-speech* (new 'static 'speech-type-info
+                                  :channel #x1
+                                  :flags (speech-type-flag random-order)
+                                  :priority 2
+                                  :min-delay (seconds 1)
+                                  :max-delay (seconds 2)
+                                  )
+        )
+
+(define *hj2-civ-f-shot-speech* (new 'static 'speech-type-info
+                                  :channel #x1
+                                  :flags (speech-type-flag random-order)
+                                  :priority 2
+                                  :min-delay (seconds 1)
+                                  :max-delay (seconds 2)
+                                  )
+        )
+
+(define *hj2-civ-m-stealing-speech* (new 'static 'speech-type-info
+                                      :channel #x1
+                                      :flags (speech-type-flag random-order)
+                                      :priority 1
+                                      :min-delay (seconds 1)
+                                      :max-delay (seconds 2)
+                                      )
+        )
+
+(define *hj2-civ-m-cower-speech* (new 'static 'speech-type-info
+                                   :channel #x1
+                                   :min-delay (seconds 5)
+                                   :max-delay (seconds 15)
+                                   )
+        )
+
+(define *hj2-civ-f-cower-speech* (new 'static 'speech-type-info
+                                   :channel #x1
+                                   :min-delay (seconds 5)
+                                   :max-delay (seconds 15)
+                                   )
+        )
+
+(defun hj2-civ-speech ((type speech-type) (info speech-type-info) (lines (array string)))
+  "Give a speech type (type) its info and lines. Returns nothing."
+  (set! (-> info list) lines)
+  (speech-table-set! *speech-control* type info)
+  (none)
+  )
+
+(defun hj2-restore-city-speeches ()
+  "havenj2's restore-speech-callback (*traffic-info*): Jak 3's city speeches (its guards' lines), and
+Jak 2's citizens' lines for Jak 3's civ-* speech types. Returns nothing."
+  (restore-city-speeches)
+  (hj2-civ-speech (speech-type civ-m-alert) *hj2-civ-m-alert-speech* *hj2-civ-m-alert-sounds*)
+  (hj2-civ-speech (speech-type civ-f-alert) *hj2-civ-f-alert-speech* *hj2-civ-f-alert-sounds*)
+  (hj2-civ-speech (speech-type civ-m-shot-by-player) *hj2-civ-m-shot-speech* *hj2-civ-m-shot-sounds*)
+  (hj2-civ-speech (speech-type civ-f-shot-by-player) *hj2-civ-f-shot-speech* *hj2-civ-f-shot-sounds*)
+  (hj2-civ-speech
+    (speech-type civ-m-player-stealing-vehicle)
+    *hj2-civ-m-stealing-speech*
+    *hj2-civ-m-stealing-sounds*
+    )
+  (hj2-civ-speech (speech-type civ-m-cower) *hj2-civ-m-cower-speech* *hj2-civ-m-cower-sounds*)
+  (hj2-civ-speech (speech-type civ-f-cower) *hj2-civ-f-cower-speech* *hj2-civ-f-cower-sounds*)
+  (none)
+  )
 
 ;; How many of each traffic type the city has: Jak 2's numbers (its traffic-manager), by Jak 3 type.
 ;; The traffic manager's init sets Jak 3's, which Jak 3's faction manager then changes by territory
@@ -331,7 +428,7 @@ guards and the city's vehicles after it."
   (let ((info *traffic-info*))
     (set! (-> info ctywide-level) lev)
     (set! (-> info vehicle-level) lev)
-    (set! (-> info restore-speech-callback) restore-city-speeches)
+    (set! (-> info restore-speech-callback) hj2-restore-city-speeches)
     )
   (vehicle-manager-kill)
   (set! *traffic-fast-spawn* (or (= mode 'life) (= mode 'debug)))

@@ -1,5 +1,9 @@
 #include "srpc.h"
 
+#include <cctype>
+#include <cstdio>
+#include <cstring>
+
 #include "common/util/Assert.h"
 
 #include "game/overlord/jak3/iso.h"
@@ -40,10 +44,92 @@ const char* g_pszLanguage = languages[0];
 u8 g_nFPS = 60;
 SoundBankInfo* g_LoadingSoundBank = nullptr;
 
+// added: MIDI music, the way Jak 2 played its music (game/overlord/jak2: FS_LoadMusic, RPC_Player).
+// Jak 3 streams its music from the VAG files, and has no .MUS file but TWEAKVAL.MUS: a music name
+// with a <name>.MUS file on the disc is a MIDI music bank a mod added (Jak 2's music, copied by the
+// mod's build). Its sound 0 plays in a loop, steered by the MIDI registers the game sends (flava,
+// mode, excitement...). Vanilla music never takes this path.
+static snd::BankHandle s_MidiMusicBank = nullptr;
+static s32 s_MidiMusicHandle = 0;
+// the last value sent to each MIDI register, set again when the music (re)starts
+static u8 s_MidiRegs[16];
+
+/*!
+ * The .MUS file of a MIDI music, or nullptr when the name is a streamed (Jak 3) music.
+ */
+static const ISOFileDef* FindMidiMusicFile(const char* name) {
+  if (!name[0] || strlen(name) > 8) {
+    return nullptr;
+  }
+  char file_name[16];
+  snprintf(file_name, sizeof(file_name), "%s.MUS", name);
+  for (char* c = file_name; *c; c++) {
+    *c = toupper(*c);
+  }
+  if (strcmp(file_name, "TWEAKVAL.MUS") == 0) {
+    return nullptr;
+  }
+  return FindISOFile(file_name);
+}
+
+/*!
+ * Stop the MIDI music and free its bank, if one is loaded.
+ */
+static void UnloadMidiMusic() {
+  if (!s_MidiMusicBank) {
+    return;
+  }
+  WaitSema(g_n989Semaphore);
+  if (s_MidiMusicHandle) {
+    snd_StopSound(s_MidiMusicHandle);
+    s_MidiMusicHandle = 0;
+  }
+  snd_UnloadBank(s_MidiMusicBank);
+  snd_ResolveBankXREFS();
+  s_MidiMusicBank = nullptr;
+  SignalSema(g_n989Semaphore);
+}
+
+/*!
+ * Load a MIDI music bank in place of the current one. It starts playing in UpdateMidiMusic.
+ */
+static void LoadMidiMusic(const ISOFileDef* file) {
+  UnloadMidiMusic();
+  WaitSema(g_n989Semaphore);
+  s_MidiMusicBank = snd_BankLoadEx(file->full_path.c_str(), 0, 0, 0);
+  snd_ResolveBankXREFS();
+  SignalSema(g_n989Semaphore);
+  if (!s_MidiMusicBank) {
+    ovrld_log(LogCategory::WARN, "[RPC Loader] Failed to load MIDI music {}", file->full_path);
+  }
+}
+
+/*!
+ * Called on each Player RPC (every frame): start the MIDI music when it isn't playing (just loaded,
+ * or done) and the music isn't paused, with the registers the game set.
+ */
+static void UpdateMidiMusic() {
+  if (!s_MidiMusicBank || g_bMusicPause) {
+    return;
+  }
+  if (s_MidiMusicHandle && snd_SoundIsStillPlaying(s_MidiMusicHandle)) {
+    return;
+  }
+  s_MidiMusicHandle = snd_PlaySoundVolPanPMPB(s_MidiMusicBank, 0, 0x400, -1, 0, 0);
+  if (s_MidiMusicHandle) {
+    for (u8 reg = 0; reg < 16; reg++) {
+      snd_SetMIDIRegister(s_MidiMusicHandle, reg, s_MidiRegs[reg]);
+    }
+  }
+}
+
 void jak3_overlord_init_globals_srpc() {
   g_nFPS = 60;
   g_LoadingSoundBank = nullptr;
   g_pszLanguage = languages[0];
+  s_MidiMusicBank = nullptr;
+  s_MidiMusicHandle = 0;
+  memset(s_MidiRegs, 0, sizeof(s_MidiRegs));
 }
 
 u32 Thread_Player() {
@@ -80,6 +166,7 @@ void* RPC_Player(unsigned int, void* msg, int size) {
   if (!g_bSoundEnable) {
     return nullptr;
   }
+  UpdateMidiMusic();  // added
 
   // const auto* cmd = (RPC_Player_Cmd*)msg;
   ovrld_log(LogCategory::PLAYER_RPC, "Got Player RPC with {} cmds", size / kPlayerCommandStride);
@@ -439,9 +526,19 @@ void* RPC_Player(unsigned int, void* msg, int size) {
         ovrld_log(LogCategory::PLAYER_RPC, "[RPC Player] cancel dgo {}", cmd->id);
         CancelDGONoSync(cmd->id);
       } break;
-      case SoundCommand::SET_MIDI_REG:
-        // this is what the real overlord does - just ignore it!
-        break;
+      case SoundCommand::SET_MIDI_REG: {
+        // the real overlord ignores it (no MIDI music in Jak 3). Added: the MIDI music's registers,
+        // as Jak 2's overlord did (register 16 is the global excitement).
+        const auto* cmd = (const Rpc_Player_Set_Midi_Reg_Cmd*)m_ptr;
+        if (cmd->reg == 16) {
+          snd_SetGlobalExcite((u8)cmd->value);
+        } else if (cmd->reg >= 0 && cmd->reg < 16) {
+          s_MidiRegs[cmd->reg] = (u8)cmd->value;
+          if (s_MidiMusicHandle) {
+            snd_SetMIDIRegister(s_MidiMusicHandle, cmd->reg, (u8)cmd->value);
+          }
+        }
+      } break;
       default:
         ovrld_log(LogCategory::WARN, "[RPC Player] Unsupported Player {}",
                   (int)((const Rpc_Player_Base_Cmd*)m_ptr)->command);
@@ -470,6 +567,14 @@ void* RPC_Loader(unsigned int, void* msg, int size) {
         ovrld_log(LogCategory::PLAYER_RPC, "[RPC Loader] Got sound bank load command: {}",
                   cmd->bank_name.data);
         // src = &cmd->bank_name;
+        // added: a bank missing from the disc is skipped (loading it asserts). Only a mod's banks
+        // can be missing: ones copied from another game's extracted files, when they aren't there.
+        char sbk_name[16];
+        snprintf(sbk_name, sizeof(sbk_name), "%.8s.SBK", cmd->bank_name.data);
+        if (!FindISOFile(sbk_name)) {
+          ovrld_log(LogCategory::WARN, "[RPC Loader] No sound bank file {}, not loaded", sbk_name);
+          break;
+        }
         if (!LookupBank(cmd->bank_name.data)) {
           auto* info = AllocateBankName(cmd->bank_name.data, cmd->mode);
           if (info) {
@@ -498,8 +603,16 @@ void* RPC_Loader(unsigned int, void* msg, int size) {
           wait_status = WaitSema(g_nMusicSemaphore);
         }
 
+        // added: a MIDI music stops the streamed one, and the other way around
+        const ISOFileDef* midi_file = FindMidiMusicFile(cmd->bank_name.data);
+        if (midi_file) {
+          LoadMidiMusic(midi_file);
+        } else {
+          UnloadMidiMusic();
+        }
+
         // set music name
-        if ((cmd->bank_name).data[0] == 0) {
+        if ((cmd->bank_name).data[0] == 0 || midi_file) {
           g_szTargetMusicName[0] = 0;
         } else {
           strcpy(g_szTargetMusicName, cmd->bank_name.data);
@@ -545,6 +658,7 @@ void* RPC_Loader(unsigned int, void* msg, int size) {
 
       case SoundCommand::UNLOAD_MUSIC: {
         ovrld_log(LogCategory::PLAYER_RPC, "[RPC Loader] Got unload music command");
+        UnloadMidiMusic();  // added
 
         // lock
         u32 wait_status = 1;

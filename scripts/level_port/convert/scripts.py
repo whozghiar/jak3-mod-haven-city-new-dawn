@@ -140,10 +140,11 @@ class Translator:
     drop_events: (event, first argument) pairs to remove, e.g. ("jump-to", "'top")
     cameras:     the names of the fixed cameras that are ported (camera-191...)
     source:      the source level holding the script
+    sound:       the source game's sound banks (steps/sound.py), None when the levels are silent
     """
 
     def __init__(self, pair, level_map, all_levels, hubs, owner, story, continues, renames=None,
-                 drop_events=(), cameras=(), source=None):
+                 drop_events=(), cameras=(), source=None, sound=None):
         self.pair = pair
         self.level_map = level_map
         self.all_levels = set(all_levels) | set(level_map)
@@ -155,6 +156,7 @@ class Translator:
         self.renames = renames or {}
         self.drop_events = set(drop_events)
         self.cameras = set(cameras)
+        self.sound = sound
         # set while translating a door's on-notice (see strict_notice): a quoted level list naming a
         # level that isn't ported (but these ones, backdrops) then keeps the door shut
         self.strict_levels = None
@@ -393,6 +395,20 @@ class Translator:
             # engine would take any other active level for his current level instead
             return DROP
         return [Sym("want-vis"), [QUOTE, Sym(lev)]]
+
+    def f_want_sound(self, args, value):
+        """The source game's sound banks, renamed (steps/sound.py)."""
+        if not self.sound:
+            return DROP
+        banks = [self.sound.bank(str(a[1])) if is_quoted(a) else None for a in args]
+        return [Sym("want-sound")] + [[QUOTE, Sym(b)] if b else FALSE for b in banks]
+
+    def f_sound_play_loop(self, args, value):
+        """A looped ambience: its sound is in the source game's banks, kept with its name."""
+        if not self.sound:
+            return DROP
+        targs = [self.tr(a, True) for a in args]
+        return DROP if any(a is DROP for a in targs) else [Sym("sound-play-loop")] + targs
 
     def f_want_continue(self, args, value):
         ours = self.continues.get(str(args[0]))

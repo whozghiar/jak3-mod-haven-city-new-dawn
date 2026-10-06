@@ -1,5 +1,10 @@
 #include "Tools.h"
 
+#include <cctype>
+#include <cstring>
+#include <map>
+#include <set>
+
 #include "common/goos/ParseHelpers.h"
 #include "common/util/DgoWriter.h"
 #include "common/util/FileUtil.h"
@@ -506,6 +511,195 @@ bool BuildSbkTool::run(const ToolInput& task, const PathMap&) {
 
   sbk::create_sbk_from_dir(file_util::get_file_path({task.input.at(0)}),
                            file_util::get_file_path({task.output.at(0)}), opts, only_names);
+  return true;
+}
+
+namespace {
+// A VAG file name packed like the Jak 3 overlord's PackVAGFileName (game/overlord/jak3/
+// isocommon.cpp): 8 characters (A-Z, 0-9, '-', space), each half of 4 in base 38, the first half
+// above the second: 42 bits.
+u64 pack_vag_name(const std::string& name) {
+  if (name.size() > 8) {
+    throw std::runtime_error(fmt::format("[pack-vags] {} is longer than 8 characters", name));
+  }
+  u64 halves[2] = {0, 0};
+  for (int i = 0; i < 8; i++) {
+    char c = i < (int)name.size() ? (char)toupper(name[i]) : ' ';
+    u64 v;
+    if (c >= 'A' && c <= 'Z') {
+      v = c - 'A' + 1;
+    } else if (c >= '0' && c <= '9') {
+      v = c - '0' + 27;
+    } else if (c == '-') {
+      v = 37;
+    } else if (c == ' ') {
+      v = 0;
+    } else {
+      throw std::runtime_error(fmt::format("[pack-vags] invalid character in {}", name));
+    }
+    halves[i / 4] = halves[i / 4] * 38 + v;
+  }
+  return (halves[0] << 21) | halves[1];
+}
+
+// a field of a VAG header: big endian after "VAGp", little endian after "pGAV" (both are found)
+u32 vag_header_field(const u8* header, int offset) {
+  const u8* p = header + offset;
+  if (memcmp(header, "VAGp", 4) == 0) {
+    return ((u32)p[0] << 24) | ((u32)p[1] << 16) | ((u32)p[2] << 8) | p[3];
+  }
+  return ((u32)p[3] << 24) | ((u32)p[2] << 16) | ((u32)p[1] << 8) | p[0];
+}
+
+// size bytes of a file from offset (the wads are big: only the lines are read)
+std::vector<u8> read_file_range(const fs::path& path, size_t offset, size_t size) {
+  std::vector<u8> out(size);
+  FILE* fp = file_util::open_file(path, "rb");
+  if (!fp || fseek(fp, (long)offset, SEEK_SET) != 0 || fread(out.data(), 1, size, fp) != size) {
+    if (fp) {
+      fclose(fp);
+    }
+    throw std::runtime_error(fmt::format("[pack-vags] failed to read {}", path.string()));
+  }
+  fclose(fp);
+  return out;
+}
+
+std::string upper_trimmed(std::string s) {
+  while (!s.empty() && (s.back() == ' ' || s.back() == 0)) {
+    s.pop_back();
+  }
+  for (auto& c : s) {
+    c = (char)toupper(c);
+  }
+  return s;
+}
+}  // namespace
+
+PackVagsTool::PackVagsTool() : Tool("pack-vags") {}
+
+/*!
+ * in: (Jak 2's VAGDIR.AYB, the Jak 3 VAGDIR.AYB the game uses, optionally the file listing the
+ * lines, only so that its change packs again), the wads next to the first (VAGWAD.<language>).
+ * arg: the lines, each a name or (name new-name). out: the directory, then a wad per language
+ * (from Jak 2's English one when Jak 2's disc lacks the language).
+ * Jak 2's directory: a count, then {8 characters, start in 2048 byte sectors, stereo}. Jak 3's: a
+ * header, then a 64-bit entry per line: name (42 bits), stereo, international, sample rate index,
+ * start in 32 KB pages (the same in every language's wad: a line takes the pages of its longest
+ * language). A line is its VAG header and its ADPCM data, the same in both games. A new name must
+ * not be one of the Jak 3 directory's.
+ */
+bool PackVagsTool::run(const ToolInput& task, const PathMap&) {
+  if (task.input.size() < 2 || task.input.size() > 3 || task.output.size() < 2) {
+    throw std::runtime_error("[pack-vags] Expected 2 or 3 inputs and at least 2 outputs");
+  }
+  auto src_dir_path = file_util::get_file_path({task.input.at(0)});
+  auto src_dir = file_util::read_binary_file(src_dir_path);
+  auto target_dir = file_util::read_binary_file(file_util::get_file_path({task.input.at(1)}));
+
+  // Jak 2's lines by name: their start (bytes) and stereo flag
+  std::map<std::string, std::pair<size_t, u32>> src_lines;
+  u32 count;
+  memcpy(&count, src_dir.data(), 4);
+  for (u32 i = 0; i < count; i++) {
+    const u8* e = src_dir.data() + 4 + i * 16;
+    u32 sector, stereo;
+    memcpy(&sector, e + 8, 4);
+    memcpy(&stereo, e + 12, 4);
+    src_lines[upper_trimmed(std::string((const char*)e, 8))] = {(size_t)sector * 2048, stereo};
+  }
+
+  // the Jak 3 directory's names
+  std::set<u64> taken;
+  u32 target_count;
+  memcpy(&target_count, target_dir.data() + 12, 4);
+  for (u32 i = 0; i < target_count; i++) {
+    u64 e;
+    memcpy(&e, target_dir.data() + 16 + i * 8, 8);
+    taken.insert(e & ((1ull << 42) - 1));
+  }
+
+  // the lines: (Jak 2 name, new name)
+  std::vector<std::pair<std::string, std::string>> lines;
+  goos::for_each_in_list(task.arg, [&](const goos::Object& o) {
+    if (o.is_pair()) {
+      lines.push_back({upper_trimmed(o.as_pair()->car.print()),
+                       upper_trimmed(o.as_pair()->cdr.as_pair()->car.print())});
+    } else {
+      lines.push_back({upper_trimmed(o.print()), upper_trimmed(o.print())});
+    }
+  });
+
+  // each language's wad: Jak 2's, its English one if missing
+  auto src_folder = fs::path(src_dir_path).parent_path();
+  std::vector<fs::path> src_wads;
+  for (size_t i = 1; i < task.output.size(); i++) {
+    auto lang = fs::path(task.output.at(i)).extension().string();
+    auto wad = src_folder / ("VAGWAD" + lang);
+    if (!fs::exists(wad)) {
+      wad = src_folder / "VAGWAD.ENG";
+    }
+    src_wads.push_back(wad);
+  }
+
+  // sample rates by index (the Jak 3 overlord's table, game/overlord/jak3/iso.cpp)
+  constexpr u32 kRates[16] = {0xFA00, 0x1F40, 0x3E80, 0x5DC0, 0x7D00, 0x9C40, 0xBB80, 0xDAC0,
+                              0xAC44, 0x1589, 0x2B11, 0x409A, 0x5622, 0x6BAB, 0x8133, 0x96BC};
+  constexpr size_t kPage = 0x8000;
+  std::vector<u64> entries;
+  std::vector<std::vector<u8>> out_wads(src_wads.size());
+  size_t page = 0;
+  for (auto& [name, new_name] : lines) {
+    auto it = src_lines.find(name);
+    if (it == src_lines.end()) {
+      throw std::runtime_error(fmt::format("[pack-vags] {} isn't in {}", name, src_dir_path));
+    }
+    u64 packed = pack_vag_name(new_name);
+    if (!taken.insert(packed).second) {
+      throw std::runtime_error(fmt::format("[pack-vags] {} is already a VAG name", new_name));
+    }
+    auto [start, stereo] = it->second;
+    // the line in each language, and the pages of the longest
+    size_t pages = 1;
+    std::vector<std::vector<u8>> datas;
+    u32 rate = 0;
+    for (auto& wad : src_wads) {
+      auto header = read_file_range(wad, start, 0x30);
+      rate = vag_header_field(header.data(), 16);
+      size_t size = 0x30 + vag_header_field(header.data(), 12);
+      datas.push_back(read_file_range(wad, start, size));
+      pages = std::max(pages, (size + kPage - 1) / kPage);
+    }
+    u64 rate_index = 12;
+    for (u64 r = 0; r < 16; r++) {
+      if (kRates[r] == rate) {
+        rate_index = r;
+      }
+    }
+    if (page + pages > 0xffff) {
+      throw std::runtime_error("[pack-vags] too much audio for a VAG directory");
+    }
+    entries.push_back(packed | ((u64)(stereo ? 1 : 0) << 42) | (rate_index << 44) |
+                      ((u64)page << 48));
+    for (size_t i = 0; i < src_wads.size(); i++) {
+      auto& out = out_wads[i];
+      out.insert(out.end(), datas[i].begin(), datas[i].end());
+      out.resize((page + pages) * kPage, 0);
+    }
+    page += pages;
+  }
+
+  // the directory: Jak 3's header (magic, version 2, count), the entries
+  std::vector<u8> dir(16 + entries.size() * 8);
+  u32 header[4] = {0x41574756, 0x52494444, 2, (u32)entries.size()};
+  memcpy(dir.data(), header, 16);
+  memcpy(dir.data() + 16, entries.data(), entries.size() * 8);
+  file_util::write_binary_file(file_util::get_file_path({task.output.at(0)}), dir.data(),
+                               dir.size());
+  for (size_t i = 0; i < out_wads.size(); i++) {
+    file_util::write_binary_file(file_util::get_file_path({task.output.at(i + 1)}),
+                                 out_wads[i].data(), out_wads[i].size());
+  }
   return true;
 }
 

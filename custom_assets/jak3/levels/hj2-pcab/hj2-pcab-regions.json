@@ -87,7 +87,8 @@
             ]
           ]
         },
-        "on-enter": "(want-load 'hj2-pcab 'hj2-proof 'hj2-pshaft)"
+        "on-enter": "(begin (want-load 'hj2-pcab 'hj2-proof 'hj2-pshaft) (want-sound 'j2ctywi1 'j2palca1 'j2palca2))",
+        "on-exit": "(want-sound 'j2palca1 'j2palca2 'j2palca3)"
       },
       {
         "id": 1398,
@@ -336,6 +337,27 @@
           10.538
         ],
         "on-enter": "(want-continue \"hj2-palcab-mid\")"
+      }
+    ]
+  },
+  "camera": {
+    "bsphere": [
+      193.8142,
+      377.8882,
+      173.405,
+      510.8413
+    ],
+    "regions": [
+      {
+        "id": 1460,
+        "shape": "sphere",
+        "bsphere": [
+          193.8142,
+          377.8882,
+          173.405,
+          509.8413
+        ],
+        "on-inside": "(sound-play-loop \"palcab-amb\")"
       }
     ]
   }

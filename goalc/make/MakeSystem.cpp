@@ -116,6 +116,7 @@ MakeSystem::MakeSystem(const std::optional<REPL::Config> repl_config, const std:
   add_tool<BuildActor3Tool>();
   add_tool<BuildSbkTool>();
   add_tool<AppendSbkTool>();
+  add_tool<PackVagsTool>();
 }
 
 /*!

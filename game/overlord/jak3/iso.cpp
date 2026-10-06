@@ -1,5 +1,6 @@
 #include "iso.h"
 
+#include <algorithm>
 #include <cstring>
 
 #include "common/util/Assert.h"
@@ -195,6 +196,28 @@ void InitISOFS() {
   } else {
     lg::warn("Failed to find vagdir file");
     g_VagDir.num_entries = 0;
+  }
+
+  // added: a mod's voice lines (VAGDIRM.AYB, made by goalc's pack-vags tool: the lines of another
+  // game's disc), added after the game's own. Their data is in the mod's wads, VAGWADM.<language>
+  // (EEVagAndVagWad, iso_api.cpp).
+  g_nModVagFirst = g_VagDir.num_entries;
+  const ISOFileDef* mod_vagdir_file = FindISOFile("VAGDIRM.AYB");
+  if (mod_vagdir_file) {
+    static VagDir mod_vag_dir;
+    if (LoadISOFileToIOP(mod_vagdir_file, &mod_vag_dir, sizeof(mod_vag_dir)) &&
+        mod_vag_dir.vag_magic_1 == 0x41574756 && mod_vag_dir.vag_magic_2 == 0x52494444) {
+      int room = 4096 - g_VagDir.num_entries;
+      int count = std::min(mod_vag_dir.num_entries, room);
+      if (count < mod_vag_dir.num_entries) {
+        lg::warn("No room for {} of the mod's VAG lines", mod_vag_dir.num_entries - count);
+      }
+      memcpy(g_VagDir.entries + g_VagDir.num_entries, mod_vag_dir.entries,
+             count * sizeof(VagDirEntry));
+      g_VagDir.num_entries += count;
+    } else {
+      lg::warn("Failed to load the mod's vagdir file");
+    }
   }
 
   // splash screen load was here...

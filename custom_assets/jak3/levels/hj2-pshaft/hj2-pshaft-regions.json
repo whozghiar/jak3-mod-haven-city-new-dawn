@@ -129,7 +129,7 @@
             ]
           ]
         },
-        "on-exit": "(want-load 'havenj2 'hj2-pal 'hj2-pshaft)"
+        "on-exit": "(begin (want-load 'havenj2 'hj2-pal 'hj2-pshaft) (want-sound 'j2ctywi1 'j2ctywi2 'j2palen1))"
       },
       {
         "id": 1528,
@@ -170,7 +170,7 @@
             ]
           ]
         },
-        "on-enter": "(want-load 'hj2-pshaft 'hj2-pcab 'hj2-proof)"
+        "on-enter": "(begin (want-load 'hj2-pshaft 'hj2-pcab 'hj2-proof) (want-sound 'j2ctywi1 'j2palca1 'j2palca2))"
       }
     ]
   }

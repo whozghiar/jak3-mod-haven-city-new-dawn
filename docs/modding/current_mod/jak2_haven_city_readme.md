@@ -214,6 +214,7 @@ about this mod; its comments say why each choice was made. What each key means:
 | `models` | The models rebuilt from Jak 2's rips, their collision and animations ([6.7](#67-rebuilding-jak-2s-models)) |
 | `region_open_tasks`, `region_script_overrides` | A region's story branch, or its scripts replaced: the garage (319), the rotating gun (429), the avalanche (894), the gun buoy (177, 353, 873) |
 | `continues` | Continue names, the ones kept or added ([9.3](#93-respawn-points)) |
+| `sound` | Jak 2's sound banks and music, renamed `j2*`; Jak 3's banks loaded with the city's (`extra_banks`); the voice lines packed for Jak 3 (`voice_prefix`, `voices`) ([8.4](#84-sound-and-music)) |
 | `level_info`, `build` | Where the level-load-infos and the levels' build steps are written; `level_info.hubs_var` names the generated `*havenj2-hubs*`, `level_info.district_map` the district map (25 m squares, [6.1](#61-how-jak-2-loads-its-levels)) |
 
 To port one more place (one of [14](#14-not-done-yet)):
@@ -365,6 +366,19 @@ The game has no debug info for GOAL code, so the report names functions from Jak
 | `GOAL objects` | The registers holding a symbol or a basic (its type) |
 | `stack` | Return addresses found on the stack, newest first: a heuristic, some can be stale |
 | `GOAL output of this frame` | What GOAL printed with `(format #t ...)` since the last frame: the game prints it at the end of a frame, so a crash loses it |
+
+### 4.5 Sound
+
+What lets Jak 3 play Jak 2's music and voice lines ([8.4](#84-sound-and-music)). None of it changes
+what Jak 3 plays: each part only acts on files Jak 3 doesn't have.
+
+| Change | Why | Files |
+|---|---|---|
+| A music with a `<name>.MUS` file plays as Jak 2's MIDI music: the bank's sound 0 in a loop, steered by the MIDI registers the game sends (flava, mode, excitement), set again when it restarts. A streamed music stops it, and the other way around | Jak 3 streams its music from VAG files and ignores `set-midi-reg`; Jak 2's music is MIDI banks. Jak 3 has no `.MUS` file but `TWEAKVAL.MUS`, so its own music never takes this path | `game/overlord/jak3/srpc.cpp`, `rpc_interface.h` |
+| A sound bank whose `.SBK` isn't in `out/jak3/iso` is skipped, with a warning | Loading it asserts. Only the copied Jak 2 banks can be missing (no Jak 2 extraction) | `srpc.cpp` |
+| `VAGDIRM.AYB`, when there, is added after the game's VAG directory; its lines are read from `VAGWADM.<language>` (the English one for a language Jak 2 doesn't have) | Jak 2's voice lines, in Jak 3's format, apart from Jak 3's files | `iso.cpp`, `iso_api.cpp`, `iso_cd.cpp`, `iso_cd.h` |
+| `goalc` tool `pack-vags` | Packs Jak 2 voice lines in Jak 3's format: a 64-bit entry per line (its packed name, start in 32 KB pages, sample rate index), each line taking the pages of its longest language in every wad. A name already in Jak 3's directory is refused. It reads only the lines from Jak 2's wads (470 MB each) | `goalc/make/Tools.cpp`, `Tools.h`, `MakeSystem.cpp` |
+| GOOS `file-exists?` | The build copies Jak 2's audio only when Jak 2 is extracted: without it, no audio, and the build still works | `common/goos/Interpreter.cpp`, `Interpreter.h` |
 
 ## 5. The city levels
 
@@ -544,8 +558,8 @@ while the next district loads, as in Jak 2.
   an iron crate (Jak 3's `icrate-nobreak` and `icrate-break`). Jak 2 switches between its three
   looks with mesh masks, which build-actor's models don't have: the damaged and broken looks are
   models of their own (`hj2-propa-damaged`, `hj2-propa-broken`), drawn by a child process
-  (`hj2-propa-look`) while the intact model is hidden. The Baron's speeches are Jak 2 voice
-  streams, not in Jak 3.
+  (`hj2-propa-look`) while the intact model is hidden. The Baron speaks from it like in Jak 2
+  (`hj2-propa-speech`, [8.4](#84-sound-and-music)).
 - **Neon signs** (`havenj2-signs.gc`): the Baron's skull, Praxis' name and the Hip Hog's marquee,
   blinking random patterns like Jak 2's.
 
@@ -588,7 +602,8 @@ level port ports them all. Its script translator (`convert/scripts.py`) translat
 | `want-display` of a level merged into the place holding the script, from another of its levels | Dropped (Dead Town's regions showing and hiding the hut). A level showing or hiding itself keeps it |
 | Story checks (`task-closed?`, `task-open?`) | Evaluated for the end of the game (the manifest's `story`, the actors' story state too), except `palace-sneak-in-meeting` (kept open) and per-region exceptions (`region_open_tasks`) |
 | Continue names (`want-continue`, warp gate destinations) | The mod's continue names |
-| Sounds, sound banks, dialogs, cutscenes, settings other than fixed cameras, `task-close!` | Removed |
+| `want-sound` (the sound banks), `sound-play-loop` (the ambiences) | Kept, the banks renamed ([8.4](#84-sound-and-music)) |
+| Dialogs, cutscenes, settings other than fixed cameras, `task-close!` | Removed |
 
 Region ids are Jak 2's plus 1000; water regions start at each level's `base_id`.
 
@@ -1062,7 +1077,7 @@ vehicles wait at Jak 2's parking spots, and the guard turrets answer the squad's
 | Attack controller | A guard or a citizen takes an attacker from `*cty-attack-controller*` when it spawns. `crimson-guard` only checks that the controller is nonzero: with `#f` the first guard crashes the game. havenj2 allocates it like Jak 3's city does |
 | Density | Jak 2's numbers, by Jak 3 type (`*havenj2-traffic-want-counts*`): 15 male, 15 female and 14 fat citizens, 9 guards, 8 of each hover bike and 7 of each car. Set before `restore-default-settings`, which derives the target and reserve counts from them. A type's `want-count` is an `int8`, at most 20 |
 | Switch | Mods menu, City traffic (`*mod-jak2-haven-city-traffic*`, on by default): starts or stops it at once |
-| Sounds | The vehicles', citizens' and guards' sound effects are in Jak 3's city half banks, which Jak 3's city loads through its borrow manager; havenj2 doesn't load them, so these effects are silent. Speech plays |
+| Sounds | The vehicles', citizens' and guards' sound effects are in Jak 3's city half banks (`citycarh`, `citypedh`, `cityffh`), which Jak 3's city loads through its borrow manager: havenj2 loads them with Jak 2's city banks ([8.4](#84-sound-and-music)). The citizens speak Jak 2's lines, the guards Jak 3's |
 
 ### 7.3 Hellcats
 
@@ -1134,6 +1149,33 @@ mission's fixed weather) takes it over. With the changing weather, in the mod's 
 draw Jak 3 stopped starts again. The driver starts the first time Jak enters one of the mod's levels
 or picks a weather; until then the game's weather is untouched, and with the changing weather it
 touches nothing outside the mod's levels.
+
+### 8.4 Sound and music
+
+The levels play Jak 2's sound: its music, its sound banks (ambiences and object sounds) and its
+voice lines. The build copies them from Jak 2's extracted disc (`iso_data/jak2`) into
+`out/jak3/iso`, renamed. Without a Jak 2 extraction the levels are silent and the rest works.
+Nothing of it is committed.
+
+| Part | Jak 2 | Here |
+|---|---|---|
+| Music | Each level's `:music-bank` (`city1`, `forest`, `palcab`...), a MIDI bank (`.MUS`), with variations (flava) for the gun, the board, Dark Jak and vehicles | The same `:music-bank`, renamed (`'j2city1`, `J2CITY1.MUS`), played as MIDI by Jak 3's overlord ([4.5](#45-sound)). The city's process sets the flava like Jak 2 (`hj2-update-music-flava`; Jak 3 never sets it). The places without music in Jak 2 (Vin's room, the garage, the construction site...) have none |
+| Sound banks | 3 per place: the continues' and region scripts' `want-sound` | The same, renamed (`ctywide1`: `'j2ctywi1`, `J2CTYWI1.SBK`), taken for Jak 3 half banks (`hj2-sound-bank-name->mode`; on PC a bank's size doesn't matter). With the hub, Jak 3's traffic banks `citycarh`, `citypedh`, `cityffh` load next to `ctywide1`, `ctywide2`, `ctywide3` (the hub's `:extra-sound-bank`): 6 halves, Jak 3's most |
+| Ambiences | The region scripts' `sound-play-loop` (`city-amb1`, `hiphog-amb`, `forest-amb-1`, `dig-lava`...) | Kept by the translator |
+| Object sounds | In each class | In the `hj2-*` classes, by Jak 2's names, when a bank loaded where the object stands has them: Jak 3's stand-ins (airlock and lift sounds on Jak 2's doors and elevators, `explosion`, `guard-shot`) replaced by Jak 2's. The speakers' hits keep Jak 3's iron crate (Jak 2's play none). What is left out: [14](#14-not-done-yet) |
+| Speeches | The propaganda speakers' 54 lines (`*propa-sounds*`) | `hj2-propa-speech`: once the camera is within 55 m, heard from 40 to 55 m, stopped beyond 60 m |
+| Citizens | Their lines (speech types 16 to 28) | Given to Jak 3's `civ-*` speech types, which Jak 3's city leaves empty (`hj2-restore-city-speeches`, the traffic's speech callback; the traffic manager clears them when it stops) |
+
+**Names.** Both games have files of the same name (28 sound banks, the music `CITY1`), and Jak 3's
+code plays some of Jak 2's voice names (its own copy of Jak 2's `propa` class): the banks and the
+music get `j2` (cut to the disc's 8 characters, `renamed` in `scripts/level_port/steps/sound.py`),
+the voice lines `j` (`jprop009`, `jcit099a`). The voice lists are the manifest's `sound.voices`,
+defined as GOAL arrays in `jak2-haven-city-levels.gc`.
+
+**Build.** The level port writes the steps into `jak2-haven-city.gp`, each under a
+`(file-exists? ...)`: a `copy` per bank and music (57 files, 14 MB), and `pack-vags` for the 100
+voice lines (`VAGDIRM.AYB`, and a 17 MB `VAGWADM.<language>` for each of Jak 2's 7 languages).
+`out/jak3` is shared by every mod's worktree: these files have names no other mod uses.
 
 ## 9. Travelling
 
@@ -1366,7 +1408,7 @@ if they end past `#x10000000`. Jak 2's is 12.0 on `master-dev` (about 215 MB): c
 
 Phase 1 is commit `de9ec6962`; phases 2 to 10 are commit `dd14a7829`; phase 11 is commit
 `e769d5e2a`; phase 12 is commit `051725569`; phase 13 is commit `a1daec395`; phases 14, 15 and
-15b are the commits that add their rows. Phases 1 to
+15b are commit `a4f797fc4`; phase 16 is the commit that adds its row. Phases 1 to
 10 were played in game before the next one started; phase 11 was partly (the time gates both ways,
 the new places through the Mods menu); phase 12 was partly: the Freedom HQ sequence that crashed
 (Jak 3's city, the HQ's elevator, its time gate to the hideout) works. The rest of phase 12 is built
@@ -1374,7 +1416,8 @@ the new places through the Mods menu); phase 12 was partly: the Freedom HQ seque
 were checked against phase 12's, and `(mi)` builds them. Phase 14 was played once: the district
 loading holes and the traffic over the void found then are fixed in phase 15. Phase 15 was played
 once (the user's second test): what it found is fixed in phase 15b, which is built (`(mi)` clean,
-`fr3_check` finds 0 errors on every level) but not played yet.
+`fr3_check` finds 0 errors on every level) but not played yet. Phase 16 is built (`(mi)` clean,
+the audio copied and packed) but not played yet.
 
 | Phase | Asked | Done | Problems found: cause, fix |
 |---|---|---|---|
@@ -1393,12 +1436,24 @@ once (the user's second test): what it found is fixed in phase 15b, which is bui
 | 13 | Generic, reusable tools instead of the scripts of the havenj2 folder (Jak 2 → Jak 3 now, Jak 1 → Jak 3 and other directions later), with as little mod-specific code as possible; the level editor's submodule removed | The level port (`scripts/level_port`: games, game pairs, steps) and this mod's manifest (`custom_assets/jak3/ports/jak2-haven-city`); the levels' build steps generated (`jak2-haven-city.gp`, loaded by `game.gp`); the submodule link removed on branch `tools/open-goal-level-editor` | Every generated file compared with phase 12's: the same data, but for the order of two models in `hj2-dig`'s DGO, the order of lump keys in `hj2-forest` and `hj2-ruins` (the level builder sorts them) and the name of the palace gate's collision mesh (build-actor only prints it). One file had Windows line ends, now the same as the others |
 | 14 | The city split like Jak 2's (the low-res city seen from the palace lobby); Jak 2's Hellcats in the traffic | The hub `havenj2` (Jak 2's `ctywide`, `small-center`, `not-physical`) and 15 district levels from the template `city-district` (`small-edge`, `display-wait`), Jak 2's load sets ([5](#5-the-city-levels), [6.2](#62-the-levels-and-their-memory)); the level port's `level_templates`, `hub`, `level_flags`, `nav.sources`, `particles.levels`, `hubs_var`, the hub first in every level list (`with_hubs`), Jak 2's district display scripts kept, the hub's `.jsonc` generated in full (the `section` mode and the `shown` key removed), the water step folded into `levels`, `part-engine-max` per level; districts drawing with the hub's sprite page, released at the hub's logout; respawn by hub group (`hj2-hub-of`); the Hellcats ([7.3](#73-hellcats)) | The low-res city in the palace lobby: the pillar-top airlocks, born 420 m below with the default 10 km `vis-dist`, opened and showed `hj2-pcab` and `hj2-proof`; doors copy Jak 2's `vis-dist`. A district's actors need the hub's code: the hub loads first and unloads last, and stays loaded with Dead Town and the mountain (Jak 2 drops `ctywide` there). Jak 2's airlocks hide the hub while a district stays shown: the hub's sprite page is kept until it unloads. The Freedom League squad rewrites the `guard-car` target count every frame from its alert settings, which give the Hellcats none: its guard type 5 is held at 3 |
 | 15 | After the first phase-14 test: districts never shown, traffic floating over the void, Hellcats chasing Jak. Every level complete like Jak 2's, with the same levels loaded: every hazard that hurts Jak, no enemies, the palace's inside as the low-res throne seen from the roof, the small places (kiosk, Onin's tent, the canyon), no orbs, the garage doors still removed | `hj2-swap-in-district` ([6.1](#61-how-jak-2-loads-its-levels)); each district's own navigation (nav step `write_district`), the hub only the height map ([7.1](#71-navigation-data)); the Hellcats' pursuit removed ([7.3](#73-hellcats)); particles in 20 more places and the garage, `"auto"` pages and ids (`Allocator`), `skip_groups`, `defbehavior` callbacks copied ([5.3](#53-particles-and-sprite-textures)); static decor in meshes, `hj2-common-obs.gc`, the palace cable's hazards, the city's actors (parking spots, force-field walls, searchlights, guard turrets, barges), the places' end states, hazards and decor ([5.6](#56-city-actors), [6.12](#612-hazards-and-decor-of-the-places)); the mountain's iris doors open on `hj2-mincan`, and `hj2-kiosk`, `hj2-onin` ([6.13](#613-small-places)); the level port's lump kinds `string`, `symbol`, `type`, a ported actor's `art_groups` in its DGO, `ported_actors`, `region_script_overrides` for regions 429, 894, 177, 353 and 873; Jak 2's `GGA.DGO` and `ATE.DGO` extracted again with `rip_levels` | Districts never shown: some of Jak 2's loading faces can be walked around, and showing a level that isn't wanted is lost: the district asked is swapped in for a hidden one. The void traffic: the hub's merged navigation spawned it over districts not loaded; each district keeps Jak 2's own, and the engine links the 2 displayed ones. A crash going down the palace pillar (`h-bike-c`, `nav-branch` method 15): the traffic start unlinked a graph never linked, which corrupted it; only patched graphs are unlinked. Classes placed by levels loaded together (the windmills of the mountain and the cable, the flip steps of the cable and the roof) can't be linked by both: they moved to GAME |
+| 16 | Jak 2's sound in full: music, ambiences, object sounds, speeches and citizens' lines | The level port's `sound` step ([8.4](#84-sound-and-music)): `want-sound` and `sound-play-loop` kept, banks and music renamed `j2*`, the levels' `:music-bank`, the hub's `:extra-sound-bank` (Jak 3's traffic banks), the copy and `pack-vags` build steps; Jak 3's overlord plays MIDI music, skips missing banks and reads a mod VAG directory, `goalc`'s `pack-vags`, GOOS `file-exists?` ([4.5](#45-sound)); Jak 2's banks as half banks, the music flava, the speakers' speeches, the citizens' lines; Jak 2's object sounds in 35 `hj2-*` classes: the palace gate, hideout doors, fortress gates and elevators, the guard turrets, the atoll's pistons, turbines, pipes, sliders and gun buoy, the dig's platforms, balloon and stomp blocks, the fortress's lift, turrets and laser belt, the mountain's platforms, eco pool and avalanche, the palace cable's nuts, fans, rotating gun and turrets, the ruins' beams | Jak 2's voice lines start with a little-endian `pGAV` header (Jak 3's with `VAGp`): `pack-vags` reads both. Jak 2's names collide with Jak 3's (28 banks, the `CITY1` music, the `propa` speeches Jak 3's code still plays): every file renamed. A build step's `:dep` must be another step's output: the build file is `pack-vags`' third input instead |
 | 15b | After the user's second test: death riding up the palace pillar, the mountain missing from Haven Forest, black props in the Hip Hog and Onin's tent, a crash entering the Hip Hog, the void from the port to the palace, black areas and lag while districts load, respawn points like Jak 2's, the tanker crash place removed, living yakows, Jak 2's original doors. Jak 2's music and sounds researched, pending a decision ([14](#14-not-done-yet)) | Doors' height slice (`door_height`, `base_lumps`) and no `vis-dist` copied ([6.3](#63-doors-and-elevators)); `'special` kept ([6.1](#61-how-jak-2-loads-its-levels), [6.4](#64-pumping-station-mountain-and-haven-forest)); `"sun": null` mesh palettes, `update-mood-hj2-onin` ([6.12](#612-hazards-and-decor-of-the-places), [8.1](#81-moods)); particle `data` copied for copied callbacks ([5.3](#53-particles-and-sprite-textures)); the district guard with the generated district map and its 1.5 s look-ahead, the PC renderer told of loading levels (vanilla `level.gc` edit, off by default) ([6.1](#61-how-jak-2-loads-its-levels)); `hj2-update-vis-nick` in place of the continue manager ([9.3](#93-respawn-points)); spawn distance caps for the city's spawners and props ([11](#11-memory-and-performance)); `hj2-yakow` ([5.6](#56-city-actors)); 8 door classes from Jak 2's models for 42 doors ([6.3](#63-doors-and-elevators)) | Pillar death: phase 14's copied `vis-dist` (200 m) made the pillar-top airlocks be born on the way up, and their `on-inside` loaded the bottom set: the top unloaded under Jak. Jak 3's airlock tests distance on x and z only; Jak 2 paused unseen doors through its visibility data: a height lump bounds it. The mountain: the translator turned `'special` into `#f`. Black props: their light was in palette 0 only, and interior moods light others. Hip Hog crash: `hj2-hiphog-mirror-sheen-func` read Jak 2's `*hiphog-mirror-sheen-waveform*`, never copied. The void: no loading face covers that street. Black areas: the renderer heard of a level only once it was loaded. The district map puts 46 of the 48 city continues in their own district, the other 2 in alleys outside it, none in another Then: Haven Forest's far end (`hj2-forstb`: the mother tree and the Precursor stone head) shown as soon as region 436 loads it (`region_script_overrides`; Jak 2 shows it only when the camera crosses the small face 434); `hj2-anim-loop` steps its animation once per frame like Jak 2's `med-res-level` (a seek-until-done loop never yields on a one-frame animation such as the low-res throne's); swingpoles (Dead Town, the palace cable, the fortress exit) and the dig's trapezes grabbable: Jak 3's target only takes `'pole-grab` while `jakb-pole-cycle-ja` is loaded, an animation of `jak-pole+0-ag` that its own levels with poles carry (halfpipe, precc, tema): the manifest's `art_groups` give it to `swingpole` and `hj2-dig-balloon-lurker` |
 
 ## 14. Not done yet
 
 - **Not played in game yet (phase 12):** everything in its row of [13](#13-change-history) but
   the Freedom HQ crash fix.
+- **Not played in game yet (phase 16).** To check on a cold boot, with Jak 2 extracted:
+  - the music of each place (the city's `city1`, the forest's, the palace cable's...), its
+    variations when Jak draws his gun, rides the board, turns dark or drives, and Jak 3's music
+    back once Jak leaves for Jak 3's levels; the music volume and the pause menu;
+  - the ambiences (the city, the Hip Hog, the forest, the dig's lava) and the object sounds of the
+    phase-16 row of [13](#13-change-history);
+  - the traffic's engines, footsteps and guards, the citizens' Jak 2 lines (shoot near them, take
+    their vehicle);
+  - the Baron's speeches near a speaker, stopping when it breaks;
+  - with the speech and sound volumes of the options menu; the game log has a
+    `No sound bank file` warning for any bank missing.
 - **Not played in game yet (phase 15b).** To check on a cold boot (`task boot-game`), on a save
   made outside the mod's levels (a save restores its continue):
   - riding the palace pillar's elevator up and down: no death at the top, the low-res city never in
@@ -1475,22 +1530,21 @@ once (the user's second test): what it found is fixed in phase 15b, which is bui
   and `dig3b` were extracted before the camera export existed (a new Jak 2 extraction of these
   levels adds them; their camera regions are dropped meanwhile).
 - **Traffic:** Jak 2's citizen and guard models, the KG and Metal Head squads.
-- **Jak 2's music and sounds, pending the user's decision.** The mod's levels play no Jak 2 music,
-  and the traffic's, Hellcats', doors' and objects' sound effects are silent ([7.2](#72-traffic));
-  the Baron's speeches are missing. A research pass (nothing built, no ripped audio committed)
-  found:
-
-  | Part | Finding | Work |
-  |---|---|---|
-  | Traffic sound effects | They are in Jak 3's city half banks `citycarh`, `citypedh`, `cityffh` (`sound-bank-name->mode` in `level.gc`, Jak 3's city borrow manager) | The quick win: load those banks with the hub |
-  | Jak 2's sound banks (SBK) | Same format in both games | Copy them, renamed `J2*`, at build time from the player's Jak 2 extraction; count their half-bank slots through a mod override of `sound-bank-name->mode` |
-  | Voice streams (VAG) | Compatible, but Jak 3's overlord needs a Jak 3-format directory | A small C++ fallback directory in Jak 3's overlord |
-  | Music (MUS) | Jak 3 streams its music, Jak 2 plays MIDI banks | About 100 to 150 lines of C++ in Jak 3's overlord |
+- **Sounds left out (phase 16):** the object sounds in no Jak 2 bank (the yakow's, the dig's
+  `mud-plat`, `atoll-windmill`...), or in a bank not loaded where the object stands (the barges'
+  engines, `PORTRUN1`; the fortress turrets' shots); the sounds of Jak 2's `COMMON` and `COMMONJ`
+  banks (Jak 3's common bank is loaded instead); the sounds played by particle callbacks (not
+  copied, [5.3](#53-particles-and-sprite-textures)); the gun buoy's voice line `cityv052`. Only 5
+  of the atoll's pistons play their loop: Jak 2 picks them by an options lump the level port
+  doesn't keep, so they are listed by name (`*hj2-piston-sound-names*`). Jak 2's music doesn't fade
+  in or out between levels.
 - **The save slot's picture** is Jak 3's choice ([9.4](#94-saves)).
 - **Native non-regression, not met yet:** the time gate always stands in Jak 3's Freedom HQ,
   whatever the menu says. The vanilla code changes: a faction manager check in `guard.gc`, which
   changes nothing where Jak 3's faction manager exists (Jak 3's own city), and the PC renderer
-  predicate in `level.gc`, `#f` by default, which the mod sets for its own levels only.
+  predicate in `level.gc`, `#f` by default, which the mod sets for its own levels only. The sound
+  changes to Jak 3's overlord ([4.5](#45-sound)) only act on files Jak 3 doesn't have (`.MUS`
+  music, `VAGDIRM.AYB`), or on a missing bank, which asserted before.
 - **Symbols prefixed with the mod's slug, partly:** the menu's settings use
   `mod-jak2-haven-city-`; the levels' code uses the level prefixes `havenj2-` and `hj2-`.
 - **Verified facts in the Lisp wiki, not yet:** the verified Jak 3 facts are listed in

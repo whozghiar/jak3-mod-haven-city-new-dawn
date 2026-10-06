@@ -11,16 +11,24 @@
 ;; the convex hull of the model, bound to its main joint (transform index 3) like Jak 2's mesh. The
 ;; story state is the end of the game: the pumping station is running (atoll-sig and atoll-water
 ;; done), so every piston moves, the turbines are risen, the lift catwalks are down and the hatch is
-;; open. Jak 2's sounds of these objects aren't in Jak 3.
+;; open. Sounds: Jak 2's, from its ATOLL1 to ATOLL4 banks ('j2atoll1...), which hj2-atoll loads
+;; like Jak 2's atoll (ATOLL1 and ATOLL2 always, ATOLL3 or ATOLL4 by area); Jak 2's atoll-windmill
+;; ambient is in none of its banks.
 
 ;; Pistons /////////////////////////////////////////////////////////////////////////////////////////
 
 ;; Jak 2's piston: a column moving up and down (move-range, in meters below its top), rideable.
+;; Some of them play Jak 2's piston-loop (ATOLL1) twice per period, at their spawn point.
+;;   sound-trans: where the loop plays (the placement, below the column's top); sound-time: when it
+;;   plays next; looping-id: its sound id (zero for a silent piston).
 (deftype hj2-piston (process-focusable)
   ((init-height   float)
    (range-top     float)
    (range-bottom  float)
    (sync          sync-eased  :inline)
+   (sound-trans   vector      :inline)
+   (sound-time    time-frame)
+   (looping-id    sound-id)
    )
   (:state-methods
     running
@@ -32,7 +40,16 @@
   :bounds (0 -6.1 0 7.8)
   )
 
-;; moving up and down forever (sync), carrying Jak
+;; The pistons that play piston-loop: Jak 2's ones with actor-option user18 in their options lump
+;; (atoll's actors). ponytail: by name, since the level port doesn't keep the options lump; read
+;; the lump instead once the port keeps it.
+(define *hj2-piston-sound-names*
+  (new 'static 'boxed-array :type string "piston-1" "piston-13" "piston-15" "piston-17" "piston-66")
+  )
+
+;; moving up and down forever (sync), carrying Jak. A sounding piston (nonzero looping-id) plays
+;; Jak 2's piston-loop at its sound-trans every half period, from 0.1 s before its sync's offset
+;; (Jak 2's running state).
 (defstate running (hj2-piston)
   :virtual #t
   :event (behavior ((proc process) (argc int) (message symbol) (block event-message-block))
@@ -42,6 +59,11 @@
        )
       )
     )
+  :enter (behavior ()
+    (if (nonzero? (-> self looping-id))
+        (set! (-> self sound-time) (+ (get-timeframe-offset! (-> self sync) 0) (seconds -0.1)))
+        )
+    )
   :trans rider-trans
   :code sleep-code
   :post (behavior ()
@@ -50,14 +72,30 @@
             (+ (-> self init-height) (+ (-> self range-bottom) (get-scaled-val! (-> self sync) f0-1 0)))
             )
       )
+    (when (and (nonzero? (-> self looping-id)) (< (-> self sound-time) (current-time)))
+      (sound-stop (-> self looping-id))
+      (sound-play "piston-loop" :id (-> self looping-id) :position (-> self sound-trans))
+      (+! (-> self sound-time) (the int (* 0.5 (the float (-> self sync period)))))
+      )
     (rider-post)
     )
   )
 
+(defmethod deactivate ((this hj2-piston))
+  "Stops the piston's loop (Jak 2's piston deactivate), then the parent's deactivate. Returns
+nothing."
+  (if (nonzero? (-> this looping-id))
+      (sound-stop (-> this looping-id))
+      )
+  (call-parent-method this)
+  (none)
+  )
+
 ;; WARN: Return type mismatch object vs none.
 (defmethod init-from-entity! ((this hj2-piston) (arg0 entity-actor))
-  "Jak 2's piston setup: a rideable pusher (the hull of its model, joint 3), its move-range and its
-sync (5 seconds up and down)."
+  "Jak 2's piston setup: a rideable pusher (the hull of its model, joint 3), its move-range, its
+sync (5 seconds up and down) and, for the pistons of *hj2-piston-sound-names*, a sound id for Jak
+2's piston-loop, played at the placement (sound-trans)."
   (let ((s4-0 (new 'process 'collide-shape this (collide-list-enum usually-hit-by-player))))
     (let ((s3-0 (new 'process 'collide-shape-prim-mesh s4-0 (the-as uint 0) (the-as uint 0))))
       (set! (-> s3-0 prim-core collide-as) (collide-spec obstacle pusher))
@@ -77,8 +115,15 @@ sync (5 seconds up and down)."
     (set! (-> this root) s4-0)
     )
   (process-drawable-from-entity! this arg0)
+  (vector-copy! (-> this sound-trans) (-> this root trans))
   (+! (-> this root trans y) (meters 13))
   (initialize-skeleton this *hj2-piston-sg* (the-as pair 0))
+  (set! (-> this looping-id) (new 'static 'sound-id))
+  (dotimes (i (-> *hj2-piston-sound-names* length))
+    (if (string= (-> this name) (-> *hj2-piston-sound-names* i))
+        (set! (-> this looping-id) (new-sound-id))
+        )
+    )
   (logior! (-> this focus-status) (focus-status ignore))
   (logclear! (-> this mask) (process-mask actor-pause))
   (let ((a1-8 (new 'stack-no-clear 'sync-info-params)))
@@ -115,7 +160,8 @@ sync (5 seconds up and down)."
 
 ;; Turbines ////////////////////////////////////////////////////////////////////////////////////////
 
-;; Jak 2's turbine: a spinning platform, risen (rise-height) once the station runs.
+;; Jak 2's turbine: a spinning platform, risen (rise-height) once the station runs, humming (Jak 2's
+;; turbine ambient sound, ATOLL1, heard within 50m of where it stood).
 (deftype hj2-turbine (process-drawable)
   ((root         collide-shape :override)
    (dest-height  float)
@@ -131,7 +177,7 @@ sync (5 seconds up and down)."
   :bounds (0 -10 0 14)
   )
 
-;; spinning (rotspeed) and rising to its height, carrying Jak
+;; spinning (rotspeed) and rising to its height, carrying Jak; its hum plays (update!)
 (defstate risen (hj2-turbine)
   :virtual #t
   :trans rider-trans
@@ -143,14 +189,15 @@ sync (5 seconds up and down)."
           (+! (-> self root trans y) (* (fmax 6144.0 (/ f1-2 2)) (seconds-per-frame)))
           )
       )
+    (update! (-> self sound))
     (rider-post)
     )
   )
 
 ;; WARN: Return type mismatch object vs none.
 (defmethod init-from-entity! ((this hj2-turbine) (arg0 entity-actor))
-  "Jak 2's turbine setup: a rideable pusher (the hull of its model), its spin speed and the height
-it rises to (rise-height)."
+  "Jak 2's turbine setup: a rideable pusher (the hull of its model), its spin speed, the height it
+rises to (rise-height) and Jak 2's turbine ambient sound (ATOLL1, 50m falloff)."
   (let ((s4-0 (new 'process 'collide-shape this (collide-list-enum usually-hit-by-player))))
     (let ((s3-0 (new 'process 'collide-shape-prim-mesh s4-0 (the-as uint 0) (the-as uint 0))))
       (set! (-> s3-0 prim-core collide-as) (collide-spec camera-blocker pusher))
@@ -175,6 +222,9 @@ it rises to (rise-height)."
   (initialize-skeleton this *hj2-turbine-sg* (the-as pair 0))
   (set! (-> this rotspeed) (res-lump-float arg0 'rotspeed :default 8192.0))
   (set! (-> this dest-height) (+ (-> this root trans y) (res-lump-float arg0 'rise-height)))
+  (set! (-> this sound)
+        (new 'process 'ambient-sound (static-sound-spec "turbine" :group 0 :fo-max 50) (-> this root trans) 0.0)
+        )
   (transform-post)
   (go (method-of-object this risen))
   )
@@ -182,7 +232,8 @@ it rises to (rise-height)."
 ;; Lift catwalks ///////////////////////////////////////////////////////////////////////////////////
 
 ;; Jak 2's liftcat: a catwalk lowered by Jak's weight, down for good once the station runs. Its
-;; collision is the walkway (the hull of the model above its base).
+;; collision is the walkway (the hull of the model above its base). Silent: Jak 2 plays liftcat
+;; (ATOLL1) while it goes down, and it is already down here.
 (deftype hj2-liftcat (process-drawable)
   ((root  collide-shape :override)
    )
@@ -253,7 +304,8 @@ scale-mult), lowered."
 ;; Rotating pipes //////////////////////////////////////////////////////////////////////////////////
 
 ;; Jak 2's atollrotpipe: a pipe to run on, turning a quarter turn every few seconds (cycle-speed:
-;; period and offset, in seconds) after a shudder.
+;; period and offset, in seconds) after a shudder, with Jak 2's rot-pipe-wiggle and rot-pipe-turn
+;; sounds (ATOLL1).
 (deftype hj2-atollrotpipe (process-drawable)
   ((root           collide-shape-moving :override)
    (smush          smush-control         :inline)
@@ -298,6 +350,8 @@ scale-mult), lowered."
       (suspend-for (the int (-> self cycle-time))
         )
       (activate! (-> self smush) -1.0 60 225 1.0 1.0 (-> self clock))
+      ;; Jak 2's sounds: the shudder, then the turn
+      (sound-play "rot-pipe-wiggle" :position (-> self root trans))
       (suspend-for (seconds 0.75)
         (set! (-> self shudder-angle) (* 364.0889 (update! (-> self smush))))
         )
@@ -305,6 +359,7 @@ scale-mult), lowered."
       (set-zero! (-> self smush))
       (suspend-for (seconds 0.25)
         )
+      (sound-play "rot-pipe-turn" :position (-> self root trans))
       (let ((f30-1 (* 16384.0 2.0)))
         (suspend-for (seconds 0.5)
           (set! (-> self rot-angle)
@@ -378,13 +433,15 @@ scale-mult), lowered."
 ;; Sliders /////////////////////////////////////////////////////////////////////////////////////////
 
 ;; Jak 2's slider: an electrified wall sliding back and forth along its path, shoving Jak away. Jak
-;; 2's lightning between its poles isn't drawn.
+;; 2's lightning between its poles isn't drawn, but its sounds play: the slider ambient (ATOLL1,
+;; louder mid-path), the slide-lightning loop (ATOLL2, sound-id) and slide-zap on each shove (ATOLL2).
 (deftype hj2-slider (process-drawable)
   ((root               collide-shape-moving :override)
    (path-pos           float)
    (sync               sync-eased            :inline)
    (attack-id          uint32)
    (collide-off-timer  time-frame)
+   (sound-id           sound-id)
    )
   (:state-methods
     idle
@@ -413,6 +470,8 @@ scale-mult), lowered."
                      (vector-float*! s4-1 s4-1 -1.0)
                      )
                  )
+               ;; Jak 2's sound (ATOLL2)
+               (sound-play "slide-zap")
                (send-event
                  proc
                  'attack-or-shove
@@ -439,12 +498,18 @@ scale-mult), lowered."
   :post (behavior ()
     (set! (-> self path-pos) (get-norm! (-> self sync) 0))
     (get-point-at-percent-along-path! (-> self path) (-> self root trans) (-> self path-pos) 'interp)
+    ;; Jak 2's ambient: loudest mid-path, following the wall
+    (update-vol! (-> self sound) (sqrtf (sin-rad (* 3.1415925 (-> self path-pos)))))
+    (update-trans! (-> self sound) (-> self root trans))
     (let ((a1-4 (new 'stack-no-clear 'overlaps-others-params)))
       (set! (-> a1-4 options) (overlaps-others-options oo0))
       (set! (-> a1-4 collide-with-filter) (the-as collide-spec -1))
       (set! (-> a1-4 tlist) *touching-list*)
       (find-overlapping-shapes (-> self root) a1-4)
       )
+    ;; Jak 2's lightning loop (ATOLL2), kept going every frame
+    (sound-play "slide-lightning" :id (-> self sound-id))
+    (update! (-> self sound))
     (transform-post)
     )
   )
@@ -454,10 +519,19 @@ scale-mult), lowered."
   #t
   )
 
+(defmethod deactivate ((this hj2-slider))
+  "Stops the lightning loop (Jak 2's slider deactivate), then the parent's deactivate (which stops
+the ambient sound). Returns nothing."
+  (sound-stop (-> this sound-id))
+  (call-parent-method this)
+  (none)
+  )
+
 ;; WARN: Return type mismatch object vs none.
 (defmethod init-from-entity! ((this hj2-slider) (arg0 entity-actor))
   "Jak 2's slider setup: solid (the hull of its model), its path, its sync (8 seconds back and
-forth) and its attack id."
+forth), its attack id, the lightning loop's sound id and Jak 2's slider ambient sound (ATOLL1, 50m
+falloff)."
   (let ((s4-0 (new 'process 'collide-shape-moving this (collide-list-enum hit-by-player))))
     (let ((v1-2 (new 'process 'collide-shape-prim-mesh s4-0 (the-as uint 0) (the-as uint 0))))
       (set! (-> v1-2 prim-core collide-as) (collide-spec obstacle))
@@ -499,13 +573,18 @@ forth) and its attack id."
     (set! (-> this attack-id) a0-20)
     )
   (set! (-> this collide-off-timer) 0)
+  (set! (-> this sound-id) (new-sound-id))
+  (set! (-> this sound)
+        (new 'process 'ambient-sound (static-sound-spec "slider" :group 0 :fo-max 50) (-> this root trans) 0.0)
+        )
   (transform-post)
   (go (method-of-object this idle))
   )
 
 ;; Windmills ///////////////////////////////////////////////////////////////////////////////////////
 
-;; Jak 2's atoll-windmill: turning blades, a turn every sync period.
+;; Jak 2's atoll-windmill: turning blades, a turn every sync period. Silent: Jak 2's atoll-windmill
+;; ambient sound is in none of its banks.
 (deftype hj2-atoll-windmill (process-drawable)
   ((sync          sync-linear  :inline)
    (blade-normal  vector       :inline)
@@ -667,8 +746,10 @@ axis)."
 ;; Not ported: Jak 2's nav-enemy (its nav mesh moved it and told where its zone is: the zone is the
 ;; nav mesh's 71 polygons below, and it moves in a straight line, holding still when the point it
 ;; follows leaves the zone), its banking, its splashes and wake (water-control), its 12 hit points
-;; (Jak can't destroy it), the guard voice lines and the buoy-alarm, buoy-guns-in and gun-buoy-steady
-;; sounds (not in Jak 3: silent; the shots keep guard-shot's sounds).
+;; (Jak can't destroy it), the guard voice line of its warning (cityv052).
+;; Sounds: Jak 2's, in its ATOLL3 and ATOLL4 banks (loaded where the buoy is): the gun-buoy-steady
+;; ambient (louder as it surfaces), the buoy-alarm loop while it warns Jak, buoy-guns-in as it
+;; closes its guns, buoy-shot as each shot fires.
 
 ;; The zone: Jak 2's nav mesh of the buoy (atoll nav-mesh-actor 19136), the sea ringing the pumping
 ;; station at the water line: 71 convex polygons, each 4 (x z) corners in meters (a triangle repeats
@@ -792,9 +873,20 @@ repeated corner makes a null edge, ignored). Returns #t or #f. No side effects."
 ;; Jak 2's gun-buoy-shot: a guard shot (Jak 3's guard-shot, GAME: its beam, glows and hit sparks)
 ;; that turns towards Jak every frame (aimed 2m above his feet), flies through the background like
 ;; Jak 2's (it only collides with Jak and his bots), 180m/s, gone after 2.78s, and kills Jak (Jak 2's
-;; 'explode attack, 1024 damage). Sounds: guard-shot's (Jak 2's buoy-shot isn't in Jak 3).
+;; 'explode attack, 1024 damage). Sound: Jak 2's buoy-shot as it fires (no hit sound, as in Jak 2).
 (deftype hj2-gun-buoy-shot (guard-shot)
   ()
+  )
+
+
+(defmethod play-impact-sound ((this hj2-gun-buoy-shot) (arg0 projectile-options))
+  "Jak 2's gun-buoy-shot sound: buoy-shot (ATOLL3/ATOLL4) when it is fired (no options), nothing on
+impact. Returns none."
+  (if (zero? arg0)
+      (sound-play "buoy-shot")
+      )
+  0
+  (none)
   )
 
 
@@ -887,7 +979,7 @@ Sets the shot's root. Returns none."
 ;;   offset-y-angular: the offset's last turn (smoothing); elev-angle: the aim's tilt; y-offset: how
 ;;   deep it is under its floating height (0 surfaced, -20m sunk); y-speed: how fast it surfaces;
 ;;   warned?: it has already warned Jak once (next warnings are 0.1 s); kill?: a region told it to
-;;   kill Jak (no warning, fires until Jak dies).
+;;   kill Jak (no warning, fires until Jak dies); warning-id: the buoy-alarm loop's sound id.
 (deftype hj2-gun-buoy (process-drawable)
   ((root              collide-shape  :override)
    (start-pos         vector         :inline)
@@ -900,6 +992,7 @@ Sets the shot's root. Returns none."
    (y-speed           float)
    (warned?           symbol)
    (kill?             symbol)
+   (warning-id        sound-id)
    )
   (:state-methods
     dormant
@@ -961,15 +1054,16 @@ draw status, collision. Returns nothing."
   )
 
 (defbehavior hj2-gun-buoy-fade! hj2-gun-buoy ()
-  "While it surfaces or sinks: its size and its tint follow its depth (Jak 2's: full size and color
-at the surface, nothing 20m down, greenish under water). Side effects: root scale, draw color-mult.
-Returns nothing."
+  "While it surfaces or sinks: its size, its tint and its ambient sound's volume follow its depth
+(Jak 2's: full size, color and volume at the surface, nothing 20m down, greenish under water). Side
+effects: root scale, draw color-mult, the ambient sound's volume. Returns nothing."
   (let* ((f (fmax 0.0 (- 1.0 (fabs (/ (-> self y-offset) (meters 20))))))
          (under (new 'stack-no-clear 'vector))
          )
     (set-vector! (-> self root scale) f f f 1.0)
     (set-vector! under 0.3 0.4 0.0 1.0)
     (vector-lerp! (-> self draw color-mult) under *identity-vector* (* f f))
+    (update-vol! (-> self sound) f)
     )
   (none)
   )
@@ -979,8 +1073,9 @@ Returns nothing."
 without nav): the offset turns with Jak's facing; the buoy moves towards Jak plus the offset while
 that point is in its zone (straight, at most 28m/s, faster when Jak is fast or the offset is off);
 its guns aim at Jak; it bobs at its floating height (0.8m under its placement, the sea's level
-there) plus y-offset. Side effects: offset, aim-dir, elev-angle, root trans and quat, gun-jm.
-The state's post then runs transform-post (joints, collision). Returns nothing."
+there) plus y-offset; its ambient sound follows it (Jak 2's common-post). Side effects: offset,
+aim-dir, elev-angle, root trans and quat, gun-jm, the ambient sound. The state's post then runs
+transform-post (joints, collision). Returns nothing."
   (let ((tgt *target*))
     (when tgt
       (let ((jak (get-trans tgt 0)))
@@ -1059,6 +1154,8 @@ The state's post then runs transform-post (joints, collision). Returns nothing."
            (-> self y-offset)
            )
         )
+  (update-trans! (-> self sound) (-> self root trans))
+  (update! (-> self sound))
   (none)
   )
 
@@ -1198,7 +1295,8 @@ The state's post then runs transform-post (joints, collision). Returns nothing."
   )
 
 ;; guns out, waiting for Jak to turn back: 4 s (0.5 s on the board, 0.1 s once warned), then fires
-;; if he is still in its zone; stares once he has left. 'kill-player: fires at once.
+;; if he is still in its zone; stares once he has left. 'kill-player: fires at once. Jak 2's
+;; buoy-alarm loops meanwhile (warning-id), stopped on exit.
 (defstate warning (hj2-gun-buoy)
   :virtual #t
   :event (behavior ((proc process) (argc int) (message symbol) (block event-message-block))
@@ -1211,6 +1309,11 @@ The state's post then runs transform-post (joints, collision). Returns nothing."
     )
   :enter (behavior ()
     (set-time! (-> self state-time))
+    (set! (-> self warning-id) (sound-play "buoy-alarm"))
+    )
+  :exit (behavior ()
+    (sound-stop (-> self warning-id))
+    (set! (-> self warning-id) (new 'static 'sound-id))
     )
   :trans (behavior ()
     (cond
@@ -1236,6 +1339,7 @@ The state's post then runs transform-post (joints, collision). Returns nothing."
     )
   :code sleep-code
   :post (behavior ()
+    (sound-play "buoy-alarm" :id (-> self warning-id))
     (hj2-gun-buoy-chase-post)
     (transform-post)
     )
@@ -1269,7 +1373,8 @@ The state's post then runs transform-post (joints, collision). Returns nothing."
     )
   )
 
-;; closes its guns, then watches for 6 s: Jak back in its zone opens them again, else it sinks
+;; closes its guns (Jak 2's buoy-guns-in sound), then watches for 6 s: Jak back in its zone opens
+;; them again, else it sinks
 (defstate stare-down (hj2-gun-buoy)
   :virtual #t
   :enter (behavior ()
@@ -1286,6 +1391,7 @@ The state's post then runs transform-post (joints, collision). Returns nothing."
       )
     )
   :code (behavior ()
+    (sound-play "buoy-guns-in")
     (ja-channel-push! 1 (seconds 0.075))
     (let ((rate (rand-vu-float-range 0.8 1.2)))
       (ja-no-eval :group! hj2-gun-buoy-close-ja :num! (seek! max rate) :frame-num 0.0)
@@ -1366,8 +1472,8 @@ buoy."
 (defmethod init-from-entity! ((this hj2-gun-buoy) (arg0 entity-actor))
   "Jak 2's gun-buoy setup, from the entity arg0 (no lumps read): a solid sphere that can't be stood
 on (Jak 2's: 3m around its body, in a 3.4m group), placement, skeleton (shut), the guns' tilt
-joint-mod, aiming ahead, sunk. Not paused far away: it watches Jak anywhere in the station. Goes to
-dormant."
+joint-mod, aiming ahead, sunk, Jak 2's gun-buoy-steady ambient sound (80m falloff, silent until it
+surfaces). Not paused far away: it watches Jak anywhere in the station. Goes to dormant."
   (let ((cshape (new 'process 'collide-shape this (collide-list-enum usually-hit-by-player))))
     (let ((group (new 'process 'collide-shape-prim-group cshape (the-as uint 1) 0)))
       (set! (-> cshape total-prims) (the-as uint 2))
@@ -1404,6 +1510,11 @@ dormant."
   (set! (-> this y-offset) -81920.0)
   (set! (-> this warned?) #f)
   (set! (-> this kill?) #f)
+  (set! (-> this warning-id) (new 'static 'sound-id))
+  (set! (-> this sound)
+        (new 'process 'ambient-sound (static-sound-spec "gun-buoy-steady" :group 0 :fo-max 80) (-> this root trans) 0.0)
+        )
+  (update-vol! (-> this sound) 0.0)
   (ja-post)
   (go (method-of-object this dormant))
   )

@@ -1440,12 +1440,34 @@
   },
   "camera": {
     "bsphere": [
-      -565.5518,
-      73.0774,
-      242.6492,
-      254.5407
+      -721.3578,
+      135.2446,
+      152.2247,
+      349.23
     ],
     "regions": [
+      {
+        "id": 1183,
+        "shape": "sphere",
+        "bsphere": [
+          -697.1332,
+          101.7468,
+          276.6946,
+          55.5908
+        ],
+        "on-inside": "(sound-play-loop \"waterfall-1\")"
+      },
+      {
+        "id": 1184,
+        "shape": "sphere",
+        "bsphere": [
+          -721.3578,
+          135.2446,
+          152.2247,
+          348.23
+        ],
+        "on-inside": "(sound-play-loop \"mtn-amb-low\")"
+      },
       {
         "id": 1351,
         "bsphere": [

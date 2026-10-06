@@ -23,8 +23,10 @@
 ;; stone landing dust, group-land-poof-stn: Jak 2's rock-hit group 352 is made of Jak 2's own land
 ;; dust parts), shake the camera and buzz the pad.
 ;;
-;; Not ported: Jak 2's sounds (mtn-aval-loop, mtn-boulder: not in Jak 3) and the rocks' shadows
-;; (mtn-aval-rocks-shadow, a second model with a shadow mesh).
+;; Sounds: Jak 2's, from its MOUNT2 bank ('j2mount2, loaded with hj2-mount): the mtn-aval-loop rumble
+;; while the avalanche runs (quieter under the mountain's music, faded out when it stops), and a
+;; mtn-boulder at a rock's hard landing near Jak.
+;; Not ported: the rocks' shadows (mtn-aval-rocks-shadow, a second model with a shadow mesh).
 
 ;; Calibration //////////////////////////////////////////////////////////////////////////////////
 
@@ -70,11 +72,14 @@
 
 
 ;; Jak 2's mtn-aval-rocks: the avalanche (see the top of the file).
-;;   rocks: the 48 rocks (rock i is joint i + 3); downhill: the actor's -z axis (world)
+;;   rocks: the 48 rocks (rock i is joint i + 3); downhill: the actor's -z axis (world);
+;;   loop-id: the mtn-aval-loop sound; volume: the sounds' volume (0 to 1, Jak 2's).
 (deftype hj2-mtn-aval-rocks (process-drawable)
   ((root      collide-shape   :override)
    (rocks     hj2-aval-rock   48 :inline)
    (downhill  vector          :inline)
+   (loop-id   sound-id)
+   (volume    float)
    )
   (:state-methods
     idle
@@ -163,8 +168,9 @@ Returns nothing."
 A moving rock: gravity (60m/s^2), a ground probe under it (background only); on the ground (a
 surface facing up), it is pushed out of it, bounces (*hj2-aval-limits* w), slows down a little and
 rolls (turns around the horizontal axis across its motion); its speed is kept under 28m/s. A
-landing faster than 6m/s (Jak 2's threshold) within 50m of Jak raises dust (at most every 0.33s per
-rock); within 30m it also shakes the camera and buzzes the pad (Jak 2's). A rock older, lower or
+landing faster than 6m/s (Jak 2's threshold) within 50m of Jak raises dust and plays Jak 2's
+mtn-boulder (louder the harder it lands, at most every 0.33s per rock); within 30m it also shakes
+the camera and buzzes the pad (Jak 2's). A rock older, lower or
 further downhill than *hj2-aval-limits* waits 0.2 to 2s and starts again. Returns nothing."
   (let ((dt (seconds-per-frame))
         (target (target-pos 0))
@@ -223,6 +229,16 @@ further downhill than *hj2-aval-limits* waits 0.2 to 2s and starts again. Return
                               (vector-copy! (-> mat trans) (-> rock pos))
                               (set! (-> mat trans y) (- (-> mat trans y) (-> rock radius)))
                               (part-tracker-spawn part-tracker :to *entity-pool* :group group-land-poof-stn :mat-joint mat)
+                              ;; Jak 2's sound (MOUNT2): 30% to full volume for a 0 to 10m/s impact
+                              (sound-play-by-name
+                                (static-sound-name "mtn-boulder")
+                                (new-sound-id)
+                                (the int (* 1024.0 (lerp-scale 0.3 1.0 (fabs vn) 0.0 (meters 10)) (-> this volume)))
+                                0
+                                0
+                                (sound-group)
+                                (-> mat trans)
+                                )
                               )
                             (when (< dist (meters 30))
                               (cpad-set-buzz!
@@ -315,10 +331,11 @@ further downhill than *hj2-aval-limits* waits 0.2 to 2s and starts again. Return
 
 ;; The avalanche, until 'draw #f.
 ;;   enter: shows the model; every rock starts within 5 seconds (the avalanche builds up).
-;;   exit: hides the model.
+;;   exit: hides the model, fades the rumble out over 240 ticks (Jak 2's).
 ;;   event 'touch/'attack: a rock's sphere touching a focusable attacks it (Jak 2's attack, the
 ;;     rock's attack id); 'draw #f: back to idle.
-;;   post: moves the rocks (step-rocks!), then places the joints and the collision (transform-post).
+;;   post: moves the rocks (step-rocks!), then places the joints and the collision (transform-post);
+;;     plays the rumble at the slope (Jak 2's volume: 60% under the mountain's music, else full).
 (defstate fall (hj2-mtn-aval-rocks)
   :virtual #t
   :event (behavior ((proc process) (argc int) (message symbol) (block event-message-block))
@@ -364,12 +381,42 @@ further downhill than *hj2-aval-limits* waits 0.2 to 2s and starts again. Return
     )
   :exit (behavior ()
     (logior! (-> self draw status) (draw-control-status no-draw))
+    ;; Jak 2's fade-out of the rumble
+    (let ((v1-10 (the-as sound-rpc-set-param (get-sound-buffer-entry))))
+      (set! (-> v1-10 command) (sound-command set-param))
+      (set! (-> v1-10 id) (-> self loop-id))
+      (set! (-> v1-10 params volume) -4)
+      (set! (-> v1-10 auto-time) 240)
+      (set! (-> v1-10 auto-from) 2)
+      (set! (-> v1-10 params mask) (the-as uint 17))
+      )
     )
   :code sleep-code
   :post (behavior ()
+    (if (= (-> *setting-control* user-current music) 'j2mounta)
+        (seek! (-> self volume) 0.6 (* 0.2 (seconds-per-frame)))
+        (seek! (-> self volume) 1.0 (* 0.5 (seconds-per-frame)))
+        )
     (step-rocks! self)
     (transform-post)
+    ;; Jak 2's rumble (MOUNT2), at the middle of the slope
+    (sound-play-by-name
+      (static-sound-name "mtn-aval-loop")
+      (-> self loop-id)
+      (the int (* 1024.0 (-> self volume)))
+      0
+      0
+      (sound-group)
+      (-> self draw origin)
+      )
     )
+  )
+
+(defmethod deactivate ((this hj2-mtn-aval-rocks))
+  "Stops the rumble, then the parent's deactivate. Returns nothing."
+  (sound-stop (-> this loop-id))
+  (call-parent-method this)
+  (none)
   )
 
 ;; WARN: Return type mismatch object vs none.
@@ -378,7 +425,8 @@ further downhill than *hj2-aval-limits* waits 0.2 to 2s and starts again. Return
 action: they only send 'touch), one per rock joint (transform index i + 3, prim id i + 1), in a group
 around the slope; the placement turned half a turn like Jak 2's (it then faces the slope: -z is
 downhill); the skeleton with its joint math done at once (sync-math) and every rock joint placed by
-hj2-aval-rock-joint-callback. Not paused with the actors. Goes to idle (hidden)."
+hj2-aval-rock-joint-callback; the rumble's sound id, silent at first. Not paused with the actors. Goes
+to idle (hidden)."
   (stack-size-set! (-> this main-thread) 512)
   (let ((s4-0 (new 'process 'collide-shape this (collide-list-enum hit-by-player))))
     (set! (-> s4-0 penetrated-by) (penetrate))
@@ -415,6 +463,8 @@ hj2-aval-rock-joint-callback. Not paused with the actors. Goes to idle (hidden).
   (logior! (-> this skel status) (joint-control-status sync-math))
   (vector-z-quaternion! (-> this downhill) (-> this root quat))
   (vector-float*! (-> this downhill) (-> this downhill) -1.0)
+  (set! (-> this loop-id) (new-sound-id))
+  (set! (-> this volume) 0.0)
   (dotimes (i 48)
     (let ((rock (-> this rocks i)))
       (vector-copy! (-> rock pos) (-> this root trans))

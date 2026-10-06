@@ -10,14 +10,19 @@
 ;; the temple's platforms. Its warp gates are Jak 3's own. The models here are Jak 2's, rebuilt by
 ;; build-actor (hj2-*.glb, made by the level port, scripts/level_port), each
 ;; with an invisible collision mesh: a box around it, or for the platforms the convex hull of the
-;; model.
+;; model. Sounds: Jak 2's, from its MOUNT1 to MOUNT3 banks ('j2mount1...), which hj2-mount loads
+;; (hj2-mtnx is only loaded with it). Left out: Jak 2's sounds in none of its banks (mtn-plat-shoot's
+;; shoot-plat-lp ambient, mtn-dice-button's dice-button), those of moves these objects no longer
+;; make (the dice rolling and sinking, the gear device), and the parked mountain elevator's
+;; mtn-elevator-lp (Jak 2's elevator plays it at no volume when it stands still).
 
 ;; Transport platform /////////////////////////////////////////////////////////////////////////////
 
 ;; Jak 2's trans-plat (a mtn-plat-return): from the mountain top, it takes Jak down the stream to
 ;; Haven Forest, and back. It waits at one end of its path; once Jak has stood on it for half a
 ;; second, it grabs him and rides to the other end. Jak 2 only showed it after the forest scouts
-;; mission started, it is always there here.
+;; mission started, it is always there here. It hums with Jak 2's mtn-plat-lp ambient sound
+;; (MOUNT1, 70m falloff), which plat-post keeps at the platform.
 (deftype hj2-trans-plat (base-plat)
   ((ride-timer  time-frame)
    (ridden?     symbol)
@@ -164,7 +169,7 @@
 (defmethod init-from-entity! ((this hj2-trans-plat) (arg0 entity-actor))
   "Jak 2's mtn-plat-return and trans-plat setup: a rideable pusher (the collision box of its model,
 from its origin, as in Jak 2), its path (a curve) ridden at the entity's speed, starting from the
-end closest to Jak, and rising into place."
+end closest to Jak, its mtn-plat-lp ambient sound, and rising into place."
   (let ((s5-0 (new 'process 'collide-shape this (collide-list-enum usually-hit-by-player))))
     (let ((s4-0 (new 'process 'collide-shape-prim-mesh s5-0 (the-as uint 0) (the-as uint 0))))
       (set! (-> s4-0 prim-core collide-as) (collide-spec pusher))
@@ -197,6 +202,10 @@ end closest to Jak, and rising into place."
     (set! (-> this path-speed) (/ (res-lump-float arg0 'speed :default 40960.0) f30-0))
     (set! (-> this root pause-adjust-distance) (+ 204800.0 f30-0))
     )
+  ;; Jak 2's ambient sound (MOUNT1)
+  (set! (-> this sound)
+        (new 'process 'ambient-sound (static-sound-spec "mtn-plat-lp" :group 0 :fo-max 70) (-> this root trans) 0.0)
+        )
   ;; trans-plat's init-plat!: start at the control point closest to Jak
   (when *target*
     (let ((s4-0 (get-trans *target* 0))
@@ -226,7 +235,7 @@ end closest to Jak, and rising into place."
 ;; Solid props ////////////////////////////////////////////////////////////////////////////////////
 
 ;; A model that doesn't move: solid and rideable (the collision box of its model, bound to its main
-;; joint), holding the first frame of its animation.
+;; joint), holding the first frame of its animation. A prop given an ambient sound (sound) plays it.
 (deftype hj2-mtn-prop (process-drawable)
   ((root  collide-shape :override)
    )
@@ -236,13 +245,18 @@ end closest to Jak, and rising into place."
   )
 
 
-;; holds the first frame of its animation, still
+;; holds the first frame of its animation, still; its ambient sound, if any, plays (update!)
 (defstate idle (hj2-mtn-prop)
   :virtual #t
   :code (behavior ()
     (ja :num-func num-func-identity :frame-num 0.0)
     (transform-post)
     (sleep-code)
+    )
+  :post (behavior ()
+    (if (nonzero? (-> self sound))
+        (update! (-> self sound))
+        )
     )
   )
 
@@ -322,7 +336,8 @@ end closest to Jak, and rising into place."
   )
 
 ;; Jak 2's mtn-plat-gap (a mtn-plat-return, the model of the trans-plat), raised over the temple's
-;; gap once its puzzle is solved: here it stays there (the generator puts it at the top of its path).
+;; gap once its puzzle is solved: here it stays there (the generator puts it at the top of its path),
+;; humming like Jak 2's (mtn-plat-lp, MOUNT1, 70m falloff).
 (deftype hj2-mtn-plat-gap (hj2-mtn-prop)
   ()
   )
@@ -330,12 +345,17 @@ end closest to Jak, and rising into place."
 
 ;; WARN: Return type mismatch object vs none.
 (defmethod init-from-entity! ((this hj2-mtn-plat-gap) (arg0 entity-actor))
-  "Jak 2's mtn-plat-gap setup: a solid prop with the trans-plat's model."
+  "Jak 2's mtn-plat-gap setup: a solid prop with the trans-plat's model and Jak 2's mtn-plat-lp
+ambient sound."
   (hj2-mtn-prop-init! this arg0 *hj2-trans-plat-sg* (new 'static 'vector :y (meters -1.9) :w (meters 4.5)))
+  (set! (-> this sound)
+        (new 'process 'ambient-sound (static-sound-spec "mtn-plat-lp" :group 0 :fo-max 70) (-> this root trans) 0.0)
+        )
   (go (method-of-object this idle))
   )
 
-;; Jak 2's mtn-plat-buried (levels/mountain/mountain-scenes.gc there), out of the rocks.
+;; Jak 2's mtn-plat-buried (levels/mountain/mountain-scenes.gc there), out of the rocks, humming
+;; like Jak 2's (mtn-plat-lp, MOUNT1, 100m falloff).
 (deftype hj2-mtn-plat-buried (hj2-mtn-prop)
   ()
   )
@@ -347,8 +367,12 @@ end closest to Jak, and rising into place."
 
 ;; WARN: Return type mismatch object vs none.
 (defmethod init-from-entity! ((this hj2-mtn-plat-buried) (arg0 entity-actor))
-  "Jak 2's mtn-plat-buried setup: a solid prop, out of the rocks."
+  "Jak 2's mtn-plat-buried setup: a solid prop, out of the rocks, with Jak 2's mtn-plat-lp ambient
+sound."
   (hj2-mtn-prop-init! this arg0 *hj2-mtn-plat-buried-sg* (new 'static 'vector :y (meters -1.9) :w (meters 4.5)))
+  (set! (-> this sound)
+        (new 'process 'ambient-sound (static-sound-spec "mtn-plat-lp" :group 0 :fo-max 100) (-> this root trans) 0.0)
+        )
   (go (method-of-object this idle))
   )
 
@@ -500,7 +524,9 @@ cycle)."
   )
 
 ;; Jak 2's mtn-plat-shoot: a platform moving along its path, flipping over for a few seconds (delay)
-;; when shot.
+;; when shot, with Jak 2's sounds (MOUNT2): mtn-plat-flip1 as it flips, mtn-plat-shake a second
+;; before it flips back, mtn-plat-flip2 as it does.
+;;   on-shake: mtn-plat-shake played for this flip.
 (deftype hj2-mtn-plat-shoot (plat)
   ((incoming-attack-id  uint32)
    (angle-flip          float)
@@ -509,6 +535,7 @@ cycle)."
    (state-flip          uint32)
    (time-flip           float)
    (dest-angle          float)
+   (on-shake            symbol)
    )
   )
 
@@ -559,6 +586,7 @@ cycle)."
                                                (collide-spec projectile)
                                                )
                               )
+                     (sound-play "mtn-plat-flip1")
                      (set! (-> self state-flip) (the-as uint 1))
                      (vector-! (-> self axe-flip) (-> (the-as collide-shape cshape) trans) (-> self root trans))
                      (set! (-> self axe-flip y) 0.0)
@@ -584,6 +612,7 @@ cycle)."
           )
       )
     (set! (-> self dest-angle) 180.0)
+    (set! (-> self on-shake) #f)
     (set-time! (-> self state-time))
     )
   :trans (behavior ()
@@ -591,11 +620,24 @@ cycle)."
       (set! (-> self state-flip) (the-as uint 0))
       0
       )
-    (set! (-> self dest-angle) (if (zero? (-> self state-flip))
-                                   180.0
-                                   0.0
-                                   )
+    (cond
+      ((zero? (-> self state-flip))
+       (set! (-> self on-shake) #f)
+       ;; flipping back: Jak 2's sound
+       (when (!= (-> self dest-angle) 180.0)
+         (sound-play "mtn-plat-flip2")
+         (set! (-> self dest-angle) 180.0)
+         )
+       )
+      (else
+        (set! (-> self dest-angle) 0.0)
+        ;; a second before flipping back: Jak 2's shake sound, once
+        (when (and (time-elapsed? (-> self state-time) (the int (+ -300.0 (-> self time-flip)))) (not (-> self on-shake)))
+          (sound-play "mtn-plat-shake")
+          (set! (-> self on-shake) #t)
           )
+        )
+      )
     (+! (-> self angle-flip-vel) (* -0.5 (seconds-per-frame) (- (-> self angle-flip) (-> self dest-angle))))
     (+! (-> self angle-flip-vel) (* -6.0 (seconds-per-frame) (-> self angle-flip-vel)))
     (+! (-> self angle-flip) (-> self angle-flip-vel))
@@ -627,7 +669,7 @@ cycle)."
 ;; so its classes live here (HJM). Not ported: the gear device (its collapsed pose isn't complete in
 ;; the rips: Jak 2's mtn-gear-device-collapse-idle covers 30 of its 37 pieces), the rocks the
 ;; buttons blow up and the rhino's walls (broken for good: their "-end" poses aren't in the rips),
-;; Jak 2's sounds.
+;; the sounds of the puzzles' moves (no longer made). The dark eco pool keeps Jak 2's ambient sound.
 
 ;; A still prop holding the LAST frame of its animation: Jak 2's pressed buttons (basebutton's
 ;; pressed pose, mtn-button's pressed state). Solid and rideable like hj2-mtn-prop.
@@ -935,8 +977,8 @@ over its pool), then goes to idle. Returns nothing."
 ;; (the level port's "water" block, a surface without a water region); this process is the hazard
 ;; alone: Jak 3's water regions only send their 'water event to a water-anim, so Jak dies here when
 ;; his feet go under the pool's height (its placement) inside Jak 2's volume of it (its vol lump: 6
-;; planes per box, outside where dot(p, n) > w, game units). No sound (no eco-pool in Jak 3's
-;; banks), no ripples.
+;; planes per box, outside where dot(p, n) > w, game units). Sound: Jak 2's eco-pool ambient
+;; (MOUNT3, 30 to 50m falloff). No ripples.
 (deftype hj2-dark-eco-pool (process-drawable)
   ((boxes      (inline-array vector))
    (box-count  int32)
@@ -972,10 +1014,12 @@ boxes (6 planes each)? Returns #t or #f. No side effects."
     )
   )
 
-;; every frame: Jak in the pool dies (Jak 3's water-anim attack, mode dark-eco-pool)
+;; every frame: Jak in the pool dies (Jak 3's water-anim attack, mode dark-eco-pool); the pool's
+;; ambient sound plays
 (defstate idle (hj2-dark-eco-pool)
   :virtual #t
   :trans (behavior ()
+    (update! (-> self sound))
     (if (and *target* (hj2-dark-eco-pool-touch? self (-> *target* control trans)))
         (send-event
           *target*
@@ -996,7 +1040,8 @@ boxes (6 planes each)? Returns #t or #f. No side effects."
   "Jak 2's dark-eco-pool setup, the hazard only.
 arg0: the entity (its placement: the surface height; its vol lump: the pool's boxes).
 Side effects: sets the root (a trsqv), the placement, boxes and box-count (none without the lump:
-then it never kills) and its attack id, then goes to idle. Returns nothing."
+then it never kills), its attack id and Jak 2's eco-pool ambient sound, then goes to idle. Returns
+nothing."
   (set! (-> this root) (new 'process 'trsqv))
   (process-drawable-from-entity! this arg0)
   (let* ((tag (new 'static 'res-tag))
@@ -1010,6 +1055,9 @@ then it never kills) and its attack id, then goes to idle. Returns nothing."
           )
     )
   (set! (-> this kill-id) (new-attack-id))
+  (set! (-> this sound)
+        (new 'process 'ambient-sound (static-sound-spec "eco-pool" :group 0 :fo-min 30 :fo-max 50) (-> this root trans) 0.0)
+        )
   (go (method-of-object this idle))
   )
 

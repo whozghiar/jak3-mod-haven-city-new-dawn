@@ -197,6 +197,152 @@
   0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
   ))
 
+;; Jak 2's voice lines the mod plays (packed by the build: scripts/level_port/steps/sound.py)
+(define *hj2-propa-sounds* (new 'static 'boxed-array :type string
+  "jprop009"
+  "jprop010"
+  "jprop011"
+  "jprop012"
+  "jprop013"
+  "jprop014"
+  "jprop015"
+  "jprop016"
+  "jprop017"
+  "jprop018"
+  "jprop019"
+  "jprop020"
+  "jprop021"
+  "jprop022"
+  "jprop023"
+  "jprop024"
+  "jprop025"
+  "jprop026"
+  "jprop028"
+  "jprop027"
+  "jprop029"
+  "jprop030"
+  "jprop031"
+  "jprop032"
+  "jprop033"
+  "jprop034"
+  "jprop035"
+  "jprop036"
+  "jprop037"
+  "jprop038"
+  "jprop039"
+  "jprop040"
+  "jprop041"
+  "jprop042"
+  "jprop043"
+  "jprop008"
+  "jprop006"
+  "jprop005"
+  "jprop004"
+  "jprop002"
+  "jprop003"
+  "jbar001"
+  "jprop044"
+  "jprop045"
+  "jprop046"
+  "jprop047"
+  "jprop048"
+  "jprop049"
+  "jprop051"
+  "jprop052"
+  "jprop053"
+  "jprop054"
+  "jprop055"
+  "jprop056"
+  ))
+
+(define *hj2-civ-m-alert-sounds* (new 'static 'boxed-array :type string
+  "jcit099"
+  "jcit099a"
+  "jcit099b"
+  "jcit100"
+  "jcit100a"
+  "jcit101"
+  "jcit101a"
+  "jcit101b"
+  ))
+
+(define *hj2-civ-f-alert-sounds* (new 'static 'boxed-array :type string
+  "jcit099c"
+  "jcit099d"
+  "jcit100c"
+  "jcit101c"
+  "jcit103"
+  "jcit103a"
+  "jcit104"
+  "jcit104a"
+  "jcit105"
+  "jcit120"
+  "jcit120a"
+  ))
+
+(define *hj2-civ-m-shot-sounds* (new 'static 'boxed-array :type string
+  "jcit097"
+  "jcit097a"
+  "jcit097b"
+  "jcit098"
+  "jcit098a"
+  "jcit098b"
+  ))
+
+(define *hj2-civ-f-shot-sounds* (new 'static 'boxed-array :type string
+  "jcit097c"
+  "jcit097d"
+  "jcit098c"
+  "jcit098d"
+  "jcit099c"
+  "jcit098d"
+  ))
+
+(define *hj2-civ-m-stealing-sounds* (new 'static 'boxed-array :type string
+  "jcit001"
+  "jcit004"
+  "jcit008"
+  "jcit010"
+  "jcit016"
+  "jcit033"
+  "jcit034"
+  "jcit035"
+  "jcit046"
+  "jcit047"
+  "jcit051"
+  "jcit053"
+  "jcit055"
+  "jcit056"
+  "jcit057"
+  "jcit058"
+  ))
+
+(define *hj2-civ-m-cower-sounds* (new 'static 'boxed-array :type string
+  "jcit099"
+  "jcit099a"
+  "jcit099b"
+  "jcit100"
+  "jcit100a"
+  "jcit100b"
+  "jcit101"
+  "jcit101a"
+  "jcit101b"
+  ))
+
+(define *hj2-civ-f-cower-sounds* (new 'static 'boxed-array :type string
+  "jcit099c"
+  "jcit099d"
+  "jcit100c"
+  "jcit101c"
+  "jcit103"
+  "jcit103a"
+  "jcit104"
+  "jcit104a"
+  "jcit105"
+  "jcit120"
+  "jcit120a"
+  ))
+
 ;; Jak 2's ctywide, the city-wide level of Jak 2's Haven City (custom_assets/jak3/levels/havenj2),
 ;; loaded first with every district (hj2-slma...). Kept at Jak 2's world coordinates, so it
 ;; must never be loaded together with Jak 3's own city levels.
@@ -216,8 +362,8 @@
     :packages '()
     :run-packages '("common")
     :memory-mode (level-memory-mode small-center)
-    :music-bank #f
-    :extra-sound-bank #f
+    :music-bank 'j2city1
+    :extra-sound-bank '((j2ctywi1 j2ctywi1 citycarh) (j2ctywi2 j2ctywi2 citypedh) (j2ctywi3 j2ctywi3 cityffh))
     :mood-func 'update-mood-havenj2
     :special-mood #f
     :ocean '*ocean-map-havenj2*
@@ -258,7 +404,7 @@
     :packages '()
     :run-packages '("common")
     :memory-mode (level-memory-mode small-edge)
-    :music-bank #f
+    :music-bank 'j2city1
     :extra-sound-bank #f
     :mood-func 'update-mood-havenj2
     :special-mood #f
@@ -286,7 +432,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-slma :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-indb :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2ctywi3)
         )
       (new 'static 'continue-point
         :name "hj2-ctysluma-alley"
@@ -305,7 +451,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-slma :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-hide :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2ctywi3)
         )
       (new 'static 'continue-point
         :name "hj2-ctysluma-burning-bush"
@@ -323,7 +469,7 @@
           (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-slma :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2ctywi3)
         )
       )
     :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
@@ -354,7 +500,7 @@
     :packages '()
     :run-packages '("common")
     :memory-mode (level-memory-mode small-edge)
-    :music-bank #f
+    :music-bank 'j2city1
     :extra-sound-bank #f
     :mood-func 'update-mood-havenj2
     :special-mood #f
@@ -381,7 +527,7 @@
           (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-slmb :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2ctywi3)
         )
       (new 'static 'continue-point
         :name "hj2-ctyslumb-fort"
@@ -398,7 +544,7 @@
           (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-slmb :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2ctywi3)
         )
       (new 'static 'continue-point
         :name "hj2-ctyslumb-burning-bush"
@@ -417,7 +563,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-slma :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-slmb :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2ctywi3)
         )
       (new 'static 'continue-point
         :name "hj2-ctyslumb-burning-bush-2"
@@ -436,7 +582,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-genb :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-slmb :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2ctywi3)
         )
       )
     :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
@@ -467,7 +613,7 @@
     :packages '()
     :run-packages '("common")
     :memory-mode (level-memory-mode small-edge)
-    :music-bank #f
+    :music-bank 'j2city1
     :extra-sound-bank #f
     :mood-func 'update-mood-havenj2
     :special-mood #f
@@ -495,7 +641,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-slmc :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-slmb :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2ctywi3)
         )
       (new 'static 'continue-point
         :name "hj2-ctyslumc-slums"
@@ -513,7 +659,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-slmc :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-atollx :display? #f)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2ctywi3)
         )
       (new 'static 'continue-point
         :name "hj2-ctyslumc-burning-bush"
@@ -532,7 +678,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-slmc :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-slmb :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2ctywi3)
         )
       )
     :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
@@ -563,7 +709,7 @@
     :packages '()
     :run-packages '("common")
     :memory-mode (level-memory-mode small-edge)
-    :music-bank #f
+    :music-bank 'j2city1
     :extra-sound-bank #f
     :mood-func 'update-mood-havenj2
     :special-mood #f
@@ -591,7 +737,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-port :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-pal :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2ctywi3)
         )
       (new 'static 'continue-point
         :name "hj2-ctyport-hiphog"
@@ -609,7 +755,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-port :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-hiphog :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2ctywi3)
         )
       (new 'static 'continue-point
         :name "hj2-ctyport-gungame"
@@ -628,7 +774,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-port :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-gun :display? #f)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2gunga1)
         )
       (new 'static 'continue-point
         :name "hj2-ctyport-warp"
@@ -646,7 +792,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-port :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-pal :display? #f)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2ctywi3)
         )
       (new 'static 'continue-point
         :name "hj2-ctyport-under"
@@ -663,7 +809,7 @@
           (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-port :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2ctywi3)
         )
       (new 'static 'continue-point
         :name "hj2-ctyport-burning-bush"
@@ -682,7 +828,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-hiphog :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-port :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2ctywi3)
         )
       (new 'static 'continue-point
         :name "hj2-ctyport-burning-bush-3"
@@ -701,7 +847,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-inda :display? #f)
           (new 'static 'level-buffer-state-small :name 'hj2-port :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2ctywi3)
         )
       )
     :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
@@ -732,7 +878,7 @@
     :packages '()
     :run-packages '("common")
     :memory-mode (level-memory-mode small-edge)
-    :music-bank #f
+    :music-bank 'j2city1
     :extra-sound-bank #f
     :mood-func 'update-mood-havenj2
     :special-mood #f
@@ -760,7 +906,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-marka :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-kiosk :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2ctywi3)
         )
       (new 'static 'continue-point
         :name "hj2-ctymarka-burning-bush"
@@ -779,7 +925,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-marka :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-farmb :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2ctywi3)
         )
       )
     :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
@@ -810,7 +956,7 @@
     :packages '()
     :run-packages '("common")
     :memory-mode (level-memory-mode small-edge)
-    :music-bank #f
+    :music-bank 'j2city1
     :extra-sound-bank #f
     :mood-func 'update-mood-havenj2
     :special-mood #f
@@ -837,7 +983,7 @@
           (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-markb :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ashta1 'j2ashta2)
         )
       (new 'static 'continue-point
         :name "hj2-ctymarkb-burning-bush"
@@ -856,7 +1002,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-markb :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-indb :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2ctywi3)
         )
       (new 'static 'continue-point
         :name "hj2-ctymarkb-burning-bush-2"
@@ -875,7 +1021,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-markb :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-pal :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2ctywi3)
         )
       )
     :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
@@ -906,7 +1052,7 @@
     :packages '()
     :run-packages '("common")
     :memory-mode (level-memory-mode small-edge)
-    :music-bank #f
+    :music-bank 'j2city1
     :extra-sound-bank #f
     :mood-func 'update-mood-havenj2
     :special-mood #f
@@ -934,7 +1080,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-inda :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-indb :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2ctywi3)
         )
       (new 'static 'continue-point
         :name "hj2-ctyinda-vinroom"
@@ -952,7 +1098,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-inda :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-vin :display? #f)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2ctywi3)
         )
       (new 'static 'continue-point
         :name "hj2-ctyinda-consite"
@@ -970,7 +1116,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-inda :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-consb :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2ctywi3)
         )
       (new 'static 'continue-point
         :name "hj2-ctyinda-burning-bush"
@@ -989,7 +1135,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-inda :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-consb :display? #f)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2ctywi3)
         )
       )
     :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
@@ -1020,7 +1166,7 @@
     :packages '()
     :run-packages '("common")
     :memory-mode (level-memory-mode small-edge)
-    :music-bank #f
+    :music-bank 'j2city1
     :extra-sound-bank #f
     :mood-func 'update-mood-havenj2
     :special-mood #f
@@ -1048,7 +1194,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-indb :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-markb :display? #f)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2ctywi3)
         )
       (new 'static 'continue-point
         :name "hj2-ctyindb-burning-bush"
@@ -1067,7 +1213,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-indb :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-inda :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2ctywi3)
         )
       )
     :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
@@ -1098,7 +1244,7 @@
     :packages '()
     :run-packages '("common")
     :memory-mode (level-memory-mode small-edge)
-    :music-bank #f
+    :music-bank 'j2city1
     :extra-sound-bank #f
     :mood-func 'update-mood-havenj2
     :special-mood #f
@@ -1125,7 +1271,7 @@
           (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-gena :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2ctywi3)
         )
       (new 'static 'continue-point
         :name "hj2-ctygena-burning-bush"
@@ -1144,7 +1290,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-genb :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-gena :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2ctywi3)
         )
       (new 'static 'continue-point
         :name "hj2-ctygena-burning-bush-2"
@@ -1163,7 +1309,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-farma :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-gena :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2ctywi3)
         )
       )
     :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
@@ -1194,7 +1340,7 @@
     :packages '()
     :run-packages '("common")
     :memory-mode (level-memory-mode small-edge)
-    :music-bank #f
+    :music-bank 'j2city1
     :extra-sound-bank #f
     :mood-func 'update-mood-havenj2
     :special-mood #f
@@ -1222,7 +1368,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-genb :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-gena :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2ctywi3)
         )
       (new 'static 'continue-point
         :name "hj2-ctygenb-burning-bush"
@@ -1241,7 +1387,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-genb :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-gena :display? #f)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2ctywi3)
         )
       (new 'static 'continue-point
         :name "hj2-ctygenb-burning-bush-2"
@@ -1260,7 +1406,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-genb :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-slmb :display? #f)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2ctywi3)
         )
       (new 'static 'continue-point
         :name "hj2-cable-pillar"
@@ -1308,7 +1454,7 @@
     :packages '()
     :run-packages '("common")
     :memory-mode (level-memory-mode small-edge)
-    :music-bank #f
+    :music-bank 'j2city1
     :extra-sound-bank #f
     :mood-func 'update-mood-havenj2
     :special-mood #f
@@ -1336,7 +1482,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-genc :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-pal :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2ctywi3)
         )
       (new 'static 'continue-point
         :name "hj2-ctygenc-burning-bush"
@@ -1355,7 +1501,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-genc :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-pal :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2ctywi3)
         )
       (new 'static 'continue-point
         :name "hj2-ctygenc-burning-bush-2"
@@ -1374,7 +1520,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-genc :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-pal :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2ctywi3)
         )
       )
     :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
@@ -1405,7 +1551,7 @@
     :packages '()
     :run-packages '("common")
     :memory-mode (level-memory-mode small-edge)
-    :music-bank #f
+    :music-bank 'j2city1
     :extra-sound-bank #f
     :mood-func 'update-mood-havenj2
     :special-mood #f
@@ -1433,7 +1579,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-farma :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-gena :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2ctyfa1)
         )
       (new 'static 'continue-point
         :name "hj2-ctyfarma-burning-bush"
@@ -1452,7 +1598,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-farma :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-gena :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2ctywi3)
         )
       )
     :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
@@ -1483,7 +1629,7 @@
     :packages '()
     :run-packages '("common")
     :memory-mode (level-memory-mode small-edge)
-    :music-bank #f
+    :music-bank 'j2city1
     :extra-sound-bank #f
     :mood-func 'update-mood-havenj2
     :special-mood #f
@@ -1511,7 +1657,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-farmb :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-port :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2ctyfa1)
         )
       (new 'static 'continue-point
         :name "hj2-ctyfarmb-burning-bush"
@@ -1530,7 +1676,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-farmb :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-marka :display? #f)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2ctyfa1)
         )
       )
     :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
@@ -1561,7 +1707,7 @@
     :packages '()
     :run-packages '("common")
     :memory-mode (level-memory-mode small-edge)
-    :music-bank #f
+    :music-bank 'j2city1
     :extra-sound-bank #f
     :mood-func 'update-mood-havenj2
     :special-mood #f
@@ -1589,7 +1735,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-pal :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-pshaft :display? #f)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2ctywi3)
         )
       (new 'static 'continue-point
         :name "hj2-ctypal-tomb"
@@ -1607,7 +1753,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-pal :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-port :display? #f)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2ctywi3)
         )
       (new 'static 'continue-point
         :name "hj2-ctypal-burning-bush"
@@ -1626,7 +1772,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-genc :display? #f)
           (new 'static 'level-buffer-state-small :name 'hj2-pal :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2ctywi3)
         )
       (new 'static 'continue-point
         :name "hj2-ctypal-burning-bush-2"
@@ -1645,7 +1791,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-port :display? #f)
           (new 'static 'level-buffer-state-small :name 'hj2-pal :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2ctywi3)
         )
       )
     :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
@@ -1676,7 +1822,7 @@
     :packages '()
     :run-packages '("common")
     :memory-mode (level-memory-mode small-edge)
-    :music-bank #f
+    :music-bank 'j2city1
     :extra-sound-bank #f
     :mood-func 'update-mood-havenj2
     :special-mood #f
@@ -1704,7 +1850,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-stdm :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-genb :display? #f)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2ctywi3)
         )
       (new 'static 'continue-point
         :name "hj2-stadium-burning-bush"
@@ -1722,7 +1868,7 @@
           (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-stdm :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2ctywi3)
         )
       )
     :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
@@ -1752,7 +1898,7 @@
     :packages '()
     :run-packages '("common")
     :memory-mode (level-memory-mode small-edge)
-    :music-bank #f
+    :music-bank 'j2city1
     :extra-sound-bank #f
     :mood-func 'update-mood-hj2-hiphog
     :special-mood #f
@@ -1780,7 +1926,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-hiphog :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-port :display? #f)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2hipho1)
         )
       )
     :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
@@ -1810,7 +1956,7 @@
     :packages '()
     :run-packages '("common")
     :memory-mode (level-memory-mode small-edge)
-    :music-bank #f
+    :music-bank 'j2gungam
     :extra-sound-bank #f
     :mood-func 'update-mood-hj2-gun
     :special-mood #f
@@ -1838,7 +1984,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-gun :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-port :display? #f)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2gunga1)
         )
       )
     :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
@@ -1896,7 +2042,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-vin :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-inda :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2vinro1 'j2ctywi1 'j2ctywi2)
         )
       (new 'static 'continue-point
         :name "hj2-vinroom-face-warp"
@@ -1915,7 +2061,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-vin :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-inda :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2vinro1 'j2ctywi1 'j2ctywi2)
         )
       (new 'static 'continue-point
         :name "hj2-vinroom-face-door"
@@ -1934,7 +2080,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-vin :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-inda :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2vinro1 'j2ctywi1 'j2ctywi2)
         )
       (new 'static 'continue-point
         :name "hj2-vinroom-warp"
@@ -1953,7 +2099,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-vin :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-inda :display? #f)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2vinro1 'j2ctywi1 'j2ctywi2)
         )
       )
     :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
@@ -1983,7 +2129,7 @@
     :packages '()
     :run-packages '("common")
     :memory-mode (level-memory-mode small-edge)
-    :music-bank #f
+    :music-bank 'j2city1
     :extra-sound-bank #f
     :mood-func 'update-mood-hj2-hide
     :special-mood #f
@@ -2011,7 +2157,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-hide :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-slma :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2hideo1)
         )
       (new 'static 'continue-point
         :name "hj2-hideout-gate"
@@ -2060,7 +2206,7 @@
     :packages '()
     :run-packages '("common")
     :memory-mode (level-memory-mode small-edge)
-    :music-bank #f
+    :music-bank 'j2city1
     :extra-sound-bank #f
     :mood-func 'update-mood-hj2-oracle
     :special-mood #f
@@ -2088,7 +2234,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-oracle :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-slmc :display? #f)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2oracl1)
         )
       )
     :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
@@ -2147,7 +2293,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-stdm :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-garage :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2ctywi3)
         )
       (new 'static 'continue-point
         :name "hj2-garage-start-class3"
@@ -2166,7 +2312,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-stdm :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-garage :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2ctywi3)
         )
       )
     :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
@@ -2197,7 +2343,7 @@
     :packages '()
     :run-packages '("common")
     :memory-mode (level-memory-mode small-edge)
-    :music-bank #f
+    :music-bank 'j2ruins
     :extra-sound-bank #f
     :mood-func 'update-mood-hj2-ruins
     :special-mood #f
@@ -2225,7 +2371,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-ruins :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-slmb :display? #f)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ruins1 'j2ruins2 'j2ctywi1)
         )
       (new 'static 'continue-point
         :name "hj2-ruins-tower"
@@ -2241,7 +2387,7 @@
         :want (new 'static 'inline-array level-buffer-state-small 1
           (new 'static 'level-buffer-state-small :name 'hj2-ruins :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ruins1 'j2ruins2 'j2ruins3)
         )
       (new 'static 'continue-point
         :name "hj2-ruins-hut"
@@ -2257,7 +2403,7 @@
         :want (new 'static 'inline-array level-buffer-state-small 1
           (new 'static 'level-buffer-state-small :name 'hj2-ruins :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ruins1 'j2ruins2 'j2ruins3)
         )
       (new 'static 'continue-point
         :name "hj2-ruins-tower-end"
@@ -2274,7 +2420,7 @@
         :want (new 'static 'inline-array level-buffer-state-small 1
           (new 'static 'level-buffer-state-small :name 'hj2-ruins :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ruins1 'j2ruins2 'j2ruins3)
         )
       )
     :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
@@ -2333,7 +2479,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-consb :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-inda :display? #f)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2consi1 'j2consi2)
         )
       )
     :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
@@ -2391,7 +2537,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-cons :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-consb :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2consi1 'j2consi2)
         )
       (new 'static 'continue-point
         :name "hj2-consite-runway"
@@ -2408,7 +2554,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-cons :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-consb :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2consi1 'j2consi2)
         )
       )
     :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
@@ -2467,7 +2613,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-pshaft :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-pal :display? #f)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2palca1)
         )
       )
     :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
@@ -2498,7 +2644,7 @@
     :packages '()
     :run-packages '("common")
     :memory-mode (level-memory-mode small-edge)
-    :music-bank #f
+    :music-bank 'j2palcab
     :extra-sound-bank #f
     :mood-func 'update-mood-hj2-proof
     :special-mood #f
@@ -2526,7 +2672,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-proof :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-pcab :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2palca1 'j2palca2)
         )
       (new 'static 'continue-point
         :name "hj2-palroof-boss"
@@ -2544,7 +2690,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-proof :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-pcab :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2palro1 'j2palro2 'j2palro3)
         )
       (new 'static 'continue-point
         :name "hj2-palroof-boss-victory"
@@ -2562,7 +2708,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-proof :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-pcab :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2palro1 'j2palro2 'j2palro3)
         )
       )
     :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
@@ -2593,7 +2739,7 @@
     :packages '()
     :run-packages '("common")
     :memory-mode (level-memory-mode small-center)
-    :music-bank #f
+    :music-bank 'j2palcab
     :extra-sound-bank #f
     :mood-func 'update-mood-hj2-pcab
     :special-mood #f
@@ -2621,7 +2767,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-proof :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-pshaft :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2palca1 'j2palca2)
         )
       (new 'static 'continue-point
         :name "hj2-palcab-mid"
@@ -2638,7 +2784,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-pcab :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-proof :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2palca1 'j2palca2)
         )
       )
     :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
@@ -2711,7 +2857,7 @@
     :packages '()
     :run-packages '("common")
     :memory-mode (level-memory-mode large)
-    :music-bank #f
+    :music-bank 'j2atoll
     :extra-sound-bank #f
     :mood-func 'update-mood-hj2-atoll
     :special-mood #f
@@ -2738,7 +2884,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-atollx :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-atoll :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2atoll1 'j2atoll2 'j2ctywi1)
         )
       (new 'static 'continue-point
         :name "hj2-atoll-airlock"
@@ -2755,7 +2901,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-atollx :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-atoll :display? #f)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2atoll1 'j2atoll2 'j2ctywi1)
         )
       (new 'static 'continue-point
         :name "hj2-sig0-hiding-behind-blocks"
@@ -2772,7 +2918,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-atollx :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-atoll :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2atoll1 'j2atoll2 'j2atoll3)
         )
       (new 'static 'continue-point
         :name "hj2-sig0-down-ramp"
@@ -2789,7 +2935,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-atollx :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-atoll :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2atoll1 'j2atoll2 'j2atoll3)
         )
       (new 'static 'continue-point
         :name "hj2-sig0-charge-gun-for-sniper-c"
@@ -2806,7 +2952,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-atollx :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-atoll :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2atoll1 'j2atoll2 'j2atoll3)
         )
       (new 'static 'continue-point
         :name "hj2-sig0-cross-water"
@@ -2823,7 +2969,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-atollx :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-atoll :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2atoll1 'j2atoll2 'j2atoll3)
         )
       (new 'static 'continue-point
         :name "hj2-sig0-show-sniper-e"
@@ -2840,7 +2986,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-atollx :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-atoll :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2atoll1 'j2atoll2 'j2atoll3)
         )
       (new 'static 'continue-point
         :name "hj2-atoll-battle"
@@ -2858,7 +3004,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-atollx :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-atoll :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2atoll1 'j2atoll2 'j2atoll4)
         )
       )
     :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
@@ -2889,7 +3035,7 @@
     :packages '()
     :run-packages '("common")
     :memory-mode (level-memory-mode small-edge)
-    :music-bank #f
+    :music-bank 'j2mounta
     :extra-sound-bank #f
     :mood-func 'update-mood-hj2-mount
     :special-mood #f
@@ -2916,7 +3062,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-mount :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-mtnx :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2mount1 'j2mount2 'j2mount3)
         )
       (new 'static 'continue-point
         :name "hj2-mountain-warp-top"
@@ -2934,7 +3080,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-mount :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-mtnx :display? #f)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2mount1 'j2mount2 'j2mount3)
         )
       (new 'static 'continue-point
         :name "hj2-mountain-top"
@@ -2951,7 +3097,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-mount :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-mtnx :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2mount1 'j2mount2 'j2mount3)
         )
       (new 'static 'continue-point
         :name "hj2-mountain-warp-bottom"
@@ -2968,7 +3114,7 @@
         :want (new 'static 'inline-array level-buffer-state-small 1
           (new 'static 'level-buffer-state-small :name 'hj2-mount :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2mount1 'j2mount2 'j2ctywi1)
         )
       (new 'static 'continue-point
         :name "hj2-mountain-aval"
@@ -2986,7 +3132,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-mount :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-mtnx :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2mount1 'j2mount2 'j2mount3)
         )
       (new 'static 'continue-point
         :name "hj2-mountain-dark-eco"
@@ -3004,7 +3150,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-mount :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-mtnx :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2mount1 'j2mount2 'j2mount3)
         )
       (new 'static 'continue-point
         :name "hj2-mountain-kiosk"
@@ -3022,7 +3168,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-mount :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-mtnx :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2mount1 'j2mount2 'j2mount3)
         )
       (new 'static 'continue-point
         :name "hj2-mountain-grind-rail"
@@ -3040,7 +3186,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-mount :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-mincan :display? #f)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2mount1 'j2mount2 'j2mount3)
         )
       (new 'static 'continue-point
         :name "hj2-mountain-door"
@@ -3058,7 +3204,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-mount :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-mtnx :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2mount1 'j2mount2 'j2mount3)
         )
       )
     :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
@@ -3131,7 +3277,7 @@
     :packages '()
     :run-packages '("common")
     :memory-mode (level-memory-mode medium)
-    :music-bank #f
+    :music-bank 'j2forest
     :extra-sound-bank #f
     :mood-func 'update-mood-hj2-forest
     :special-mood #f
@@ -3158,7 +3304,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-forest :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-mount :display? 'special)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2fores1 'j2fores2 'j2fores3)
         )
       (new 'static 'continue-point
         :name "hj2-forest-tree"
@@ -3175,7 +3321,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-forest :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-forstb :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2fores1 'j2fores2 'j2fores3)
         )
       )
     :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
@@ -3206,7 +3352,7 @@
     :packages '()
     :run-packages '("common")
     :memory-mode (level-memory-mode medium)
-    :music-bank #f
+    :music-bank 'j2forest
     :extra-sound-bank #f
     :mood-func 'update-mood-hj2-forstb
     :special-mood #f
@@ -3274,7 +3420,7 @@
         :want (new 'static 'inline-array level-buffer-state-small 1
           (new 'static 'level-buffer-state-small :name 'hj2-caspad :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2castl1 'j2castl2 'j2castl3)
         )
       (new 'static 'continue-point
         :name "hj2-caspad-warp"
@@ -3293,7 +3439,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-caspad :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-port :display? #f)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2castl1 'j2castl2 'j2castl3)
         )
       )
     :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
@@ -3323,7 +3469,7 @@
     :packages '()
     :run-packages '("common")
     :memory-mode (level-memory-mode large)
-    :music-bank #f
+    :music-bank 'j2dig
     :extra-sound-bank #f
     :mood-func 'update-mood-hj2-dig
     :special-mood #f
@@ -3350,7 +3496,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-dig :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-caspad :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2dig6 'j2dig7 'j2dig8)
         )
       (new 'static 'continue-point
         :name "hj2-dig-totem"
@@ -3368,7 +3514,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-dig :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-digb :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2dig6 'j2dig7 'j2dig8)
         )
       (new 'static 'continue-point
         :name "hj2-dig3b-start"
@@ -3386,7 +3532,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-dig :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-digb :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2dig6 'j2dig7 'j2dig8)
         )
       (new 'static 'continue-point
         :name "hj2-dig3b-back-room"
@@ -3403,7 +3549,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-dig :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-digb :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2dig6 'j2dig7 'j2dig8)
         )
       )
     :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
@@ -3433,7 +3579,7 @@
     :packages '()
     :run-packages '("common")
     :memory-mode (level-memory-mode small-edge)
-    :music-bank #f
+    :music-bank 'j2dig
     :extra-sound-bank #f
     :mood-func 'update-mood-hj2-digb
     :special-mood #f
@@ -3474,7 +3620,7 @@
     :packages '()
     :run-packages '("common")
     :memory-mode (level-memory-mode small-edge)
-    :music-bank #f
+    :music-bank 'j2fortre
     :extra-sound-bank #f
     :mood-func 'update-mood-hj2-forta
     :special-mood #f
@@ -3501,7 +3647,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-forta :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-fortb :display? #f)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2forre1 'j2forre2)
         )
       )
     :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
@@ -3531,7 +3677,7 @@
     :packages '()
     :run-packages '("common")
     :memory-mode (level-memory-mode small-edge)
-    :music-bank #f
+    :music-bank 'j2fortre
     :extra-sound-bank #f
     :mood-func 'update-mood-hj2-fortb
     :special-mood #f
@@ -3559,7 +3705,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-forta :display? 'special)
           (new 'static 'level-buffer-state-small :name 'hj2-fortb :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2forre1 'j2forre2)
         )
       )
     :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
@@ -3589,7 +3735,7 @@
     :packages '()
     :run-packages '("common")
     :memory-mode (level-memory-mode large)
-    :music-bank #f
+    :music-bank 'j2fortre
     :extra-sound-bank #f
     :mood-func 'update-mood-hj2-prison
     :special-mood #f
@@ -3616,7 +3762,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-prison :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-fexa :display? #f)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2forex1 'j2forex2)
         )
       )
     :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
@@ -3646,7 +3792,7 @@
     :packages '()
     :run-packages '("common")
     :memory-mode (level-memory-mode small-edge)
-    :music-bank #f
+    :music-bank 'j2fortre
     :extra-sound-bank #f
     :mood-func 'update-mood-hj2-fexa
     :special-mood #f
@@ -3673,7 +3819,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-fexa :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-prison :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2forex1 'j2forex2 'j2ctywi1)
         )
       (new 'static 'continue-point
         :name "hj2-forexita-mid"
@@ -3691,7 +3837,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-fexa :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-fexb :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2forex1 'j2forex2)
         )
       )
     :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
@@ -3721,7 +3867,7 @@
     :packages '()
     :run-packages '("common")
     :memory-mode (level-memory-mode small-edge)
-    :music-bank #f
+    :music-bank 'j2fortre
     :extra-sound-bank #f
     :mood-func 'update-mood-hj2-fexb
     :special-mood #f
@@ -3750,7 +3896,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-fexb :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-slmb :display? #f)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2forex1 'j2forex2 'j2ctywi1)
         )
       (new 'static 'continue-point
         :name "hj2-forexita-tube"
@@ -3768,7 +3914,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-fexa :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-fexb :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2forex1 'j2forex2 'j2ctywi1)
         )
       )
     :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
@@ -3799,7 +3945,7 @@
     :packages '()
     :run-packages '("common")
     :memory-mode (level-memory-mode small-edge)
-    :music-bank #f
+    :music-bank 'j2city1
     :extra-sound-bank #f
     :mood-func 'update-mood-hj2-stadd
     :special-mood #f
@@ -3827,7 +3973,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-stdm :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-stadd :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2stadi1)
         )
       (new 'static 'continue-point
         :name "hj2-stadiumd-race-fail"
@@ -3846,7 +3992,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-stdm :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-stadd :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2stadi1)
         )
       (new 'static 'continue-point
         :name "hj2-stadiumd-race-retry"
@@ -3865,7 +4011,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-stdm :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-stadd :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2stadi1)
         )
       (new 'static 'continue-point
         :name "hj2-stadiumd-race-r-retry"
@@ -3884,7 +4030,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-stdm :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-stadd :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2stadi1)
         )
       (new 'static 'continue-point
         :name "hj2-stadiumd-record-path"
@@ -3902,7 +4048,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-stdm :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-stadd :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2stadi1)
         )
       )
     :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
@@ -3933,7 +4079,7 @@
     :packages '()
     :run-packages '("common")
     :memory-mode (level-memory-mode small-edge)
-    :music-bank #f
+    :music-bank 'j2city1
     :extra-sound-bank #f
     :mood-func 'update-mood-havenj2
     :special-mood #f
@@ -3961,7 +4107,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-kiosk :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-marka :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2ctywi1 'j2ctywi2 'j2ctywi3)
         )
       )
     :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
@@ -3991,7 +4137,7 @@
     :packages '()
     :run-packages '("common")
     :memory-mode (level-memory-mode small-edge)
-    :music-bank #f
+    :music-bank 'j2city1
     :extra-sound-bank #f
     :mood-func 'update-mood-hj2-onin
     :special-mood #f
@@ -4060,7 +4206,7 @@
           (new 'static 'level-buffer-state-small :name 'hj2-mount :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-mincan :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2mount1 'j2mount2 'j2ctywi1)
         )
       (new 'static 'continue-point
         :name "hj2-mincan-city"
@@ -4076,7 +4222,7 @@
         :want (new 'static 'inline-array level-buffer-state-small 1
           (new 'static 'level-buffer-state-small :name 'hj2-mincan :display? 'display)
           )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        :want-sound (new 'static 'array symbol 3 'j2mount1 'j2mount2 'j2ctywi1)
         )
       )
     :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))

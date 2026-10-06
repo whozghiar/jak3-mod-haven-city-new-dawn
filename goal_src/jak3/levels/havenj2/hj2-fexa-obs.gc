@@ -8,14 +8,21 @@
 ;; og:jak2-haven-city Level code for hj2-fexa, Jak 2's way out of the fortress (levels/fortress/
 ;; exit/forexita-obs.gc there): its scissor lifts. Their model is Jak 2's, rebuilt by build-actor
 ;; (hj2-fort-lift-plat.glb, made by the level port, scripts/level_port). Not
-;; ported: the guards, the claw (never placed), the lifts' glow and sounds.
+;; ported: the guards, the claw (never placed), the lifts' glow. Sound: Jak 2's fort-lift-plat loop,
+;; from its FOREXIT1 bank ('j2forex1), which hj2-fexa loads.
 
 ;; Jak 2's fort-lift-plat: a scissor lift, Jak 3's plat. The ones with a sync period ride their path
 ;; (plat-path-active), their deck raised (the first frame of hj2-fort-lift-plat-scale). The one with
 ;; the user18 option stays at its initial-spline-pos on the path and raises and lowers its deck in
 ;; its animation, one cycle per sync period (plat-anim-active). Like Jak 2's, they don't bounce.
+;; Jak 2's fort-lift-plat sound loops while it moves (plat's sound-id), restarted every sync period
+;; and stopped at the top of the deck's cycle or at the end of the path.
+;;   sound-time: when the loop restarts next; last-val: the deck's frame or the path position of the
+;;   previous frame (to see it cross the stop point).
 (deftype hj2-fort-lift-plat (plat)
-  ()
+  ((sound-time  time-frame)
+   (last-val    float)
+   )
   (:state-methods
     plat-anim-active
     )
@@ -82,6 +89,26 @@ on its joint (the hulls made by the generator, in this order: deck, arms, base).
   (none)
   )
 
+(defmethod deactivate ((this hj2-fort-lift-plat))
+  "Stops the lift's loop sound (Jak 2's fort-lift-plat deactivate), then the parent's deactivate.
+Returns nothing."
+  (sound-stop (-> this sound-id))
+  (call-parent-method this)
+  (none)
+  )
+
+(defbehavior hj2-fort-lift-plat-sound-post hj2-fort-lift-plat ()
+  "Post of the moving lifts (Jak 2's): restarts the fort-lift-plat loop every sync period, keeps it
+going (at the lift), then plat-post. Side effects: sound-time, the sound. Returns nothing."
+  (when (< (-> self sound-time) (current-time))
+    (sound-stop (-> self sound-id))
+    (set! (-> self sound-time) (get-timeframe-offset! (-> self sync) 0))
+    )
+  (sound-play "fort-lift-plat" :id (-> self sound-id) :position (-> self root trans))
+  (plat-post)
+  (none)
+  )
+
 (defmethod go-initial-state ((this hj2-fort-lift-plat))
   "Jak 2's plat-path-sync: with the user18 option, the lift stays at its initial-spline-pos
 (plat-anim-active); else Jak 3's plat's (along its path when it has a sync period)."
@@ -105,32 +132,56 @@ on its joint (the hulls made by the generator, in this order: deck, arms, base).
   :event #f
   )
 
-;; riding its path with its deck raised, no bounce
+;; riding its path with its deck raised, no bounce; Jak 2's loop sound (hj2-fort-lift-plat-sound-post),
+;; stopped at the end of the path (in place of Jak 3's plat's eco-plat-hover)
 (defstate plat-path-active (hj2-fort-lift-plat)
   :virtual #t
   :event #f
+  :enter (behavior ()
+    (set! (-> self last-val) 0.0)
+    (set! (-> self sound-time) (get-timeframe-offset! (-> self sync) 0))
+    )
+  :trans (behavior ()
+    (set! (-> self path-pos) (get-norm! (-> self sync) 0))
+    (get-point-at-percent-along-path! (-> self path) (-> self basetrans) (-> self path-pos) 'interp)
+    (if (and (>= (-> self path-pos) 0.9999) (< (-> self last-val) 0.9999))
+        (sound-stop (-> self sound-id))
+        )
+    (set! (-> self last-val) (-> self path-pos))
+    (plat-trans)
+    )
   :code (behavior ()
     (ja-no-eval :group! hj2-fort-lift-plat-scale-ja :num-func num-func-identity :frame-num 0.0)
     (sleep-code)
     )
+  :post hj2-fort-lift-plat-sound-post
   )
 
-;; at its place on the path, raising and lowering its deck, one cycle per sync period
+;; at its place on the path, raising and lowering its deck, one cycle per sync period; Jak 2's loop
+;; sound (hj2-fort-lift-plat-sound-post), stopped as the deck passes the middle of its cycle
 (defstate plat-anim-active (hj2-fort-lift-plat)
   :virtual #t
   :event #f
   :enter (behavior ()
     (get-point-at-percent-along-path! (-> self path) (-> self basetrans) (-> self path-pos) 'interp)
+    (set! (-> self last-val) 0.0)
+    (set! (-> self sound-time) (get-timeframe-offset! (-> self sync) 0))
     )
   :trans plat-trans
   :code (behavior ()
     (until #f
       (let ((f30-0 (* (get-current-phase-no-mod (-> self sync)) (the float (+ (-> (ja-group) frames num-frames) -1)))))
         (ja-no-eval :group! (ja-group) :num! (loop!) :frame-num f30-0)
+        (let ((f0-3 (* 0.5 (the float (+ (-> (ja-group) frames num-frames) -1)))))
+          (if (and (>= f30-0 f0-3) (< (-> self last-val) f0-3))
+              (sound-stop (-> self sound-id))
+              )
+          )
+        (set! (-> self last-val) f30-0)
         )
       (suspend)
       )
     #f
     )
-  :post plat-post
+  :post hj2-fort-lift-plat-sound-post
   )

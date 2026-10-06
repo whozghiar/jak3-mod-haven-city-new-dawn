@@ -13,6 +13,8 @@ void jak3_overlord_init_globals_iso_cd();
 CBaseFileSystem* get_file_system();
 
 extern VagDir g_VagDir;
+// added: the index of the first of a mod's voice lines in g_VagDir (see iso.cpp)
+extern int g_nModVagFirst;
 extern MusicTweaks gMusicTweakInfo;
 
 struct CISOCDFile : public CBaseFile {

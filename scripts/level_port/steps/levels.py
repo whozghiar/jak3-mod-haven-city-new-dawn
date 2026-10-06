@@ -35,6 +35,7 @@ from . import mesh as mesh_step
 from . import nav as nav_step
 from . import particles
 from . import props as props_step
+from . import sound as sound_step
 from . import water as water_step
 
 
@@ -74,6 +75,8 @@ class Context:
         self.doors = [tuple(d) for d in port.get("doors", [])]
         self.closed_doors = [tuple(d) for d in port.get("closed_doors", [])]
         self.elevators = port.get("elevators", [])
+        # the source game's sound banks and music (None: the levels are silent)
+        self.sound = sound_step.Sound(port) if "sound" in port.data else None
 
     def continue_name(self, source_name):
         return self.continue_renames.get(source_name, self.continue_prefix + source_name)
@@ -85,7 +88,7 @@ class Context:
                           port.level_map[source_level],
                           lambda task: story.closed(task, open_tasks), self.continue_names,
                           port.get("renames", {}), [tuple(e) for e in port.get("drop_events", [])],
-                          self.camera_names, source=source_level)
+                          self.camera_names, source=source_level, sound=self.sound)
 
     def art_group(self, etype):
         """The art group of a class, from the target game's DGOs (None: built by build-actor)."""
@@ -715,8 +718,11 @@ def continue_point(ctx, level, cont_name, source_name):
     wants = translate_wants(ctx, continue_wants(ctx, source_name, cont), level)
     check_memory(ctx, [lev for lev, _ in wants])
     flags = [f for f in ctx.pair.KEPT_CONTINUE_FLAGS if f in cont["flags"]]
+    banks = cont.get("want_sound", [None] * 3) if ctx.sound else [None] * 3
+    want_sound = " ".join(f"'{ctx.sound.bank(b)}" if b else "#f" for b in banks)
     return ctx.port.target.continue_point(cont_name, level, cont["trans"], cont["camera_trans"],
-                                          cont["quat"], cont["camera_rot"], flags, wants)
+                                          cont["quat"], cont["camera_rot"], flags, wants,
+                                          want_sound=want_sound)
 
 
 def target_continue(ctx, spec):
@@ -1111,6 +1117,9 @@ def write_level_info(ctx, chosen):
                 ""]
     if "district_map" in cfg:
         out += district_map(ctx, cfg["district_map"])
+    if ctx.sound and ctx.sound.voices:
+        out += [f";; {ctx.title}'s voice lines the mod plays (packed by the build: "
+                "scripts/level_port/steps/sound.py)", *ctx.sound.voice_defines()]
     for level in port.levels:
         info = {**defaults, **level.get("level_info", {})}
         conts = [continue_point(ctx, lv, name, src) for lv, name, src in chosen
@@ -1133,11 +1142,23 @@ def write_level_info(ctx, chosen):
             [tuple(cb) for cb in info.get("callbacks", [])],
             (ocean if isinstance(ocean, str) else port.get("ocean_map") if ocean else None),
             comment, info["draw_priority"], bool(level.get("sky")),
-            info.get("part_engine_max", ctx.part_engine_max.get(level.name, 0))))
+            info.get("part_engine_max", ctx.part_engine_max.get(level.name, 0)),
+            *level_sound(ctx, level)))
     for spec in port["continues"].get("target_continues", []):
         out.append(target_continue(ctx, spec))
     write_if_changed(cfg["file"], "\n".join(out))
     print(f"  wrote {cfg['file']} ({len(chosen)} continues)")
+
+
+def level_sound(ctx, level):
+    """A level's :music-bank and :extra-sound-bank (GOAL text): the music of its first source level
+    that has one, and for a hub the target game banks loaded with the source game's."""
+    if not ctx.sound:
+        return "#f", "#f"
+    music = ctx.port.source.music_banks()
+    names = [music[src] for src in level.sources if src in music]
+    extra = ctx.sound.extra_sound_bank() if level.name in ctx.port.hubs.values() else "#f"
+    return (f"'{ctx.sound.music_bank(names[0])}" if names else "#f"), extra
 
 
 def write_build_file(ctx, built_levels):
@@ -1174,6 +1195,8 @@ def write_build_file(ctx, built_levels):
             lines.append(f'(goal-src "{code_rel}/{stem}.gc"' + (f" {deps}" if deps else "") + ")")
         lines.append(f'(build-custom-level "{level.name}")')
         lines.append(f'(custom-level-cgo "{level.dgo}.DGO" "{level.name}/{level.name}.gd")')
+    if ctx.sound:
+        lines += ctx.sound.build_lines()
     write_if_changed(cfg["file"], "\n".join(lines) + "\n")
     print(f"  wrote {cfg['file']} ({len(built_levels)} levels)")
 

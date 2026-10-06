@@ -11,10 +11,11 @@
 ;; are left. Their model is Jak 2's, rebuilt by build-actor (hj2-ruins-beam.glb, made by the level
 ;; port, scripts/level_port). The swinging bars are Jak 3's swingpole.
 ;; Not ported: the enemies, the walls and pillars the titan suit breaks (broken for good by the end
-;; of the game), the push blocks, Jak 2's sounds.
+;; of the game), the push blocks. Sound: the beams' Jak 2 beam-slip, from its RUINS2 bank
+;; ('j2ruins2), which hj2-ruins loads.
 
 ;; Jak 2's beam: a beam that slips down its supports when Jak first comes near (within 25m of the
-;; camera), then stays there. No collision, like Jak 2's.
+;; camera), with Jak 2's beam-slip sound (RUINS2), then stays there. No collision, like Jak 2's.
 (deftype hj2-ruins-beam (process-drawable)
   ()
   (:state-methods
@@ -41,10 +42,11 @@
   :code sleep-code
   )
 
-;; slipping once, then still
+;; slipping once (Jak 2's beam-slip sound), then still
 (defstate collapse (hj2-ruins-beam)
   :virtual #t
   :code (behavior ()
+    (sound-play "beam-slip")
     (ja-no-eval :group! hj2-ruins-beam-slide-ja :num! (seek!) :frame-num 0.0)
     (until (ja-done? 0)
       (suspend)

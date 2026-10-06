@@ -10,14 +10,16 @@
 ;; made by the level port, scripts/level_port); their collision is the convex
 ;; hull of the model (or of a joint's part of it), bound to that joint like Jak 2's mesh. The story
 ;; state is the end of the game: the log is raised and its buttons are down. Not ported: the enemies,
-;; the spiky spheres rolled out of their doors, and Jak 2's sounds of these objects
-;; (not in Jak 3). The lava platforms are Jak 3's rigid-body-platform (rigid-body-plat.o, linked
+;; the spiky spheres rolled out of their doors (and their sounds). Sounds: Jak 2's, from its DIG7
+;; and DIG8 banks ('j2dig7, 'j2dig8), which hj2-dig loads like Jak 2's dig3 (Jak 2's mud-plat
+;; rigid-body sound is in none of its banks: left out). The lava platforms are Jak 3's rigid-body-platform (rigid-body-plat.o, linked
 ;; before this file in HJT: Jak 3 only has it in the volcano's DGO).
 
 ;; Spikey steps ////////////////////////////////////////////////////////////////////////////////////
 
 ;; Jak 2's dig-spikey-step: a step turning a full turn around its length every few seconds
-;; (cycle-speed: period and offset, in seconds), after a shudder.
+;; (cycle-speed: period and offset, in seconds), after a shudder, with Jak 2's spikey-shake and
+;; spikey-turn sounds (DIG7).
 (deftype hj2-dig-spikey-step (process-drawable)
   ((root           collide-shape :override)
    (smush          smush-control  :inline)
@@ -48,6 +50,8 @@
       (suspend-for (the int (-> self cycle-time))
         )
       (activate! (-> self smush) -1.0 60 225 1.0 1.0 (-> self clock))
+      ;; Jak 2's sounds: the shudder, then the turn
+      (sound-play "spikey-shake" :position (-> self root trans))
       (suspend-for (seconds 0.75)
         (set! (-> self shudder-angle) (* 364.0889 (update! (-> self smush))))
         )
@@ -55,6 +59,7 @@
       (set-zero! (-> self smush))
       (suspend-for (seconds 0.25)
         )
+      (sound-play "spikey-turn" :position (-> self root trans))
       (let ((f30-1 65536.0))
         (suspend-for (seconds 1)
           (set! (-> self rot-angle)
@@ -135,10 +140,12 @@
 ;; Wheel steps /////////////////////////////////////////////////////////////////////////////////////
 
 ;; Jak 2's dig-wheel-step: a wheel turning (rotspeed) with two steps on its side that stay level.
-;; Its collision: the steps (bound to their joints, platform_a and platform_b) and the wheel.
+;; Its collision: the steps (bound to their joints, platform_a and platform_b) and the wheel. Jak 2's
+;; wheel-plat-loop sound (DIG7) plays while it turns (wheel-sound-id).
 (deftype hj2-dig-wheel-step (process-drawable)
-  ((root        collide-shape :override)
-   (anim-speed  float)
+  ((root            collide-shape :override)
+   (anim-speed      float)
+   (wheel-sound-id  sound-id)
    )
   (:state-methods
     idle
@@ -150,10 +157,14 @@
   :bounds (2 0 0 14)
   )
 
-;; plays its animation (a full turn) in a loop at its speed, carrying Jak
+;; plays its animation (a full turn) in a loop at its speed, carrying Jak; its loop sound is kept
+;; going every frame (Jak 2's trans)
 (defstate idle (hj2-dig-wheel-step)
   :virtual #t
-  :trans rider-trans
+  :trans (behavior ()
+    (sound-play "wheel-plat-loop" :id (-> self wheel-sound-id))
+    (rider-trans)
+    )
   :code (behavior ()
     (until #f
       (ja-no-eval :group! (ja-group) :num! (seek! max (-> self anim-speed)) :frame-num 0.0)
@@ -167,10 +178,18 @@
   :post rider-post
   )
 
+(defmethod deactivate ((this hj2-dig-wheel-step))
+  "Stops the wheel's loop sound (Jak 2's dig-wheel-step deactivate), then the parent's deactivate.
+Returns nothing."
+  (sound-stop (-> this wheel-sound-id))
+  (call-parent-method this)
+  (none)
+  )
+
 ;; WARN: Return type mismatch object vs none.
 (defmethod init-from-entity! ((this hj2-dig-wheel-step) (arg0 entity-actor))
   "Jak 2's dig-wheel-step setup: the two steps (bound to their joints, transform indices 4 and 5)
-and the wheel (3) as rideable pushers, and its turning speed."
+and the wheel (3) as rideable pushers, its turning speed and its loop sound's id."
   (let ((s4-0 (new 'process 'collide-shape this (collide-list-enum usually-hit-by-player))))
     (let ((s3-0 (new 'process 'collide-shape-prim-group s4-0 (the-as uint 3) 0)))
       (set! (-> s4-0 total-prims) (the-as uint 4))
@@ -215,6 +234,7 @@ and the wheel (3) as rideable pushers, and its turning speed."
   (logclear! (-> this mask) (process-mask actor-pause))
   ;; rotspeed in angle per second: the animation is a full turn
   (set! (-> this anim-speed) (/ (res-lump-float arg0 'rotspeed :default 8192.0) (meters 16)))
+  (set! (-> this wheel-sound-id) (new-sound-id))
   (go (method-of-object this idle))
   )
 
@@ -222,10 +242,14 @@ and the wheel (3) as rideable pushers, and its turning speed."
 
 ;; Jak 2's dig-sinking-plat: a slab floating on the lava, sinking under Jak's weight. Jak 2 moves
 ;; some along a path; the dig's have none, so they float where they are, held there (Jak 3's
-;; platform anchor, which Jak 2's path replaces) if Jak pushes them away.
+;; platform anchor, which Jak 2's path replaces) if Jak pushes them away. While Jak rides one, Jak
+;; 2's lava-plat-sink sound (DIG8) bubbles, fading out once he has left it.
+;;   last-ridden-time: when Jak last rode it; bubbling-sound-id: the playing lava-plat-sink (0: none).
 (deftype hj2-dig-sinking-plat (rigid-body-platform)
-  ((anchor-point    vector  :inline)
-   (surface-height  float)
+  ((anchor-point       vector  :inline)
+   (surface-height     float)
+   (last-ridden-time   time-frame)
+   (bubbling-sound-id  sound-id)
    )
   )
 
@@ -280,6 +304,43 @@ and the wheel (3) as rideable pushers, and its turning speed."
   (none)
   )
 
+(defmethod rbody-event-handler ((this hj2-dig-sinking-plat) (arg0 process) (arg1 int) (arg2 symbol) (arg3 event-message-block))
+  "Notes when Jak last rode it ('ridden: last-ridden-time, Jak 2's idle event), then the parent's
+handler. Returns the parent's result."
+  (if (= arg2 'ridden)
+      (set-time! (-> this last-ridden-time))
+      )
+  (call-parent-method this arg0 arg1 arg2 arg3)
+  )
+
+(defmethod rbody-post ((this hj2-dig-sinking-plat))
+  "Jak 3's rigid body step, then Jak 2's dig-sinking-plat sound: lava-plat-sink (DIG8) starts while Jak rides it and
+fades out (over 120 ticks) once he left it 0.5 s ago. Side effects: bubbling-sound-id. Returns
+nothing."
+  (call-parent-method this)
+  (cond
+    ((time-elapsed? (-> this last-ridden-time) (seconds 0.5))
+     (when (nonzero? (-> this bubbling-sound-id))
+       (let ((v1-5 (the-as sound-rpc-set-param (get-sound-buffer-entry))))
+         (set! (-> v1-5 command) (sound-command set-param))
+         (set! (-> v1-5 id) (-> this bubbling-sound-id))
+         (set! (-> v1-5 params volume) -4)
+         (set! (-> v1-5 auto-time) 120)
+         (set! (-> v1-5 auto-from) 2)
+         (set! (-> v1-5 params mask) (the-as uint 17))
+         )
+       (set! (-> this bubbling-sound-id) (new 'static 'sound-id))
+       )
+     )
+    (else
+      (if (zero? (-> this bubbling-sound-id))
+          (set! (-> this bubbling-sound-id) (sound-play "lava-plat-sink"))
+          )
+      )
+    )
+  (none)
+  )
+
 (defmethod init-collision! ((this hj2-dig-sinking-plat))
   "A rideable pusher: the hull of its model (joint 3)."
   (let ((s5-0 (new 'process 'collide-shape-moving this (collide-list-enum usually-hit-by-player))))
@@ -311,9 +372,10 @@ and the wheel (3) as rideable pushers, and its turning speed."
   )
 
 (defmethod init-rbody-control! ((this hj2-dig-sinking-plat))
-  "Skeleton, rigid body (its constants), anchor point, lava height and its 5 control points (a
-ring of 4m radius, 2m under its center)."
+  "Skeleton, rigid body (its constants), anchor point, lava height, its 5 control points (a ring of
+4m radius, 2m under its center), no bubbling sound yet."
   (initialize-skeleton this *hj2-dig-sinking-plat-sg* (the-as pair 0))
+  (set! (-> this bubbling-sound-id) (new 'static 'sound-id))
   (set! (-> this float-height-offset) 0.0)
   (alloc-rbody-control! this *hj2-dig-sinking-plat-constants*)
   (vector-copy! (-> this anchor-point) (-> this rbody position))
@@ -335,10 +397,14 @@ ring of 4m radius, 2m under its center)."
   )
 
 ;; Jak 2's dig-tipping-rock: a long rock floating on the lava, tipping under Jak's weight, held in
-;; place by its anchor.
+;; place by its anchor. While Jak rides it, Jak 2's lava-plat-tip sound (DIG8) bubbles, fading out
+;; once he has left it.
+;;   last-ridden-time: when Jak last rode it; bubbling-sound-id: the playing lava-plat-tip (0: none).
 (deftype hj2-dig-tipping-rock (rigid-body-platform)
-  ((anchor-point    vector  :inline)
-   (surface-height  float)
+  ((anchor-point       vector  :inline)
+   (surface-height     float)
+   (last-ridden-time   time-frame)
+   (bubbling-sound-id  sound-id)
    )
   )
 
@@ -394,6 +460,43 @@ ring of 4m radius, 2m under its center)."
   (none)
   )
 
+(defmethod rbody-event-handler ((this hj2-dig-tipping-rock) (arg0 process) (arg1 int) (arg2 symbol) (arg3 event-message-block))
+  "Notes when Jak last rode it ('ridden: last-ridden-time, Jak 2's idle event), then the parent's
+handler. Returns the parent's result."
+  (if (= arg2 'ridden)
+      (set-time! (-> this last-ridden-time))
+      )
+  (call-parent-method this arg0 arg1 arg2 arg3)
+  )
+
+(defmethod rbody-post ((this hj2-dig-tipping-rock))
+  "Jak 3's rigid body step, then Jak 2's dig-tipping-rock sound: lava-plat-tip (DIG8) starts while Jak rides it and
+fades out (over 120 ticks) once he left it 0.5 s ago. Side effects: bubbling-sound-id. Returns
+nothing."
+  (call-parent-method this)
+  (cond
+    ((time-elapsed? (-> this last-ridden-time) (seconds 0.5))
+     (when (nonzero? (-> this bubbling-sound-id))
+       (let ((v1-5 (the-as sound-rpc-set-param (get-sound-buffer-entry))))
+         (set! (-> v1-5 command) (sound-command set-param))
+         (set! (-> v1-5 id) (-> this bubbling-sound-id))
+         (set! (-> v1-5 params volume) -4)
+         (set! (-> v1-5 auto-time) 120)
+         (set! (-> v1-5 auto-from) 2)
+         (set! (-> v1-5 params mask) (the-as uint 17))
+         )
+       (set! (-> this bubbling-sound-id) (new 'static 'sound-id))
+       )
+     )
+    (else
+      (if (zero? (-> this bubbling-sound-id))
+          (set! (-> this bubbling-sound-id) (sound-play "lava-plat-tip"))
+          )
+      )
+    )
+  (none)
+  )
+
 (defmethod init-collision! ((this hj2-dig-tipping-rock))
   "A rideable pusher: the hull of its model (joint 3)."
   (let ((s5-0 (new 'process 'collide-shape-moving this (collide-list-enum hit-by-player))))
@@ -424,9 +527,10 @@ ring of 4m radius, 2m under its center)."
   )
 
 (defmethod init-rbody-control! ((this hj2-dig-tipping-rock))
-  "Skeleton (tipped 14 degrees, like Jak 2's), rigid body, anchor point, its 4 control points and
-the lava height."
+  "Skeleton (tipped 14 degrees, like Jak 2's), rigid body, anchor point, its 4 control points, the
+lava height, no bubbling sound yet."
   (initialize-skeleton this *hj2-dig-tipping-rock-sg* (the-as pair 0))
+  (set! (-> this bubbling-sound-id) (new 'static 'sound-id))
   ;; Jak 2 starts it tipped (14 degrees)
   (quaternion-rotate-local-x! (-> this root quat) (-> this root quat) -2555.2202)
   (set! (-> this float-height-offset) 0.0)
@@ -448,7 +552,8 @@ the lava height."
 ;; Jak 2's dig-balloon-lurker: a lurker pedaling a balloon along its path and back (sync), bobbing,
 ;; a trapeze hanging under it (hj2-dig-trapeze) for Jak to swing from. options 1: it also turns 70
 ;; degrees along the way, and swings the trapeze half a swing apart. While Jak hangs from the bar,
-;; the camera looks at the balloon from aside (Jak 2's).
+;; the camera looks at the balloon from aside (Jak 2's). Its pedaling plays Jak 2's balon-lurk-loop
+;; (DIG7, pedal-sound-id), its volume and pitch following the pedaling speed.
 (deftype hj2-dig-balloon-lurker (process-drawable)
   ((root              collide-shape  :override)
    (init-quat         quaternion     :inline)
@@ -465,6 +570,7 @@ the lava height."
    (trapeze-grabbed   symbol)
    (pedal-anim-frame  float)
    (pedal-anim-speed  float)
+   (pedal-sound-id    sound-id)
    )
   (:state-methods
     idle
@@ -586,6 +692,20 @@ swingpole."
               )
           (/ (-> self clock time-adjust-ratio) 100)
           )
+        ;; Jak 2's pedaling loop: louder and higher as it pedals faster
+        (let ((f0-7 (+ -1.0 (fabs (* 2.0 (-> self pedal-anim-speed)))))
+              (f1-5 (* 2.0 (fabs (-> self pedal-anim-speed))))
+              )
+          (sound-play-by-name
+            (static-sound-name "balon-lurk-loop")
+            (-> self pedal-sound-id)
+            (the int (* 1024.0 f1-5))
+            (the int (* 1524.0 f0-7))
+            0
+            (sound-group)
+            #t
+            )
+          )
         (ja :num-func num-func-identity :frame-num (-> self pedal-anim-frame))
         (+! (-> self pedal-anim-frame) (* (-> self pedal-anim-speed) (-> self clock time-adjust-ratio)))
         (cond
@@ -660,10 +780,18 @@ swingpole."
   :post transform-post
   )
 
+(defmethod deactivate ((this hj2-dig-balloon-lurker))
+  "Stops the pedaling loop (Jak 2's dig-balloon-lurker deactivate), then the parent's deactivate.
+Returns nothing."
+  (sound-stop (-> this pedal-sound-id))
+  (call-parent-method this)
+  (none)
+  )
+
 ;; WARN: Return type mismatch object vs none.
 (defmethod init-from-entity! ((this hj2-dig-balloon-lurker) (arg0 entity-actor))
   "Jak 2's dig-balloon-lurker setup: solid (the balloon and its two ends, spheres), its trapeze, its
-path, options and syncs (12 seconds)."
+path, options, syncs (12 seconds) and its pedaling sound's id."
   (let ((s4-0 (new 'process 'collide-shape this (collide-list-enum hit-by-player))))
     (let ((s3-0 (new 'process 'collide-shape-prim-group s4-0 (the-as uint 3) 0)))
       (set! (-> s4-0 total-prims) (the-as uint 4))
@@ -722,6 +850,7 @@ path, options and syncs (12 seconds)."
   (set! (-> this trapeze-grabbed) #f)
   (set! (-> this pedal-anim-frame) 0.0)
   (set! (-> this pedal-anim-speed) 0.5)
+  (set! (-> this pedal-sound-id) (new-sound-id))
   (set-vector! (-> this pov-cam-offset) 0.0 -20480.0 0.0 1.0)
   (let ((a1-23 (new 'stack-no-clear 'sync-info-params)))
     (set! (-> a1-23 sync-type) 'sync-eased)
@@ -798,7 +927,8 @@ path, options and syncs (12 seconds)."
   (go (method-of-object this idle))
   )
 
-;; Jak 2's dig-button, stomped down.
+;; Jak 2's dig-button, stomped down. Silent: Jak 2 plays dig-button as it goes down, and it is
+;; already down here.
 (deftype hj2-dig-button (process-drawable)
   ((root  collide-shape :override)
    )
@@ -893,7 +1023,7 @@ path, options and syncs (12 seconds)."
   )
 
 ;; Jak 2's dig-spikey-sphere-door: a hatch in the wall, shut (the spiky spheres it rolls out aren't
-;; ported).
+;; ported, nor Jak 2's spikey-door sound, played as it opens).
 (deftype hj2-dig-sphere-door (process-drawable)
   ()
   (:state-methods
@@ -936,7 +1066,7 @@ path, options and syncs (12 seconds)."
 ;; 5m apart, the controller breaks the row: every block becomes a rigid body (Jak 3's
 ;; rigid-body-object, like the lava platforms' rigid-body-platform) thrown in a random direction.
 ;;   desty: the height the sinking block goes down to; flag: a block is sinking (no stomps).
-;; Silent: Jak 2's stomp-block sound isn't in Jak 3.
+;; Sound: Jak 2's stomp-block (DIG7) as a stomped block starts sinking.
 (deftype hj2-dig-stomp-block (rigid-body-object)
   ((desty  float)
    (flag   symbol)
@@ -1023,6 +1153,8 @@ path, options and syncs (12 seconds)."
       )
     )
   :code (behavior ()
+    ;; Jak 2's sound (DIG7)
+    (sound-play "stomp-block")
     (while (< (-> self desty) (-> self root trans y))
       (set! (-> self root trans y)
             (seek-with-smooth (-> self root trans y) (-> self desty) (* (meters 6) (seconds-per-frame)) 0.25 1.0)
@@ -1179,7 +1311,8 @@ flag. Returns nothing."
   )
 
 ;; Jak 2's dig-stomp-block-controller: the row of 4 stomp blocks (no model of its own).
-;;   stomp-blocks: its blocks; played-fall?: the row broke (Jak 2's blocks-fall sound, not in Jak 3)
+;;   stomp-blocks: its blocks; played-fall?: the row broke and Jak 2's blocks-fall sound (DIG7)
+;;   played, once
 (deftype hj2-dig-stomp-block-controller (process-drawable)
   ((stomp-blocks  (pointer hj2-dig-stomp-block)  4)
    (played-fall?  symbol)
@@ -1196,7 +1329,8 @@ flag. Returns nothing."
 ;; Runs the row.
 ;;   enter: joins the pusher pool (its blocks push Jak) and spawns the 4 blocks along x.
 ;;   event 'set-flag/'clear-flag (from a block): passed on to every block.
-;;   post: two neighbors more than 5m apart break the row: 'broken to every block (each frame).
+;;   post: two neighbors more than 5m apart break the row: blocks-fall the first time, 'broken to
+;;     every block (each frame).
 (defstate idle (hj2-dig-stomp-block-controller)
   :virtual #t
   :event (behavior ((proc process) (argc int) (message symbol) (block event-message-block))
@@ -1244,7 +1378,10 @@ flag. Returns nothing."
           )
         )
       (when v1-3
-        (set! (-> self played-fall?) #t)
+        (when (not (-> self played-fall?))
+          (set! (-> self played-fall?) #t)
+          (sound-play "blocks-fall")
+          )
         (dotimes (gp-1 4)
           (if (-> self stomp-blocks gp-1)
               (send-event (ppointer->process (-> self stomp-blocks gp-1)) 'broken)

@@ -51,6 +51,30 @@
     }
   },
 
+  // Jak 2's sound: the levels' sound banks (want-sound), looped ambiences (sound-play-loop) and
+  // music (the MIDI music of Jak 2's .MUS files, played by game/overlord/jak3/srpc.cpp), renamed j2*
+  // and copied from iso_data/jak2 by the build (scripts/level_port/steps/sound.py). Jak 3's traffic
+  // sounds (its cars, citizens and Freedom League guards) load with the city's banks.
+  "sound": {
+    "prefix": "j2",
+    "extra_banks": {"ctywide1": ["citycarh"], "ctywide2": ["citypedh"], "ctywide3": ["cityffh"]},
+    // Jak 2's voice lines, packed for Jak 3 by the build (goalc's pack-vags), j + their name (Jak 3's
+    // code plays some of Jak 2's names: its propa class). Each list is defined in the level-info file:
+    // the speakers' speeches (havenj2-obs.gc) and the citizens' lines (Jak 2's ctywide-speech.gc,
+    // given to Jak 3's civ-* speech types in havenj2-traffic.gc).
+    "voice_prefix": "j",
+    "voices": {
+      "*hj2-propa-sounds*": ["prop009", "prop010", "prop011", "prop012", "prop013", "prop014", "prop015", "prop016", "prop017", "prop018", "prop019", "prop020", "prop021", "prop022", "prop023", "prop024", "prop025", "prop026", "prop028", "prop027", "prop029", "prop030", "prop031", "prop032", "prop033", "prop034", "prop035", "prop036", "prop037", "prop038", "prop039", "prop040", "prop041", "prop042", "prop043", "prop008", "prop006", "prop005", "prop004", "prop002", "prop003", "bar001", "prop044", "prop045", "prop046", "prop047", "prop048", "prop049", "prop051", "prop052", "prop053", "prop054", "prop055", "prop056"],
+      "*hj2-civ-m-alert-sounds*": ["cit099", "cit099a", "cit099b", "cit100", "cit100a", "cit101", "cit101a", "cit101b"],
+      "*hj2-civ-f-alert-sounds*": ["cit099c", "cit099d", "cit100c", "cit101c", "cit103", "cit103a", "cit104", "cit104a", "cit105", "cit120", "cit120a"],
+      "*hj2-civ-m-shot-sounds*": ["cit097", "cit097a", "cit097b", "cit098", "cit098a", "cit098b"],
+      "*hj2-civ-f-shot-sounds*": ["cit097c", "cit097d", "cit098c", "cit098d", "cit099c", "cit098d"],
+      "*hj2-civ-m-stealing-sounds*": ["cit001", "cit004", "cit008", "cit010", "cit016", "cit033", "cit034", "cit035", "cit046", "cit047", "cit051", "cit053", "cit055", "cit056", "cit057", "cit058"],
+      "*hj2-civ-m-cower-sounds*": ["cit099", "cit099a", "cit099b", "cit100", "cit100a", "cit100b", "cit101", "cit101a", "cit101b"],
+      "*hj2-civ-f-cower-sounds*": ["cit099c", "cit099d", "cit100c", "cit101c", "cit103", "cit103a", "cit104", "cit104a", "cit105", "cit120", "cit120a"]
+    }
+  },
+
   // the level-load-infos and continue points of every level, in GAME (known at boot: warps, saves)
   "level_info": {
     "file": "goal_src/jak3/pc/features/jak2-haven-city-levels.gc",

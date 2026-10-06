@@ -69,6 +69,7 @@ Interpreter::Interpreter(const std::string& username) {
                       {"inspect", &Interpreter::eval_inspect},
                       {"load-file", &Interpreter::eval_load_file},
                       {"try-load-file", &Interpreter::eval_try_load_file},
+                      {"file-exists?", &Interpreter::eval_file_exists},
                       {"eq?", &Interpreter::eval_equals},
                       {"gensym", &Interpreter::eval_gensym},
                       {"eval", &Interpreter::eval_eval},
@@ -1235,6 +1236,20 @@ Object Interpreter::eval_load_file(const Object& form,
     throw_eval_error(form, std::string("eval error inside of load-file:\n") + e.what());
   }
   return Object::make_empty_list();
+}
+
+/*!
+ * Does this file exist? (a path relative to the project root, like load-file's). Lets a build
+ * script skip the steps whose inputs only some setups have (another game's extracted files).
+ */
+Object Interpreter::eval_file_exists(const Object& form,
+                                     Arguments& args,
+                                     const std::shared_ptr<EnvironmentObject>& env) {
+  (void)env;
+  vararg_check(form, args, {ObjectType::STRING}, {});
+  return fs::exists(file_util::get_file_path({args.unnamed.at(0).as_string()->data}))
+             ? m_true_object
+             : m_false_object;
 }
 
 /*!

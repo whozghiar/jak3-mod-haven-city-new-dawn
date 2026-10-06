@@ -203,8 +203,9 @@ nothing."
 ;; the 5 floor buttons of the fortress rescue (hj2-forta) that shut its electric gates. Their
 ;; extra-id is 1, so Jak 2 always loads them up (start-up?: frame 0 of their idle animation), even
 ;; once pressed. Rebuilt from forresca's cty-guard-turret-button rip, its primitives 1 (the lit
-;; button: Jak 2's "on" look, mask 2) and 2 (the rim), solid on the hull of the model. Silent (no
-;; gturret-button sound in Jak 3). Bounds: the model's sphere, which holds the hull.
+;; button: Jak 2's "on" look, mask 2) and 2 (the rim), solid on the hull of the model. Silent: Jak 2
+;; plays gturret-button only when a button goes down, and these never do here. Bounds: the model's
+;; sphere, which holds the hull.
 (def-hj2-still-prop hj2-fort-elec-button
   :bounds (0 0.4 0 2.3)
   )
@@ -291,9 +292,10 @@ Goes to idle (still). Returns nothing."
 ;; numbers (15 fps art) are scaled by 4, like hj2-palace-door's. The two-key doors (Hip Hog, Vin,
 ;; hideout, Oracle) open over their whole animation (open-frame 0.0, init-airlock!'s default), in
 ;; Jak 2's time.
-;; Sounds: Jak 2's names where Jak 3 has the same sound (airlock-*, wood-*); Jak 2's hide-door-*
-;; sounds aren't in Jak 3, those doors get wood-*, like Jak 3's hip-door-a. All of them are in
-;; Jak 3's city half banks, which the mod's levels don't load: silent until a bank holds them.
+;; Sounds: Jak 2's, by the names Jak 2's classes give them. The airlock-* and wood-* sounds are in
+;; Jak 2's CTYWIDE1 bank ('j2ctywi1), loaded by the city and the places by its doors; the hideout
+;; doors' hide-door-* sounds are in HIDEOUT1 ('j2hideo1), loaded in the slums by the hideout and
+;; inside it. Jak 2's airlock-slide-e is in none of its banks (silent in Jak 2 too).
 
 (defun hj2-door-two-leaves! ((this com-airlock)
                              (group-y float)
@@ -345,9 +347,8 @@ it from init-from-entity!). Returns nothing."
   )
 
 (defun hj2-door-wood-sounds! ((this com-airlock))
-  "Jak 2's wooden door sounds (hip-door-a, hip-door-b, oracle-door, vin-door, vin-door-ctyinda),
-also given to the hideout doors (Jak 2's hide-door-* sounds aren't in Jak 3). Call after
-init-airlock!, which clears every sound. Side effects: sets the open and close loop and stop sounds
+  "Jak 2's wooden door sounds (hip-door-a, hip-door-b, oracle-door, vin-door, vin-door-ctyinda), in
+its CTYWIDE1 bank. Call after init-airlock!, which clears every sound. Side effects: sets the open and close loop and stop sounds
 of this. Returns nothing."
   (set! (-> this sound-open-loop) (static-sound-spec "wood-door-open" :group 0))
   (set! (-> this sound-open-stop) (static-sound-spec "wood-open-hit" :group 0))
@@ -489,7 +490,7 @@ airlock lumps (init-airlock!), wooden door sounds, door-radius 2m. arg0: the ent
 
 (defmethod init-from-entity! ((this hj2-hide-door-a) (arg0 entity-actor))
   "Jak 2's hide-door-a setup: the panel solid (collide mesh 0 on the main joint), the airlock lumps
-(init-airlock!), wooden door sounds, door-radius 3m. Jak 2's sphere (0 4m 6m, 6m) doesn't hold this
+(init-airlock!), Jak 2's hide-door sounds (its HIDEOUT1 bank), door-radius 3m. Jak 2's sphere (0 4m 6m, 6m) doesn't hold this
 model's collide mesh (the hull of the panel: 9.5m wide, 11.6m high, at z 0): the sphere here is
 the panel's. arg0: the entity. Goes to close (shut at once). Returns nothing."
   (stack-size-set! (-> this main-thread) 1024)
@@ -513,7 +514,11 @@ the panel's. arg0: the entity. Goes to close (shut at once). Returns nothing."
     )
   (initialize-skeleton this *hj2-hide-door-a-sg* (the-as pair 0))
   (init-airlock! this)
-  (hj2-door-wood-sounds! this)
+  ;; Jak 2's sounds (HIDEOUT1)
+  (set! (-> this sound-open-loop) (static-sound-spec "hide-door-open" :group 0))
+  (set! (-> this sound-open-stop) (static-sound-spec "hide-door-hit" :group 0))
+  (set! (-> this sound-close-loop) (static-sound-spec "hide-door-close" :group 0))
+  (set! (-> this sound-close-stop) (static-sound-spec "hide-door-hit" :group 0))
   (set! (-> this door-radius) 12288.0)
   (go (method-of-object this close) #t)
   (none)
@@ -537,13 +542,17 @@ the panel's. arg0: the entity. Goes to close (shut at once). Returns nothing."
 
 (defmethod init-from-entity! ((this hj2-hide-door-b) (arg0 entity-actor))
   "Jak 2's hide-door-b setup: its two halves solid (hj2-door-two-leaves!, Jak 2's spheres), the
-airlock lumps (init-airlock!), wooden door sounds, door-radius 3m. arg0: the entity. Goes to close
+airlock lumps (init-airlock!), Jak 2's hide-door sounds (its HIDEOUT1 bank), door-radius 3m. arg0: the entity. Goes to close
 (shut at once). Returns nothing."
   (stack-size-set! (-> this main-thread) 1024)
   (hj2-door-two-leaves! this 0.0 32768.0 0.0 0.0 16384.0 4 5)
   (initialize-skeleton this *hj2-hide-door-b-sg* (the-as pair 0))
   (init-airlock! this)
-  (hj2-door-wood-sounds! this)
+  ;; Jak 2's sounds (HIDEOUT1)
+  (set! (-> this sound-open-loop) (static-sound-spec "hide-door-open" :group 0))
+  (set! (-> this sound-open-stop) (static-sound-spec "hide-door-hit" :group 0))
+  (set! (-> this sound-close-loop) (static-sound-spec "hide-door-close" :group 0))
+  (set! (-> this sound-close-stop) (static-sound-spec "hide-door-hit" :group 0))
   (set! (-> this door-radius) 12288.0)
   (go (method-of-object this close) #t)
   (none)

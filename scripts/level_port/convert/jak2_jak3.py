@@ -19,8 +19,8 @@ TARGET = "jak3"
 
 # calls that do nothing in Jak 3 (or only concern what isn't ported): removed
 DROPPED_CALLS = {
-    "want-sound", "want-anim", "want-force-vis", "want-force-inside", "task-close!",
-    "setting-unset", "talker-spawn", "scene-play", "part-tracker", "sound-play-loop", "alive",
+    "want-anim", "want-force-vis", "want-force-inside", "task-close!",
+    "setting-unset", "talker-spawn", "scene-play", "part-tracker", "alive",
     "yes-play!", "mark-played!", "endlessfall", "show-hud", "entity-status?", "setting-value",
     "print", "want-vehicle",
 }

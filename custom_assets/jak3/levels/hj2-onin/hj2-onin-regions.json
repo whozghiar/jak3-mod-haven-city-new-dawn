@@ -1,12 +1,34 @@
 {
   "target": {
     "bsphere": [
-      712.6073,
-      10.7959,
-      750.2697,
-      6.9718
+      710.5156,
+      10.3753,
+      736.9116,
+      20.4473
     ],
     "regions": [
+      {
+        "id": 1139,
+        "shape": "sphere",
+        "bsphere": [
+          712.5776,
+          11.0661,
+          737.6912,
+          14.9531
+        ],
+        "on-inside": "(sound-play-loop \"onin-amb\")"
+      },
+      {
+        "id": 1148,
+        "shape": "sphere",
+        "bsphere": [
+          710.3823,
+          10.3753,
+          734.4635,
+          16.8818
+        ],
+        "on-inside": "(sound-play-loop \"onin-birds\")"
+      },
       {
         "id": 1374,
         "bsphere": [
@@ -48,6 +70,27 @@
         },
         "on-enter": "(want-vis 'hj2-onin)",
         "on-exit": "(want-vis 'hj2-markb)"
+      }
+    ]
+  },
+  "camera": {
+    "bsphere": [
+      706.9508,
+      12.8599,
+      739.7697,
+      10.0088
+    ],
+    "regions": [
+      {
+        "id": 1149,
+        "shape": "sphere",
+        "bsphere": [
+          706.9508,
+          12.8599,
+          739.7697,
+          9.0088
+        ],
+        "on-inside": "(sound-play-loop \"magic-bowl\")"
       }
     ]
   }

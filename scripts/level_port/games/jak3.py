@@ -62,7 +62,8 @@ def continue_point(cont_name, level, trans, camera_trans, quat, camera_rot, flag
 
 
 def level_load_info(name, nick, index, memory_mode, flags, mood, continues, callbacks, ocean,
-                    comment, draw_priority, outdoor, part_engine_max=0):
+                    comment, draw_priority, outdoor, part_engine_max=0, music="#f",
+                    extra_sound_bank="#f"):
     """A level-load-info, and its registration in *level-load-list*."""
     flags_line = f"    :level-flags (level-flags {flags})\n" if flags else ""
     if outdoor:
@@ -88,8 +89,8 @@ def level_load_info(name, nick, index, memory_mode, flags, mood, continues, call
 {flags_line}    :packages '()
     :run-packages '("common")
     :memory-mode (level-memory-mode {memory_mode})
-    :music-bank #f
-    :extra-sound-bank #f
+    :music-bank {music}
+    :extra-sound-bank {extra_sound_bank}
     :mood-func '{mood}
     :special-mood #f
     :ocean {ocean_value}

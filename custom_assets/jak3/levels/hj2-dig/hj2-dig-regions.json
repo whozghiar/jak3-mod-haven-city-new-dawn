@@ -1,10 +1,10 @@
 {
   "camera": {
     "bsphere": [
-      371.5446,
-      -75.1688,
-      -1874.8289,
-      187.1263
+      319.9657,
+      5.9529,
+      -1924.3629,
+      358.8394
     ],
     "regions": [
       {
@@ -92,6 +92,17 @@
         "on-exit": "(want-display 'hj2-digb #f)"
       },
       {
+        "id": 1611,
+        "shape": "sphere",
+        "bsphere": [
+          319.9657,
+          5.9529,
+          -1924.3629,
+          357.8394
+        ],
+        "on-inside": "(begin (sound-play-loop \"dig-air\") (sound-play-loop \"spooky-amb\"))"
+      },
+      {
         "id": 1897,
         "bsphere": [
           259.1454,
@@ -137,10 +148,10 @@
   },
   "target": {
     "bsphere": [
-      351.123,
+      332.2475,
       -62.7323,
       -1986.0523,
-      202.4332
+      196.976
     ],
     "regions": [
       {
@@ -224,6 +235,61 @@
           ]
         },
         "on-enter": "(want-load 'hj2-dig 'hj2-caspad)"
+      },
+      {
+        "id": 1597,
+        "shape": "sphere",
+        "bsphere": [
+          199.2999,
+          -67.7948,
+          -1889.5873,
+          19.3864
+        ],
+        "on-inside": "(sound-play-loop \"dig-lava\")"
+      },
+      {
+        "id": 1598,
+        "shape": "sphere",
+        "bsphere": [
+          320.1092,
+          -78.7564,
+          -1935.8446,
+          20.5416
+        ],
+        "on-inside": "(sound-play-loop \"dig-lava\")"
+      },
+      {
+        "id": 1599,
+        "shape": "sphere",
+        "bsphere": [
+          392.0589,
+          -83.4189,
+          -1926.2936,
+          28.0222
+        ],
+        "on-inside": "(sound-play-loop \"dig-lava\")"
+      },
+      {
+        "id": 1600,
+        "shape": "sphere",
+        "bsphere": [
+          465.8841,
+          -84.3183,
+          -1932.7892,
+          18.6974
+        ],
+        "on-inside": "(sound-play-loop \"dig-lava\")"
+      },
+      {
+        "id": 1601,
+        "shape": "sphere",
+        "bsphere": [
+          234.4054,
+          -57.9488,
+          -2075.9429,
+          36.1802
+        ],
+        "on-inside": "(sound-play-loop \"dig-lava\")"
       },
       {
         "id": 1780,

@@ -14,8 +14,9 @@
 ;; each circled by 2 rings, hurting and shoving back Jak when he crosses it (Jak 3's active state,
 ;; the same as Jak 2's), and Jak 3's blocking plane across it (Jak 2 spawns the same plane, 2m wider
 ;; than the posts and 20m higher). Jak 2's caspad gate has no particles and its electricity scale
-;; does nothing (Jak 3's base elec-gate-method-30 is a no-op too). Sound: Jak 3's elec-gate ambient
-;; loop "electric-gate" (silent if no loaded bank holds it).
+;; does nothing (Jak 3's base elec-gate-method-30 is a no-op too). Sound: elec-gate's ambient loop
+;; "electric-gate", the name Jak 2's elec-gate plays too: Jak 2's sound, from its CASTLE3 bank
+;; ('j2castl3), which the castle pad loads.
 
 ;; Jak 2's *caspad-elec-gate-params*: big bolts (4.6m thick lightning) and wide rings (10 to 13m),
 ;; sliding slowly (speed 0.3). The lightning texture is Jak 3's: Jak 2's default lightning texture

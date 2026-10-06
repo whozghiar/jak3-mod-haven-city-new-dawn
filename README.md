@@ -64,6 +64,9 @@ dig site, all rebuilt from Jak 2's own extracted data and linked the way Jak 2 l
 - **City traffic:** Jak 3's citizens, Freedom League guards, hover bikes and cars, as many as in
   Jak 2; Jak 2's Freedom League Hellcats as an option: they fly with the traffic without chasing
   Jak, and Jak can steal one and fire its front gun.
+- **Jak 2's sound:** each place's Jak 2 music (with its variations when Jak draws his gun, rides
+  the board, turns dark or drives), ambiences and object sounds, the Baron's speeches from his
+  propaganda speakers and the citizens' lines, taken from your Jak 2 extraction.
 - **Time and weather:** a fixed hour or Jak 2's day and night; Jak 3's changing weather or a fixed
   one (sunny, cloudy, foggy, light rain, rain, thunderstorm, snow) in the whole game.
 - **Travelling:** warps to every district, key places and places outside the city; two time gates,
@@ -145,8 +148,9 @@ task build-release-decomp
 - **Details:** the levels merge Jak 2's extracted `.fr3` files and take some sprite textures from
   Jak 3's, so both games must be extracted before building. Jak 3's Freedom HQ also gets the time
   gate's model at extraction (`extra_art_groups_by_dgo`): a Jak 3 extracted before this branch
-  needs it again (the technical README gives a command for that level only). The generated level
-  files are in the repository; regenerating them also needs Jak 2's model rips (`rip_levels`), see
+  needs it again (the technical README gives a command for that level only). The build copies
+  Jak 2's music, sound banks and voice lines from Jak 2's extraction (`iso_data/jak2`); without it
+  the levels are silent. The generated level files are in the repository; regenerating them also needs Jak 2's model rips (`rip_levels`), see
   the technical README.
 ```bash
 task set-game-jak2

@@ -19,7 +19,7 @@
   "art_groups": [],
   "actors": [
     // Jak 2's fort-entry-gate-20 (prison) [as hj2-fort-gate]
-    {"trans": [435.136, 8.8959, 58.2226], "etype": "hj2-fort-gate", "game_task": 0, "quat": [0.0, 0.3827, 0.0, 0.9239], "bsphere": [435.136, 8.8959, 58.2226, 13.8564], "lump": {"name": "fort-entry-gate-20", "distance": ["float", 81920.0], "idle-distance": ["float", 102400.0], "height": ["vector", [81920.0, 81920.0, 0.0, 0.0]], "on-activate": ["pair", "(want-load 'hj2-prison 'hj2-fortb)"], "on-deactivate": ["pair", "(want-display 'hj2-fortb #f)"], "on-enter": ["pair", "(want-display 'hj2-fortb 'display)"], "on-notice": ["pair", "'(hj2-fortb)"], "next-actor": ["string", "fort-entry-gate-11"]}},
+    {"trans": [435.136, 8.8959, 58.2226], "etype": "hj2-fort-gate", "game_task": 0, "quat": [0.0, 0.3827, 0.0, 0.9239], "bsphere": [435.136, 8.8959, 58.2226, 13.8564], "lump": {"name": "fort-entry-gate-20", "distance": ["float", 81920.0], "idle-distance": ["float", 102400.0], "height": ["vector", [81920.0, 81920.0, 0.0, 0.0]], "on-activate": ["pair", "(want-load 'hj2-prison 'hj2-fortb)"], "on-cross": ["pair", "(want-sound 'j2forre1 'j2forre2 'j2forex1)"], "on-deactivate": ["pair", "(want-display 'hj2-fortb #f)"], "on-enter": ["pair", "(want-display 'hj2-fortb 'display)"], "on-notice": ["pair", "'(hj2-fortb)"], "next-actor": ["string", "fort-entry-gate-11"]}},
     // Jak 2's prsn-cell-door-1 (prison)
     {"trans": [505.4708, 8.0, 84.4896], "etype": "hj2-prsn-cell-door", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [505.4708, 8.0, 84.4896, 6.9282], "lump": {"name": "prsn-cell-door-1"}},
     // Jak 2's prsn-cell-door-2 (prison)

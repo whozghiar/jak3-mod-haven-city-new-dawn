@@ -10,7 +10,8 @@
 ;; Jak 2's, rebuilt by build-actor (hj2-cons-*.glb, made by the level
 ;; port, scripts/level_port); their collision is the convex hull of the
 ;; parts Jak 2's collide meshes cover (each door leaf on its joint, the elevator's platform). Not
-;; ported: the Baron's fight (its breaking scaffolds, the bomb), Jak 2's sounds.
+;; ported: the Baron's fight (its breaking scaffolds, the bomb). Silent: Jak 2's classes of these
+;; objects play no sound.
 
 ;; A still model: solid (its collide meshes, one per joint given), holding its first frame.
 (deftype hj2-cons-prop (process-drawable)

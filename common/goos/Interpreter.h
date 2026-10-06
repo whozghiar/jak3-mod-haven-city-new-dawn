@@ -133,6 +133,9 @@ class Interpreter {
   Object eval_try_load_file(const Object& form,
                             Arguments& args,
                             const std::shared_ptr<EnvironmentObject>& env);
+  Object eval_file_exists(const Object& form,
+                          Arguments& args,
+                          const std::shared_ptr<EnvironmentObject>& env);
   Object eval_print(const Object& form,
                     Arguments& args,
                     const std::shared_ptr<EnvironmentObject>& env);

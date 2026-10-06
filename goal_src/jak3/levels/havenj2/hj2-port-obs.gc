@@ -17,7 +17,8 @@
 ;; The barges are rigid-body vehicles steering on the port's water nav mesh (Jak 2's nav-mesh-actor
 ;; lump, aid 26081, exported in hj2-port-nav.json); Jak is carried when he stands on one, and
 ;; crushed if he stays under one for a second (Jak 3's rule). Silent: Jak 2's barge-engine and
-;; bow-wash sounds aren't in Jak 3. Not ported: Jak 2's lone barge-1 actor, idle at the bottom of
+;; bow-wash sounds are only in its PORTRUN1 bank (the port race), which the port doesn't load. Not
+;; ported: Jak 2's lone barge-1 actor, idle at the bottom of
 ;; the water (the boat-manager spawns the fleet).
 
 ;; Paths ///////////////////////////////////////////////////////////////////////////////////////////

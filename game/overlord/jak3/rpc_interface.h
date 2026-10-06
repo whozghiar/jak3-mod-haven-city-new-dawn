@@ -224,6 +224,13 @@ struct Rpc_Player_Set_Master_Volume_Cmd : public Rpc_Player_Group_Cmd {
 };
 static_assert(sizeof(Rpc_Player_Set_Master_Volume_Cmd) == 12);
 
+// added: sound-rpc-set-midi-reg (gsound-h.gc), for the MIDI music (srpc.cpp)
+struct Rpc_Player_Set_Midi_Reg_Cmd : public Rpc_Player_Base_Cmd {
+  s32 reg;
+  s16 value;
+};
+static_assert(sizeof(Rpc_Player_Set_Midi_Reg_Cmd) == 12);
+
 struct Rpc_Player_Set_Ear_Trans_Cmd : public Rpc_Player_Base_Cmd {
   s32 ear_trans1[3];
   s32 ear_trans0[3];

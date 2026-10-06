@@ -255,6 +255,7 @@ def continues():
         flags = re.search(r":flags \(continue-flags([^)]*)\)", head)
         wants = re.findall(r"level-buffer-state :name '([a-z0-9-]+) :display\? ('?[a-z#]+)",
                            rest.split(":want-sound")[0])
+        sounds = re.search(r":want-sound \(new 'static 'array symbol 3 ([^)]*)\)", rest)
         result[name] = dict(
             level=re.search(r":level '([a-z0-9-]+)", head).group(1),
             trans=_parse_vector(head, "trans"),
@@ -263,8 +264,23 @@ def continues():
             camera_rot=[float(x) for row in rot[:3] for x in row],
             flags=set(flags.group(1).split()) if flags else set(),
             wants=wants,
+            # its 3 sound banks (None: no bank)
+            want_sound=[None if x == "#f" else x.lstrip("'") for x in sounds.group(1).split()]
+            if sounds else [None] * 3,
         )
     return result
+
+
+def music_banks():
+    """Jak 2 level -> its music (level-load-info :music-bank), for the levels with one."""
+    src = open(LEVEL_INFO, encoding="utf-8").read()
+    out = {}
+    for block in re.split(r"\n\(define ", src):
+        name = re.search(r":name '([\w-]+)", block)
+        music = re.search(r":music-bank '([\w-]+)", block)
+        if name and music and "level-load-info" in block[:200]:
+            out[name.group(1)] = music.group(1)
+    return out
 
 
 def regions():
