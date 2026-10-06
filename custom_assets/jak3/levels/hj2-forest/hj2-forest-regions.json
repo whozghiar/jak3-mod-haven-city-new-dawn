@@ -47,7 +47,7 @@
           ]
         },
         "on-enter": "(want-display 'hj2-mount 'display)",
-        "on-exit": "(begin (want-display 'hj2-mount #f) (want-vis 'hj2-forest))"
+        "on-exit": "(begin (want-display 'hj2-mount 'special) (want-vis 'hj2-forest))"
       },
       {
         "id": 1434,
@@ -130,7 +130,7 @@
             ]
           ]
         },
-        "on-enter": "(want-display 'hj2-mount #f)",
+        "on-enter": "(want-display 'hj2-mount 'special)",
         "on-exit": "(want-display 'hj2-mount #f)"
       }
     ]
@@ -223,7 +223,7 @@
             ]
           ]
         },
-        "on-enter": "(want-load 'hj2-forest 'hj2-forstb)"
+        "on-enter": "(begin (want-load 'hj2-forest 'hj2-forstb) (want-display 'hj2-forstb 'display))"
       }
     ]
   }

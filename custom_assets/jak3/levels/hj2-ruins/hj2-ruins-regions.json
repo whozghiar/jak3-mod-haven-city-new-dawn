@@ -366,7 +366,7 @@
             ]
           ]
         },
-        "on-enter": "(want-load 'hj2-ruins 'havenj2)"
+        "on-enter": "(want-load 'havenj2 'hj2-ruins 'hj2-slmb)"
       }
     ]
   }

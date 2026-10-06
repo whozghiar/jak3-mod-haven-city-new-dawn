@@ -1340,7 +1340,7 @@
             ]
           ]
         },
-        "on-enter": "(want-load 'hj2-mount)"
+        "on-enter": "(want-load 'hj2-mount 'hj2-mincan)"
       },
       {
         "id": 1610,
@@ -1381,7 +1381,7 @@
             ]
           ]
         },
-        "on-enter": "(want-load 'hj2-mount 'havenj2)"
+        "on-enter": "(want-load 'havenj2 'hj2-mount 'hj2-farma)"
       },
       {
         "id": 1765,
@@ -1433,16 +1433,17 @@
             ]
           ]
         },
-        "on-exit": "(want-continue \"hj2-mountain-top\")"
+        "on-exit": "(begin (send-event \"mtn-aval-rocks-4\" 'draw #f) (want-continue \"hj2-mountain-top\"))",
+        "on-enter": "(send-event \"mtn-aval-rocks-4\" 'draw #t)"
       }
     ]
   },
   "camera": {
     "bsphere": [
-      -577.8496,
-      84.8959,
-      313.5141,
-      191.4055
+      -565.5518,
+      73.0774,
+      242.6492,
+      254.5407
     ],
     "regions": [
       {
@@ -1530,6 +1531,48 @@
         "on-exit": "(want-load 'hj2-mount 'hj2-mtnx)"
       },
       {
+        "id": 1609,
+        "bsphere": [
+          -460.3619,
+          44.5148,
+          71.4667,
+          44.3525
+        ],
+        "shape": "face",
+        "face": {
+          "normal": [
+            -0.9923,
+            0.0,
+            0.1237,
+            465.667877
+          ],
+          "points": [
+            [
+              -465.3988,
+              60.8692,
+              31.0909
+            ],
+            [
+              -465.3988,
+              28.1604,
+              31.0909
+            ],
+            [
+              -455.3251,
+              60.8692,
+              111.8424
+            ],
+            [
+              -455.3251,
+              28.1604,
+              111.8424
+            ]
+          ]
+        },
+        "on-enter": "(want-display 'hj2-mincan 'display)",
+        "on-exit": "(want-display 'hj2-mincan #f)"
+      },
+      {
         "id": 1861,
         "bsphere": [
           -452.7349,
@@ -1569,7 +1612,7 @@
           ]
         },
         "on-enter": "(want-vis 'hj2-mount)",
-        "on-exit": "(want-vis 'havenj2)"
+        "on-exit": "(want-vis 'hj2-farma)"
       }
     ]
   }

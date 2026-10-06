@@ -31,7 +31,7 @@
 
 ## Overview
 Brings Jak 2's Haven City and the places around it into Jak 3, as they are at the end of Jak 2:
-the whole city as one walkable level, with its interiors, the palace, Dead Town, the pumping
+the whole city, district by district like in Jak 2, with its interiors, the palace, Dead Town, the pumping
 station, the mountain, Haven Forest, the fortress and its prison, the stadium's race track and the
 dig site, all rebuilt from Jak 2's own extracted data and linked the way Jak 2 links them.
 
@@ -39,23 +39,31 @@ dig site, all rebuilt from Jak 2's own extracted data and linked the way Jak 2 l
 - **Repository:** [`whozghiar/jak3-mod-jak2-haven-city`](https://github.com/whozghiar/jak3-mod-jak2-haven-city)
 
 ## Key Features
-- **The whole city:** Jak 2's 14 districts, `ctywide` and the stadium grounds merged into one Jak 3
-  level, with Jak 2's lighting, water, particles, neon signs and breakable market props.
-- **The places around it:** 27 more levels (the Hip Hog, the hideout, the Oracle, Vin's power
+- **The whole city:** Jak 2's 14 districts, `ctywide` and the stadium grounds, loaded district by
+  district through Jak 2's own doors and regions, with Jak 2's lighting, water, particles, neon
+  signs and breakable market props.
+- **The places around it:** 30 more levels (the Hip Hog, the hideout, the Oracle, Vin's power
   station, Keira's garage, the gun course, the palace pillar and roof, Dead Town with the Sage's
-  hut, the construction site, the pumping station, the mountain, Haven Forest, the inside of the
-  fortress, its prison and the way out, the stadium's race track, the castle pad and the dig),
-  loaded through their doors, elevators, airlocks and gates like in Jak 2, in Jak 2's own memory
-  modes, with their moving platforms, lifts, swinging bars and slides.
+  hut, the construction site, the pumping station, the mountain and the canyon behind its iris
+  doors, Haven Forest, the inside of the fortress, its prison and the way out, the stadium's race
+  track, the castle pad and the dig, the bazaar's stall, Onin's tent), loaded through their doors, elevators, airlocks, gates and regions like in Jak 2, in
+  Jak 2's own memory modes, with their moving platforms, lifts, swinging bars and slides.
 - **The end of Jak 2:** every level as it is once the game is finished: the Baron's statue in
-  rubble, the market roof broken, Dead Town's tower fallen, only what Jak 2 still places then.
+  rubble, the market roof broken, Dead Town's tower and pillars fallen, the mountain temple's
+  puzzles solved, only what Jak 2 still places then.
+- **Complete levels:** Jak 2's particles in every place, and every hazard that hurts Jak (the
+  palace cable's electric fans, falling platforms and gun turrets, the fortress's laser turrets,
+  the avalanche, the dark eco pool, the gun buoy, the city's guard turrets), without enemies; the
+  city's searchlights, force-field walls, parked vehicles and barges, the gardens' yakows; Jak 2's
+  own doors and airlocks; the places' decor (banners, lamps, turbines, birds and fish).
 - **The fortress's escape:** its far gate opens on the prison (cells, torture machine, hanging
   cells), whose tunnels lead out of the fortress, back to the slums.
 - **Breakable city:** the Baron's propaganda speakers break in two hits like in Jak 2, the farm
   crops are solid and burst when hit hard.
 - **Air trains:** the port's air train takes Jak to the dig site and back, in a short fade.
 - **City traffic:** Jak 3's citizens, Freedom League guards, hover bikes and cars, as many as in
-  Jak 2.
+  Jak 2; Jak 2's Freedom League Hellcats as an option: they fly with the traffic without chasing
+  Jak, and Jak can steal one and fire its front gun.
 - **Time and weather:** a fixed hour or Jak 2's day and night; Jak 3's changing weather or a fixed
   one (sunny, cloudy, foggy, light rain, rain, thunderstorm, snow) in the whole game.
 - **Travelling:** warps to every district, key places and places outside the city; two time gates,
@@ -83,6 +91,7 @@ The menu's entries:
 | Time of day | 9:00, 12:00, 16:00 (default), 19:00, 23:00, or Jak 2's day and night |
 | Weather (whole game) | Changing (Jak 3's weather, default), or a fixed one |
 | City traffic | Switches the traffic on (default) or off |
+| Hellcats in the traffic | Adds Jak 2's Freedom League Hellcats to the traffic (off by default) |
 
 ## Download & Play via OpenGOAL Launcher (Players)
 

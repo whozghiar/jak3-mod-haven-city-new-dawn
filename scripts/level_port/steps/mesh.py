@@ -40,8 +40,13 @@ def palettes(sun_directions, ambient, sun, shade, normal):
     (0.5 = full), normal its world normal."""
     out = []
     k = [c * 2.0 for c in shade[:3]]
-    weights = [ambient] + [sun * max(0.0, sum(normal[i] * d[i] for i in range(3)))
-                           for d in sun_directions] + [0.0, 0.0, 0.0]
+    if sun is None:
+        # an interior: its moods light any of the 8 palettes (the Hip Hog only palette 1), the
+        # props have the same light in all of them
+        weights = [ambient] * 8
+    else:
+        weights = [ambient] + [sun * max(0.0, sum(normal[i] * d[i] for i in range(3)))
+                               for d in sun_directions] + [0.0, 0.0, 0.0]
     for w in weights:
         out += [max(0, min(255, int(round(w * c)))) for c in k] + [128]
     return out

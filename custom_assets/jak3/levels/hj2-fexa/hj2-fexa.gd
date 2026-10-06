@@ -2,7 +2,9 @@
 ;; DGO definition file for hj2-fexa: the way out of the fortress, from the prison.
 ("HKF.DGO"
  (
+  "jak-pole+0-ag.go"
   "hj2-fort-lift-plat-ag.go"
   "hj2-fexa-obs.o"
+  "hj2-fexa-part.o"
   "hj2-fexa.go"
   ))

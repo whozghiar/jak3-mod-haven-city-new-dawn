@@ -14,13 +14,16 @@ Manifest, on the level:
     "code": [the target game's objects holding their classes, before the level's own code],
     "random_yaw": [source etypes turned to a random angle when they spawn: the angle is set here,
                    the same on every run],
-    "base_aid": the actor id of the first one
+    "base_aid": the actor id of the first one (else the level builder numbers them),
+    "max_vis_dist": meters, how far from the camera a prop is born at most (the source game's
+                    vis-dist only mattered with its levels' visibility data)
   },
   "custom_props": {
     "etypes": {"<source etype>": {"etype": ours, "rip": "<level>/<model>-lod0.glb",
                                   "prims": [primitives kept], "looks": [[model, prims], ...]}},
-    "base_aid": the actor id of the first one
+    "base_aid": the actor id of the first one (else the level builder numbers them)
   }
+A level only gets the art and the models of the props it holds.
 """
 
 import math
@@ -35,6 +38,25 @@ def yaw_quat(name):
     angle = (zlib.crc32(name.encode()) % 3600) / 10.0
     half = math.radians(angle) / 2
     return [0.0, r4(math.sin(half)), 0.0, r4(math.cos(half))]
+
+
+def capped_vis_dist(cfg, lump, meter):
+    """A prop's vis-dist (game units): the source's, capped by cfg's "max_vis_dist"; None: the
+    target game's default (10km)."""
+    value = float(lump["vis-dist"]) if "vis-dist" in lump else None
+    if "max_vis_dist" not in cfg:
+        return value
+    cap = cfg["max_vis_dist"] * meter
+    return cap if value is None else min(value, cap)
+
+
+def placed(cfg, index, trans, etype, quat, radius, lump):
+    """A prop actor of the level .jsonc (its aid from the props' base_aid, if any)."""
+    actor = {"trans": trans, "etype": etype}
+    if "base_aid" in cfg:
+        actor["aid"] = cfg["base_aid"] + index
+    actor.update({"game_task": 0, "quat": quat, "bsphere": trans + [radius], "lump": lump})
+    return actor
 
 
 def prop_actors(port, level):
@@ -55,19 +77,13 @@ def prop_actors(port, level):
                 art.append(ag)
             name = actor["lump"]["name"]
             lump = {"name": name}
-            if "vis-dist" in actor["lump"]:
-                lump["vis-dist"] = ["float", float(actor["lump"]["vis-dist"])]
+            vis = capped_vis_dist(cfg, actor["lump"], port.source.METER)
+            if vis is not None:
+                lump["vis-dist"] = ["float", vis]
             trans = [r4(x) for x in actor["trans"][:3]]
             quat = yaw_quat(name) if etype in random_yaw else [r4(x) for x in actor["quat"]]
-            out.append((f"{port.source.TITLE}'s {name} ({src})", {
-                "trans": trans,
-                "etype": our_etype,
-                "aid": cfg["base_aid"] + len(out),
-                "game_task": 0,
-                "quat": quat,
-                "bsphere": trans + [r4(actor["bsphere"][3])],
-                "lump": lump,
-            }))
+            out.append((f"{port.source.TITLE}'s {name} ({src})", placed(
+                cfg, len(out), trans, our_etype, quat, r4(actor["bsphere"][3]), lump)))
             counts[our_etype] = counts.get(our_etype, 0) + 1
     return out, art, list(cfg.get("code", [])), counts
 
@@ -78,14 +94,7 @@ def custom_prop_actors(port, level):
     etypes = cfg["etypes"]
     out = []
     models = []
-    for spec in etypes.values():
-        rip = port.rip(spec["rip"])
-        glb.rebuild_model(rip, f"{port.models_dir}/{spec['etype']}.glb", spec["etype"],
-                          spec["prims"])
-        models.append(spec["etype"])
-        for look, look_prims in spec.get("looks", []):
-            glb.rebuild_model(rip, f"{port.models_dir}/{look}.glb", look, look_prims)
-            models.append(look)
+    used = set()
     for src in level.sources:
         for actor in port.story.level_actors(src):
             if actor["etype"] not in etypes:
@@ -95,13 +104,17 @@ def custom_prop_actors(port, level):
             if "vis-dist" in actor["lump"]:
                 lump["vis-dist"] = ["float", float(actor["lump"]["vis-dist"])]
             trans = [r4(x) for x in actor["trans"][:3]]
-            out.append((f"{port.source.TITLE}'s {name} ({src})", {
-                "trans": trans,
-                "etype": etypes[actor["etype"]]["etype"],
-                "aid": cfg["base_aid"] + len(out),
-                "game_task": 0,
-                "quat": [r4(x) for x in actor["quat"]],
-                "bsphere": trans + [r4(actor["bsphere"][3])],
-                "lump": lump,
-            }))
+            out.append((f"{port.source.TITLE}'s {name} ({src})", placed(
+                cfg, len(out), trans, etypes[actor["etype"]]["etype"],
+                [r4(x) for x in actor["quat"]], r4(actor["bsphere"][3]), lump)))
+            used.add(actor["etype"])
+    for etype in sorted(used):
+        spec = etypes[etype]
+        rip = port.rip(spec["rip"])
+        glb.rebuild_model(rip, f"{port.models_dir}/{spec['etype']}.glb", spec["etype"],
+                          spec["prims"])
+        models.append(spec["etype"])
+        for look, look_prims in spec.get("looks", []):
+            glb.rebuild_model(rip, f"{port.models_dir}/{look}.glb", look, look_prims)
+            models.append(look)
     return out, models

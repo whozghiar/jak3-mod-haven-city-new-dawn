@@ -6,14 +6,59 @@
   "iso_name": "HJ2MTNX",
   "nickname": "hjx",
   "import_fr3": {"game": "jak2", "levels": ["mtnext"], "tfrag": true, "tie": true, "shrub": true, "collision": true},
+  // Jak 2's static props that aren't actors here, and its pools' surfaces, as one mesh (the mesh step)
+  "gltf_file": "custom_assets/jak3/levels/hj2-mtnx/hj2-mtnx-mesh.glb",
   "base_id": 23100,
   "base_region_id": 23100,
   // Jak 2's fixed cameras of this level (elevator rides, camera regions)
   "cameras": [
 
   ],
+  // models of its custom actors, built by build-actor
+  "custom_models": ["hj2-mtn-plat-buried", "hj2-mtn-button", "hj2-mtn-dice-button", "hj2-mtn-plat-eject", "hj2-mtn-lens", "hj2-mtn-dice", "hj2-trans-plat", "hj2-mtn-aval-rocks"],
   "art_groups": [],
   "actors": [
-
+    // Jak 2's mtn-plat-return-5 (mtnext) [as hj2-mtn-plat-return]
+    {"trans": [-794.9089, 131.0364, 262.0515], "etype": "hj2-mtn-plat-return", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [-794.9089, 131.0364, 262.0515, 6.9282], "lump": {"name": "mtn-plat-return-5", "path": ["vector", [-3255947.0, 536724.75, 1073362.75, 1.0], [-3267766.25, 521813.5625, 1048084.1875, 1.0], [-3323538.5, 472360.0625, 960044.4375, 1.0], [-3296057.25, 411216.5312, 871382.0625, 1.0], [-3226034.0, 358149.375, 814172.3125, 1.0], [-3204465.0, 337960.8125, 790239.875, 1.0]], "path-k": ["float", 0.0, 0.0, 0.0, 0.0, 0.3333333432674408, 0.6666666865348816, 1.0, 1.0, 1.0, 1.0]}},
+    // Jak 2's dark-eco-pool-25 (mtnext)
+    {"trans": [-640.4057, 91.998, 7.9443], "etype": "hj2-dark-eco-pool", "game_task": 0, "quat": [0.0, 0.0009, 0.0, 1.0], "bsphere": [-640.4057, 91.998, 7.9443, 112.1662], "lump": {"name": "dark-eco-pool-25", "vol": ["vector", [0.0017753791762515903, 0.0, 0.9999984502792358, -62535.06640625], [-0.001775513170287013, 0.0, -0.9999984502792358, 328535.0], [0.0, -1.0, 0.0, -344073.21875], [-0.9999984502792358, 0.0, 0.001775513170287013, 2964644.75], [0.0, 1.0, 0.0, 389073.34375], [0.9999984502792358, 0.0, -0.0017763355281203985, -2439716.5], [0.001775284530594945, 0.0, 0.9999984502792358, 108039.28125], [-0.001775513170287013, 0.0, -0.9999984502792358, 66292.3203125], [0.0, -1.0, 0.0, -344073.21875], [-0.9999984502792358, 0.0, 0.0017746167723089457, 2786039.0], [0.0, 1.0, 0.0, 389073.34375], [0.9999984502792358, 0.0, -0.0017769471742212772, -2444334.25], [0.001775382086634636, 0.0, 0.9999984502792358, 202081.671875], [-0.0017754476284608245, 0.0, -0.9999984502792358, -92414.5859375], [0.0, -1.0, 0.0, -344073.21875], [-0.9999984502792358, 0.0, 0.0017698140582069755, 2932603.5], [0.0, 1.0, 0.0, 389073.34375], [0.9999984502792358, 0.0, -0.0017759405309334397, -2455451.5], [0.0017758875619620085, 0.0, 0.9999984502792358, 394863.28125], [-0.001775513170287013, 0.0, -0.9999984502792358, -195737.109375], [0.0, -1.0, 0.0, -344073.21875], [-0.9999984502792358, 0.0, 0.0017715897411108017, 2831016.75], [0.0, 1.0, 0.0, 389073.34375], [0.9999984502792358, 0.0, -0.0017757485620677471, -2455451.5]]}},
+    // Jak 2's mtn-aval-rocks-4 (mtnext)
+    {"trans": [-923.748, 139.04, 339.702], "etype": "hj2-mtn-aval-rocks", "game_task": 0, "quat": [0.0, 1.0, 0.0, 0.0], "bsphere": [-923.748, 139.04, 339.702, 739.2288], "lump": {"name": "mtn-aval-rocks-4"}},
+    // Jak 2's mtn-button-1 (mtnext)
+    {"trans": [-709.6978, 80.094, 329.2698], "etype": "hj2-mtn-button", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [-709.6978, 80.094, 329.2698, 12.1244], "lump": {"name": "mtn-button-1"}},
+    // Jak 2's mtn-button-2 (mtnext)
+    {"trans": [-731.0745, 115.4706, 209.0289], "etype": "hj2-mtn-button", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [-731.0745, 115.4706, 209.0289, 12.1244], "lump": {"name": "mtn-button-2"}},
+    // Jak 2's mtn-button-6 (mtnext)
+    {"trans": [-850.0153, 51.0892, 172.1829], "etype": "hj2-mtn-button", "game_task": 0, "quat": [-0.0123, 0.0001, 0.0055, 0.9999], "bsphere": [-850.0153, 51.0892, 172.1829, 6.9282], "lump": {"name": "mtn-button-6"}},
+    // Jak 2's mtn-dice-10 (mtnext)
+    {"trans": [-628.0771, 92.0138, 18.0574], "etype": "hj2-mtn-dice", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [-628.0771, 92.0138, 18.0574, 24.1091], "lump": {"name": "mtn-dice-10", "extra-id": ["int32", 5]}},
+    // Jak 2's mtn-dice-6 (mtnext)
+    {"trans": [-632.4552, 92.0138, 37.9534], "etype": "hj2-mtn-dice", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [-632.4552, 92.0138, 37.9534, 24.1092], "lump": {"name": "mtn-dice-6", "extra-id": ["int32", 1]}},
+    // Jak 2's mtn-dice-7 (mtnext)
+    {"trans": [-636.1202, 92.0138, -22.1429], "etype": "hj2-mtn-dice", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [-636.1202, 92.0138, -22.1429, 24.1091], "lump": {"name": "mtn-dice-7", "extra-id": ["int32", 2]}},
+    // Jak 2's mtn-dice-8 (mtnext)
+    {"trans": [-624.324, 92.0138, -9.9278], "etype": "hj2-mtn-dice", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [-624.324, 92.0138, -9.9278, 24.1091], "lump": {"name": "mtn-dice-8", "extra-id": ["int32", 3]}},
+    // Jak 2's mtn-dice-9 (mtnext)
+    {"trans": [-615.7974, 92.0138, 6.0516], "etype": "hj2-mtn-dice", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [-615.7974, 92.0138, 6.0516, 24.1091], "lump": {"name": "mtn-dice-9", "extra-id": ["int32", 4]}},
+    // Jak 2's mtn-dice-button-5 (mtnext)
+    {"trans": [-636.1202, 94.0, -28.6136], "etype": "hj2-mtn-dice-button", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [-636.1202, 94.0, -28.6136, 6.9282], "lump": {"name": "mtn-dice-button-5"}},
+    // Jak 2's mtn-lens-2 (mtnext)
+    {"trans": [-756.2941, 156.2174, 290.9612], "etype": "hj2-mtn-lens", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [-756.2941, 156.2174, 290.9612, 74.4782], "lump": {"name": "mtn-lens-2"}},
+    // Jak 2's mtn-plat-buried-4 (mtnext)
+    {"trans": [-792.0045, 100.4007, 359.3046], "etype": "hj2-mtn-plat-buried", "game_task": 0, "quat": [0.0053, 0.5044, -0.0145, 0.8633], "bsphere": [-792.0045, 100.4007, 359.3046, 6.9282], "lump": {"name": "mtn-plat-buried-4"}},
+    // Jak 2's mtn-plat-buried-5 (mtnext)
+    {"trans": [-800.5727, 100.2367, 350.4358], "etype": "hj2-mtn-plat-buried", "game_task": 0, "quat": [0.006, 0.4583, -0.0142, 0.8887], "bsphere": [-800.5727, 100.2367, 350.4358, 6.9282], "lump": {"name": "mtn-plat-buried-5"}},
+    // Jak 2's mtn-plat-buried-6 (mtnext)
+    {"trans": [-781.3318, 101.0, 362.1607], "etype": "hj2-mtn-plat-buried", "game_task": 0, "quat": [0.0053, 0.5044, -0.0145, 0.8633], "bsphere": [-781.3318, 101.0, 362.1607, 6.9282], "lump": {"name": "mtn-plat-buried-6"}},
+    // Jak 2's mtn-plat-eject-13 (mtnext)
+    {"trans": [-744.5678, 125.9886, 220.2832], "etype": "hj2-mtn-plat-eject", "game_task": 0, "quat": [0.0, 1.0, 0.0, -0.0041], "bsphere": [-744.5678, 125.9886, 220.2832, 6.9282], "lump": {"name": "mtn-plat-eject-13"}},
+    // Jak 2's mtn-plat-eject-14 (mtnext)
+    {"trans": [-719.9261, 86.1881, 349.1446], "etype": "hj2-mtn-plat-eject", "game_task": 0, "quat": [0.0, 0.8766, 0.0, 0.4813], "bsphere": [-719.9261, 86.1881, 349.1446, 6.9282], "lump": {"name": "mtn-plat-eject-14"}},
+    // Jak 2's mtn-plat-eject-15 (mtnext)
+    {"trans": [-747.0834, 121.0024, 198.521], "etype": "hj2-mtn-plat-eject", "game_task": 0, "quat": [0.0, -0.0093, 0.0, 1.0], "bsphere": [-747.0834, 121.0024, 198.521, 6.9282], "lump": {"name": "mtn-plat-eject-15"}},
+    // Jak 2's mtn-plat-eject-16 (mtnext)
+    {"trans": [-835.481, 62.0, 139.6828], "etype": "hj2-mtn-plat-eject", "game_task": 0, "quat": [0.0, -0.0023, 0.0, 1.0], "bsphere": [-835.481, 62.0, 139.6828, 6.9282], "lump": {"name": "mtn-plat-eject-16"}},
+    // Jak 2's mtn-plat-eject-17 (mtnext)
+    {"trans": [-829.6964, 57.0, 139.5147], "etype": "hj2-mtn-plat-eject", "game_task": 0, "quat": [0.0, -0.0023, 0.0, 1.0], "bsphere": [-829.6964, 57.0, 139.5147, 6.9282], "lump": {"name": "mtn-plat-eject-17"}}
   ]
 }

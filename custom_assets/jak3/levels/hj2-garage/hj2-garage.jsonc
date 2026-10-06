@@ -6,14 +6,49 @@
   "iso_name": "HJ2GARAG",
   "nickname": "hjk",
   "import_fr3": {"game": "jak2", "levels": ["garage"], "tfrag": true, "tie": true, "shrub": true, "collision": true},
+  // Jak 2's static props that aren't actors here, and its pools' surfaces, as one mesh (the mesh step)
+  "gltf_file": "custom_assets/jak3/levels/hj2-garage/hj2-garage-mesh.glb",
   "base_id": 22000,
   "base_region_id": 22000,
   // Jak 2's fixed cameras of this level (elevator rides, camera regions)
   "cameras": [
 
   ],
+  // models of its custom actors, built by build-actor
+  "custom_models": ["hj2-gar-curtain"],
   "art_groups": [],
   "actors": [
-
+    // Jak 2's dummy-vehicle-1 (garage)
+    {"trans": [103.2882, 15.0868, -421.5837], "etype": "hj2-dummy-vehicle", "game_task": 0, "quat": [0.0, 0.9684, 0.0, -0.2493], "bsphere": [103.2882, 15.0868, -421.5837, 6.9282], "lump": {"name": "dummy-vehicle-1", "art-name": ["string", "carb"]}},
+    // Jak 2's dummy-vehicle-2 (garage)
+    {"trans": [118.378, 15.9686, -431.0407], "etype": "hj2-dummy-vehicle", "game_task": 0, "quat": [0.0, 0.9991, 0.0, -0.0414], "bsphere": [118.378, 15.9686, -431.0407, 6.9282], "lump": {"name": "dummy-vehicle-2", "art-name": ["string", "cara"]}},
+    // Jak 2's gar-curtain-1 (garage)
+    {"trans": [92.0335, 19.8753, -414.067], "etype": "hj2-gar-curtain", "game_task": 0, "quat": [0.0, -0.5393, 0.0, 0.8421], "bsphere": [92.0335, 19.8753, -414.067, 6.9282], "lump": {"name": "gar-curtain-1"}},
+    // Jak 2's stadium-part-43 (garage): group-garage-steam-release
+    {"trans": [114.8161, 14.422, -427.347], "etype": "part-spawner", "aid": 48098, "game_task": 0, "quat": [0.0, 0.9976, 0.0, 0.07], "bsphere": [114.8161, 14.422, -427.347, 6.9282], "lump": {"name": "stadium-part-43", "vis-dist": ["float", 614400.0], "art-name": "group-hj2-garage-steam-release"}},
+    // Jak 2's stadium-part-47 (garage): group-garage-pump-glow
+    {"trans": [117.4161, 16.6541, -422.3491], "etype": "part-spawner", "aid": 48099, "game_task": 0, "quat": [0.0, 0.2902, 0.0, 0.957], "bsphere": [117.4161, 16.6541, -422.3491, 6.9282], "lump": {"name": "stadium-part-47", "vis-dist": ["float", 614400.0], "art-name": "group-hj2-garage-pump-glow"}},
+    // Jak 2's stadium-part-50 (garage): group-garage-lights
+    {"trans": [105.303, 21.5599, -407.7042], "etype": "part-spawner", "aid": 48100, "game_task": 0, "quat": [0.6034, -0.3686, 0.3686, 0.6034], "bsphere": [105.303, 21.5599, -407.7042, 6.9282], "lump": {"name": "stadium-part-50", "vis-dist": ["float", 614400.0], "art-name": "group-hj2-garage-lights"}},
+    // Jak 2's stadium-part-52 (garage): group-garage-guage-lights
+    {"trans": [116.4288, 18.737, -412.1847], "etype": "part-spawner", "aid": 48101, "game_task": 0, "quat": [0.0, 0.9609, 0.0, -0.2768], "bsphere": [116.4288, 18.737, -412.1847, 6.9282], "lump": {"name": "stadium-part-52", "vis-dist": ["float", 614400.0], "art-name": "group-hj2-garage-guage-lights"}},
+    // Jak 2's stadium-part-55 (garage): group-garage-guage-lights
+    {"trans": [138.3026, 18.7009, -427.7472], "etype": "part-spawner", "aid": 48102, "game_task": 0, "quat": [0.0, 0.9375, 0.0, -0.3481], "bsphere": [138.3026, 18.7009, -427.7472, 6.9282], "lump": {"name": "stadium-part-55", "vis-dist": ["float", 614400.0], "art-name": "group-hj2-garage-guage-lights"}},
+    // Jak 2's stadium-part-53 (garage): group-garage-guage-lights
+    {"trans": [119.6022, 18.7406, -445.7328], "etype": "part-spawner", "aid": 48103, "game_task": 0, "quat": [0.0, -0.4239, 0.0, 0.9057], "bsphere": [119.6022, 18.7406, -445.7328, 6.9282], "lump": {"name": "stadium-part-53", "vis-dist": ["float", 614400.0], "art-name": "group-hj2-garage-guage-lights"}},
+    // Jak 2's stadium-part-48 (garage): group-garage-lights
+    {"trans": [114.001, 21.5599, -428.1044], "etype": "part-spawner", "aid": 48104, "game_task": 0, "quat": [-0.2071, 0.6761, -0.6761, -0.2071], "bsphere": [114.001, 21.5599, -428.1044, 6.9282], "lump": {"name": "stadium-part-48", "vis-dist": ["float", 614400.0], "art-name": "group-hj2-garage-lights"}},
+    // Jak 2's stadium-part-46 (garage): group-garage-pump-glow
+    {"trans": [80.62, 16.6541, -400.9858], "etype": "part-spawner", "aid": 48105, "game_task": 0, "quat": [0.0, 0.2529, 0.0, 0.9675], "bsphere": [80.62, 16.6541, -400.9858, 6.9282], "lump": {"name": "stadium-part-46", "vis-dist": ["float", 614400.0], "art-name": "group-hj2-garage-pump-glow"}},
+    // Jak 2's stadium-part-51 (garage): group-garage-lights
+    {"trans": [84.2555, 21.5599, -407.3127], "etype": "part-spawner", "aid": 48106, "game_task": 0, "quat": [-0.1313, 0.6948, -0.6948, -0.1313], "bsphere": [84.2555, 21.5599, -407.3127, 6.9282], "lump": {"name": "stadium-part-51", "vis-dist": ["float", 614400.0], "art-name": "group-hj2-garage-lights"}},
+    // Jak 2's stadium-part-54 (garage): group-garage-guage-lights
+    {"trans": [93.662, 18.737, -400.2361], "etype": "part-spawner", "aid": 48107, "game_task": 0, "quat": [0.0, 0.9788, 0.0, -0.205], "bsphere": [93.662, 18.737, -400.2361, 6.9282], "lump": {"name": "stadium-part-54", "vis-dist": ["float", 614400.0], "art-name": "group-hj2-garage-guage-lights"}},
+    // Jak 2's stadium-part-45 (garage): group-garage-pump-glow
+    {"trans": [101.8828, 16.6541, -413.2002], "etype": "part-spawner", "aid": 48108, "game_task": 0, "quat": [0.0, 0.2444, 0.0, 0.9697], "bsphere": [101.8828, 16.6541, -413.2002, 6.9282], "lump": {"name": "stadium-part-45", "vis-dist": ["float", 614400.0], "art-name": "group-hj2-garage-pump-glow"}},
+    // Jak 2's stadium-part-49 (garage): group-garage-lights
+    {"trans": [99.6248, 21.5599, -419.5628], "etype": "part-spawner", "aid": 48109, "game_task": 0, "quat": [-0.1746, 0.6852, -0.6852, -0.1746], "bsphere": [99.6248, 21.5599, -419.5628, 6.9282], "lump": {"name": "stadium-part-49", "vis-dist": ["float", 614400.0], "art-name": "group-hj2-garage-lights"}},
+    // Jak 2's stadium-part-44 (garage): group-garage-steam-release
+    {"trans": [102.7358, 14.7039, -435.7029], "etype": "part-spawner", "aid": 48110, "game_task": 0, "quat": [-0.0135, 0.6355, -0.0169, 0.7718], "bsphere": [102.7358, 14.7039, -435.7029, 6.9282], "lump": {"name": "stadium-part-44", "vis-dist": ["float", 614400.0], "art-name": "group-hj2-garage-steam-release"}}
   ]
 }

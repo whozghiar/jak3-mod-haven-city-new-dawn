@@ -1,0 +1,407 @@
+;;-*-Lisp-*-
+(in-package goal)
+
+;; name: hj2-port-obs.gc
+;; name in dgo: hj2-port-obs
+;; dgos: HPT
+
+;; og:jak2-haven-city Level code for hj2-port, Jak 2's port district (ctyport): the barges sailing
+;; the port's canals (levels/city/ctyport-obs.gc there). They are Jak 3's own barge and
+;; boat-manager (Jak 3's ctyport-obs.o, linked just before this file in the same DGO, and Jak 3's
+;; barge-ag, in this DGO too): Jak 3's code is Jak 2's, but for three things these subclasses undo.
+;;   - Jak 3's barge belongs to its own level ctyport (its art is looked up there): hj2-barge belongs
+;;     to hj2-port, which holds barge-ag.
+;;   - Jak 3 parks the barges of the third path: Jak 2's all sail.
+;;   - Jak 2's boat-manager reads its 4 paths from 4 time samples of one 'path lump, which the level
+;;     port can't write (the builder writes one sample): the paths are below, as static data.
+;; The barges are rigid-body vehicles steering on the port's water nav mesh (Jak 2's nav-mesh-actor
+;; lump, aid 26081, exported in hj2-port-nav.json); Jak is carried when he stands on one, and
+;; crushed if he stays under one for a second (Jak 3's rule). Silent: Jak 2's barge-engine and
+;; bow-wash sounds aren't in Jak 3. Not ported: Jak 2's lone barge-1 actor, idle at the bottom of
+;; the water (the boat-manager spawns the fleet).
+
+;; Paths ///////////////////////////////////////////////////////////////////////////////////////////
+
+;; Jak 2's 4 barge loops (boat-manager-1's 'path lump, samples 0 to 3: closed uniform cubic
+;; B-splines, their 3 first control points repeated at the end), as points on the curves: 2 per span,
+;; the first repeated at the end to close the loop (generated from
+;; decompiler_out/jak2/entities/ctyport-actors.json). On the curves, not on the control points:
+;; these lie up to 60m off them, over the quays. y: the water (0, like Jak 2's points).
+(define *hj2-boat-path-0*
+  (new 'static 'inline-array vector 15
+    (new 'static 'vector :x (meters 44.5) :z (meters 1623.4) :w 1.0)
+    (new 'static 'vector :x (meters 16.6) :z (meters 1613.7) :w 1.0)
+    (new 'static 'vector :x (meters -9.3) :z (meters 1598.4) :w 1.0)
+    (new 'static 'vector :x (meters -27.4) :z (meters 1580.1) :w 1.0)
+    (new 'static 'vector :x (meters -32.5) :z (meters 1554.6) :w 1.0)
+    (new 'static 'vector :x (meters -20.2) :z (meters 1520.8) :w 1.0)
+    (new 'static 'vector :x (meters 12.1) :z (meters 1493.8) :w 1.0)
+    (new 'static 'vector :x (meters 62.6) :z (meters 1488.3) :w 1.0)
+    (new 'static 'vector :x (meters 113.4) :z (meters 1498.6) :w 1.0)
+    (new 'static 'vector :x (meters 145.3) :z (meters 1516.7) :w 1.0)
+    (new 'static 'vector :x (meters 151.0) :z (meters 1543.2) :w 1.0)
+    (new 'static 'vector :x (meters 130.1) :z (meters 1578.0) :w 1.0)
+    (new 'static 'vector :x (meters 98.1) :z (meters 1608.8) :w 1.0)
+    (new 'static 'vector :x (meters 70.2) :z (meters 1623.4) :w 1.0)
+    (new 'static 'vector :x (meters 44.5) :z (meters 1623.4) :w 1.0)
+    )
+  )
+
+(define *hj2-boat-path-1*
+  (new 'static 'inline-array vector 15
+    (new 'static 'vector :x (meters 274.7) :z (meters 1623.4) :w 1.0)
+    (new 'static 'vector :x (meters 246.8) :z (meters 1613.7) :w 1.0)
+    (new 'static 'vector :x (meters 220.8) :z (meters 1598.4) :w 1.0)
+    (new 'static 'vector :x (meters 202.7) :z (meters 1580.1) :w 1.0)
+    (new 'static 'vector :x (meters 197.6) :z (meters 1554.6) :w 1.0)
+    (new 'static 'vector :x (meters 209.9) :z (meters 1520.8) :w 1.0)
+    (new 'static 'vector :x (meters 242.3) :z (meters 1493.8) :w 1.0)
+    (new 'static 'vector :x (meters 292.8) :z (meters 1488.3) :w 1.0)
+    (new 'static 'vector :x (meters 343.5) :z (meters 1498.6) :w 1.0)
+    (new 'static 'vector :x (meters 375.4) :z (meters 1516.7) :w 1.0)
+    (new 'static 'vector :x (meters 381.1) :z (meters 1543.2) :w 1.0)
+    (new 'static 'vector :x (meters 360.2) :z (meters 1578.0) :w 1.0)
+    (new 'static 'vector :x (meters 328.2) :z (meters 1608.8) :w 1.0)
+    (new 'static 'vector :x (meters 300.4) :z (meters 1623.4) :w 1.0)
+    (new 'static 'vector :x (meters 274.7) :z (meters 1623.4) :w 1.0)
+    )
+  )
+
+(define *hj2-boat-path-2*
+  (new 'static 'inline-array vector 19
+    (new 'static 'vector :x (meters 72.0) :z (meters 1654.2) :w 1.0)
+    (new 'static 'vector :x (meters 29.8) :z (meters 1639.0) :w 1.0)
+    (new 'static 'vector :x (meters -20.9) :z (meters 1619.1) :w 1.0)
+    (new 'static 'vector :x (meters -62.8) :z (meters 1595.8) :w 1.0)
+    (new 'static 'vector :x (meters -75.0) :z (meters 1557.5) :w 1.0)
+    (new 'static 'vector :x (meters -38.9) :z (meters 1498.1) :w 1.0)
+    (new 'static 'vector :x (meters 53.8) :z (meters 1447.8) :w 1.0)
+    (new 'static 'vector :x (meters 197.0) :z (meters 1436.2) :w 1.0)
+    (new 'static 'vector :x (meters 338.9) :z (meters 1457.0) :w 1.0)
+    (new 'static 'vector :x (meters 424.9) :z (meters 1497.1) :w 1.0)
+    (new 'static 'vector :x (meters 434.4) :z (meters 1553.2) :w 1.0)
+    (new 'static 'vector :x (meters 367.5) :z (meters 1619.9) :w 1.0)
+    (new 'static 'vector :x (meters 272.0) :z (meters 1672.6) :w 1.0)
+    (new 'static 'vector :x (meters 196.8) :z (meters 1690.3) :w 1.0)
+    (new 'static 'vector :x (meters 148.1) :z (meters 1685.4) :w 1.0)
+    (new 'static 'vector :x (meters 120.5) :z (meters 1675.5) :w 1.0)
+    (new 'static 'vector :x (meters 105.8) :z (meters 1667.1) :w 1.0)
+    (new 'static 'vector :x (meters 94.2) :z (meters 1661.8) :w 1.0)
+    (new 'static 'vector :x (meters 72.0) :z (meters 1654.2) :w 1.0)
+    )
+  )
+
+(define *hj2-boat-path-3*
+  (new 'static 'inline-array vector 27
+    (new 'static 'vector :x (meters -119.5) :z (meters 1818.0) :w 1.0)
+    (new 'static 'vector :x (meters -116.5) :z (meters 1780.8) :w 1.0)
+    (new 'static 'vector :x (meters -102.1) :z (meters 1761.2) :w 1.0)
+    (new 'static 'vector :x (meters -73.6) :z (meters 1769.3) :w 1.0)
+    (new 'static 'vector :x (meters -49.7) :z (meters 1799.2) :w 1.0)
+    (new 'static 'vector :x (meters -42.2) :z (meters 1837.9) :w 1.0)
+    (new 'static 'vector :x (meters -13.0) :z (meters 1858.6) :w 1.0)
+    (new 'static 'vector :x (meters 73.7) :z (meters 1843.9) :w 1.0)
+    (new 'static 'vector :x (meters 195.1) :z (meters 1828.2) :w 1.0)
+    (new 'static 'vector :x (meters 314.2) :z (meters 1843.2) :w 1.0)
+    (new 'static 'vector :x (meters 395.6) :z (meters 1858.0) :w 1.0)
+    (new 'static 'vector :x (meters 419.4) :z (meters 1838.2) :w 1.0)
+    (new 'static 'vector :x (meters 426.0) :z (meters 1799.3) :w 1.0)
+    (new 'static 'vector :x (meters 455.8) :z (meters 1769.0) :w 1.0)
+    (new 'static 'vector :x (meters 490.3) :z (meters 1774.6) :w 1.0)
+    (new 'static 'vector :x (meters 502.0) :z (meters 1829.1) :w 1.0)
+    (new 'static 'vector :x (meters 486.3) :z (meters 1888.3) :w 1.0)
+    (new 'static 'vector :x (meters 444.9) :z (meters 1908.5) :w 1.0)
+    (new 'static 'vector :x (meters 380.8) :z (meters 1905.9) :w 1.0)
+    (new 'static 'vector :x (meters 297.1) :z (meters 1905.4) :w 1.0)
+    (new 'static 'vector :x (meters 195.6) :z (meters 1906.6) :w 1.0)
+    (new 'static 'vector :x (meters 82.7) :z (meters 1904.5) :w 1.0)
+    (new 'static 'vector :x (meters -15.5) :z (meters 1902.0) :w 1.0)
+    (new 'static 'vector :x (meters -75.6) :z (meters 1900.4) :w 1.0)
+    (new 'static 'vector :x (meters -105.0) :z (meters 1889.0) :w 1.0)
+    (new 'static 'vector :x (meters -117.0) :z (meters 1858.6) :w 1.0)
+    (new 'static 'vector :x (meters -119.5) :z (meters 1818.0) :w 1.0)
+    )
+  )
+
+;; Barges //////////////////////////////////////////////////////////////////////////////////////////
+
+;; Jak 2's barge: Jak 3's (the same boat), belonging to hj2-port, every path sailing.
+(deftype hj2-barge (barge)
+  ()
+  )
+
+
+(defmethod init-rbody-control! ((this hj2-barge))
+  "Jak 3's barge setup (skeleton, rigid body, collide specs of its prims), its process belonging to
+hj2-port, whose DGO holds barge-ag (a process looks its art up in its own level), not to Jak 3's
+ctyport (absent: no level, a crash). Without Jak 3's yellow glow (color-emissive), which Jak 2's
+barge didn't have.
+Side effects: sets the process's level, the draw-control, the rigid body and the prims' collide
+specs. Returns nothing."
+  (with-pp
+    (set! (-> pp level) (level-get *level* 'hj2-port))
+    (initialize-skeleton
+      this
+      (the-as skeleton-group (art-group-get-by-name *level* "skel-barge" (the-as (pointer level) #f)))
+      (the-as pair 0)
+      )
+    (alloc-rbody-control! this *barge-constants*)
+    (set! (-> this draw lod-set lod 0 dist) 1228800.0)
+    (set! (-> this engine) (new-sound-id))
+    (set! (-> this bow-wash) (new-sound-id))
+    (iterate-prims
+      (-> this root)
+      (lambda ((arg0 collide-shape-prim))
+        (let ((v1-0 (-> arg0 prim-core prim-type)))
+          (cond
+            ((= v1-0 -1)
+             (set! (-> arg0 prim-core collide-with) (collide-spec
+                                                      backgnd
+                                                      bot
+                                                      crate
+                                                      civilian
+                                                      enemy
+                                                      obstacle
+                                                      vehicle-sphere
+                                                      hit-by-player-list
+                                                      hit-by-others-list
+                                                      collectable
+                                                      pusher
+                                                      shield
+                                                      vehicle-sphere-no-probe
+                                                      )
+                   )
+             (set! (-> arg0 prim-core collide-as) (collide-spec vehicle-sphere))
+             )
+            ((= v1-0 1)
+             (set! (-> arg0 prim-core collide-with) (collide-spec jak player-list))
+             (set! (-> arg0 prim-core collide-as) (collide-spec camera-blocker vehicle-mesh vehicle-mesh-probeable))
+             )
+            ((zero? v1-0)
+             (set! (-> arg0 prim-core collide-with)
+                   (collide-spec
+                     backgnd
+                     jak
+                     bot
+                     crate
+                     civilian
+                     enemy
+                     obstacle
+                     vehicle-sphere
+                     hit-by-player-list
+                     hit-by-others-list
+                     player-list
+                     collectable
+                     pusher
+                     shield
+                     vehicle-sphere-no-probe
+                     )
+                   )
+             (set! (-> arg0 prim-core collide-as)
+                   (collide-spec vehicle-sphere camera-blocker vehicle-mesh vehicle-mesh-probeable)
+                   )
+             )
+            )
+          )
+        (none)
+        )
+      )
+    0
+    (none)
+    )
+  )
+
+;; WARN: Return type mismatch none vs object.
+(defmethod rigid-body-object-method-30 ((this hj2-barge))
+  "Jak 3's boat-base update (carry the riders, crush Jak after a second under the hull, sail
+without physics when far from the camera), steering to a point of its path that moves on once the
+barge is within 40m of it, like Jak 2's: every path sails (Jak 3 parks the third one, and stops
+the boats for its missions with stop-boats?). The path: the manager's (manager handle) path-num
+(0 to 3), at path-index (0 to 1, looping).
+Side effects: moves the barge, its nav target and path-index; may attack Jak. Returns
+vehicle-method-78's value, like Jak 3's."
+  (rider-trans)
+  (let ((t9-1 (method-of-type vehicle rigid-body-object-method-30)))
+    (t9-1 this)
+    )
+  (let ((s5-0 (-> this root)))
+    (pull-riders! s5-0)
+    (cond
+      ((logtest? (do-push-aways s5-0) (collide-spec jak))
+       (+! (-> this overlap-player-counter) 1)
+       ;; og:preserve-this changed for high fps (as in Jak 3's boat-base)
+       (when (< (the uint (/ 60.0 DISPLAY_FPS_RATIO)) (-> this overlap-player-counter))
+         (send-event
+           *target*
+           'attack-invinc
+           #f
+           (static-attack-info
+             :mask (vehicle-impulse-factor)
+             ((id (new-attack-id)) (damage 1000.0) (vehicle-damage-factor 1.0) (vehicle-impulse-factor 1.0) (mode 'smush))
+             )
+           )
+         (set! (-> this overlap-player-counter) (the-as uint 0))
+         0
+         )
+       )
+      (else
+        (set! (-> this overlap-player-counter) (the-as uint 0))
+        0
+        )
+      )
+    )
+  (when (not (logtest? (-> this rbody flags) (rigid-body-flag enable-physics)))
+    (let ((s5-1 (new 'stack-no-clear 'inline-array 'vector 6)))
+      (let ((a1-1 (-> this nav state)))
+        (vector-copy! (-> s5-1 0) (-> a1-1 velocity))
+        )
+      (let ((s4-0 (new 'stack 'clamp-travel-vector-to-mesh-return-info)))
+        (let ((s3-0 (-> this nav state current-poly)))
+          (vector-xz-normalize-copy! (-> s5-1 3) (-> s5-1 0) 163840.0)
+          (vector-copy! (-> s5-1 4) (-> s5-1 3))
+          (clamp-vector-to-mesh-no-gaps (-> this nav) (-> this root trans) s3-0 (-> s5-1 4) s4-0)
+          )
+        (when (-> s4-0 found-boundary)
+          (let ((f30-0 (vector-length (-> s5-1 0))))
+            (vector-flatten! (-> s5-1 0) (-> s5-1 0) (-> s4-0 boundary-normal))
+            (vector-rotate90-around-y! (-> s5-1 0) (-> s4-0 boundary-normal))
+            (vector-normalize! (-> s5-1 0) f30-0)
+            )
+          )
+        )
+      (when (< (square 4.096) (vector-length-squared (-> s5-1 0)))
+        (vector-copy! (-> s5-1 5) (-> s5-1 0))
+        (vector-normalize! (-> s5-1 5) 1.0)
+        (let ((s4-1 (-> this root quat)))
+          (quaternion-set! (the-as quaternion (-> s5-1 2)) 0.0 (-> s5-1 5 x) 0.0 (+ 1.0 (-> s5-1 5 z)))
+          (quaternion-normalize! (the-as quaternion (-> s5-1 2)))
+          (quaternion-smooth-seek! s4-1 s4-1 (the-as quaternion (-> s5-1 2)) (* 1.2 (seconds-per-frame)))
+          )
+        (vector-z-quaternion! (-> s5-1 1) (-> this root quat))
+        (vector-v*float+! (-> this root trans) (-> this root trans) (-> s5-1 1) 8954.266)
+        (seek! (-> this root trans y) 4096.0 (* 4096.0 (seconds-per-frame)))
+        )
+      )
+    )
+  (let ((s4-2 (the-as boat-manager (handle->process (-> this manager))))
+        (s5-2 (new 'stack-no-clear 'vector))
+        )
+    (when s4-2
+      (let ((a1-22 (-> this nav state)))
+        (vector-copy! s5-2 (-> a1-22 target-pos))
+        )
+      (when (< (vector-vector-xz-distance (-> this root trans) s5-2) 163840.0)
+        (+! (-> this path-index) 0.01)
+        (let ((f0-20 (-> this path-index)))
+          (set! (-> this path-index) (- f0-20 (* (the float (the int (/ f0-20 1.0))) 1.0)))
+          )
+        )
+      (get-point-at-percent-along-path! (-> s4-2 paths (-> this path-num)) s5-2 (-> this path-index) 'interp)
+      (let ((v1-102 (-> this nav state)))
+        (logclear! (-> v1-102 flags) (nav-state-flag directional-mode))
+        (logior! (-> v1-102 flags) (nav-state-flag target-poly-dirty))
+        (vector-copy! (-> v1-102 target-pos) s5-2)
+        )
+      0
+      )
+    )
+  (vehicle-method-78 this)
+  )
+
+;; The fleet ///////////////////////////////////////////////////////////////////////////////////////
+
+;; Jak 2's boat-manager: Jak 3's, its 4 paths from the static loops above, spawning hj2-barges, and
+;; taking them away with it when hj2-port goes (they are the vehicle manager's children, not its
+;; own, and would outlive the nav mesh they steer on and their art).
+(deftype hj2-boat-manager (boat-manager)
+  ()
+  )
+
+
+(defun hj2-boat-path-new ((proc process) (points (inline-array vector)) (count int))
+  "A path-control over count static points (one of *hj2-boat-path-<n>*), followed as a polyline,
+allocated on the current process's heap (proc's: the boat manager in its init-from-entity!).
+proc's entity has no 'path lump (the level port doesn't keep it): path-control's own lookup comes
+back not-found, then its curve is pointed at the points. Returns the path-control."
+  (let ((pc (new 'process 'path-control proc 'path 0.0 (the-as entity #f) #f)))
+    (logclear! (-> pc flags) (path-control-flag not-found))
+    (set! (-> pc curve cverts) points)
+    (set! (-> pc curve num-cverts) count)
+    pc
+    )
+  )
+
+(defmethod boat-manager-method-16 ((this hj2-boat-manager))
+  "Spawns the fleet like Jak 2: along each of the 4 paths, from its start to 80% of the way, a
+hj2-barge every 150 to 300m (random), facing along the path, steering on the water nav mesh (mesh).
+Each barge keeps the manager's handle, its path number (user-data) and where it starts on it
+(position w).
+Side effects: spawns the barges (children of Jak 3's vehicle manager). Returns #f."
+  (when (-> this mesh)
+    (dotimes (s5-0 4)
+      (let ((s4-0 (-> this paths s5-0))
+            (f30-0 0.0)
+            )
+        (when s4-0
+          (let ((s3-0 (new 'stack-no-clear 'matrix)))
+            (vector-reset! (-> s3-0 fvec))
+            (set! (-> s3-0 fvec y) 1.0)
+            (while (< f30-0 0.8)
+              (displacement-between-points-at-percent-normalized! s4-0 (-> s3-0 uvec) f30-0)
+              (get-point-at-percent-along-path! s4-0 (-> s3-0 rvec) f30-0 'interp)
+              (vector-normalize! (-> s3-0 uvec) 1.0)
+              (quaternion-look-at! (the-as quaternion (-> s3-0 trans)) (-> s3-0 uvec) (-> s3-0 fvec))
+              (let ((s2-0 (new 'stack 'traffic-object-spawn-params)))
+                (set! (-> s2-0 object-type) (traffic-type guard-a))
+                (set! (-> s2-0 behavior) (the-as uint 1))
+                (set! (-> s2-0 id) (the-as uint 0))
+                (set! (-> s2-0 nav-mesh) (-> this mesh))
+                (set! (-> s2-0 nav-branch) #f)
+                (set! (-> s2-0 proc) #f)
+                (set! (-> s2-0 handle) (process->handle this))
+                (set! (-> s2-0 user-data) (the-as uint s5-0))
+                (set! (-> s2-0 flags) (traffic-spawn-flags tsf0))
+                (set! (-> s2-0 guard-type) (the-as uint 11))
+                (set! (-> s2-0 entity) #f)
+                (vector-copy! (-> s2-0 velocity) (-> s3-0 uvec))
+                (vector-copy! (-> s2-0 position) (-> s3-0 rvec))
+                (quaternion-copy! (-> s2-0 rotation) (the-as quaternion (-> s3-0 trans)))
+                (set! (-> s2-0 position w) f30-0)
+                (vehicle-spawn-hack hj2-barge s2-0 this)
+                )
+              (+! f30-0 (/ (* 4096.0 (+ 150.0 (* 150.0 (rand-vu)))) (total-distance s4-0)))
+              )
+            )
+          )
+        )
+      )
+    )
+  #f
+  )
+
+(defmethod init-from-entity! ((this hj2-boat-manager) (arg0 entity-actor))
+  "Jak 2's boat-manager setup: the water nav mesh (nav-mesh-actor lump, Jak 2's aid), the 4 paths,
+then the fleet (boat-manager-method-16). Without the nav mesh (missing from hj2-port's nav data),
+no barge. Goes to Jak 3's idle (it only waits). boats-stop? is set for good: Jak 3's idle then never
+reacts to Jak 3's stop-boats? setting (its missions'), which would kill Jak 3's barges, not these,
+and spawn a second fleet."
+  (set! (-> this mesh) (nav-mesh-from-res-tag arg0 'nav-mesh-actor 0))
+  (set! (-> this entity) arg0)
+  (set! (-> this boats-stop?) #t)
+  (when (-> this mesh)
+    (set! (-> this paths 0) (hj2-boat-path-new this *hj2-boat-path-0* 15))
+    (set! (-> this paths 1) (hj2-boat-path-new this *hj2-boat-path-1* 15))
+    (set! (-> this paths 2) (hj2-boat-path-new this *hj2-boat-path-2* 19))
+    (set! (-> this paths 3) (hj2-boat-path-new this *hj2-boat-path-3* 27))
+    (boat-manager-method-16 this)
+    )
+  (go (method-of-object this idle))
+  )
+
+(defmethod deactivate ((this hj2-boat-manager))
+  "Dies with hj2-port (its entity's level): kills every hj2-barge first, then dies like any process.
+Returns nothing."
+  (kill-by-type hj2-barge *active-pool*)
+  ((method-of-type boat-manager deactivate) this)
+  (none)
+  )

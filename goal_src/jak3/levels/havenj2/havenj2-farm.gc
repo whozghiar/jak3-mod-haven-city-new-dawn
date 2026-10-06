@@ -452,30 +452,28 @@ entity's, see random_yaw in the port)."
     (set! (-> this root) s5-0)
     )
   (process-drawable-from-entity! this arg0)
+  ;; the skeleton groups themselves (defined by ctyfarm-obs.o in the city's hub, havenj2): the art
+  ;; group search by name only looks in displayed levels, and Jak 2's mountain airlock shows the
+  ;; gardens with the hub hidden. The art is the crop's own level's (its district).
   (initialize-skeleton
     this
-    (the-as skeleton-group (art-group-get-by-name
-                             *level*
-                             (case (-> this kind)
-                               ((0)
-                                "skel-farm-marrow"
-                                )
-                               ((1)
-                                "skel-farm-beetree"
-                                )
-                               ((2)
-                                "skel-farm-cabbage"
-                                )
-                               ((3)
-                                "skel-farm-small-cabbage"
-                                )
-                               (else
-                                 "skel-farm-chilirots"
-                                 )
-                               )
-                             (the-as (pointer level) #f)
-                             )
-            )
+    (case (-> this kind)
+      ((0)
+       skel-farm-marrow
+       )
+      ((1)
+       skel-farm-beetree
+       )
+      ((2)
+       skel-farm-cabbage
+       )
+      ((3)
+       skel-farm-small-cabbage
+       )
+      (else
+        skel-farm-chilirots
+        )
+      )
     (the-as pair 0)
     )
   (logior! (-> this mask) (process-mask crate))
@@ -541,4 +539,16 @@ entity's, see random_yaw in the port)."
   "Jak 2's farm-chilirots."
   (set! (-> this kind) 4)
   (call-parent-method this arg0)
+  )
+
+;; Jak 3's farm sprinklers (ctyfarm-obs.gc), set up like there but with their skeleton group itself:
+;; see hj2-farm-crop's init-from-entity!. Only the copy of ctyfarm-obs.o in havenj2's DGO gets it.
+(defmethod init-from-entity! ((this farm-sprinkler-barrels) (arg0 entity-actor))
+  "Jak 3's init-from-entity! of the farm sprinklers, without the art group search by name."
+  (set! (-> this root) (new 'process 'trsqv))
+  (process-drawable-from-entity! this arg0)
+  (logclear! (-> this mask) (process-mask actor-pause))
+  (initialize-skeleton this skel-farm-sprinkler-barrels (the-as pair 0))
+  (logior! (-> this mask) (process-mask crate))
+  (go (method-of-object this idle))
   )

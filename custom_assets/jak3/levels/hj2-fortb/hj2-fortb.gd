@@ -3,5 +3,9 @@
 ("HJJ.DGO"
  (
   "hj2-fort-gate-ag.go"
+  "hj2-fort-elec-belt-ag.go"
+  "hj2-fort-turret-ag.go"
+  "hj2-fortb-obs.o"
+  "hj2-fortb-part.o"
   "hj2-fortb.go"
   ))

@@ -1,0 +1,631 @@
+;;-*-Lisp-*-
+(in-package goal)
+
+;; name: hj2-common-obs.gc
+;; name in dgo: hj2-common-obs
+;; dgos: GAME
+
+;; og:jak2-haven-city Decor classes shared by Jak 2's places: models of Jak 2 that only loop their
+;; animation, or stand still and solid, rebuilt by build-actor (hj2-*.glb, made by the level port,
+;; scripts/level_port). In GAME (after jak2-haven-city-world.o): levels loaded together (the palace
+;; cable hj2-pcab, its roof hj2-proof and its pillars hj2-pshaft) can't each link the same class,
+;; and the mountain and the palace cable both place the windmills. Each level's DGO packs the art
+;; of the models it places (the level port adds hj2-<model>-ag.go for the actors that use it).
+;;
+;; A model gets its own class, since def-actor makes one skeleton group per type: declare it with
+;; def-hj2-anim-loop or def-hj2-still-prop below (a deftype, a def-actor and its init-from-entity!).
+;; A defmacro only exists in a goalc session once its file is compiled, and (mi) skips up-to-date
+;; files, so declare every such class here, not in another file.
+;;
+;; Not ported: Jak 2's sounds (these props have none once broken or looping), the palace prongs'
+;; energy particles (only shown before the palace boss is beaten).
+
+;; Looping models ////////////////////////////////////////////////////////////////////////////////
+
+;; A model playing its first animation (its idle) in a loop, forever, even far from the camera.
+;; No collision.
+(deftype hj2-anim-loop (process-drawable)
+  ()
+  (:state-methods
+    idle
+    )
+  )
+
+
+;; plays its current animation (the skeleton group's idle) in a loop, one frame step per game frame
+;; (Jak 2's med-res-level: (ja :num! (loop!)) then suspend, safe on a one-frame animation, where a
+;; seek-until-done loop would never suspend)
+(defstate idle (hj2-anim-loop)
+  :virtual #t
+  :code (behavior ()
+    (until #f
+      (ja :num! (loop!))
+      (suspend)
+      )
+    #f
+    )
+  :post ja-post
+  )
+
+(defun hj2-anim-loop-init! ((this hj2-anim-loop) (arg0 entity-actor) (skel skeleton-group))
+  "Jak 2's pal-windmill setup, for any looping model.
+arg0: the entity (placement). skel: the class's skeleton group (from def-actor).
+Side effects: sets the root (a trsqv), the placement and the skeleton; the process keeps running
+when far away (no actor-pause), like Jak 2's windmills and med-res-level. Returns nothing."
+  (logior! (-> this mask) (process-mask ambient))
+  (set! (-> this root) (new 'process 'trsqv))
+  (process-drawable-from-entity! this arg0)
+  (logclear! (-> this mask) (process-mask actor-pause))
+  (initialize-skeleton this skel (the-as pair 0))
+  (none)
+  )
+
+;; (def-hj2-anim-loop <type> :bounds (x y z r) [:origin-joint-index n])
+;; Declares a looping model class: <type> (a hj2-anim-loop), its art group (def-actor: the model
+;; <type>.glb with its idle animation) and its init-from-entity!, which runs hj2-anim-loop-init!
+;; with *<type>-sg* and goes to idle.
+(defmacro def-hj2-anim-loop (name &key bounds &key (origin-joint-index 0))
+  `(begin
+     (deftype ,name (hj2-anim-loop)
+       ()
+       )
+     (def-actor ,name
+       :bounds ,bounds
+       :origin-joint-index ,origin-joint-index
+       )
+     (defmethod init-from-entity! ((this ,name) (arg0 entity-actor))
+       "A looping model: placement and skeleton (hj2-anim-loop-init!), then idle. Returns nothing."
+       (hj2-anim-loop-init! this arg0 ,(string->symbol-format "*{}-sg*" name))
+       (go (method-of-object this idle))
+       (none)
+       )
+     )
+  )
+
+;; Still models ///////////////////////////////////////////////////////////////////////////////////
+
+;; A model that doesn't move, holding the first frame of its idle animation: solid and rideable
+;; (collide mesh 0 of its model, the level port's "collide" for it, bound to its main joint).
+;; The GAME twin of hj2-mtn-prop (hj2-mount-obs.gc).
+(deftype hj2-still-prop (process-drawable)
+  ((root  collide-shape  :override)
+   )
+  (:state-methods
+    idle
+    )
+  )
+
+
+;; holds the first frame of its animation, still: one transform-post places the pose and the
+;; collision, then it sleeps
+(defstate idle (hj2-still-prop)
+  :virtual #t
+  :code (behavior ()
+    (ja :num-func num-func-identity :frame-num 0.0)
+    (transform-post)
+    (sleep-code)
+    )
+  )
+
+(defun hj2-still-prop-init! ((this hj2-still-prop) (arg0 entity-actor) (skel skeleton-group))
+  "Collision, placement and skeleton of a still model.
+arg0: the entity (placement). skel: the class's skeleton group (from def-actor); its bounds are
+also the collision sphere, around the main joint (transform index 3).
+Side effects: sets the root (a collide-shape with one mesh prim: obstacle, solid, rideable), the
+placement and the skeleton. Returns nothing."
+  (let ((s5-0 (new 'process 'collide-shape this (collide-list-enum hit-by-player))))
+    (let ((v1-2 (new 'process 'collide-shape-prim-mesh s5-0 (the-as uint 0) (the-as uint 0))))
+      (set! (-> v1-2 prim-core collide-as) (collide-spec obstacle))
+      (set! (-> v1-2 prim-core collide-with) (collide-spec jak player-list))
+      (set! (-> v1-2 prim-core action) (collide-action solid rideable))
+      (set! (-> v1-2 transform-index) 3)
+      (vector-copy! (-> v1-2 local-sphere) (-> skel bounds))
+      (set! (-> s5-0 total-prims) (the-as uint 1))
+      (set! (-> s5-0 root-prim) v1-2)
+      )
+    (set! (-> s5-0 nav-radius) (* 0.75 (-> s5-0 root-prim local-sphere w)))
+    (let ((v1-5 (-> s5-0 root-prim)))
+      (set! (-> s5-0 backup-collide-as) (-> v1-5 prim-core collide-as))
+      (set! (-> s5-0 backup-collide-with) (-> v1-5 prim-core collide-with))
+      )
+    (set! (-> this root) s5-0)
+    )
+  (process-drawable-from-entity! this arg0)
+  (initialize-skeleton this skel (the-as pair 0))
+  (none)
+  )
+
+;; (def-hj2-still-prop <type> :bounds (x y z r) [:origin-joint-index n])
+;; Declares a still, solid model class: <type> (a hj2-still-prop), its art group (def-actor: the
+;; model <type>.glb with its idle animation) and its init-from-entity!, which runs
+;; hj2-still-prop-init! with *<type>-sg* and goes to idle. :bounds is also the collision sphere,
+;; around the main joint: it must hold the model's collide mesh 0.
+(defmacro def-hj2-still-prop (name &key bounds &key (origin-joint-index 0))
+  `(begin
+     (deftype ,name (hj2-still-prop)
+       ()
+       )
+     (def-actor ,name
+       :bounds ,bounds
+       :origin-joint-index ,origin-joint-index
+       )
+     (defmethod init-from-entity! ((this ,name) (arg0 entity-actor))
+       "A still model: collision, placement and skeleton (hj2-still-prop-init!), then idle. Returns
+nothing."
+       (hj2-still-prop-init! this arg0 ,(string->symbol-format "*{}-sg*" name))
+       (go (method-of-object this idle))
+       (none)
+       )
+     )
+  )
+
+;; The palace /////////////////////////////////////////////////////////////////////////////////////
+
+;; Jak 2's pal-windmill (levels/palace/cable/palcab-obs.gc there): the windmills of the backdrop,
+;; their blades turning in their animation; placed by the mountain (hj2-mount) and the palace cable
+;; (hj2-pcab). Moved here from hj2-mount-obs.gc.
+(def-hj2-anim-loop hj2-pal-windmill
+  :bounds (0 0 0 62)
+  )
+
+;; Jak 2's pal-lowrez-throne (levels/palace/roof/palroof-obs.gc there, a med-res-level): the low
+;; detail throne room under the palace roof's glass (hj2-proof), looping its idle animation like
+;; med-res-level. Jak 2 hides it while the throne level (its 'level lump) is active; the throne
+;; isn't ported, so it is always shown.
+(def-hj2-anim-loop hj2-pal-lowrez-throne
+  :bounds (-5 40 -10 75)
+  )
+
+;; Jak 2's pal-prong (levels/palace/roof/palroof-obs.gc there): the two energy posts of the palace
+;; roof (hj2-proof). At the end of the game the palace boss is beaten, so they are broken: Jak 2's
+;; broken state hides segment 0 (setup-masks 0 1), the pole that its joint-exploder throws away
+;; (pal-prong-explode), and keeps the base. That base is primitives 0 and 1 of the rip (the level
+;; port's hj2-pal-prong.glb, 2.7m wide, 1m high), solid (their hull), without the energy particles.
+;; Bounds: the base's sphere (it holds the hull), around the main joint like Jak 2's.
+(def-hj2-still-prop hj2-pal-prong
+  :bounds (0 0.5 0 2.1)
+  :origin-joint-index 3
+  )
+
+;; Jak 2's pal-flip-step (levels/palace/cable/palcab-obs.gc there): the steps of the palace cable's
+;; end (hj2-pcab) and of the palace roof (hj2-proof), loaded together. Jak 2 folds them down (their
+;; fall animation) once their task is closed, but only until the nest boss is beaten: at the end of
+;; the game they stand up, solid, and nothing sends them Jak 2's 'trigger. So here a still prop:
+;; frame 0 of their idle animation, the hull of their model on the main joint.
+(def-hj2-still-prop hj2-pal-flip-step
+  :bounds (0 0 0 6)
+  )
+
+
+;; The fortress /////////////////////////////////////////////////////////////////////////////////////
+
+;; Jak 2's fort-elec-button (levels/fortress/rescue/forresca-obs.gc there, a cty-guard-turret-button):
+;; the 5 floor buttons of the fortress rescue (hj2-forta) that shut its electric gates. Their
+;; extra-id is 1, so Jak 2 always loads them up (start-up?: frame 0 of their idle animation), even
+;; once pressed. Rebuilt from forresca's cty-guard-turret-button rip, its primitives 1 (the lit
+;; button: Jak 2's "on" look, mask 2) and 2 (the rim), solid on the hull of the model. Silent (no
+;; gturret-button sound in Jak 3). Bounds: the model's sphere, which holds the hull.
+(def-hj2-still-prop hj2-fort-elec-button
+  :bounds (0 0.4 0 2.3)
+  )
+
+;; Jak 2's fort-led (levels/fortress/rescue/forresca-obs.gc there): the 5 lights by the fortress
+;; rescue's gate (hj2-forta), each green once its fort-elec-button was pressed (the end of the
+;; game). Jak 2 picks the look with setup-masks (green: mask 2 on, mask 4 off); build-actor models
+;; have no mask table, so the model keeps only the green light (primitive 0) and the base
+;; (primitive 2). Jak 2 gives it no collision; here a small box (still prop), out of Jak's way on
+;; its panel.
+(def-hj2-still-prop hj2-fort-led
+  :bounds (0 0.1 0 0.9)
+  )
+
+
+;; The port ///////////////////////////////////////////////////////////////////////////////////////
+
+;; Jak 2's farthy (levels/city/port/ctyport-part.gc there): the prop on the port's quay (hj2-port).
+;; Once the nest boss is beaten, Jak 2 shows Daxter's mech (skel-mecha-daxter) looping its idle,
+;; without the halo particles of the earlier farthy look; here always, from Jak 2's model (the level
+;; port's hj2-farthy.glb, rebuilt from ctyport/mecha-daxter-lod0.glb). No collision, like Jak 2's.
+;; Bounds and origin joint: Jak 2's skel-mecha-daxter's.
+(def-hj2-anim-loop hj2-farthy
+  :bounds (0 8 0 11)
+  :origin-joint-index 3
+  )
+
+;; Keira's garage ////////////////////////////////////////////////////////////////////////////////
+
+;; Jak 2's dummy-vehicle (levels/stadium/stadium-obs.gc there): the hover cars parked in Keira's
+;; garage (hj2-garage), still and solid (rideable). Jak 2 picks the model by the art-name lump
+;; ("cara", "carb"); here it is Jak 3's car of that name, whose art (cara-ag...) and skeleton groups
+;; (skel-h-car-a..., car.o) are in havenj2, always loaded with the garage. Jak 2's light-index 17 isn't
+;; kept (Jak 3's light indices mean other lights).
+(deftype hj2-dummy-vehicle (hj2-still-prop)
+  ()
+  )
+
+
+(defmethod init-from-entity! ((this hj2-dummy-vehicle) (arg0 entity-actor))
+  "Jak 2's dummy-vehicle setup with Jak 3's cars: the skeleton group of the art-name lump's car
+(carb, carc, else cara), found in havenj2, which becomes this process's level (a process looks its
+art up in its own level), then hj2-still-prop's collision (the car's collide mesh 0, on its main
+joint), placement and skeleton. No such skeleton group (havenj2 missing): Jak 2's art error state.
+Goes to idle (still). Returns nothing."
+  (let* ((art (res-lump-struct arg0 'art-name string))
+         (skel (the-as skeleton-group
+                 (art-group-get-by-name
+                   *level*
+                   (cond
+                     ((and art (string= art "carb")) "skel-h-car-b")
+                     ((and art (string= art "carc")) "skel-h-car-c")
+                     (else "skel-h-car-a")
+                     )
+                   (&-> this level)
+                   )
+                 )
+               )
+         )
+    (if (not skel)
+        (go process-drawable-art-error "no car art in a loaded level")
+        )
+    (hj2-still-prop-init! this arg0 skel)
+    )
+  (go (method-of-object this idle))
+  (none)
+  )
+
+;; Jak 2's doors ///////////////////////////////////////////////////////////////////////////////////
+
+;; og:jak2-haven-city Jak 2's own doors, in place of the Jak 3 stand-ins (com-airlock-outer/inner,
+;; hip-door-a, cty-door, vin-door-ctyinda with Jak 3's art). Each class is Jak 3's com-airlock
+;; (engine/common-obs/airlock.gc: the same scripts as Jak 2's, read by init-airlock! from the lumps
+;; the level port writes: on-notice, on-activate, on-deactivate, on-inside, next-actor, height,
+;; distance, idle-distance, options, open-test) set up like Jak 2's class of that door
+;; (levels/common/airlock.gc and the per-level files there), drawn with Jak 2's model and opening
+;; animation rebuilt by build-actor (hj2-<door>.glb, the level port's "models"), each leaf solid on
+;; its joint (collide meshes 0 and 1 of the model, in the manifest's order).
+;; In GAME: the airlocks stand in most places, and levels loaded together (the port, the Hip Hog and
+;; the gun course; the city and its interiors) place the same doors.
+;; Transform index = the rip's joint index + 1 (glb.py); the collision spheres are Jak 2's, in the
+;; same joint spaces (same skeletons).
+;; build-actor samples animations at 60 fps (speed 1.0, artist-step 1.0): Jak 2's airlock frame
+;; numbers (15 fps art) are scaled by 4, like hj2-palace-door's. The two-key doors (Hip Hog, Vin,
+;; hideout, Oracle) open over their whole animation (open-frame 0.0, init-airlock!'s default), in
+;; Jak 2's time.
+;; Sounds: Jak 2's names where Jak 3 has the same sound (airlock-*, wood-*); Jak 2's hide-door-*
+;; sounds aren't in Jak 3, those doors get wood-*, like Jak 3's hip-door-a. All of them are in
+;; Jak 3's city half banks, which the mod's levels don't load: silent until a bank holds them.
+
+(defun hj2-door-two-leaves! ((this com-airlock)
+                             (group-y float)
+                             (group-r float)
+                             (leaf-x float)
+                             (leaf-y float)
+                             (leaf-r float)
+                             (joint-a int)
+                             (joint-b int))
+  "Collision of a two-leaf door, Jak 2's layout for all of them: a group (no joint) holding collide
+mesh 0 on joint-a and collide mesh 1 on joint-b (transform indices), obstacle, solid against Jak,
+bots and the player list.
+group-y, group-r: the group's sphere (0 group-y 0 group-r). leaf-x, leaf-y, leaf-r: mesh 0's sphere
+(leaf-x leaf-y 0 leaf-r) in joint-a's space, mesh 1's (-leaf-x leaf-y 0 leaf-r) in joint-b's.
+Side effects: sets the root of this (a collide-shape), allocated on the current process's heap (call
+it from init-from-entity!). Returns nothing."
+  (let ((s5-0 (new 'process 'collide-shape this (collide-list-enum usually-hit-by-player))))
+    (set! (-> s5-0 penetrated-by) (penetrate))
+    (let ((s4-0 (new 'process 'collide-shape-prim-group s5-0 (the-as uint 2) 0)))
+      (set! (-> s5-0 total-prims) (the-as uint 3))
+      (set! (-> s4-0 prim-core collide-as) (collide-spec obstacle))
+      (set! (-> s4-0 prim-core collide-with) (collide-spec jak bot player-list))
+      (set! (-> s4-0 prim-core action) (collide-action solid))
+      (set-vector! (-> s4-0 local-sphere) 0.0 group-y 0.0 group-r)
+      (set! (-> s5-0 root-prim) s4-0)
+      )
+    (let ((v1-8 (new 'process 'collide-shape-prim-mesh s5-0 (the-as uint 0) (the-as uint 0))))
+      (set! (-> v1-8 prim-core collide-as) (collide-spec obstacle))
+      (set! (-> v1-8 prim-core collide-with) (collide-spec jak bot player-list))
+      (set! (-> v1-8 prim-core action) (collide-action solid))
+      (set! (-> v1-8 transform-index) joint-a)
+      (set-vector! (-> v1-8 local-sphere) leaf-x leaf-y 0.0 leaf-r)
+      )
+    (let ((v1-10 (new 'process 'collide-shape-prim-mesh s5-0 (the-as uint 1) (the-as uint 0))))
+      (set! (-> v1-10 prim-core collide-as) (collide-spec obstacle))
+      (set! (-> v1-10 prim-core collide-with) (collide-spec jak bot player-list))
+      (set! (-> v1-10 prim-core action) (collide-action solid))
+      (set! (-> v1-10 transform-index) joint-b)
+      (set-vector! (-> v1-10 local-sphere) (- leaf-x) leaf-y 0.0 leaf-r)
+      )
+    (set! (-> s5-0 nav-radius) (* 0.75 (-> s5-0 root-prim local-sphere w)))
+    (let ((v1-13 (-> s5-0 root-prim)))
+      (set! (-> s5-0 backup-collide-as) (-> v1-13 prim-core collide-as))
+      (set! (-> s5-0 backup-collide-with) (-> v1-13 prim-core collide-with))
+      )
+    (set! (-> this root) s5-0)
+    )
+  (none)
+  )
+
+(defun hj2-door-wood-sounds! ((this com-airlock))
+  "Jak 2's wooden door sounds (hip-door-a, hip-door-b, oracle-door, vin-door, vin-door-ctyinda),
+also given to the hideout doors (Jak 2's hide-door-* sounds aren't in Jak 3). Call after
+init-airlock!, which clears every sound. Side effects: sets the open and close loop and stop sounds
+of this. Returns nothing."
+  (set! (-> this sound-open-loop) (static-sound-spec "wood-door-open" :group 0))
+  (set! (-> this sound-open-stop) (static-sound-spec "wood-open-hit" :group 0))
+  (set! (-> this sound-close-loop) (static-sound-spec "wood-door-close" :group 0))
+  (set! (-> this sound-close-stop) (static-sound-spec "wood-close-hit" :group 0))
+  (none)
+  )
+
+;; Jak 2's com-airlock-outer (levels/common/airlock.gc there): the city's airlocks to the places
+;; outside it, and their far doors (Dead Town, the pumping station, the mountain, the construction
+;; site, the palace roof and cable). Also Jak 2's cas-front-door (a com-airlock-outer, same model),
+;; shut at the castle pad. Leaves Ldoor and Rdoor (transform indices 4 and 7).
+(deftype hj2-airlock-outer (com-airlock)
+  ()
+  )
+
+
+;; the art group from build-actor: Jak 2's com-airlock-outer model and its opening animation
+;; hj2-airlock-outer-idle (75 frames at 15 fps there, 300 here); bounds: Jak 2's
+(def-actor hj2-airlock-outer
+  :bounds (0 5 0 14)
+  )
+
+(defmethod init-from-entity! ((this hj2-airlock-outer) (arg0 entity-actor))
+  "Jak 2's com-airlock-outer setup: its two leaves solid (hj2-door-two-leaves!, Jak 2's spheres),
+the airlock lumps (init-airlock!), Jak 2's frames 35, 45 and 45 scaled to build-actor's 60 fps, Jak
+2's airlock sounds. arg0: the entity. Goes to close (shut at once). Returns nothing."
+  (stack-size-set! (-> this main-thread) 1024)
+  (hj2-door-two-leaves! this 20480.0 57344.0 0.0 20480.0 32768.0 4 7)
+  (initialize-skeleton this *hj2-airlock-outer-sg* (the-as pair 0))
+  (init-airlock! this)
+  (set! (-> this pre-open-frame) 140.0)
+  (set! (-> this lock-frame) 180.0)
+  (set! (-> this open-frame) 180.0)
+  (set! (-> this sound-pre-open) (static-sound-spec "airlock-slider" :group 0))
+  (set! (-> this sound-pre-open-stop) (static-sound-spec "airlock-slide-e" :group 0))
+  (set! (-> this sound-open) (static-sound-spec "airlock-seal" :group 0))
+  (set! (-> this sound-open-loop) (static-sound-spec "airlock-open" :group 0))
+  (set! (-> this sound-open-stop) (static-sound-spec "airlock-hit" :group 0))
+  (set! (-> this sound-close-loop) (static-sound-spec "airlock-open" :group 0))
+  (set! (-> this sound-close-stop) (static-sound-spec "airlock-hit" :group 0))
+  (set! (-> this sound-post-close) (static-sound-spec "airlock-slider" :group 0))
+  (set! (-> this sound-post-close-stop) (static-sound-spec "airlock-slide-e" :group 0))
+  (go (method-of-object this close) #t)
+  (none)
+  )
+
+;; Jak 2's com-airlock-inner (levels/common/airlock.gc there): the inner halves of the city's
+;; airlocks and the palace pillar's doors. Leaves Ldoormove and Rdoormove (transform indices 4 and
+;; 8), the small gear sml_gear (12) turning while it opens.
+(deftype hj2-airlock-inner (com-airlock)
+  ()
+  )
+
+
+;; the art group from build-actor: Jak 2's com-airlock-inner model and its opening animation
+;; hj2-airlock-inner-idle (90 frames at 15 fps there, 360 here); bounds: Jak 2's
+(def-actor hj2-airlock-inner
+  :bounds (0 5 0 14)
+  )
+
+(defmethod init-from-entity! ((this hj2-airlock-inner) (arg0 entity-actor))
+  "Jak 2's com-airlock-inner setup: its two leaves solid (hj2-door-two-leaves!, Jak 2's spheres),
+the airlock lumps (init-airlock!), Jak 2's frames 37, 65 and 75 scaled to build-actor's 60 fps, the
+gear (joint-mod on joint 12), inner? from the options lump (default 1: an inner door runs
+on-inside), Jak 2's pre-open speed and airlock sounds. arg0: the entity. Goes to close (shut at
+once). Returns nothing."
+  (stack-size-set! (-> this main-thread) 1024)
+  (hj2-door-two-leaves! this 20480.0 57344.0 0.0 20480.0 32768.0 4 8)
+  (initialize-skeleton this *hj2-airlock-inner-sg* (the-as pair 0))
+  (init-airlock! this)
+  (set! (-> this lock-frame) 148.0)
+  (set! (-> this pre-open-frame) 260.0)
+  (set! (-> this open-frame) 300.0)
+  (set! (-> this gear) (new 'process 'joint-mod (joint-mod-mode rotate) this 12))
+  (set! (-> this inner?)
+        (logtest? (the-as
+                    int
+                    (res-lump-value (-> this entity) 'options uint128 :default (the-as uint128 1) :time -1000000000.0)
+                    )
+                  1
+                  )
+        )
+  (set! (-> this pre-open-speed) 0.9)
+  (set! (-> this sound-gear) (static-sound-spec "airlock-gear" :group 0))
+  (set! (-> this sound-pre-open) (static-sound-spec "airlock-slider" :group 0))
+  (set! (-> this sound-pre-open-stop) (static-sound-spec "airlock-slide-e" :group 0))
+  (set! (-> this sound-lock-loop) (static-sound-spec "airlock-turn" :group 0))
+  (set! (-> this sound-lock-stop) (static-sound-spec "airlock-unlock" :group 0))
+  (set! (-> this sound-open) (static-sound-spec "airlock-seal" :group 0))
+  (set! (-> this sound-open-loop) (static-sound-spec "airlock-open" :group 0))
+  (set! (-> this sound-open-stop) (static-sound-spec "airlock-hit" :group 0))
+  (set! (-> this sound-close-loop) (static-sound-spec "airlock-open" :group 0))
+  (set! (-> this sound-close-stop) (static-sound-spec "airlock-hit" :group 0))
+  (go (method-of-object this close) #t)
+  (none)
+  )
+
+;; Jak 2's hip-door-a (levels/common/airlock.gc there) and hip-door-b (levels/hiphog/hiphog-scenes.gc,
+;; the same model and setup): the Hip Hog's doors, in the port, inside the Hip Hog and in the gun
+;; course. Leaves Ldoor and Rdoor (transform indices 4 and 5), sliding apart.
+(deftype hj2-hip-door (com-airlock)
+  ()
+  )
+
+
+;; the art group from build-actor: Jak 2's hip-door-a model and its opening animation
+;; hj2-hip-door-idle (2 keys over 1.67s there, 100 frames here); bounds: Jak 2's
+(def-actor hj2-hip-door
+  :bounds (0 2 0 5)
+  )
+
+(defmethod init-from-entity! ((this hj2-hip-door) (arg0 entity-actor))
+  "Jak 2's hip-door-a setup: its two leaves solid (hj2-door-two-leaves!, Jak 2's spheres), the
+airlock lumps (init-airlock!), wooden door sounds, door-radius 2m. arg0: the entity. Goes to close
+(shut at once). Returns nothing."
+  (stack-size-set! (-> this main-thread) 1024)
+  (hj2-door-two-leaves! this 8192.0 20480.0 0.0 8192.0 16384.0 4 5)
+  (initialize-skeleton this *hj2-hip-door-sg* (the-as pair 0))
+  (init-airlock! this)
+  (hj2-door-wood-sounds! this)
+  (set! (-> this door-radius) 8192.0)
+  (go (method-of-object this close) #t)
+  (none)
+  )
+
+;; Jak 2's hide-door-a (levels/city/slums/neon-baron-part.gc there): the hideout's door in the slums.
+;; One panel on the main joint (transform index 3), sliding 8.25m sideways.
+(deftype hj2-hide-door-a (com-airlock)
+  ()
+  )
+
+
+;; the art group from build-actor: Jak 2's hide-door-a model and its opening animation
+;; hj2-hide-door-a-idle (2 keys over 1.67s there, 100 frames here); bounds: Jak 2's
+(def-actor hj2-hide-door-a
+  :bounds (0 6 0 12)
+  )
+
+(defmethod init-from-entity! ((this hj2-hide-door-a) (arg0 entity-actor))
+  "Jak 2's hide-door-a setup: the panel solid (collide mesh 0 on the main joint), the airlock lumps
+(init-airlock!), wooden door sounds, door-radius 3m. Jak 2's sphere (0 4m 6m, 6m) doesn't hold this
+model's collide mesh (the hull of the panel: 9.5m wide, 11.6m high, at z 0): the sphere here is
+the panel's. arg0: the entity. Goes to close (shut at once). Returns nothing."
+  (stack-size-set! (-> this main-thread) 1024)
+  (let ((s5-0 (new 'process 'collide-shape this (collide-list-enum usually-hit-by-player))))
+    (set! (-> s5-0 penetrated-by) (penetrate))
+    (let ((v1-2 (new 'process 'collide-shape-prim-mesh s5-0 (the-as uint 0) (the-as uint 0))))
+      (set! (-> v1-2 prim-core collide-as) (collide-spec obstacle))
+      (set! (-> v1-2 prim-core collide-with) (collide-spec jak bot player-list))
+      (set! (-> v1-2 prim-core action) (collide-action solid))
+      (set! (-> v1-2 transform-index) 3)
+      (set-vector! (-> v1-2 local-sphere) 0.0 (meters 6) 0.0 (meters 8))
+      (set! (-> s5-0 total-prims) (the-as uint 1))
+      (set! (-> s5-0 root-prim) v1-2)
+      )
+    (set! (-> s5-0 nav-radius) (* 0.75 (-> s5-0 root-prim local-sphere w)))
+    (let ((v1-5 (-> s5-0 root-prim)))
+      (set! (-> s5-0 backup-collide-as) (-> v1-5 prim-core collide-as))
+      (set! (-> s5-0 backup-collide-with) (-> v1-5 prim-core collide-with))
+      )
+    (set! (-> this root) s5-0)
+    )
+  (initialize-skeleton this *hj2-hide-door-a-sg* (the-as pair 0))
+  (init-airlock! this)
+  (hj2-door-wood-sounds! this)
+  (set! (-> this door-radius) 12288.0)
+  (go (method-of-object this close) #t)
+  (none)
+  )
+
+;; Jak 2's hide-door-b (levels/hideout/hideout-obs.gc there): the hideout's inner door. Two halves,
+;; top and bottom (transform indices 4 and 5), opening up and down. Jak 2's group sphere was on the
+;; main joint (transform index 3); here on the root, the same place (main isn't animated and sits at
+;; the origin).
+(deftype hj2-hide-door-b (com-airlock)
+  ()
+  )
+
+
+;; the art group from build-actor: Jak 2's hide-door-b model and its opening animation
+;; hj2-hide-door-b-idle (2 keys over 0.83s there, 50 frames here); bounds and origin joint: Jak 2's
+(def-actor hj2-hide-door-b
+  :bounds (0 2 0 5)
+  :origin-joint-index 3
+  )
+
+(defmethod init-from-entity! ((this hj2-hide-door-b) (arg0 entity-actor))
+  "Jak 2's hide-door-b setup: its two halves solid (hj2-door-two-leaves!, Jak 2's spheres), the
+airlock lumps (init-airlock!), wooden door sounds, door-radius 3m. arg0: the entity. Goes to close
+(shut at once). Returns nothing."
+  (stack-size-set! (-> this main-thread) 1024)
+  (hj2-door-two-leaves! this 0.0 32768.0 0.0 0.0 16384.0 4 5)
+  (initialize-skeleton this *hj2-hide-door-b-sg* (the-as pair 0))
+  (init-airlock! this)
+  (hj2-door-wood-sounds! this)
+  (set! (-> this door-radius) 12288.0)
+  (go (method-of-object this close) #t)
+  (none)
+  )
+
+;; Jak 2's oracle-door (levels/common/airlock.gc there): the Oracle's door, in the slums and inside
+;; the Oracle. Leaves Ldoor and Rdoor (transform indices 4 and 5), sliding apart.
+(deftype hj2-oracle-door (com-airlock)
+  ()
+  )
+
+
+;; the art group from build-actor: Jak 2's oracle-door model and its opening animation
+;; hj2-oracle-door-idle (2 keys over 0.2s there, 12 frames here); bounds: Jak 2's
+(def-actor hj2-oracle-door
+  :bounds (0 4 0 10)
+  )
+
+(defmethod init-from-entity! ((this hj2-oracle-door) (arg0 entity-actor))
+  "Jak 2's oracle-door setup: its two leaves solid (hj2-door-two-leaves!, Jak 2's spheres), the
+airlock lumps (init-airlock!), wooden door sounds, init-airlock!'s door-radius (5m, as in Jak 2).
+arg0: the entity. Goes to close (shut at once). Returns nothing."
+  (stack-size-set! (-> this main-thread) 1024)
+  (hj2-door-two-leaves! this 8192.0 20480.0 0.0 8192.0 16384.0 4 5)
+  (initialize-skeleton this *hj2-oracle-door-sg* (the-as pair 0))
+  (init-airlock! this)
+  (hj2-door-wood-sounds! this)
+  (go (method-of-object this close) #t)
+  (none)
+  )
+
+;; Jak 2's vin-door (levels/city/vinroom/vinroom-obs.gc there): the door inside Vin's room. Leaves
+;; Ldoor and Rdoor (transform indices 4 and 5), sliding apart.
+(deftype hj2-vin-door (com-airlock)
+  ()
+  )
+
+
+;; the art group from build-actor: Jak 2's vin-door model and its opening animation
+;; hj2-vin-door-idle (2 keys over 1.67s there, 100 frames here); bounds: Jak 2's
+(def-actor hj2-vin-door
+  :bounds (0 3 0 6)
+  )
+
+(defmethod init-from-entity! ((this hj2-vin-door) (arg0 entity-actor))
+  "Jak 2's vin-door setup: its two leaves solid (hj2-door-two-leaves!, Jak 2's spheres, each 2m to
+the side of its joint), the airlock lumps (init-airlock!), wooden door sounds, door-radius 3m. arg0:
+the entity. Goes to close (shut at once). Returns nothing."
+  (stack-size-set! (-> this main-thread) 1024)
+  (hj2-door-two-leaves! this 12288.0 24576.0 8192.0 16384.0 20480.0 4 5)
+  (initialize-skeleton this *hj2-vin-door-sg* (the-as pair 0))
+  (init-airlock! this)
+  (hj2-door-wood-sounds! this)
+  (set! (-> this door-radius) 12288.0)
+  (go (method-of-object this close) #t)
+  (none)
+  )
+
+;; Jak 2's vin-door-ctyinda (levels/common/airlock.gc there): the doors of Vin's power station in
+;; the industrial section and at the construction site. Leaves Ldoor and Rdoor (transform indices 4
+;; and 5), sliding apart.
+(deftype hj2-vin-door-ctyinda (com-airlock)
+  ()
+  )
+
+
+;; the art group from build-actor: Jak 2's vin-door-ctyinda model and its opening animation
+;; hj2-vin-door-ctyinda-idle (2 keys over 1.67s there, 100 frames here); bounds: Jak 2's
+(def-actor hj2-vin-door-ctyinda
+  :bounds (0 3 0 6)
+  )
+
+(defmethod init-from-entity! ((this hj2-vin-door-ctyinda) (arg0 entity-actor))
+  "Jak 2's vin-door-ctyinda setup: its two leaves solid (hj2-door-two-leaves!, Jak 2's spheres,
+each 2m to the side of its joint), the airlock lumps (init-airlock!), wooden door sounds,
+door-radius 2m. arg0: the entity. Goes to close (shut at once). Returns nothing."
+  (stack-size-set! (-> this main-thread) 1024)
+  (hj2-door-two-leaves! this 12288.0 24576.0 8192.0 16384.0 20480.0 4 5)
+  (initialize-skeleton this *hj2-vin-door-ctyinda-sg* (the-as pair 0))
+  (init-airlock! this)
+  (hj2-door-wood-sounds! this)
+  (set! (-> this door-radius) 8192.0)
+  (go (method-of-object this close) #t)
+  (none)
+  )

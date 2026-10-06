@@ -2,5 +2,6 @@
 ;; DGO definition file for hj2-stadd: the stadium's race track, behind the stadium grounds.
 ("HJZ.DGO"
  (
+  "hj2-stadd-part.o"
   "hj2-stadd.go"
   ))

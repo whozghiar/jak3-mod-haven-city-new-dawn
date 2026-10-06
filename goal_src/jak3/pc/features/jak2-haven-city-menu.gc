@@ -5,15 +5,16 @@
 
   jak2-haven-city-menu.gc -- Mods menu entry for jak3/features/jak2-haven-city.
 
-  Jak 2's whole Haven City is rebuilt as the custom level `havenj2`
-  (custom_assets/jak3/levels/havenj2). This file lives in GAME.CGO, not in the
-  level's DGO, so the warp is reachable from anywhere in the game.
+  Jak 2's Haven City is rebuilt as custom levels like Jak 2's: the city-wide hub
+  `havenj2` (custom_assets/jak3/levels/havenj2) and one level per district
+  (hj2-slma...). This file lives in GAME.CGO, not in a level's DGO, so the warp
+  is reachable from anywhere in the game.
 
   The warps (to the city, one of its districts or key places, the places
   reached from it, or back to Jak 3's Freedom HQ) go through a continue point,
-  never through `bg`: havenj2 needs a `large` memory bank, which is never free
-  while Jak 3's own city is loaded. A continue point makes the level system
-  unload every level it doesn't want first, then load havenj2.
+  never through `bg`: the hub and its districts need the level heap Jak 3's own
+  city takes. A continue point makes the level system unload every level it
+  doesn't want first, then load the hub and the districts it lists.
 
   The time of day: the clock stays at the chosen hour while Jak is in Jak 2's
   city or one of its places, or runs like in Jak 2 (see
@@ -35,6 +36,7 @@
 (define-extern *mod-jak2-haven-city-weather* int)
 (define-extern hj2-apply-weather (function none))
 (define-extern *mod-jak2-haven-city-traffic* symbol)
+(define-extern *mod-jak2-haven-city-hellcats* symbol)
 (define-extern hj2-traffic-refresh (function level symbol none))
 
 (defun mod-jak2-haven-city-warp ((name string))
@@ -75,6 +77,14 @@ Jak is in one of them."
         (hj2-traffic-refresh lev 'display)
         )
     )
+  (none)
+  )
+
+(defun mod-jak2-haven-city-set-hellcats ((on symbol))
+  "Turn the Hellcats of the city's traffic on or off, and restart the traffic now if it runs (its
+start sets the Hellcats' level and counts, havenj2-traffic.gc)."
+  (set! *mod-jak2-haven-city-hellcats* on)
+  (mod-jak2-haven-city-set-traffic *mod-jak2-haven-city-traffic*)
   (none)
   )
 
@@ -197,6 +207,10 @@ Jak is in one of them."
       (new 'static 'popup-menu-flag :label "City traffic"
            :is-toggled? (lambda () *mod-jak2-haven-city-traffic*)
            :on-confirm (lambda () (mod-jak2-haven-city-set-traffic (not *mod-jak2-haven-city-traffic*)) (none))
+           )
+      (new 'static 'popup-menu-flag :label "Hellcats in the traffic"
+           :is-toggled? (lambda () *mod-jak2-haven-city-hellcats*)
+           :on-confirm (lambda () (mod-jak2-haven-city-set-hellcats (not *mod-jak2-haven-city-hellcats*)) (none))
            )
       )
     )

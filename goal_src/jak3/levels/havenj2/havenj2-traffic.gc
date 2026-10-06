@@ -5,7 +5,8 @@
 ;; name in dgo: havenj2-traffic
 ;; dgos: HJ2
 
-;; og:jak2-haven-city Haven City's traffic: Jak 3's citizens, Freedom League guards, hover bikes and
+;; og:jak2-haven-city Haven City's traffic, in the city's hub (havenj2, Jak 2's ctywide: its
+;; districts load after it): Jak 3's citizens, Freedom League guards, hover bikes and
 ;; cars, run by Jak 3's traffic engine (the code of ctywide, levels/city/common/ctywide-init.gc) on
 ;; Jak 2's city: havenj2's nav graph and nav meshes (the level port's nav step, scripts/level_port)
 ;; and Jak 2's height map (havenj2-height-map.gc). That code and the art of those traffic types are
@@ -20,7 +21,8 @@
 ;; is nonzero, so #f crashes it) and when it is activated.
 ;;
 ;; The traffic runs while havenj2 is active and *mod-jak2-haven-city-traffic* is on (Mods menu), see
-;; hj2-traffic-refresh in jak2-haven-city-world.gc.
+;; hj2-traffic-refresh in jak2-haven-city-world.gc. Jak 2's Hellcats join it while
+;; *mod-jak2-haven-city-hellcats* is on (see "Freedom League Hellcats" below).
 
 (define-extern restore-city-speeches (function none))
 
@@ -35,6 +37,265 @@
     8 8 8 7 7 7 0 0 0 0 0 0
     )
   )
+
+;; Freedom League Hellcats ////////////////////////////////////////////////////////////////////////
+;;
+;; Jak 2's guard Hellcats in the city's traffic, while *mod-jak2-haven-city-hellcats* is on (Mods
+;; menu, off by default). They only fly the traffic lanes: unlike Breath of Peace's, they never
+;; chase Jak, and hitting one doesn't raise the alert (Jak 3's vehicle-method-130 does nothing).
+;; Jak 3 maps vehicle-type h-hellcat to traffic-type guard-car and ships *h-hellcat-constants* and
+;; skel-h-hellcat (car.gc), but only declares the class, never spawns it
+;; in its city and never loads its art there. The class and its pilot come from the Jak 3 mod
+;; Haven City: Breath of Peace (whozghiar/jak3-mod-haven-city-breath-of-peace); hellcat-ag is in
+;; havenj2's DGO ("traffic" art of the port), so the Hellcats only ever fly in havenj2.
+
+;; How many Hellcats fly at once (Breath of Peace's number; 20 at most per traffic type)
+(defconstant HJ2_HELLCATS 3)
+
+;; ---------------------------------------------------------------------------------------------
+;; Pilot: a Freedom League guard seated in the Hellcat (Jak 2's crimson-guard-rider)
+;; ---------------------------------------------------------------------------------------------
+
+(deftype hj2-hellcat-pilot (vehicle-rider)
+  ()
+  )
+
+;; The guard's own model and animations (crimson-guard-ag, in havenj2's DGO).
+(defskelgroup skel-hj2-hellcat-pilot crimson-guard crimson-guard-lod0-jg crimson-guard-idle-ja
+              ((crimson-guard-lod0-mg (meters 20)) (crimson-guard-lod2-mg (meters 999999)))
+              :bounds (static-spherem 0 0 0 3)
+              :origin-joint-index 3
+              )
+
+(defmethod initialize-collision ((this hj2-hellcat-pilot))
+  "Stock rider setup, then bind the pilot to its Hellcat's level (havenj2, which holds the guard
+   art), whatever ctywide-entity-hack gave it."
+  (call-parent-method this)
+  (let ((ship (ppointer->process (-> this parent))))
+    (if ship
+        (set! (-> this level) (-> ship level))
+        )
+    )
+  (none)
+  )
+
+(defmethod setup ((this hj2-hellcat-pilot))
+  "Seat the pilot, show the meshes of a regular guard and play his seated stance
+   (crimson-guard-car-stance-ja). crimson-guard-ag holds every variant at once: the masks are the
+   ones crimson-guard-method-267 sets for a guard on foot (hide bits 1-4, then the blue body, 3),
+   without the weapon bit (8 rifle, 16 tazer/grenade) and never the dark guard body (5)."
+  (call-parent-method this)
+  (setup-masks (-> this draw) 0 30)
+  (setup-masks (-> this draw) 3 0)
+  (set! (-> this riding-anim) 36)
+  0
+  (none)
+  )
+
+(defmethod setup-lods ((this hj2-hellcat-pilot))
+  "Load the guard skeleton. vr3 marks a guard rider: if he is ever knocked off, stock code turns him
+   into a guard on foot and raises the alert to 2."
+  (initialize-skeleton
+    this
+    (the-as skeleton-group (art-group-get-by-name *level* "skel-hj2-hellcat-pilot" (the-as (pointer level) #f)))
+    (the-as pair 0)
+    )
+  (logior! (-> this flags) (vehicle-rider-flag vr0 vr3))
+  (set! (-> this draw lod-set lod 0 dist) 122880.0)
+  (set! (-> this draw lod-set lod 1 dist) 286720.0)
+  ;; pilot seat and a random sway phase, as the base vehicle-rider setup-lods does
+  (set! (-> this seat-index) 0)
+  (set! (-> this anim-t) (* 65536.0 (rand-vu)))
+  (setup this)
+  0
+  (none)
+  )
+
+;; ---------------------------------------------------------------------------------------------
+;; The Hellcat
+;; ---------------------------------------------------------------------------------------------
+
+;; Jak 2's *hellcat-front-turret-control-info* (front gun, joint 4 "frontgun"), with the fields Jak 3
+;; added: guard-shot rounds, 1 hit point each.
+(define *hj2-hellcat-turret*
+  (new 'static 'turret-control-info
+    :joint-index 4
+    :barrel-count 1
+    :shot-speed 819200.0
+    :attack-range 286720.0
+    :damage 1.0
+    :vehicle-damage-factor 1.0
+    :vehicle-impulse-factor 1.0
+    :rot-min (new 'static 'array float 2 -16384.0 -21845.334)
+    :rot-max (new 'static 'array float 2 0.0 21845.334)
+    :local-pos (new 'static 'vector :y -1433.6 :z 4096.0 :w 1.0)
+    :local-dir (new 'static 'vector :z 1.0 :w 1.0)
+    :barrel-array (new 'static 'inline-array turret-barrel-info 4
+      (new 'static 'turret-barrel-info
+        :local-pos (new 'static 'vector :y -1433.6 :z 4096.0 :w 1.0)
+        :local-dir (new 'static 'vector :z 1.0 :w 1.0)
+        )
+      (new 'static 'turret-barrel-info)
+      (new 'static 'turret-barrel-info)
+      (new 'static 'turret-barrel-info)
+      )
+    )
+  )
+
+(set! (-> *hj2-hellcat-turret* shot-type) guard-shot)
+
+;; Turret fire settings used when no Freedom League squad is up (normally the live Hellcat slot of
+;; *ff-squad-control*, which the alert updates per level).
+(define *hj2-hellcat-fire*
+  (new 'static 'squad-unit-settings :shot-count 2 :rand-shot-count 1 :inaccuracy 0.5
+    :acquire-delay (seconds 1) :shot-delay (seconds 0.25) :burst-delay (seconds 5))
+  )
+
+(deftype h-hellcat (h-car-base)
+  ((turret-jm  joint-mod-rotate-local  :inline)
+   (turret     turret-control          :inline)
+   )
+  )
+
+
+(defmethod init-collision! ((this h-hellcat))
+  "Jak 2's hellcat collision, as Jak 3's own h-warf (same art) uses it."
+  (let ((s5-0 (new 'process 'collide-shape-moving this (collide-list-enum usually-hit-by-player))))
+    (set! (-> s5-0 dynam) (copy *standard-dynamics* 'process))
+    (set! (-> s5-0 reaction) cshape-reaction-default)
+    (set! (-> s5-0 no-reaction)
+          (the-as (function collide-shape-moving collide-query vector vector object) nothing)
+          )
+    (set! (-> s5-0 penetrate-using) (penetrate vehicle))
+    (let ((s4-0 (new 'process 'collide-shape-prim-group s5-0 (the-as uint 7) 0)))
+      (set! (-> s5-0 total-prims) (the-as uint 8))
+      (set! (-> s4-0 prim-core action) (collide-action solid rideable))
+      (set-vector! (-> s4-0 local-sphere) 0.0 0.0 0.0 26624.0)
+      (set! (-> s5-0 root-prim) s4-0)
+      )
+    (let ((v1-11 (new 'process 'collide-shape-prim-sphere s5-0 (the-as uint 1))))
+      (set! (-> v1-11 prim-core action) (collide-action solid))
+      (set! (-> v1-11 transform-index) 0)
+      (set-vector! (-> v1-11 local-sphere) 4096.0 1228.8 9011.2 6144.0)
+      )
+    (let ((v1-13 (new 'process 'collide-shape-prim-sphere s5-0 (the-as uint 4))))
+      (set! (-> v1-13 prim-core action) (collide-action solid))
+      (set! (-> v1-13 transform-index) 0)
+      (set-vector! (-> v1-13 local-sphere) -4096.0 1228.8 9011.2 6144.0)
+      )
+    (let ((v1-15 (new 'process 'collide-shape-prim-sphere s5-0 (the-as uint 0))))
+      (set! (-> v1-15 prim-core action) (collide-action solid nav-sphere))
+      (set! (-> v1-15 transform-index) 0)
+      (set-vector! (-> v1-15 local-sphere) 0.0 2048.0 -409.6 6144.0)
+      (set! (-> v1-15 nav-radius) 24576.0)
+      )
+    (let ((v1-17 (new 'process 'collide-shape-prim-sphere s5-0 (the-as uint 10))))
+      (set! (-> v1-17 prim-core action) (collide-action solid))
+      (set! (-> v1-17 transform-index) 0)
+      (set-vector! (-> v1-17 local-sphere) 0.0 4096.0 -10240.0 8192.0)
+      )
+    (let ((v1-19 (new 'process 'collide-shape-prim-sphere s5-0 (the-as uint 2))))
+      (set! (-> v1-19 prim-core action) (collide-action solid))
+      (set! (-> v1-19 transform-index) 0)
+      (set-vector! (-> v1-19 local-sphere) 10240.0 2048.0 -8192.0 6144.0)
+      )
+    (let ((v1-21 (new 'process 'collide-shape-prim-sphere s5-0 (the-as uint 8))))
+      (set! (-> v1-21 prim-core action) (collide-action solid))
+      (set! (-> v1-21 transform-index) 0)
+      (set-vector! (-> v1-21 local-sphere) -10240.0 2048.0 -8192.0 6144.0)
+      )
+    (let ((v1-23 (new 'process 'collide-shape-prim-mesh s5-0 (the-as uint 0) (the-as uint 0))))
+      (set! (-> v1-23 prim-core action) (collide-action solid rideable))
+      (set! (-> v1-23 transform-index) 3)
+      (set-vector! (-> v1-23 local-sphere) 0.0 0.0 0.0 26624.0)
+      )
+    (set! (-> s5-0 nav-radius) 20480.0)
+    (let ((v1-25 (-> s5-0 root-prim)))
+      (set! (-> s5-0 backup-collide-as) (-> v1-25 prim-core collide-as))
+      (set! (-> s5-0 backup-collide-with) (-> v1-25 prim-core collide-with))
+      )
+    (set! (-> s5-0 nav-flags) (nav-flags has-child-spheres))
+    (set! (-> this root) s5-0)
+    )
+  0
+  (none)
+  )
+
+(defmethod init-rbody-control! ((this h-hellcat))
+  "Skeleton (hellcat-ag, in havenj2's DGO), Jak 3's stock Hellcat physics (same pilot
+   stance and vehicle type as the city cars, so Jak can steal and fly it), the front turret, and the
+   Freedom League mark: a guard, never targeted by guards."
+  (initialize-skeleton
+    this
+    (the-as skeleton-group (art-group-get-by-name *level* "skel-h-hellcat" (the-as (pointer level) #f)))
+    (the-as pair 0)
+    )
+  (alloc-rbody-control! this *h-hellcat-constants*)
+  ;; rider hands follow the hull (joint 3 "main"): the Hellcat has no steering wheel joints
+  (set! (-> this rider-hand-joint-array 0) 3)
+  (set! (-> this rider-hand-joint-array 1) 3)
+  (init (-> this turret-jm) this (the-as uint 4) (joint-mod-base-flags attached))
+  (set-info (-> this turret) *hj2-hellcat-turret*)
+  (set! (-> this turret ignore-handle) (process->handle this))
+  (set! (-> this turret guard-settings) (if *ff-squad-control*
+                                            (get-unit-settings-by-idx *ff-squad-control* 5)
+                                            *hj2-hellcat-fire*
+                                            )
+        )
+  (logior! (-> this mask) (process-mask guard))
+  0
+  (none)
+  )
+
+(defmethod vehicle-method-79 ((this h-hellcat))
+  "Joint mods: point the front gun where the turret aims."
+  (update-joint-mod (-> this turret) (-> this turret-jm))
+  0
+  (none)
+  )
+
+(defmethod vehicle-method-94 ((this h-hellcat))
+  "Per-frame camera update while Jak flies the Hellcat (vehicle-method-77, camera flag), extended
+   with Jak 2's player gunnery (vehicle-guard vehicle-method-94): the front gun aims straight ahead,
+   40 m out, with no spread, and R1 fires a round every 0.35 s. Rounds are owned by Jak, so hitting
+   citizens or guards raises the alert like his own gun."
+  (let ((aim (new 'stack-no-clear 'vector)))
+    (vector+float*! aim (-> this rbody position) (-> this rbody matrix fvec) 163840.0)
+    (set! (-> this turret inaccuracy) 0.0)
+    (turret-control-method-9 (-> this turret) this aim (vector-reset! (new 'stack-no-clear 'vector)))
+    )
+  (when (and (cpad-hold? 0 r1) (not *pause-lock*) (time-elapsed? (-> this turret shoot-time) (seconds 0.35)))
+    (set! (-> this turret owner-handle) (process->handle *target*))
+    (turret-control-method-17 (-> this turret) this)
+    (set! (-> this turret owner-handle) (the-as handle #f))
+    )
+  ((method-of-type hvehicle vehicle-method-94) this)
+  0
+  (none)
+  )
+
+(defmethod vehicle-method-133 ((this h-hellcat) (arg0 traffic-object-spawn-params))
+  "Rider spawn: a Freedom League pilot instead of a civilian."
+  (vehicle-rider-spawn this hj2-hellcat-pilot arg0)
+  0
+  (none)
+  )
+
+;; The traffic manager spawns every traffic object through traffic-object-spawn (traffic-manager.gc),
+;; which has no guard-car case. havenj2's DGO links its own copy of traffic-manager.o just before
+;; this file: the copy is wrapped here, in havenj2's code only (Jak 3's city links its own again).
+(define *hj2-stock-traffic-object-spawn* traffic-object-spawn)
+
+(defun hj2-traffic-object-spawn ((arg0 process) (arg1 traffic-object-spawn-params))
+  "traffic-object-spawn with a guard-car case: a Hellcat (vehicle-spawn checks its level is loaded).
+Every other type goes to the stock function."
+  (if (= (-> arg1 object-type) (traffic-type guard-car))
+      (vehicle-spawn (vehicle-type h-hellcat) arg1)
+      (*hj2-stock-traffic-object-spawn* arg0 arg1)
+      )
+  )
+
+(set! traffic-object-spawn hj2-traffic-object-spawn)
 
 (defun havenj2-login ((lev level))
   "havenj2's login callback (slot 33): the traffic engine, the Freedom League's squad and the attack
@@ -79,6 +340,22 @@ guards and the city's vehicles after it."
      (traffic-kill)
      )
     (else
+      ;; the city data of the districts still loaded from a traffic stopped while they stayed (Mods
+      ;; menu, the hub hidden then shown again): unlinked first, since their links to each other
+      ;; were never undone and level-link only resolves the links not resolved yet (traffic-start
+      ;; links the active ones again). Only a graph linked before (patched): a district never linked
+      ;; still has indices where level-link puts pointers, which level-unlink would overwrite
+      (dotimes (i (-> *level* length))
+        (let ((other (-> *level* level i)))
+          (when (and (member (-> other status) '(loaded alive active))
+                     (nonzero? (-> other bsp city-level-info))
+                     (nonzero? (-> other bsp city-level-info nav-graph))
+                     (-> other bsp city-level-info nav-graph patched)
+                     )
+            (level-unlink *traffic-engine* other)
+            )
+          )
+        )
       (traffic-start)
       ;; free every attacker: the citizens killed with the previous traffic never give theirs back
       ;; (only going inactive does), and the Mods menu can restart the traffic
@@ -89,9 +366,18 @@ guards and the city's vehicles after it."
       (dotimes (i 29)
         (set! (-> *traffic-engine* object-type-info-array i want-count) (-> *havenj2-traffic-want-counts* i))
         )
+      (if *mod-jak2-haven-city-hellcats*
+          (set! (-> *traffic-engine* object-type-info-array (traffic-type guard-car) want-count) HJ2_HELLCATS)
+          )
       (add-squad-to-traffic-engine *ff-squad-control* *traffic-engine*)
       (squad-control-method-10 *ff-squad-control*)
       (restore-default-settings *traffic-engine*)
+      ;; the squad sets the Hellcats' activation cap (guard type 5) every frame from its alert
+      ;; settings, which give them none: hold its minimum at HJ2_HELLCATS, like Jak 3's missions do
+      ;; for guard type 1 (cty-protect.gc). After restore-default-settings, whose init-alert resets it
+      (if *mod-jak2-haven-city-hellcats*
+          (ff-squad-control-method-56 *ff-squad-control* 5 HJ2_HELLCATS HJ2_HELLCATS)
+          )
       )
     )
   (let ((info *traffic-info*))
@@ -106,6 +392,10 @@ guards and the city's vehicles after it."
     (dotimes (i 6)
       (set! (-> info vehicle-levels i) 'havenj2)
       )
+    ;; the Hellcats (traffic type guard-car)
+    (if *mod-jak2-haven-city-hellcats*
+        (set! (-> info vehicle-levels (vehicle-type h-hellcat)) 'havenj2)
+        )
     )
   (update-level-info lev)
   (none)
@@ -127,8 +417,10 @@ guards and the city's vehicles after it."
 
 (defun havenj2-logout ((lev level))
   "havenj2's logout callback (slot 34): the traffic engine, the squad and the attack controller go
-with havenj2's heap."
+with havenj2's heap, and so does its sprite page (kept while it is only hidden: its districts use
+it, see hj2-sprite-page-used)."
   (havenj2-traffic-stop lev)
+  (hj2-sprite-page-off lev)
   (set! *traffic-engine* #f)
   (set! *ff-squad-control* #f)
   (set! *cty-attack-controller* #f)

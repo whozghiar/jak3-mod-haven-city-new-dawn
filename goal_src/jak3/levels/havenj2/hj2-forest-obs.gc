@@ -1,0 +1,714 @@
+;;-*-Lisp-*-
+(in-package goal)
+
+;; name: hj2-forest-obs.gc
+;; name in dgo: hj2-forest-obs
+;; dgos: HJF
+
+;; og:jak2-haven-city Level code for hj2-forest, Jak 2's Haven Forest (levels/forest/wren.gc and
+;; levels/forest/fish.gc there): the birds that peck on the ground and fly off when Jak comes near,
+;; the birds circling above the trees, and the schools of fish in the ponds. Ambient creatures: they
+;; never touch or hurt Jak. Their models are Jak 2's, rebuilt by build-actor (hj2-wren*.glb and
+;; hj2-minnow-*.glb, made by the level port, scripts/level_port), one model per look Jak 2 picked
+;; with setup-masks. Not ported: Jak 2's sounds (these creatures have none), the debug path drawing,
+;; and the fish's navigation mesh (a school stays within a circle around its manager instead).
+
+;; Birds //////////////////////////////////////////////////////////////////////////////////////////
+
+;; Jak 2's wren. Two kinds, from the entity's lumps:
+;; - a pecking bird ('idle path, 'takeoff curve): pecks at random points of its 'idle path, hops to
+;;   the takeoff curve's start when Jak comes within 25m, flies the curve away and disappears;
+;; - a flying bird (no 'idle; 'path holds two curves): flies its first curve, lands, rests, flies
+;;   the second one back, and so on forever.
+;; Jak 2 gave the flying bird the 'path lump twice (key frames 0 and 1); the decompiler exports them
+;; as one 'path (the two point lists, one after the other) and only the second 'path-k. So the
+;; second curve is the last (length of 'path-k - 4) points, with 'path-k as its knots, and the first
+;; one the points before, with uniform knots (all of Jak 2's wren curves have uniform knots).
+(deftype hj2-wren (process-drawable)
+  ((move-dest       vector         :inline)
+   (fly-curve       curve-control  2)
+   (fly-index       uint32)
+   (fly-speed       float)
+   (fly-y-rate      float)
+   (fly-interp      float)
+   (path-u          float)
+   (path-du         float)
+   (path-du-mod     float)
+   (bob-level       float)
+   (bob-level-seek  float)
+   (bank-angle      float)
+   (peck-timer      time-frame)
+   (turning         symbol)
+   (spook-check     symbol)
+   (fly-off         symbol)
+   (own-knots       symbol)
+   (knots0          float  32)
+   )
+  (:state-methods
+    hunt
+    peck
+    fly
+    land
+    on-branch
+    die
+    )
+  (:methods
+    (spooked? (_type_) symbol)
+    )
+  )
+
+
+;; the art groups from build-actor: Jak 2's wren with its 7 animations, the look of a pecking bird
+;; (Jak 2's setup-masks 2: rip primitives 4-9) and of a flying bird (setup-masks 8: primitives
+;; 15-20). Both have the same animations in the same order, so the hj2-wren-*-ja names play on
+;; either.
+(def-actor hj2-wren
+  :art (idle-ja hop-ja peck-ja takeoff-ja fly-ja glide-ja land-ja)
+  :bounds (0 0 0 4)
+  )
+
+(def-actor hj2-wren-fly
+  :art (idle-ja hop-ja peck-ja takeoff-ja fly-ja glide-ja land-ja)
+  :bounds (0 0 0 4)
+  )
+
+(defbehavior hj2-wren-fly-post hj2-wren ()
+  "Post of the flying states (Jak 2's fly-post): moves the bird along its current curve.
+Advances path-u by path-du * path-du-mod per second (path-du eases up to 0.2), places the bird on
+the curve, faces it along the curve (looking 12.5% ahead), banks it into turns while flying (level
+when landing), keeps fly-y-rate (the climb slope, read by fly's animation blend), adds the bob
+height, then ja-post. Returns nothing."
+  (seek! (-> self bob-level) (-> self bob-level-seek) (* 12288.0 (seconds-per-frame)))
+  (let ((curve (-> self fly-curve (-> self fly-index))))
+    (get-point-at-percent-along-path! curve (-> self root trans) (-> self path-u) 'interp)
+    (seek! (-> self path-u) 1.0 (* (-> self path-du) (-> self path-du-mod) (seconds-per-frame)))
+    (seek! (-> self path-du) 0.2 (* 0.1 (seconds-per-frame)))
+    (let* ((u (-> self path-u))
+           (ahead (displacement-between-points-at-percent-normalized!
+                    curve
+                    (new 'stack-no-clear 'vector)
+                    (fmin 1.0 (+ 0.125 u))
+                    )
+                  )
+           (here (displacement-between-points-at-percent-normalized! curve (new 'stack-no-clear 'vector) u))
+           (quat (-> self root quat))
+           )
+      (forward-up->quaternion quat ahead *up-vector*)
+      (set! (-> self fly-y-rate) (tan (vector-x-angle ahead)))
+      ;; turn angle between here and ahead, signed by the turn's side (the y of their flat cross
+      ;; product: Jak 2's outer product of the two directions with y zeroed)
+      (let* ((angle (acos (fmax -1.0 (fmin 1.0 (vector-dot here ahead)))))
+             (side (- (* (-> here z) (-> ahead x)) (* (-> here x) (-> ahead z))))
+             (bank (if (< 0.0 side)
+                       (- angle)
+                       angle
+                       )
+                   )
+             )
+        (if (and (-> self next-state) (= (-> self next-state name) 'fly))
+            (seek! (-> self bank-angle) bank (* angle (seconds-per-frame)))
+            (seek! (-> self bank-angle) 0.0 (* 8192.0 (seconds-per-frame)))
+            )
+        )
+      (quaternion-rotate-local-z! quat quat (-> self bank-angle))
+      )
+    )
+  (+! (-> self root trans y) (-> self bob-level))
+  (ja-post)
+  (none)
+  )
+
+(defmethod spooked? ((this hj2-wren))
+  "Returns #t when Jak is within 25m (xz) of the bird, #f otherwise. No side effects."
+  (the-as symbol (and *target* (< (vector-vector-xz-distance (-> this root trans) (target-pos 0)) 102400.0)))
+  )
+
+;; a pecking bird hopping (12m/s) to move-dest: a point of its 'idle path, or the start of its
+;; takeoff curve when it flees (fly-off), from where it takes off
+(defstate hunt (hj2-wren)
+  :virtual #t
+  :trans (behavior ()
+    (when (< (vector-vector-xz-distance (-> self root trans) (-> self move-dest)) 2048.0)
+      (cond
+        ((-> self fly-off)
+         (set! (-> self fly-off) #f)
+         (set! (-> self fly-index) (the-as uint 0))
+         (go-virtual fly)
+         )
+        (else
+          (go-virtual peck)
+          )
+        )
+      )
+    )
+  :code (behavior ()
+    (until #f
+      (ja-no-eval :group! hj2-wren-hop-ja :num! (seek!) :frame-num 0.0)
+      (until (ja-done? 0)
+        (suspend)
+        (ja :num! (seek!))
+        )
+      )
+    #f
+    )
+  :post (behavior ()
+    (let ((dir (vector-! (new 'stack-no-clear 'vector) (-> self move-dest) (-> self root trans))))
+      (vector-normalize! dir 12288.0)
+      (vector+float*! (-> self root trans) (-> self root trans) dir (seconds-per-frame))
+      )
+    (ja-post)
+    )
+  )
+
+;; a pecking bird on the ground: pecks, idles, turns to a new random point of its 'idle path, and
+;; after its peck timer (1.4 to 4.3s) hops there once facing it. Once per peck, it checks for Jak:
+;; when spooked, it turns to its takeoff curve's start and hops there to fly off.
+(defstate peck (hj2-wren)
+  :virtual #t
+  :enter (behavior ()
+    (set-time! (-> self state-time))
+    (set! (-> self peck-timer) (the-as time-frame (the int (* 300.0 (rand-vu-float-range 1.4 4.3)))))
+    (set! (-> self spook-check) #f)
+    (set! (-> self fly-off) #f)
+    )
+  :trans (behavior ()
+    (when (time-elapsed? (-> self state-time) (-> self peck-timer))
+      (let ((dir (vector-! (new 'stack-no-clear 'vector) (-> self move-dest) (-> self root trans))))
+        (if (< (fabs (deg-diff (quaternion-y-angle (-> self root quat)) (vector-y-angle dir))) 728.1778)
+            (go-virtual hunt)
+            )
+        )
+      )
+    (when (-> self spook-check)
+      (set! (-> self spook-check) #f)
+      (when (spooked? self)
+        (get-point-in-path! (-> self fly-curve 0) (-> self move-dest) 0.0 'interp)
+        (set-yaw-angle-clear-roll-pitch!
+          (-> self root)
+          (vector-y-angle (vector-! (new 'stack-no-clear 'vector) (-> self move-dest) (-> self root trans)))
+          )
+        (set! (-> self fly-off) #t)
+        (go-virtual hunt)
+        )
+      )
+    )
+  :code (behavior ()
+    (until #f
+      (set! (-> self turning) #f)
+      (get-point-in-path!
+        (-> self path)
+        (-> self move-dest)
+        (rand-vu-float-range 0.0 (get-num-segments (-> self path)))
+        'interp
+        )
+      (set! (-> self spook-check) #t)
+      (ja-no-eval :group! hj2-wren-peck-ja :num! (seek!) :frame-num 0.0)
+      (until (ja-done? 0)
+        (suspend)
+        (ja :num! (seek!))
+        )
+      (let ((start (current-time))
+            (wait (the int (* 300.0 (rand-vu-float-range 0.1 0.6))))
+            )
+        (ja-no-eval :group! hj2-wren-idle-ja :num! (loop!) :frame-num 0.0)
+        (until (time-elapsed? start wait)
+          (suspend)
+          (ja :num! (loop!))
+          )
+        )
+      (set! (-> self turning) #t)
+      (let ((start (current-time))
+            (wait (the int (* 300.0 (rand-vu-float-range 0.2 1.5))))
+            )
+        (ja-no-eval :group! hj2-wren-idle-ja :num! (loop!) :frame-num 0.0)
+        (until (time-elapsed? start wait)
+          (suspend)
+          (ja :num! (loop!))
+          )
+        )
+      )
+    #f
+    )
+  :post (behavior ()
+    (if (-> self turning)
+        (seek-to-point-toward-point! (-> self root) (-> self move-dest) 262144.0 (seconds 0.02))
+        )
+    (ja-post)
+    )
+  )
+
+;; flies the current curve (fly-index): flaps up (takeoff animation, 0.8s), then blends gliding and
+;; flapping by the climb slope (flapping when climbing, gliding and dropping when diving). At the
+;; curve's end: lands if the bird has another curve, else disappears (die).
+(defstate fly (hj2-wren)
+  :virtual #t
+  :enter (behavior ()
+    (set! (-> self path-u) 0.0)
+    (set! (-> self path-du) 0.0)
+    (set! (-> self path-du-mod) 1.0)
+    (set! (-> self fly-speed) 0.0)
+    (set! (-> self fly-interp) 0.0)
+    (set! (-> self bob-level) 0.0)
+    (set! (-> self bob-level-seek) 0.0)
+    )
+  :trans (behavior ()
+    (when (< 0.99 (-> self path-u))
+      (if (-> self fly-curve (logand (+ (-> self fly-index) 1) 1))
+          (go-virtual land)
+          (go-virtual die)
+          )
+      )
+    )
+  :code (behavior ()
+    (let ((start (current-time)))
+      (ja-no-eval :group! hj2-wren-takeoff-ja :num! (loop! 2.0) :frame-num 0.0)
+      (until (time-elapsed? start (seconds 0.8))
+        (suspend)
+        (ja :num! (loop! 2.0))
+        )
+      )
+    (ja-channel-push! 2 (seconds 0.3))
+    (ja-no-eval :group! hj2-wren-glide-ja :num! (seek!) :frame-num 0.0)
+    (ja-no-eval :chan 1 :group! hj2-wren-fly-ja :num! (seek!) :frame-num 0.0 :frame-interp0 0.0 :frame-interp1 0.0)
+    (until #f
+      (let ((slope (fmax -0.2 (fmin 0.5 (-> self fly-y-rate)))))
+        (seek! (-> self fly-interp) (lerp-scale 0.0 1.0 slope -0.2 0.5) (seconds-per-frame))
+        )
+      (let ((flap (-> self fly-interp)))
+        (seek! (-> self path-du-mod) (+ 0.9 (/ flap 5)) (* 0.5 (seconds-per-frame)))
+        (set! (-> self bob-level-seek) (+ -12288.0 (* 24576.0 flap)))
+        (ja :chan 1 :frame-interp0 flap :frame-interp1 flap)
+        (let ((speed (lerp 0.6 2.4 flap)))
+          (ja :num! (loop! speed))
+          (ja :chan 1 :num! (loop! speed))
+          )
+        )
+      (suspend)
+      )
+    #f
+    )
+  :post hj2-wren-fly-post
+  )
+
+;; slows down to the end of the curve (path-du-mod down to 0) playing the landing animation, then
+;; rests on the branch
+(defstate land (hj2-wren)
+  :virtual #t
+  :code (behavior ()
+    (set! (-> self bob-level-seek) 0.0)
+    (ja-channel-push! 1 (seconds 0.3))
+    (while (!= (-> self path-u) 1.0)
+      (ja-no-eval :group! hj2-wren-land-ja :num! (seek!) :frame-num 0.0)
+      (until (ja-done? 0)
+        (suspend)
+        (ja :num! (seek!))
+        )
+      )
+    (go-virtual on-branch)
+    )
+  :post (behavior ()
+    (seek! (-> self path-du-mod) 0.0 (* 0.5 (seconds-per-frame)))
+    (hj2-wren-fly-post)
+    )
+  )
+
+;; a flying bird resting where its curve ended: idles 4.2 to 16.8s, then turns toward its next
+;; curve and, once facing it, flies it
+(defstate on-branch (hj2-wren)
+  :virtual #t
+  :enter (behavior ()
+    (let ((dir (displacement-between-points-at-percent-normalized!
+                 (-> self fly-curve (logand (+ (-> self fly-index) 1) 1))
+                 (new 'stack-no-clear 'vector)
+                 0.1
+                 )
+               )
+          )
+      (vector+! (-> self move-dest) (-> self root trans) dir)
+      )
+    )
+  :trans (behavior ()
+    (let ((dir (vector-! (new 'stack-no-clear 'vector) (-> self move-dest) (-> self root trans))))
+      (when (and (-> self turning)
+                 (< (fabs (deg-diff (quaternion-y-angle (-> self root quat)) (vector-y-angle dir))) 728.1778)
+                 )
+        (set! (-> self fly-index) (logand (+ (-> self fly-index) 1) 1))
+        (go-virtual fly)
+        )
+      )
+    )
+  :code (behavior ()
+    (set! (-> self turning) #f)
+    (ja-channel-push! 1 (seconds 0.2))
+    (let ((start (current-time))
+          (wait (the int (* 300.0 (rand-vu-float-range 4.2 16.8))))
+          )
+      (ja-no-eval :group! hj2-wren-idle-ja :num! (loop!) :frame-num 0.0)
+      (until (time-elapsed? start wait)
+        (suspend)
+        (ja :num! (loop!))
+        )
+      )
+    ;; Jak 2 stops here after 2s more (its code returns, ending the bird) if it hasn't turned yet;
+    ;; here it idles until it faces its next curve
+    (set! (-> self turning) #t)
+    (until #f
+      (ja :num! (loop!))
+      (suspend)
+      )
+    #f
+    )
+  :post (behavior ()
+    (if (-> self turning)
+        (seek-to-point-toward-point! (-> self root) (-> self move-dest) 262144.0 (seconds 0.02))
+        )
+    (ja-post)
+    )
+  )
+
+;; a pecking bird at the end of its takeoff curve: gone (until its entity is born again)
+(defstate die (hj2-wren)
+  :virtual #t
+  :code (behavior ()
+    (cleanup-for-death self)
+    (suspend)
+    0
+    )
+  )
+
+(defmethod relocate ((this hj2-wren) (offset int))
+  "Moves the pointers into the process heap with it: the two curves, and the first curve's knots
+when they are the bird's own (knots0). Called on the process before it moves, so a curve's knots
+are adjusted before the curve pointer itself. Returns the relocated bird."
+  (dotimes (i 2)
+    (let ((curve (-> this fly-curve i)))
+      (when (and curve (nonzero? curve))
+        (if (and (zero? i) (-> this own-knots))
+            (&+! (-> curve curve knots) offset)
+            )
+        (&+! (-> this fly-curve i) offset)
+        )
+      )
+    )
+  (call-parent-method this offset)
+  )
+
+(defun hj2-wren-split-path! ((this hj2-wren))
+  "Splits a flying bird's 'path into its two curves (see hj2-wren): the curve read from 'path and
+'path-k (all the points) becomes the second curve, curve-b (its last num-knots - 4 points), and a
+copy of it the first one, curve-a (the points before, uniform knots in knots0, at most 28 points). With a single
+curve's worth of points, both curves are that one.
+Side effects: sets fly-curve 0 and 1 and own-knots. Returns nothing."
+  (let* ((curve-b (new 'process 'curve-control this 'path -1000000000.0))
+         (total (-> curve-b curve num-cverts))
+         (n1 (+ (-> curve-b curve num-knots) -4))
+         (n0 (min 28 (- total n1)))
+         )
+    (set! (-> this fly-curve 1) curve-b)
+    (cond
+      ((or (logtest? (-> curve-b flags) (path-control-flag not-found)) (< n0 4) (< n1 4))
+       ;; one curve (or nothing to split): fly it both ways
+       (set! (-> this fly-curve 0) curve-b)
+       )
+      (else
+        (let ((curve-a (new 'process 'curve-control this 'path -1000000000.0)))
+          (set! (-> curve-a curve num-cverts) n0)
+          (set! (-> curve-a curve num-knots) (+ n0 4))
+          (set! (-> curve-a curve knots) (&-> this knots0 0))
+          (dotimes (k 4)
+            (set! (-> this knots0 k) 0.0)
+            (set! (-> this knots0 (+ n0 k)) 1.0)
+            )
+          (dotimes (k (+ n0 -4))
+            (set! (-> this knots0 (+ k 4)) (/ (the float (+ k 1)) (the float (+ n0 -3))))
+            )
+          (set! (-> this own-knots) #t)
+          (set! (-> this fly-curve 0) curve-a)
+          )
+        (set! (-> curve-b curve cverts) (the-as (inline-array vector) (-> curve-b curve cverts (- total n1))))
+        (set! (-> curve-b curve num-cverts) n1)
+        )
+      )
+    )
+  (none)
+  )
+
+;; WARN: Return type mismatch object vs none.
+(defmethod init-from-entity! ((this hj2-wren) (arg0 entity-actor))
+  "Jak 2's wren setup: a trsqv root at the entity's placement, a random size (1.5 to 3.5), kept
+running far away (no actor-pause, it flies far). With an 'idle path: a pecking bird (the
+hj2-wren look, its 'takeoff curve, then peck). Without: a flying bird (the hj2-wren-fly look, its
+two curves from 'path, then fly). arg0: the entity. Returns nothing."
+  (set! (-> this root) (new 'process 'trsqv))
+  (process-drawable-from-entity! this arg0)
+  (logclear! (-> this mask) (process-mask actor-pause))
+  (let ((size (rand-vu-float-range 1.5 3.5)))
+    (set-vector! (-> this root scale) size size size 1.0)
+    )
+  (set! (-> this fly-index) (the-as uint 0))
+  (set! (-> this path-u) 0.0)
+  (set! (-> this bob-level) 0.0)
+  (set! (-> this bank-angle) 0.0)
+  (set! (-> this peck-timer) 0)
+  (set! (-> this turning) #f)
+  (set! (-> this spook-check) #f)
+  (set! (-> this fly-off) #f)
+  (set! (-> this own-knots) #f)
+  (set! (-> this path) (new 'process 'path-control this 'idle 0.0 arg0 #f))
+  (cond
+    ((logtest? (-> this path flags) (path-control-flag not-found))
+     (initialize-skeleton this *hj2-wren-fly-sg* (the-as pair 0))
+     (hj2-wren-split-path! this)
+     (go (method-of-object this fly))
+     )
+    (else
+      (initialize-skeleton this *hj2-wren-sg* (the-as pair 0))
+      ;; the lumps of the level builder have its default key frame, as Jak 2's 'takeoff had
+      (set! (-> this fly-curve 0) (new 'process 'curve-control this 'takeoff -1000000000.0))
+      (set! (-> this fly-curve 1) #f)
+      (go (method-of-object this peck))
+      )
+    )
+  (none)
+  )
+
+;; Fish //////////////////////////////////////////////////////////////////////////////////////////
+
+;; the fish of a school: Jak 2's minnow, one of 4 looks (Jak 2's fish-type, setup-masks 1, 2, 4 or
+;; 8: rip primitives 0-3, 4-6, 7-10, 11-14), each its own build-actor model with Jak 2's swim
+;; animation as its idle
+(def-actor hj2-minnow-blue
+  :bounds (0 0 0 1)
+  )
+
+(def-actor hj2-minnow-green
+  :bounds (0 0 0 1)
+  )
+
+(def-actor hj2-minnow-red
+  :bounds (0 0 0 1)
+  )
+
+(def-actor hj2-minnow-yellow
+  :bounds (0 0 0 1)
+  )
+
+;; Jak 2's minnow: one fish, swimming in place (its animation); its school (hj2-fish-manager, its
+;; parent) moves and turns it every frame
+(deftype hj2-minnow (process-drawable)
+  ()
+  (:state-methods
+    idle
+    )
+  )
+
+
+;; plays the swim animation at 5x speed, forever
+(defstate idle (hj2-minnow)
+  :virtual #t
+  :code (behavior ()
+    (until #f
+      (ja-no-eval :group! (ja-group) :num! (seek! max 5.0) :frame-num 0.0)
+      (until (ja-done? 0)
+        (suspend)
+        (ja :num! (seek! max 5.0))
+        )
+      )
+    #f
+    )
+  :post ja-post
+  )
+
+;; WARN: Return type mismatch object vs none.
+(defbehavior hj2-minnow-init-by-other hj2-minnow ((skel skeleton-group))
+  "Init of a fish (spawned by its school): a trsqv root at the origin (the school places it), the
+skeleton of its look (skel), then idle. Returns nothing."
+  (set! (-> self root) (new 'process 'trsqv))
+  (vector-reset! (-> self root trans))
+  (quaternion-identity! (-> self root quat))
+  (vector-identity! (-> self root scale))
+  (initialize-skeleton self skel (the-as pair 0))
+  (go-virtual idle)
+  (none)
+  )
+
+;; one fish of a school: its position and velocity, its accumulated pushes (back into the school's
+;; circle, away from Jak), its wander heading, and its process
+(deftype hj2-fish (structure)
+  ((pos       vector  :inline)
+   (vel       vector  :inline)
+   (border-f  vector  :inline)
+   (avoid-d   vector  :inline)
+   (wander    float)
+   (handle    handle)
+   )
+  )
+
+
+;; Jak 2's fish-manager: a school of 12 fish of one look, swimming 0.4m under the water (Jak 2's
+;; height, y = -0.4m), wandering, keeping together, and darting away from Jak when he is in the
+;; water. Jak 2 kept them on its navigation mesh (the pond); without one, they stay within 5m of
+;; the manager (xz).
+(deftype hj2-fish-manager (process-drawable)
+  ((fishes  hj2-fish  12 :inline)
+   )
+  (:state-methods
+    idle
+    )
+  )
+
+
+;; ponytail: a fixed 5m circle instead of each pond's shape (Jak 2's nav mesh); give the manager a
+;; radius lump if fish cross a shore in game
+(defconstant HJ2_FISH_RADIUS 20480.0) ;; 5m
+
+(defconstant HJ2_FISH_Y -1638.4) ;; -0.4m
+
+(defbehavior hj2-fish-manager-steer hj2-fish-manager ()
+  "Post of the school (Jak 2's fish-manager idle post, without the navigation mesh). For each
+fish: a push away from Jak (when he is in the water, y < 0, within 4m), a push back into the
+circle when outside it (else a wander force ahead of it, its heading drifting), separation,
+cohesion and alignment with the fish within 1m, then velocity (damped 20% a frame) and position,
+at the school's depth. Moves and turns each fish's process to match. Returns nothing."
+  (let ((jak-in-water (and *target* (< (-> (target-pos 0) y) 0.0))))
+    (dotimes (i 12)
+      (let* ((fish (-> self fishes i))
+             (pos (-> fish pos))
+             (vel (-> fish vel))
+             (acc (new-stack-vector0))
+             )
+        ;; dart away from Jak
+        (when jak-in-water
+          (let* ((away (vector-! (new 'stack-no-clear 'vector) pos (target-pos 0)))
+                 (d2 (fmax 1.0 (+ (square (-> away x)) (square (-> away z)))))
+                 )
+            (when (< d2 (square 16384.0))
+              (vector-normalize! away (* 4096.0 (/ 4096.0 d2)))
+              (vector+float*! (-> fish avoid-d) (-> fish avoid-d) away 100000.0)
+              )
+            )
+          )
+        ;; the circle's edge (Jak 2: the nav mesh's boundary), or wander
+        (cond
+          ((< HJ2_FISH_RADIUS (vector-vector-xz-distance pos (-> self root trans)))
+           (let ((back (vector-! (new 'stack-no-clear 'vector) (-> self root trans) pos)))
+             (set! (-> back y) 0.0)
+             (vector-normalize! back 1.0)
+             (vector+float*! (-> fish border-f) (-> fish border-f) back 10000.0)
+             )
+           )
+          (else
+            (let ((ahead (vector-normalize-copy! (new 'stack-no-clear 'vector) vel 4096.0)))
+              (+! (-> ahead x) (* 3276.8 (cos (-> fish wander))))
+              (+! (-> ahead z) (* 3276.8 (sin (-> fish wander))))
+              (vector+float*! acc acc ahead 10.0)
+              )
+            (+! (-> fish wander) (rand-vu-float-range -1820.4445 1820.4445))
+            )
+          )
+        ;; the neighbors within 1m
+        (let ((n 0)
+              (center (new-stack-vector0))
+              (heading (new-stack-vector0))
+              )
+          (dotimes (j 12)
+            (when (!= j i)
+              (let* ((other (-> self fishes j))
+                     (d (vector-! (new 'stack-no-clear 'vector) pos (-> other pos)))
+                     (d2 (+ (square (-> d x)) (square (-> d z))))
+                     )
+                (when (< d2 (square 4096.0))
+                  (when (< 1.0 d2)
+                    (vector-normalize! d (* 4096.0 (/ 4096.0 d2)))
+                    (vector+float*! acc acc d 100.0)
+                    )
+                  (vector+! center center (-> other pos))
+                  (vector+! heading heading (-> other vel))
+                  (+! n 1)
+                  )
+                )
+              )
+            )
+          (when (nonzero? n)
+            (vector-float*! center center (/ 1.0 (the float n)))
+            (vector-! center center pos)
+            (let ((d2 (+ (square (-> center x)) (square (-> center z)))))
+              (when (< 1.0 d2)
+                (vector-normalize! center (* 4096.0 (/ 4096.0 d2)))
+                (vector+float*! acc acc center 100.0)
+                )
+              )
+            (vector-float*! heading heading (/ 1.0 (the float n)))
+            (vector-! heading heading vel)
+            (vector+float*! acc acc heading 5.0)
+            )
+          )
+        (vector-float*! (-> fish avoid-d) (-> fish avoid-d) 0.95)
+        (vector-float*! (-> fish border-f) (-> fish border-f) 0.99)
+        (vector+! acc acc (-> fish border-f))
+        (vector+! acc acc (-> fish avoid-d))
+        (set! (-> acc y) 0.0)
+        (vector+float*! vel vel acc (seconds-per-frame))
+        (vector-float*! vel vel 0.8)
+        (vector+float*! pos pos vel (seconds-per-frame))
+        (set! (-> pos y) HJ2_FISH_Y)
+        (let ((proc (the-as process-drawable (handle->process (-> fish handle)))))
+          (when proc
+            (vector-copy! (-> proc root trans) pos)
+            (when (< 1.0 (vector-length vel))
+              (forward-up->quaternion
+                (-> proc root quat)
+                (vector-normalize-copy! (new 'stack-no-clear 'vector) vel 1.0)
+                *up-vector*
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+  (none)
+  )
+
+;; steers the school every frame (paused with the actor when far from the camera)
+(defstate idle (hj2-fish-manager)
+  :virtual #t
+  :code sleep-code
+  :post hj2-fish-manager-steer
+  )
+
+;; WARN: Return type mismatch object vs none.
+(defmethod init-from-entity! ((this hj2-fish-manager) (arg0 entity-actor))
+  "Jak 2's fish-manager setup, without the navigation mesh: a trsqv root at the entity's placement
+(the school's center), one random look for the school, and its 12 fish (hj2-minnow children)
+scattered 0.1 to 1m off the center (x and z), each heading a random way at 1 unit/s. arg0: the
+entity. Goes to idle. Returns nothing."
+  (set! (-> this root) (new 'process 'trsqv))
+  (process-drawable-from-entity! this arg0)
+  (let ((skel (case (rand-vu-int-count 4)
+                ((0) *hj2-minnow-red-sg*)
+                ((1) *hj2-minnow-blue-sg*)
+                ((2) *hj2-minnow-green-sg*)
+                (else *hj2-minnow-yellow-sg*)
+                )
+              )
+        )
+    (dotimes (i 12)
+      (let ((fish (-> this fishes i))
+            (heading (* 182.04445 (the float (rand-vu-int-count 360))))
+            )
+        (vector-copy! (-> fish pos) (-> this root trans))
+        (+! (-> fish pos x) (rand-vu-float-range 409.6 4096.0))
+        (+! (-> fish pos z) (rand-vu-float-range 409.6 4096.0))
+        (set! (-> fish pos y) HJ2_FISH_Y)
+        (set! (-> fish wander) (rand-vu-float-range 0.0 65536.0))
+        (set-vector! (-> fish vel) (cos heading) 0.0 (sin heading) 1.0)
+        (vector-reset! (-> fish border-f))
+        (vector-reset! (-> fish avoid-d))
+        (set! (-> fish handle) (ppointer->handle (process-spawn hj2-minnow skel :to this)))
+        )
+      )
+    )
+  (go (method-of-object this idle))
+  (none)
+  )

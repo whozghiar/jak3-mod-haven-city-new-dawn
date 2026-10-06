@@ -6,17 +6,33 @@
   "iso_name": "HJ2HIDE",
   "nickname": "hjd",
   "import_fr3": {"game": "jak2", "levels": ["hideout"], "tfrag": true, "tie": true, "shrub": true, "collision": true},
+  // Jak 2's static props that aren't actors here, and its pools' surfaces, as one mesh (the mesh step)
+  "gltf_file": "custom_assets/jak3/levels/hj2-hide/hj2-hide-mesh.glb",
+  // the sprite textures of its particles, as texture page 1530 (hj2-hide-part.gc)
+  "sprite_textures": {"page": 1530, "game": "jak2", "textures": [["hideout", "hideout-sprite", "butterfly-wing"]]},
   "base_id": 21800,
   "base_region_id": 21800,
   // Jak 2's fixed cameras of this level (elevator rides, camera regions)
   "cameras": [
     {"trans": [1158.7865, 11.2249, 59.9007], "quat": [0.0, 0.7071, 0.0, 0.7071], "lump": {"campath": ["vector", [4746389.5, 45977.26171875, 245353.140625, 1.0], [4773631.5, 45977.26171875, 244949.40625, 1.0], [4803004.0, 41139.47265625, 245083.53125, 1.0], [4836637.0, 21834.76953125, 245042.359375, 1.0], [4873137.5, 23260.5546875, 244577.40625, 1.0]], "campath-k": ["float", 0.0, 0.0, 0.0, 0.0, 1.0, 2.0, 2.0, 2.0, 2.0], "campoints": ["vector", [4770965.5, 45977.26171875, 245353.140625, 1.0], [4897713.5, 23260.5546875, 244577.40625, 1.0]], "campoints-flags-off": ["int32", 0], "campoints-flags-on": ["int32", 0], "flags-off": ["int32", 0], "flags-on": ["int32", 0], "focalpull-flags-off": ["int32", 0], "focalpull-flags-on": ["int32", 0], "fov": ["float", 7261.2802734375], "fov-offset": ["float", 4473.287109375], "id": ["int32", 0], "interpTime": ["float", 1.5], "name": "camera-66", "pivot": ["vector", [4746389.5, 45977.26171875, 245353.140625, 1.0]], "translation_info": ["vector", [0.0, 32768.0, 0.0, 1.0]]}}
   ],
-  "art_groups": ["hip-door-a-ag", "warp-gate-ag"],
+  // models of its custom actors, built by build-actor
+  "custom_models": ["hj2-hide-door-b", "hj2-hide-light", "hj2-hide-light-fog"],
+  "art_groups": ["warp-gate-ag"],
   "actors": [
-    // Jak 2's hide-door-b-2 (hideout) [as hip-door-a]
-    {"trans": [1181.2417, 3.6976, 59.7381], "etype": "hip-door-a", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [1181.2417, 3.6976, 59.7381, 13.8564], "lump": {"name": "hide-door-b-2", "distance": ["float", 20480.0], "idle-distance": ["float", 40960.0], "open-test": ["pair", "'open"], "on-notice": ["pair", "'(hj2-hide)"]}},
+    // Jak 2's hide-door-b-2 (hideout) [as hj2-hide-door-b]
+    {"trans": [1181.2417, 3.6976, 59.7381], "etype": "hj2-hide-door-b", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [1181.2417, 3.6976, 59.7381, 13.8564], "lump": {"name": "hide-door-b-2", "distance": ["float", 20480.0], "idle-distance": ["float", 40960.0], "height": ["vector", [81920.0, 81920.0, 0.0, 0.0]], "open-test": ["pair", "'open"], "on-notice": ["pair", "'(hj2-hide)"]}},
     // the time gate to hj2-freehq-gate (hj2-time-gate, Jak 3's warp gate)
-    {"trans": [1207.0, 3.1, 53.0], "etype": "hj2-time-gate", "game_task": 0, "quat": [0.0, -0.3925, 0.0, 0.9198], "bsphere": [1207.0, 3.1, 53.0, 8.0], "lump": {"name": "hj2-time-gate-1", "on-notice": ["pair", "'(\"hj2-freehq-gate\" #f #f)"], "travel-name": ["string", "Jak 3"]}}
+    {"trans": [1207.0, 3.1, 53.0], "etype": "hj2-time-gate", "game_task": 0, "quat": [0.0, -0.3925, 0.0, 0.9198], "bsphere": [1207.0, 3.1, 53.0, 8.0], "lump": {"name": "hj2-time-gate-1", "on-notice": ["pair", "'(\"hj2-freehq-gate\" #f #f)"], "travel-name": ["string", "Jak 3"]}},
+    // Jak 2's hide-light-4 (hideout)
+    {"trans": [1204.1138, 10.2726, 59.7191], "etype": "hj2-hide-light", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [1204.1138, 10.2726, 59.7191, 6.9282], "lump": {"name": "hide-light-4"}},
+    // Jak 2's hide-part-18 (hideout): group-hide-ceilingsmoke
+    {"trans": [1199.2955, 9.6084, 59.7356], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [1199.2955, 9.6084, 59.7356, 6.9282], "lump": {"name": "hide-part-18", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-hide-ceilingsmoke"}},
+    // Jak 2's hide-part-19 (hideout): group-hide-moth
+    {"trans": [1204.3336, 7.512, 65.1415], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [1204.3336, 7.512, 65.1415, 6.9282], "lump": {"name": "hide-part-19", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-hide-moth"}},
+    // Jak 2's hide-part-20 (hideout): group-hide-fireplace-sparks
+    {"trans": [1199.4095, 4.6563, 52.4626], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [1199.4095, 4.6563, 52.4626, 6.9282], "lump": {"name": "hide-part-20", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-hide-fireplace-sparks"}},
+    // Jak 2's hide-part-21 (hideout): group-hide-barrel-fire
+    {"trans": [1199.5879, 4.2845, 66.8864], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [1199.5879, 4.2845, 66.8864, 6.9282], "lump": {"name": "hide-part-21", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-hide-barrel-fire"}}
   ]
 }

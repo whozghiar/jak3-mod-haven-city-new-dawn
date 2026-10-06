@@ -123,12 +123,16 @@ TARGET_CALLBACKS = {
     "check-water-level-drop-motion",
     "birth-func-copy-rot-color", "birth-func-copy2-rot-color", "birth-func-copy-omega-to-z",
     "birth-func-random-next-time", "check-drop-group-center",
+    # the palace roof's rain (weather-part.gc)
+    "birth-func-omega-normal-orient",
 }
 # Jak 2's splash callbacks (check-drop-level-<level>-drop-userdata): written in Jak 3's form
 # (drop_func_text)
 DROP_FUNC = re.compile(r"check-drop-level-([a-z0-9]+)-drop-userdata")
 # Jak 2 matrix rows read by a copied callback -> Jak 3's sprite-vec-data-2d fields
-SPRITE_ROWS = {(0, "x"): "x", (0, "y"): "y", (0, "z"): "z", (1, "z"): "rot"}
+SPRITE_ROWS = {(0, "x"): "x", (0, "y"): "y", (0, "z"): "z", (0, "w"): "sx", (1, "z"): "rot",
+               (1, "w"): "sy", (2, "x"): "r", (2, "y"): "g", (2, "z"): "b", (2, "w"): "a"}
+SPRITE_VECTORS = {0: "x-y-z-sx", 1: "flag-rot-sy", 2: "r-g-b-a"}
 
 
 def drop_func_text(name, launched, part_map):
@@ -148,10 +152,13 @@ def drop_func_text(name, launched, part_map):
     return "\n".join(lines)
 
 
-def copied_func_text(form, new_name, part_map, where):
+def copied_func_text(form, new_name, part_map, where, data_names=None):
     """A particle callback copied from Jak 2 (form: its defun) in Jak 3's form: renamed, its part
     ids moved (part_map), its matrix argument typed sprite-vec-data-2d (Jak 3 hands the particle's
-    sprite data, the same layout: x y z sx, then flag matrix rot sy). where: its Jak 2 file."""
+    sprite data, the same layout: x y z sx, then flag matrix rot sy), the source data it reads
+    renamed to the copies (data_names: the level's "data", source define -> ours). where: its Jak 2
+    file."""
+    data_names = data_names or {}
     name = str(form[1])
     sprite = None
     args = []
@@ -163,7 +170,17 @@ def copied_func_text(form, new_name, part_map, where):
 
     def fix(f):
         if not isinstance(f, list):
+            if isinstance(f, Atom) and str(f) in data_names:
+                return Atom(data_names[str(f)])
             return f
+        if (sprite is not None and gl.is_list(f, "->") and len(f) == 3 and f[1] == sprite
+                and f[2] == Atom("vector")):
+            # the matrix's rows (their first: the particle position)
+            return [Atom("->"), sprite, Atom(SPRITE_VECTORS[0])]
+        if (sprite is not None and gl.is_list(f, "->") and len(f) == 4 and f[1] == sprite
+                and f[2] == Atom("vector") and int(f[3]) in SPRITE_VECTORS):
+            # a whole row (the particle position: Jak 2's matrix row 0)
+            return [Atom("->"), sprite, Atom(SPRITE_VECTORS[int(f[3])])]
         if sprite is not None and gl.is_list(f, "->") and len(f) == 5 and f[1] == sprite:
             key = (int(f[3]), str(f[4]))
             if f[2] != Atom("vector") or key not in SPRITE_ROWS:

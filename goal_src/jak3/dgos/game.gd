@@ -494,4 +494,5 @@
   "entity-debug.o" ;; added
   "havenj2-ocean.o" ;; added -- og:jak2-haven-city Jak 2's city ocean map (city, pumping station, forest)
   "jak2-haven-city-world.o" ;; added -- og:jak2-haven-city moods, weather, level callbacks, respawn points, elevators, air trains, time gate (after elevator.o)
+  "hj2-common-obs.o" ;; added -- og:jak2-haven-city decor classes of Jak 2's places shared by levels loaded together (windmills, flip steps...)
  ))

@@ -5,7 +5,8 @@
 ;; name in dgo: havenj2-obs
 ;; dgos: HJ2
 
-;; og:jak2-haven-city Level code for havenj2, Jak 2's Haven City rebuilt as a Jak 3 custom level.
+;; og:jak2-haven-city Level code for havenj2, the hub of Jak 2's Haven City rebuilt as Jak 3 custom
+;; levels: the classes of the actors of its districts (hj2-slma...), which load after it.
 ;; Its moods, level callbacks and respawn points are in GAME: pc/features/jak2-haven-city-world.gc.
 ;; The palace pillar elevator (hj2-elevator) is in GAME too, the mountain's actors in hj2-mount-obs.gc.
 
@@ -279,7 +280,8 @@ break it, the hologram (group-ctywide-baron-propoganda-holo, in havenj2-part.gc)
 ;; its model, skeleton and opening animation are Jak 2's, rebuilt as a custom actor by build-actor
 ;; (hj2-palace-door.glb, made by the level port, scripts/level_port). It must
 ;; really close: like in Jak 2, the city is hidden while Jak is in the lobby and unloaded while he
-;; rides up the pillar, and the gate only opens again once the city is back.
+;; rides up the pillar, and the gate only opens again once the city is back. It stands in the palace
+;; plaza's level (hj2-pal), which holds its art.
 (deftype hj2-palace-door (com-airlock)
   ()
   )
@@ -335,4 +337,1252 @@ pal-door sounds aren't in Jak 3)."
   (set! (-> this door-radius) 40960.0)
   (go (method-of-object this close) #t)
   (none)
+  )
+
+
+;; City guard turrets ////////////////////////////////////////////////////////////////////////////
+
+;; Jak 2's cty-guard-turret (levels/city/ctywide-obs.gc there): a twin gun hidden under two lids in
+;; the street (9 of them in the slums, the industrial and generic districts and by the stadium).
+;; At the end of the game (the power station mission done, so no mission id counts), it pops up
+;; when Jak drives a vehicle within 100m of it while the city's alert is at least 1, aims at him
+;; (leading his speed) and fires bursts of 5 double guard shots, and sinks back once he is 120m
+;; away, or out of his vehicle with the alert back at 0. Jak 2's alert is its traffic engine's;
+;; here it is the Freedom League squad's (*ff-squad-control*, havenj2-traffic.gc), the one Jak 3's
+;; city guards react to. Popped up, it takes hits: 6 hit points (a strong hit, a red or dark shot
+;; or an explosion takes 10); then its head blows apart (joint-exploder with its explode model),
+;; it sinks, and 3 s later it is back, hidden. Models: Jak 2's, rebuilt by build-actor
+;; (hj2-cty-guard-turret.glb with its idle and pop-up-down animations,
+;; hj2-cty-guard-turret-explode.glb, made by the level port); its art is in the districts' DGOs.
+;; Particles: Jak 2's group-cty-guard-turret-hit (havenj2-part.gc, generated: "extra_groups").
+;; Sounds: Jak 2's gturret-explode isn't in Jak 3, Jak 3's "explosion" plays instead; the guard
+;; shots play their own. Not ported: the power station mission's button and messages (the mission
+;; is over), and Jak 2's mesh masks (build-actor models have none): the whole model hides while
+;; the destroyed turret sinks, where Jak 2 hid its head only.
+
+;; the group id of the turret's explosion (havenj2-part.gc, generated: "extra_groups")
+(define-extern *hj2-cty-guard-turret-hit-group-ids* (array int32))
+
+;; Joints (Jak 2's, kept by build-actor): 3 main, 4 lidL, 5 lidR, 6 turret (turns), 7 gunsL,
+;; 8 gunsR (tilt). Animations: 2 idle (hidden), 3 pop-up-down (up at Jak 2's frame 20 of 32, back
+;; down at 32).
+;;   incoming-attack-id: the last attack taken (one hit per attack). jm-turret, jm-gunsL, jm-gunsR:
+;;   the aim's joint-mods. angle-turret / angle-guns: the current turn and tilt. next-time-shot:
+;;   when the next shot of the burst fires (0: aiming). num-shots: shots of the burst so far.
+;;   focus: Jak. hit-points: Jak 2's, 6.
+(deftype hj2-cty-guard-turret (process-focusable)
+  ((incoming-attack-id  uint32)
+   (jm-turret           joint-mod)
+   (jm-gunsL            joint-mod)
+   (jm-gunsR            joint-mod)
+   (angle-turret        degrees)
+   (angle-guns          degrees)
+   (next-time-shot      time-frame)
+   (num-shots           uint32)
+   (focus               focus  :inline)
+   (hit-points          int32)
+   )
+  (:state-methods
+    idle
+    hostile
+    explode
+    )
+  (:methods
+    (fire-shots (_type_) none)
+    (aim-at-focus (_type_) none)
+    )
+  )
+
+
+;; the turret (Jak 2's bounds) and its pieces (Jak 2's explode bounds)
+(def-actor hj2-cty-guard-turret
+  :art (idle-ja pop-up-down-ja)
+  :bounds (0 0 0 7.5)
+  )
+
+(def-actor hj2-cty-guard-turret-explode
+  :bounds (0 0 0 15)
+  )
+
+;; the pieces the explosion throws (Jak 2's): the explode model's joints a to g
+(define *hj2-cty-guard-turret-exploder-params*
+  (new 'static 'joint-exploder-static-params
+    :joints (new 'static 'boxed-array :type joint-exploder-static-joint-params
+      (new 'static 'joint-exploder-static-joint-params :joint-index 3 :parent-joint-index 8)
+      (new 'static 'joint-exploder-static-joint-params :joint-index 4 :parent-joint-index 8)
+      (new 'static 'joint-exploder-static-joint-params :joint-index 5 :parent-joint-index 6)
+      (new 'static 'joint-exploder-static-joint-params :joint-index 6 :parent-joint-index 6)
+      (new 'static 'joint-exploder-static-joint-params :joint-index 7 :parent-joint-index 6)
+      (new 'static 'joint-exploder-static-joint-params :joint-index 8 :parent-joint-index 7)
+      (new 'static 'joint-exploder-static-joint-params :joint-index 9 :parent-joint-index 6)
+      )
+    :collide-spec (collide-spec backgnd)
+    )
+  )
+
+(defun hj2-city-alert-level ()
+  "The city's alert level: the Freedom League squad's (Jak 2's traffic engine alert), 0 while
+havenj2's squad doesn't exist. No side effects."
+  (if *ff-squad-control*
+      (get-alert-level *ff-squad-control*)
+      0
+      )
+  )
+
+(defbehavior hj2-cty-guard-turret-anim-frame hj2-cty-guard-turret ((jak2-frame float))
+  "The frame of the current animation matching Jak 2's frame jak2-frame of pop-up-down (frames 0
+to 32): build-actor resamples the animation, so the frame is taken as a fraction of its length.
+Returns the frame. No side effects."
+  (* (/ jak2-frame 32.0) (the float (+ (-> (ja-group) frames num-frames) -1)))
+  )
+
+(defbehavior hj2-cty-guard-turret-event-handler hj2-cty-guard-turret ((arg0 process) (arg1 int) (arg2 symbol) (arg3 event-message-block))
+  "Jak 2's events: 'attack, only while popped up (hostile), once per attack id, takes hit points (10
+for a strong hit, a red or dark shot or an explosion, else the attack's damage) and blows the
+turret up below 0; 'track answers #t while hostile. arg0: the sender, arg1: the parameter count,
+arg2: the message, arg3: the parameters. Returns the event's answer. Side effects: hit-points,
+incoming-attack-id, the explode state."
+  (case arg2
+    (('attack)
+     (when (and (-> self next-state) (= (-> self next-state name) 'hostile))
+       (let ((a0-1 (get-penetrate-using-from-attack-event (the-as process-drawable arg0) arg3))
+             (v1-5 (the-as attack-info (-> arg3 param 1)))
+             )
+         (when (!= (-> v1-5 id) (-> self incoming-attack-id))
+           (set! (-> self incoming-attack-id) (-> v1-5 id))
+           (cond
+             ((logtest? (penetrate
+                          flop
+                          punch
+                          spin
+                          uppercut
+                          mech-punch
+                          mech-bonk
+                          dark-punch
+                          dark-bomb
+                          dark-smack
+                          explode
+                          jak-red-shot
+                          jak-dark-shot
+                          enemy-dark-shot
+                          )
+                        a0-1
+                        )
+              (+! (-> self hit-points) -10)
+              )
+             ((logtest? (attack-mask damage) (-> v1-5 mask))
+              (set! (-> self hit-points) (- (-> self hit-points) (the int (-> v1-5 damage))))
+              )
+             (else
+               (set! (-> self hit-points) (- (-> self hit-points) (penetrate-using->damage a0-1)))
+               )
+             )
+           (when (< (-> self hit-points) 0)
+             (sound-play "explosion")
+             (go-virtual explode)
+             )
+           )
+         )
+       )
+     )
+    (('track)
+     (and (-> self next-state) (= (-> self next-state name) 'hostile))
+     )
+    )
+  )
+
+(defmethod get-trans ((this hj2-cty-guard-turret) (arg0 int))
+  "Mode 3 (where to aim at it): the turret joint, with the root prim's radius in w; else the
+root's position. Returns a vector (mode 3: a static one, overwritten by the next call)."
+  (cond
+    ((= arg0 3)
+     (let ((v0-0 (vector<-cspace! (new 'static 'vector) (-> this node-list data 6))))
+       (set! (-> v0-0 w) (-> this root root-prim prim-core world-sphere w))
+       v0-0
+       )
+     )
+    (else
+      (-> this root trans)
+      )
+    )
+  )
+
+(defmethod get-inv-mass ((this hj2-cty-guard-turret))
+  "Nearly immovable (Jak 2's): 0.01."
+  0.01
+  )
+
+;; hidden under its lids, ignored by Jak's aim. Pops up (hostile) when Jak is within 100m in a
+;; vehicle and the city's alert is at least 1.
+(defstate idle (hj2-cty-guard-turret)
+  :virtual #t
+  :event hj2-cty-guard-turret-event-handler
+  :enter (behavior ()
+    (if *target*
+        (focus-on! (-> self focus) *target*)
+        )
+    (ja-channel-push! 1 0)
+    (ja-no-eval :group! hj2-cty-guard-turret-idle-ja :num! zero)
+    (transform-post)
+    (logior! (-> self focus-status) (focus-status ignore))
+    )
+  :exit (behavior ()
+    (logclear! (-> self focus-status) (focus-status ignore))
+    )
+  :code sleep-code
+  :post (behavior ()
+    ;; Jak may not exist yet when the turret is born
+    (if (and (not (handle->process (-> self focus handle))) *target*)
+        (focus-on! (-> self focus) *target*)
+        )
+    (let ((gp-0 (handle->process (-> self focus handle))))
+      (when (and gp-0
+                 (< (vector-vector-xz-distance-squared (get-trans (the-as process-focusable gp-0) 0) (-> self root trans))
+                    (square 409600.0)
+                    )
+                 (focus-test? (the-as process-focusable gp-0) pilot)
+                 (>= (hj2-city-alert-level) 1)
+                 )
+        (go-virtual hostile)
+        )
+      )
+    (transform-post)
+    )
+  )
+
+(defmethod fire-shots ((this hj2-cty-guard-turret))
+  "Fire one double shot (Jak 2's): a guard shot (Jak 3's, GAME) at 200 m/s from 2.62m in front of
+each gun, along each gun's axis (gunsR is mirrored: its shot goes along -z). Side effects: spawns
+two projectiles, children of the turret."
+  (let ((s2-0 (-> this node-list data 7 bone transform))
+        (s5-0 (-> this node-list data 8 bone transform))
+        (s4-0 (new 'stack-no-clear 'projectile-init-by-other-params))
+        )
+    (set! (-> s4-0 ent) (-> this entity))
+    (set! (-> s4-0 charge) 1.0)
+    (set! (-> s4-0 options) (projectile-options))
+    (set! (-> s4-0 notify-handle) (process->handle this))
+    (set! (-> s4-0 owner-handle) (the-as handle #f))
+    (set! (-> s4-0 target-handle) (the-as handle #f))
+    (set! (-> s4-0 target-pos quad) (the-as uint128 0))
+    (set! (-> s4-0 ignore-handle) (process->handle this))
+    (let* ((v1-14 *game-info*)
+           (a0-14 (+ (-> v1-14 attack-id) 1))
+           )
+      (set! (-> v1-14 attack-id) a0-14)
+      (set! (-> s4-0 attack-id) a0-14)
+      )
+    (set! (-> s4-0 timeout) (seconds 4))
+    ;; left gun: from its muzzle along +z
+    (vector+float*! (-> s4-0 pos) (-> s2-0 trans) (-> s2-0 fvec) 10727.424)
+    (set! (-> s4-0 pos w) 1.0)
+    (vector-normalize-copy! (-> s4-0 vel) (-> s2-0 fvec) 819200.0)
+    (spawn-projectile guard-shot s4-0 this *default-dead-pool*)
+    ;; right gun: from its muzzle along -z
+    (vector+float*! (-> s4-0 pos) (-> s5-0 trans) (-> s5-0 fvec) -10727.424)
+    (set! (-> s4-0 pos w) 1.0)
+    (vector-negate! (-> s4-0 vel) (-> s5-0 fvec))
+    (vector-normalize! (-> s4-0 vel) 819200.0)
+    (spawn-projectile guard-shot s4-0 this *default-dead-pool*)
+    )
+  (none)
+  )
+
+(defmethod aim-at-focus ((this hj2-cty-guard-turret))
+  "Turn and tilt the guns one frame towards Jak (Jak 2's): his aim point led by his speed (as far
+ahead as a shot takes at 200 m/s), the turret turning at up to 200 degrees/s (100 when he is out of
+a vehicle), the guns tilting at 40 degrees/s (clamped closer to level the farther he is), and
+both guns toed in (law of cosines over their 1.8m spacing) to cross on him. Once on target, the
+burst starts in 1 s. Side effects: angle-turret, angle-guns, the three joint-mods, next-time-shot
+and num-shots."
+  (let ((s5-0 (the-as process-focusable (handle->process (-> this focus handle)))))
+    (when s5-0
+      (let* ((s4-0 (vector-copy! (new 'stack-no-clear 'vector) (get-trans s5-0 3)))
+             ;; the gun pivot: 2.5m above the turret's origin
+             (s0-0 (vector+float*! (new 'stack-no-clear 'vector) (-> this root trans) *y-vector* 10240.0))
+             (f30-0 (vector-vector-xz-distance s4-0 s0-0))
+             )
+        ;; lead the target by the shot's flight time
+        (vector+float*! s4-0 s4-0 (get-transv s5-0) (/ f30-0 (meters 200)))
+        (let ((s3-1 (vector-! (new 'stack-no-clear 'vector) s4-0 s0-0))
+              (s1-0 (vector-z-quaternion! (new 'stack-no-clear 'vector) (-> this root quat)))
+              (sv-192 (new 'stack-no-clear 'vector))
+              (s2-0 (new 'stack-no-clear 'vector))
+              )
+          (vector-rotate90-around-y! sv-192 s3-1)
+          (set! (-> sv-192 y) 0.0)
+          (vector-normalize! sv-192 1.0)
+          ;; toe-in: the angle at the gun 1.8m to the side, between the pivot and the target
+          (let* ((f26-0 (vector-vector-xz-distance-squared s0-0 s4-0))
+                 (f28-0 (square 7389.184))
+                 (f2-0 (vector-vector-xz-distance-squared
+                         (vector+float*! (new 'stack-no-clear 'vector) s0-0 sv-192 7389.184)
+                         s4-0
+                         )
+                       )
+                 (f28-1 (acos (fmax -1.0 (fmin 1.0 (/ (- (- f26-0 f28-0) f2-0) (* -2.0 (sqrtf f2-0) (sqrtf f28-0)))))))
+                 )
+            (let ((s0-1 (new 'stack-no-clear 'vector))
+                  (s4-1 (new 'stack-no-clear 'vector))
+                  )
+              (if (< f28-1 11832.889)
+                  (set! f28-1 11832.889)
+                  )
+              (rot-zxy-from-vector! s0-1 s1-0)
+              (rot-zxy-from-vector! s2-0 s3-1)
+              (set! (-> s4-1 x) (deg- (-> s2-0 x) (-> s0-1 x)))
+              (set! (-> s4-1 y) (deg- (-> s2-0 y) (-> s0-1 y)))
+              (if (focus-test? s5-0 pilot)
+                  (set! (-> this angle-turret) (deg-seek (-> this angle-turret) (-> s4-1 y) (* 36408.89 (seconds-per-frame))))
+                  (set! (-> this angle-turret) (deg-seek (-> this angle-turret) (-> s4-1 y) (* 18204.445 (seconds-per-frame))))
+                  )
+              (set! (-> this angle-guns) (deg-seek (-> this angle-guns) (-> s4-1 x) (* 7281.778 (seconds-per-frame))))
+              (quaternion-axis-angle! (-> this jm-turret quat) 0.0 1.0 0.0 (-> this angle-turret))
+              ;; on target: the burst starts in 1 s
+              (when (= (+ (fabs (- (-> this angle-turret) (-> s4-1 y))) (fabs (- (-> this angle-guns) (-> s4-1 x)))) 0.0)
+                (set! (-> this next-time-shot) (+ (current-time) (seconds 1)))
+                (set! (-> this num-shots) (the-as uint 0))
+                0
+                )
+              )
+            (let ((s5-1 (new 'stack-no-clear 'quaternion))
+                  (f0-42 (/ 45511.11 (/ f30-0 METER_LENGTH)))
+                  )
+              (quaternion-axis-angle! s5-1 1.0 0.0 0.0 (fmax (fmin (-> this angle-guns) f0-42) (- f0-42)))
+              (quaternion*!
+                (-> this jm-gunsL quat)
+                (quaternion-axis-angle! (new 'stack-no-clear 'quaternion) 0.0 1.0 0.0 (+ -16384.0 f28-1))
+                s5-1
+                )
+              )
+            )
+          )
+        )
+      (quaternion-copy! (-> this jm-gunsR quat) (-> this jm-gunsL quat))
+      )
+    )
+  (none)
+  )
+
+;; popped up: rises, then aims and fires bursts of 5 double shots 0.1 s apart (aiming between
+;; bursts); sinks back and goes idle once Jak is 120m away, or out of his vehicle with the alert
+;; at 0
+(defstate hostile (hj2-cty-guard-turret)
+  :virtual #t
+  :event hj2-cty-guard-turret-event-handler
+  :enter (behavior ()
+    (set-time! (-> self state-time))
+    (set! (-> self num-shots) (the-as uint 0))
+    0
+    )
+  :code (behavior ()
+    ;; rise: pop-up-down from its start to Jak 2's frame 20, at half speed
+    (ja-no-eval :group! hj2-cty-guard-turret-pop-up-down-ja :num! zero :frame-num 0.0)
+    (let ((f30-0 (hj2-cty-guard-turret-anim-frame 20.0)))
+      (ja-no-eval :num! (seek! f30-0 0.5))
+      (until (ja-done? 0)
+        (suspend)
+        (ja :num! (seek! f30-0 0.5))
+        )
+      )
+    (let ((in-range #t))
+      (while in-range
+        (cond
+          ((zero? (-> self next-time-shot))
+           (aim-at-focus self)
+           )
+          ((>= (current-time) (-> self next-time-shot))
+           (fire-shots self)
+           (+! (-> self num-shots) 1)
+           (if (= (-> self num-shots) 5)
+               (set! (-> self next-time-shot) 0)
+               (set! (-> self next-time-shot) (+ (current-time) (seconds 0.1)))
+               )
+           )
+          )
+        (suspend)
+        (let ((gp-0 (the-as process-focusable (handle->process (-> self focus handle)))))
+          (set! in-range (if (and gp-0
+                                  (< (vector-vector-xz-distance-squared (get-trans gp-0 0) (-> self root trans))
+                                     (square 491520.0)
+                                     )
+                                  (or (focus-test? gp-0 pilot) (nonzero? (hj2-city-alert-level)))
+                                  )
+                             #t
+                             #f
+                             )
+                )
+          )
+        )
+      )
+    (set! (-> self next-time-shot) 0)
+    ;; sink: on to Jak 2's frame 32, the end
+    (let ((f30-1 (hj2-cty-guard-turret-anim-frame 32.0)))
+      (ja-no-eval :num! (seek! f30-1 0.5))
+      (until (ja-done? 0)
+        (suspend)
+        (ja :num! (seek! f30-1 0.5))
+        )
+      )
+    (go-virtual idle)
+    )
+  :post transform-post
+  )
+
+;; blown up: its head's pieces fly apart, the hit particles burn while it sinks (hidden, its pieces
+;; replace it) and its gun sphere stops colliding; 3 s later it is back, hidden, with its hit points
+(defstate explode (hj2-cty-guard-turret)
+  :virtual #t
+  :enter (behavior ()
+    (let ((gp-0 (new 'stack 'joint-exploder-tuning (the-as uint 0))))
+      (process-spawn
+        joint-exploder
+        *hj2-cty-guard-turret-explode-sg*
+        2
+        gp-0
+        *hj2-cty-guard-turret-exploder-params*
+        :name "joint-exploder"
+        :to self
+        )
+      )
+    (logior! (-> self draw status) (draw-control-status no-draw))
+    ;; the group's last child (the gun sphere) stops colliding
+    (set! (-> self root root-prim specific 0) (+ (-> self root root-prim specific 1) -1))
+    (set! (-> self next-time-shot) 0)
+    )
+  :code (behavior ()
+    (let ((f30-0 (hj2-cty-guard-turret-anim-frame 32.0)))
+      (ja-no-eval :num! (seek! f30-0 0.5))
+      (until (ja-done? 0)
+        (let ((a1-0 (vector+float*! (new 'stack-no-clear 'vector) (-> self root trans) *y-vector* 10240.0)))
+          (spawn (-> self part) a1-0)
+          )
+        (suspend)
+        (ja :num! (seek! f30-0 0.5))
+        )
+      )
+    (logclear! (-> self draw status) (draw-control-status no-draw))
+    (suspend-for (seconds 3)
+      )
+    (set! (-> self root root-prim specific 0) (-> self root root-prim specific 1))
+    (set! (-> self hit-points) 6)
+    (go-virtual idle)
+    )
+  :post ja-post
+  )
+
+(defmethod relocate ((this hj2-cty-guard-turret) (offset int))
+  "Move the three joint-mods with the process heap, then the parent's relocate."
+  (if (nonzero? (-> this jm-turret))
+      (&+! (-> this jm-turret) offset)
+      )
+  (if (nonzero? (-> this jm-gunsL))
+      (&+! (-> this jm-gunsL) offset)
+      )
+  (if (nonzero? (-> this jm-gunsR))
+      (&+! (-> this jm-gunsR) offset)
+      )
+  (call-parent-method this offset)
+  )
+
+;; WARN: Return type mismatch object vs none.
+(defmethod init-from-entity! ((this hj2-cty-guard-turret) (arg0 entity-actor))
+  "Jak 2's setup: collision (a group around the turret: the left lid, the right lid and the base
+plate, each its model's collide mesh on its joint, obstacles Jak can stand on, and a sphere around
+the gun turret, solid), placement, skeleton, an enemy for Jak's aim, Jak as its focus, the aim's
+joint-mods, the explosion particles, 6 hit points; then idle. arg0: the entity (placement). Side
+effects: all of the turret's fields. Returns nothing."
+  (let ((s5-0 (new 'process 'collide-shape-moving this (collide-list-enum usually-hit-by-player))))
+    (set! (-> s5-0 dynam) (copy *standard-dynamics* 'process))
+    (set! (-> s5-0 reaction) cshape-reaction-default)
+    (set! (-> s5-0 no-reaction)
+          (the-as (function collide-shape-moving collide-query vector vector object) nothing)
+          )
+    (set! (-> s5-0 penetrated-by) (penetrate
+                                    generic-attack
+                                    lunge
+                                    flop
+                                    punch
+                                    spin
+                                    roll
+                                    uppercut
+                                    bonk
+                                    tube
+                                    vehicle
+                                    flut-attack
+                                    board
+                                    mech-punch
+                                    dark-punch
+                                    dark-smack
+                                    )
+          )
+    (let ((s4-0 (new 'process 'collide-shape-prim-group s5-0 (the-as uint 4) 0)))
+      (set! (-> s5-0 total-prims) (the-as uint 5))
+      (set! (-> s4-0 prim-core collide-as) (collide-spec obstacle))
+      (set! (-> s4-0 prim-core collide-with) (collide-spec jak player-list))
+      (set! (-> s4-0 prim-core action) (collide-action solid rideable))
+      (set-vector! (-> s4-0 local-sphere) 0.0 0.0 0.0 26624.0)
+      (set! (-> s5-0 root-prim) s4-0)
+      )
+    (let ((v1-13 (new 'process 'collide-shape-prim-mesh s5-0 (the-as uint 0) (the-as uint 0))))
+      (set! (-> v1-13 prim-core collide-as) (collide-spec obstacle))
+      (set! (-> v1-13 prim-core collide-with) (collide-spec jak player-list tobot))
+      (set! (-> v1-13 prim-core action) (collide-action solid rideable))
+      (set! (-> v1-13 transform-index) 4)
+      (set-vector! (-> v1-13 local-sphere) -6144.0 0.0 0.0 10649.6)
+      )
+    (let ((v1-15 (new 'process 'collide-shape-prim-mesh s5-0 (the-as uint 1) (the-as uint 0))))
+      (set! (-> v1-15 prim-core collide-as) (collide-spec obstacle))
+      (set! (-> v1-15 prim-core collide-with) (collide-spec jak player-list tobot))
+      (set! (-> v1-15 prim-core action) (collide-action solid rideable))
+      (set! (-> v1-15 transform-index) 5)
+      (set-vector! (-> v1-15 local-sphere) 6144.0 0.0 0.0 10649.6)
+      )
+    (let ((v1-17 (new 'process 'collide-shape-prim-mesh s5-0 (the-as uint 2) (the-as uint 0))))
+      (set! (-> v1-17 prim-core collide-as) (collide-spec obstacle))
+      (set! (-> v1-17 prim-core collide-with) (collide-spec jak player-list tobot))
+      (set! (-> v1-17 prim-core action) (collide-action solid rideable))
+      (set! (-> v1-17 transform-index) 3)
+      (set-vector! (-> v1-17 local-sphere) 0.0 0.0 0.0 14336.0)
+      )
+    (let ((v1-19 (new 'process 'collide-shape-prim-sphere s5-0 (the-as uint 0))))
+      (set! (-> v1-19 prim-core collide-as) (collide-spec obstacle))
+      (set! (-> v1-19 prim-core collide-with) (collide-spec jak player-list tobot))
+      (set! (-> v1-19 prim-core action) (collide-action solid))
+      (set! (-> v1-19 transform-index) 6)
+      (set-vector! (-> v1-19 local-sphere) 0.0 -8192.0 0.0 13107.2)
+      )
+    (set! (-> s5-0 nav-radius) (* 0.75 (-> s5-0 root-prim local-sphere w)))
+    (let ((v1-22 (-> s5-0 root-prim)))
+      (set! (-> s5-0 backup-collide-as) (-> v1-22 prim-core collide-as))
+      (set! (-> s5-0 backup-collide-with) (-> v1-22 prim-core collide-with))
+      )
+    (set! (-> this root) s5-0)
+    )
+  (process-drawable-from-entity! this arg0)
+  (initialize-skeleton this *hj2-cty-guard-turret-sg* (the-as pair 0))
+  (logior! (-> this mask) (process-mask enemy))
+  (reset-to-collide-spec (-> this focus) (collide-spec jak player-list))
+  (set! (-> this jm-turret) (new 'process 'joint-mod (joint-mod-mode joint-set*) this 6))
+  (set! (-> this jm-gunsL) (new 'process 'joint-mod (joint-mod-mode joint-set*) this 7))
+  (set! (-> this jm-gunsR) (new 'process 'joint-mod (joint-mod-mode joint-set*) this 8))
+  (set! (-> this part)
+        (create-launch-control (-> *part-group-id-table* (-> *hj2-cty-guard-turret-hit-group-ids* 0)) this)
+        )
+  (set! (-> this next-time-shot) 0)
+  (set! (-> this hit-points) 6)
+  (go (method-of-object this idle))
+  (none)
+  )
+
+
+;; ---------------------------------------------------------------------------------------------
+;; Parking spots
+;; ---------------------------------------------------------------------------------------------
+
+;; Jak 2's parking spots (parking-spot, levels/city/ctywide-obs.gc there; 49 in the districts): a
+;; place where a hover bike or car of the city's traffic waits, parked, for Jak to take it. Jak 3's
+;; class (levels/city/ctywide-obs.gc) is the same idea, but its file is not linked in havenj2 (the
+;; port's traffic "skip"), so this is a copy of it. It has no art: the vehicle is the traffic's own
+;; (havenj2's traffic types, traffic-type civilian-bike-a to civilian-car-c). Like Jak 2's and Jak
+;; 3's, a spot spawns its vehicle when the camera is 40 to 250 m away (out of sight closer than 150
+;; m), keeps it while Jak is near or looking, and lets the traffic take it back 10 s after that. The
+;; spot faces +z on the ground below it, whatever its actor's rotation (Jak 2 and Jak 3 do the same).
+;; Nothing spawns while the city's traffic is off (Mods menu): no traffic type is active then.
+;; ponytail: no minimap icon (Jak 3's add-icon! 11): havenj2 has no minimap of its own.
+(deftype hj2-parking-spot (process-drawable)
+  ((vehicle           handle)
+   (spawned           symbol)
+   (test-sphere       sphere  :inline)
+   (expire-time       time-frame)
+   (last-update-time  time-frame)
+   )
+  (:state-methods
+    idle
+    )
+  (:methods
+    (update-vehicle (_type_) none)
+    (spawn-vehicle (_type_ traffic-type) none)
+    (find-ground (_type_) none)
+    (can-spawn? (_type_ symbol) symbol)
+    (keep-vehicle? (_type_) symbol)
+    )
+  )
+
+
+(defun hj2-parking-spot-random-type ()
+  "A random traffic type for a parked vehicle, or (traffic-type max) for none: Jak 3's pick among
+the active traffic types with a parking chance. Never a Hellcat (guard-car, Mods menu): Jak 2 parks
+only the citizens' vehicles. No traffic engine (havenj2 logged out): none."
+  (if *traffic-engine*
+      (let ((type (get-random-parking-spot-type *traffic-engine*)))
+        (if (= type (traffic-type guard-car))
+            (traffic-type max)
+            type
+            )
+        )
+      (traffic-type max)
+      )
+  )
+
+(defmethod can-spawn? ((this hj2-parking-spot) (at-init symbol))
+  "Can the spot spawn its vehicle now (Jak 3's parking-spot-method-25)? Parking spots on (a setting
+Jak 3's missions turn off), the camera more than 40 m away (any distance at init: at-init #t), and
+closer than 250 m in sight (or farther than 150 m when not at init), closer than 150 m out of sight."
+  (let ((dist (vector-vector-distance (-> this root trans) (math-camera-pos))))
+    (and (not (-> *setting-control* user-current disable-parking-spots?))
+         (or (< 163840.0 dist) at-init)
+         (if (sphere-in-view-frustum? (-> this test-sphere))
+             (and (or at-init (< 614400.0 dist)) (< dist 1024000.0))
+             (< dist 614400.0)
+             )
+         )
+    )
+  )
+
+(defmethod keep-vehicle? ((this hj2-parking-spot))
+  "Should the spot keep its vehicle (Jak 3's parking-spot-method-26)? The camera closer than 40 m,
+or closer than 150 m and the spot in sight."
+  (let ((dist (vector-vector-distance (-> this root trans) (math-camera-pos))))
+    (or (< dist 163840.0) (and (sphere-in-view-frustum? (-> this test-sphere)) (< dist 614400.0)))
+    )
+  )
+
+(defmethod find-ground ((this hj2-parking-spot))
+  "Put the spot on the background ground at most 10 m below it, facing +z on its slope (Jak 3's
+parking-spot-method-24). Side effects: root trans and quat."
+  (let ((gp-0 (new 'stack-no-clear 'cquery-with-vec)))
+    (vector-copy! (-> gp-0 vec0) (-> this root trans))
+    (vector-copy! (-> gp-0 cquery start-pos) (-> gp-0 vec0))
+    (vector-reset! (-> gp-0 vec1))
+    (set! (-> gp-0 vec1 y) 1.0)
+    (set-vector! (-> gp-0 cquery move-dist) 0.0 -40960.0 0.0 1.0)
+    (let ((v1-5 (-> gp-0 cquery)))
+      (set! (-> v1-5 radius) 1024.0)
+      (set! (-> v1-5 collide-with) (collide-spec backgnd))
+      (set! (-> v1-5 ignore-process0) #f)
+      (set! (-> v1-5 ignore-process1) #f)
+      (set! (-> v1-5 ignore-pat)
+            (new 'static 'pat-surface :noentity #x1 :nojak #x1 :probe #x1 :noendlessfall #x1 :board #x1)
+            )
+      (set! (-> v1-5 action-mask) (collide-action solid))
+      )
+    (let ((f30-0 (fill-and-probe-using-line-sphere *collide-cache* (-> gp-0 cquery))))
+      (when (>= f30-0 0.0)
+        (vector+float*! (-> gp-0 vec0) (-> gp-0 cquery start-pos) (-> gp-0 cquery move-dist) f30-0)
+        (vector-copy! (-> gp-0 vec1) (-> gp-0 cquery best-other-tri normal))
+        )
+      )
+    (vector-copy! (-> this root trans) (-> gp-0 vec0))
+    (forward-up-nopitch->quaternion (-> this root quat) (new 'static 'vector :z 1.0 :w 1.0) (-> gp-0 vec1))
+    )
+  0
+  (none)
+  )
+
+(defmethod update-vehicle ((this hj2-parking-spot))
+  "Follow the parked vehicle (Jak 3's parking-spot-method-21): let it go (no longer persistent)
+once it is dead, taken by Jak, moved off the spot or parking spots are turned off; keep it while
+keep-vehicle? says so, else give it up 10 s later. Once it is gone, the spot may spawn again."
+  (with-pp
+    (let ((s5-0 (the-as vehicle (handle->process (-> this vehicle)))))
+      (cond
+        (s5-0
+          (cond
+            ((or (-> *setting-control* user-current disable-parking-spots?)
+                 (focus-test? s5-0 dead inactive)
+                 (not (logtest? (vehicle-flag waiting-for-player) (-> s5-0 v-flags)))
+                 (< (square (-> this test-sphere r))
+                    (vector-vector-distance-squared (-> s5-0 root trans) (-> this test-sphere))
+                    )
+                 )
+             (logclear! (-> s5-0 v-flags) (vehicle-flag persistent))
+             (cond
+               ((-> *setting-control* user-current disable-parking-spots?)
+                ;; parking spots turned off: the vehicle goes once it can't be seen leaving
+                (when (or (< (-> *display* base-clock frame-counter) (-> *game-info* blackout-time))
+                          (>= (-> *setting-control* user-current bg-a) 1.0)
+                          (>= (-> *setting-control* user-current bg-a-force) 1.0)
+                          (and (>= (square (-> this test-sphere r))
+                                   (vector-vector-distance-squared (-> s5-0 root trans) (-> this test-sphere))
+                                   )
+                               (not (sphere-in-view-frustum? (-> this test-sphere)))
+                               )
+                          )
+                  (send-event (handle->process (-> this vehicle)) 'traffic-off-force)
+                  (set! (-> this vehicle) (the-as handle #f))
+                  )
+                )
+               (else
+                 (set! (-> this vehicle) (the-as handle #f))
+                 )
+               )
+             )
+            (else
+              (if (keep-vehicle? this)
+                  (begin
+                    (logior! (-> s5-0 v-flags) (vehicle-flag persistent))
+                    (+! (-> this expire-time) (- (current-time) (-> pp clock old-frame-counter)))
+                    )
+                  )
+              (when (< (-> this expire-time) (current-time))
+                (logclear! (-> s5-0 v-flags) (vehicle-flag persistent))
+                (set! (-> this vehicle) (the-as handle #f))
+                )
+              )
+            )
+          )
+        (else
+          (set! (-> this vehicle) (the-as handle #f))
+          (set! (-> this spawned) #f)
+          )
+        )
+      )
+    0
+    (none)
+    )
+  )
+
+(defmethod spawn-vehicle ((this hj2-parking-spot) (type traffic-type))
+  "Spawn a parked vehicle of this traffic type on the spot, 3.5 m up, if nothing stands there (Jak
+3's parking-spot-method-23): the traffic manager activates it, persistent for 10 s. Side effects:
+vehicle, spawned, expire-time."
+  (let ((v1-0 (new 'stack-no-clear 'cquery-with-vec)))
+    (let* ((a0-1 (new 'stack-no-clear 'inline-array 'vector 1))
+           (a1-2 (the-as uint #xa01013fd))
+           (a2-1 (logand -2 a1-2))
+           )
+      (vector-copy! (-> a0-1 0) (-> this test-sphere))
+      (let ((a1-4 (-> v1-0 cquery)))
+        (set! (-> a1-4 best-dist) (the-as float a0-1))
+        (set! (-> a1-4 best-other-prim) (the-as collide-shape-prim 1))
+        (set! (-> a1-4 collide-with) (the-as collide-spec a2-1))
+        (set! (-> a1-4 ignore-process0) #f)
+        (set! (-> a1-4 ignore-process1) #f)
+        (set! (-> a1-4 ignore-pat)
+              (new 'static 'pat-surface :noentity #x1 :nojak #x1 :probe #x1 :noendlessfall #x1 :board #x1)
+              )
+        (set! (-> a1-4 best-my-prim) (the-as collide-shape-prim #t))
+        (set! (-> a1-4 action-mask) (collide-action solid))
+        )
+      )
+    0
+    (when (not (fill-and-probe-using-spheres *collide-cache* (-> v1-0 cquery)))
+      (let ((s4-0 (new 'stack 'traffic-object-spawn-params)))
+        (vector-copy! (-> s4-0 position) (-> this root trans))
+        (mem-copy! (the-as pointer (-> s4-0 rotation)) (the-as pointer (-> this root quat)) 16)
+        (+! (-> s4-0 position y) 14336.0)
+        (set! (-> s4-0 behavior) (the-as uint 0))
+        (set! (-> s4-0 object-type) type)
+        (set! (-> s4-0 id) (the-as uint 0))
+        (set! (-> s4-0 proc) #f)
+        (send-event *traffic-manager* 'activate-object s4-0)
+        (let ((v1-9 (-> s4-0 proc)))
+          (when v1-9
+            (logior! (-> (the-as vehicle v1-9) v-flags) (vehicle-flag persistent))
+            (set! (-> this expire-time) (+ (current-time) (seconds 10)))
+            (set! (-> this vehicle) (process->handle v1-9))
+            (set! (-> this spawned) #t)
+            )
+          )
+        )
+      )
+    )
+  0
+  (none)
+  )
+
+(defmethod init-from-entity! ((this hj2-parking-spot) (arg0 entity-actor))
+  "Jak 3's parking-spot setup: no art, put on the ground (the rotoffset lump is applied, then
+replaced by find-ground, as in Jak 2 and Jak 3), a 6 m test sphere, and a first vehicle at once
+when the camera is far enough."
+  (set! (-> this root) (new 'process 'trsqv))
+  (set! (-> this vehicle) (the-as handle #f))
+  (set! (-> this spawned) #f)
+  (process-drawable-from-entity! this arg0)
+  (logclear! (-> this mask) (process-mask actor-pause movie))
+  (let ((f0-0 (res-lump-float (-> this entity) 'rotoffset)))
+    (if (!= f0-0 0.0)
+        (quaternion-rotate-y! (-> this root quat) (-> this root quat) f0-0)
+        )
+    )
+  (find-ground this)
+  (set! (-> this test-sphere quad) (-> this root trans quad))
+  (set! (-> this test-sphere r) 24576.0)
+  (set-time! (-> this state-time))
+  (when (can-spawn? this #t)
+    (let ((type (hj2-parking-spot-random-type)))
+      (if (!= type (traffic-type max))
+          (spawn-vehicle this type)
+          )
+      )
+    )
+  (go (method-of-object this idle))
+  )
+
+;; waiting: every 0.2 s (after 0.25 s), follows its vehicle and spawns one when it has none and
+;; can-spawn? allows. Leaving it (the district unloads) sends the vehicle back to the traffic.
+(defstate idle (hj2-parking-spot)
+  :virtual #t
+  :enter (behavior ()
+    (set-time! (-> self state-time))
+    )
+  :exit (behavior ()
+    (update-vehicle self)
+    (send-event (handle->process (-> self vehicle)) 'traffic-off-force)
+    )
+  :code sleep-code
+  :post (behavior ()
+    (when (time-elapsed? (-> self state-time) (seconds 0.25))
+      (update-vehicle self)
+      (when (time-elapsed? (-> self last-update-time) (seconds 0.2))
+        (set-time! (-> self last-update-time))
+        (when (and (not (-> self spawned)) (can-spawn? self #f))
+          (let ((type (hj2-parking-spot-random-type)))
+            (if (!= type (traffic-type max))
+                (spawn-vehicle self type)
+                )
+            )
+          )
+        )
+      )
+    )
+  )
+
+;; ---------------------------------------------------------------------------------------------
+;; Force-field walls
+;; ---------------------------------------------------------------------------------------------
+
+;; Jak 2's force-field walls (security-wall, levels/city/ctywide-obs.gc there): a 30 m high field
+;; across a street, between the two points of its path, colored by the pass that opens it (Jak 2's
+;; pickup-type lump: 29 red, 30 green, 31 yellow, 32 blue). Jak 2 opens a wall when Jak owns its
+;; pass; at the end of the game he owns the red, green and yellow ones (game-task.gc there), so the
+;; 7 walls with a path are open: no collision, the field fading out as Jak comes within 80 to 40 m
+;; of it, gone for good once he is closer (Jak 2's idle-open, unchanged). ctymarka's security-wall-6
+;; has no path: like in Jak 2, it stops at once (process-drawable-art-error), nothing shows.
+;; Jak 3's art (security-wall-ag) and its color texture animation: *security-texture-anim-array*
+;; and set-security-color! come from Jak 3's ctywide-texture.o, linked in havenj2, whose level-info
+;; runs that animation (callback 6). Every wall shares the animation's one color, as in Jak 2.
+
+;; Jak 3's ctywide-texture.gc (linked earlier in havenj2's DGO): the walls' color and the masks of
+;; their texture animation
+(define-extern set-security-color! (function vector vector))
+(define-extern set-security-texture-masks! (function vector symbol))
+
+(deftype hj2-security-wall (process-drawable)
+  ((root   collide-shape :override)
+   (pass   int32)
+   (plane  plane          :inline)
+   (color  vector         :inline)
+   )
+  (:state-methods
+    idle-open
+    idle-close
+    )
+  (:methods
+    (init-wall (_type_ vector vector float) vector)
+    )
+  )
+
+
+;; Jak 3's art: a 1 x 1 m plane (joint plane, 3), scaled to the wall's length and height
+(defskelgroup skel-hj2-security-wall security-wall security-wall-lod0-jg security-wall-idle-ja
+              ((security-wall-lod0-mg (meters 999999)))
+              :bounds (static-spherem 0 0 0 100.1)
+              )
+
+;; Open: not solid; the field fades out between 80 and 40 m from Jak (along its normal), and the
+;; wall dies (its entity marked dead) once Jak is closer than 40 m. Side effect: the shared color.
+(defstate idle-open (hj2-security-wall)
+  :virtual #t
+  :enter (behavior ()
+    (let ((v1-1 (-> self root root-prim)))
+      (set! (-> v1-1 prim-core collide-as) (collide-spec))
+      (set! (-> v1-1 prim-core collide-with) (collide-spec))
+      )
+    )
+  :trans (behavior ()
+    (let* ((f28-0 (vector4-dot (the-as vector (-> self plane)) (target-pos 0)))
+           (f30-0 (calc-fade-from-fog (-> self root trans)))
+           (f28-1 (lerp-scale 0.0 1.0 (fabs f28-0) 163840.0 327680.0))
+           (gp-1 (new 'stack-no-clear 'vector))
+           )
+      (when (= f28-1 0.0)
+        (cleanup-for-death self)
+        (deactivate self)
+        )
+      (vector-float*! gp-1 (-> self color) (* f30-0 f28-1))
+      (set! (-> gp-1 w) 1.0)
+      (set-security-color! gp-1)
+      )
+    )
+  :code (behavior ()
+    (until #f
+      (suspend)
+      )
+    #f
+    )
+  )
+
+;; Shut: solid, the field at its full color (faded by fog). Side effect: the shared color.
+;; ponytail: no wall is shut at the end of the game, so none of Jak 2's shut-wall extras (the hit
+;; ripples, the damage when Jak forces through, the guards' warnings); port them if one ever is.
+(defstate idle-close (hj2-security-wall)
+  :virtual #t
+  :code (behavior ()
+    (until #f
+      (let ((gp-0 (new 'stack-no-clear 'vector)))
+        (vector-float*! gp-0 (-> self color) (calc-fade-from-fog (-> self root trans)))
+        (set-security-color! gp-0)
+        )
+      (suspend)
+      )
+    #f
+    )
+  )
+
+(defmethod init-wall ((this hj2-security-wall) (arg0 vector) (arg1 vector) (arg2 float))
+  "Make the wall from arg0 to arg1 (its path's points), arg2 high (Jak 2's and Jak 3's): its solid
+collision mesh, its place (the middle, half its height up), its scale (the art is 1 x 1 m), its
+rotation facing across the street, and its plane. Returns its collision sphere."
+  (let ((s2-0 (new 'process 'collide-shape this (collide-list-enum usually-hit-by-player))))
+    (let ((v1-3 (new 'process 'collide-shape-prim-mesh s2-0 (the-as uint 0) (the-as uint 0))))
+      (set! (-> v1-3 prim-core collide-as) (collide-spec obstacle blocking-plane camera-blocker))
+      (set! (-> v1-3 prim-core collide-with) (collide-spec jak player-list))
+      (set! (-> v1-3 prim-core action) (collide-action solid))
+      (set! (-> v1-3 transform-index) 3)
+      (set! (-> s2-0 total-prims) (the-as uint 1))
+      (set! (-> s2-0 root-prim) v1-3)
+      )
+    (set! (-> s2-0 nav-radius) (* 0.75 (-> s2-0 root-prim local-sphere w)))
+    (let ((v1-6 (-> s2-0 root-prim)))
+      (set! (-> s2-0 backup-collide-as) (-> v1-6 prim-core collide-as))
+      (set! (-> s2-0 backup-collide-with) (-> v1-6 prim-core collide-with))
+      )
+    (set! (-> this root) s2-0)
+    )
+  (let ((s2-1 (new 'stack-no-clear 'matrix))
+        (s1-0 (-> this root))
+        )
+    (vector+! (-> s1-0 trans) arg0 arg1)
+    (vector-float*! (-> s1-0 trans) (-> s1-0 trans) 0.5)
+    (+! (-> s1-0 trans y) (/ arg2 2))
+    (vector-! (-> s2-1 rvec) arg1 arg0)
+    (let ((f30-1 (vector-normalize-ret-len! (-> s2-1 rvec) 1.0)))
+      (set! (-> s1-0 scale x) (/ f30-1 METER_LENGTH))
+      (set! (-> s1-0 scale y) (/ arg2 METER_LENGTH))
+      (set! (-> s1-0 scale z) 1.0)
+      (vector-copy! (-> s2-1 uvec) (new 'static 'vector :y 1.0 :w 1.0))
+      (vector-cross! (-> s2-1 fvec) (-> s2-1 rvec) (-> s2-1 uvec))
+      (vector-normalize! (-> s2-1 fvec) 1.0)
+      (matrix->quaternion (-> s1-0 quat) s2-1)
+      (set! (-> this plane quad) (-> s2-1 fvec quad))
+      (set! (-> this plane w) (- (vector-dot (-> s2-1 fvec) (-> this root trans))))
+      (let ((v0-6 (-> this root root-prim local-sphere)))
+        (set! (-> v0-6 x) 0.0)
+        (set! (-> v0-6 y) (* 0.00024414062 (/ arg2 2)))
+        (set! (-> v0-6 z) 0.0)
+        (set! (-> v0-6 w) (* 0.5 (sqrtf (+ (square f30-1) (square arg2)))))
+        v0-6
+        )
+      )
+    )
+  )
+
+(defmethod init-from-entity! ((this hj2-security-wall) (arg0 entity-actor))
+  "Jak 2's security-wall setup: a 30 m high wall along its 2-point path (none: art error), its
+pass's color, glowing (no fog, emissive), then open if Jak owns its pass at the end of the game
+(red, green, yellow), else shut."
+  (set! (-> this pass) (res-lump-value arg0 'pickup-type int :time -1000000000.0))
+  (let ((v1-3 (new 'process 'path-control this 'path 0.0 (the-as entity #f) #f)))
+    (set! (-> this path) v1-3)
+    (if (or (not v1-3) (!= (-> v1-3 curve num-cverts) 2))
+        (go process-drawable-art-error "bad path")
+        )
+    )
+  (let ((s5-1 (new 'stack-no-clear 'vector))
+        (s4-0 (new 'stack-no-clear 'vector))
+        )
+    (get-point-in-path! (-> this path) s5-1 0.0 'exact)
+    (get-point-in-path! (-> this path) s4-0 1.0 'exact)
+    (init-wall this s5-1 s4-0 122880.0)
+    )
+  (initialize-skeleton
+    this
+    (the-as skeleton-group (art-group-get-by-name *level* "skel-hj2-security-wall" (the-as (pointer level) #f)))
+    (the-as pair 0)
+    )
+  (logior! (-> this draw status) (draw-control-status disable-fog))
+  (set-security-texture-masks! (the-as vector (-> this draw mgeo header texture-usage-group data 4)))
+  (case (-> this pass)
+    ((29) (set-vector! (-> this color) 1.0 0.0 0.0 1.0))
+    ((30) (set-vector! (-> this color) 0.0 1.0 0.0 1.0))
+    ((31) (set-vector! (-> this color) 1.0 1.0 0.0 1.0))
+    ((32) (set-vector! (-> this color) 0.0 0.0 1.0 1.0))
+    (else (set-vector! (-> this color) 1.0 1.0 1.0 1.0))
+    )
+  (set-security-color! (-> this color))
+  (set-vector! (-> this draw color-mult) 0.0 0.0 0.0 0.0)
+  (set-vector! (-> this draw color-emissive) 1.0 1.0 1.0 1.0)
+  (transform-post)
+  (if (and (>= (-> this pass) 29) (<= (-> this pass) 31))
+      (go (method-of-object this idle-open))
+      (go (method-of-object this idle-close))
+      )
+  )
+
+;; The gardens' yakows ////////////////////////////////////////////////////////////////////////////
+
+;; Jak 2's yakow (levels/city/farm/yakow.gc there, a nav-enemy): the cattle of the gardens' two
+;; pastures (hj2-farmb, Jak 2's ctyfarmb, 14 of them). Like Jak 2's: it idles, sometimes grazes, and
+;; while Jak is within 30m it now and then walks somewhere near; any hit (once per attack) plays its
+;; kicked animation, it never takes damage. Solid to Jak (a sphere he can't stand on, Jak 2's).
+;; Jak 3 has no yakow class (its yakow-ag ships in CFB without code), so the model is Jak 2's,
+;; rebuilt by build-actor (hj2-yakow.glb, made by the level port from ctyfarmb/yakow-lod0.glb, with
+;; 4 of its 8 animations). Not ported: Jak 2's nav mesh (a yakow walks to a random point near
+;; where it stands, checked with collision probes instead), its shadow, the walk-left/right and run
+;; blends, its sounds (no yakow sound in Jak 3's banks; Jak 2's kicked plays none either).
+(deftype hj2-yakow (process-focusable)
+  ((incoming-attack-id  uint32)
+   (home                vector  :inline)
+   (dest                vector  :inline)
+   )
+  (:state-methods
+    idle
+    walk
+    kicked
+    )
+  )
+
+
+;; the art group from build-actor: Jak 2's yakow with its idle, graze, walk and kicked-in-place
+;; animations, in the order of the level port's "anims" for hj2-yakow. Bounds: Jak 2's skel-yakow's.
+(def-actor hj2-yakow
+  :art (idle-ja graze-ja walk-ja kicked-in-place-ja)
+  :bounds (0 1 0 4)
+  )
+
+;; How far from its spawn point a yakow wanders (xz, each axis). Jak 2 picks points within 10m on its
+;; nav mesh; without one, a shorter tether keeps the herd in its pasture (the closest yakows stand
+;; 5.5m apart). Tune here if they bunch up or leave the pasture.
+(define *hj2-yakow-wander-radius* (meters 4))
+
+(defun hj2-yakow-probe ((this hj2-yakow) (start vector) (move vector) (with collide-spec) (radius float))
+  "Sweep a sphere of radius from start along move against with, ignoring the yakow itself (the
+query of hj2-parking-spot's find-ground). Returns the fraction of move travelled before the first
+hit, negative when nothing is hit. No side effects."
+  (let ((cq (new 'stack-no-clear 'collide-query)))
+    (vector-copy! (-> cq start-pos) start)
+    (vector-copy! (-> cq move-dist) move)
+    (set! (-> cq radius) radius)
+    (set! (-> cq collide-with) with)
+    (set! (-> cq ignore-process0) this)
+    (set! (-> cq ignore-process1) #f)
+    (set! (-> cq ignore-pat)
+          (new 'static 'pat-surface :noentity #x1 :nojak #x1 :probe #x1 :noendlessfall #x1 :board #x1)
+          )
+    (set! (-> cq action-mask) (collide-action solid))
+    (fill-and-probe-using-line-sphere *collide-cache* cq)
+    )
+  )
+
+(defun hj2-yakow-ground ((this hj2-yakow) (pos vector))
+  "Put pos on the background ground: a 0.1m sphere dropped from 2m above pos, 4m down.
+Returns #t and sets pos's y when there is ground, #f (pos unchanged) when there is none."
+  (let ((start (vector+! (new 'stack-no-clear 'vector) pos (new 'static 'vector :y 8192.0 :w 1.0)))
+        (move (new 'static 'vector :y -16384.0 :w 1.0))
+        )
+    (let ((f0-0 (hj2-yakow-probe this start move (collide-spec backgnd) 409.6)))
+      (when (>= f0-0 0.0)
+        (set! (-> pos y) (- (+ (-> start y) (* f0-0 (-> move y))) 409.6))
+        #t
+        )
+      )
+    )
+  )
+
+(defun hj2-yakow-pick-dest! ((this hj2-yakow))
+  "Jak 2's nav-enemy-method-156 (a random point to walk to) without a nav mesh: up to 8 random
+points within *hj2-yakow-wander-radius* of home, the first kept whose ground is within 1m of home's
+height and that nothing (background, crates, props, other yakows) stands between it and the yakow's
+chest. Sets dest (on the ground). Returns #t when a point was found, else #f."
+  (let ((r *hj2-yakow-wander-radius*)
+        (chest (vector+! (new 'stack-no-clear 'vector) (-> this root trans) (new 'static 'vector :y 6144.0 :w 1.0)))
+        )
+    (dotimes (i 8)
+      (let ((p (-> this dest)))
+        (vector-copy! p (-> this home))
+        (+! (-> p x) (rand-vu-float-range (- r) r))
+        (+! (-> p z) (rand-vu-float-range (- r) r))
+        (when (and (hj2-yakow-ground this p)
+                   (< (fabs (- (-> p y) (-> this home y))) 4096.0)
+                   (< (hj2-yakow-probe
+                        this
+                        chest
+                        (vector-! (new 'stack-no-clear 'vector) p (-> this root trans))
+                        (collide-spec backgnd crate obstacle enemy)
+                        2048.0
+                        )
+                      0.0
+                      )
+                   )
+          (return #t)
+          )
+        )
+      )
+    )
+  #f
+  )
+
+(defbehavior hj2-yakow-event-handler hj2-yakow ((proc process) (argc int) (message symbol) (block event-message-block))
+  "Jak 2's yakow general-event-handler: an attack (Jak's, a shot, a vehicle...) kicks it once per
+attack id, with no damage. Side effects: incoming-attack-id, goes to kicked. Other events: none."
+  (case message
+    (('attack)
+     (let ((v1-1 (the-as attack-info (-> block param 1))))
+       (when (!= (-> v1-1 id) (-> self incoming-attack-id))
+         (set! (-> self incoming-attack-id) (-> v1-1 id))
+         (go-virtual kicked)
+         )
+       )
+     )
+    )
+  )
+
+;; standing: Jak 2's idle loop (its idle animation at a random speed, a graze one time in four);
+;; while Jak is within 30m (Jak 2's notice distance), after each loop one chance in five to walk
+(defstate idle (hj2-yakow)
+  :virtual #t
+  :event hj2-yakow-event-handler
+  :code (behavior ()
+    (ja-channel-push! 1 (seconds 0.15))
+    (until #f
+      (let ((f30-0 (rand-vu-float-range 0.9 1.1)))
+        (ja-no-eval :group! hj2-yakow-idle-ja :num! (seek! max f30-0) :frame-num 0.0)
+        (until (ja-done? 0)
+          (suspend)
+          (ja :num! (seek! max f30-0))
+          )
+        )
+      (when (rand-vu-percent? 0.25)
+        (ja-channel-push! 1 (seconds 0.1))
+        (ja-no-eval :group! hj2-yakow-graze-ja :num! (seek!) :frame-num 0.0)
+        (until (ja-done? 0)
+          (suspend)
+          (ja :num! (seek!))
+          )
+        (ja-channel-push! 1 (seconds 0.1))
+        )
+      (if (and *target*
+               (< (vector-vector-distance (-> self root trans) (target-pos 0)) (meters 30))
+               (rand-vu-percent? 0.2)
+               (hj2-yakow-pick-dest! self)
+               )
+          (go-virtual walk)
+          )
+      )
+    #f
+    )
+  :post ja-post
+  )
+
+;; walking to dest (set by hj2-yakow-pick-dest! before going here) at Jak 2's walk speed (2.13m/s),
+;; turning at Jak 2's 50 degrees/s and only moving once facing it within 30 degrees, its feet kept
+;; on the ground. Back to idle at dest (1m), after 8s, or when the ground ahead is missing or too steep
+(defstate walk (hj2-yakow)
+  :virtual #t
+  :event hj2-yakow-event-handler
+  :enter (behavior ()
+    (set-time! (-> self state-time))
+    )
+  :trans (behavior ()
+    (if (or (< (vector-vector-xz-distance (-> self root trans) (-> self dest)) 4096.0)
+            (time-elapsed? (-> self state-time) (seconds 8))
+            )
+        (go-virtual idle)
+        )
+    )
+  :code (behavior ()
+    (ja-channel-push! 1 (seconds 0.2))
+    (let ((f30-0 (rand-vu-float-range 0.9 1.1)))
+      (until #f
+        (ja-no-eval :group! hj2-yakow-walk-ja :num! (seek! max f30-0) :frame-num 0.0)
+        (until (ja-done? 0)
+          (suspend)
+          (ja :num! (seek! max f30-0))
+          )
+        )
+      )
+    #f
+    )
+  :post (behavior ()
+    (let ((dir (vector-! (new 'stack-no-clear 'vector) (-> self dest) (-> self root trans))))
+      (seek-toward-heading-vec! (-> self root) dir 9102.223 (seconds 0.1))
+      (when (< (fabs (deg-diff (quaternion-y-angle (-> self root quat)) (vector-y-angle dir))) 5461.3335)
+        (let ((next (vector+float*!
+                      (new 'stack-no-clear 'vector)
+                      (-> self root trans)
+                      (vector-z-quaternion! (new 'stack-no-clear 'vector) (-> self root quat))
+                      (* 8724.48 (seconds-per-frame))
+                      )
+                    )
+              )
+          ;; ponytail: one ground probe a frame per walking yakow, no avoidance once walking (the
+          ;; path was checked when dest was picked); port Jak 2's nav mesh if they get stuck
+          (if (and (hj2-yakow-ground self next) (< (fabs (- (-> next y) (-> self root trans y))) 2048.0))
+              (vector-copy! (-> self root trans) next)
+              (vector-copy! (-> self dest) (-> self root trans))
+              )
+          )
+        )
+      )
+    (transform-post)
+    )
+  )
+
+;; hit: Jak 2's kicked-in-place animation, deaf to other hits meanwhile (Jak 2's :event #f), then
+;; walks off like Jak 2's (which goes back to its walking state), or stands when there's nowhere to go
+(defstate kicked (hj2-yakow)
+  :virtual #t
+  :code (behavior ()
+    (ja-channel-push! 1 (seconds 0.05))
+    (ja-no-eval :group! hj2-yakow-kicked-in-place-ja :num! (seek!) :frame-num 0.0)
+    (until (ja-done? 0)
+      (suspend)
+      (ja :num! (seek!))
+      )
+    (if (hj2-yakow-pick-dest! self)
+        (go-virtual walk)
+        )
+    (go-virtual idle)
+    )
+  :post ja-post
+  )
+
+(defmethod init-from-entity! ((this hj2-yakow) (arg0 entity-actor))
+  "Jak 2's yakow setup: Jak 2's collision (a 2.5m sphere 1m up, hit by Jak, his attacks and the
+others', solid, no standing on it), placement, the build-actor model, home = where it spawns.
+Goes to idle. Returns nothing."
+  (let ((s5-0 (new 'process 'collide-shape this (collide-list-enum usually-hit-by-player))))
+    (let ((v1-2 (new 'process 'collide-shape-prim-sphere s5-0 (the-as uint 0))))
+      (set! (-> v1-2 prim-core collide-as) (collide-spec enemy))
+      (set! (-> v1-2 prim-core collide-with) (collide-spec jak player-list))
+      (set! (-> v1-2 prim-core action) (collide-action solid no-standon))
+      (set-vector! (-> v1-2 local-sphere) 0.0 4096.0 0.0 10240.0)
+      (set! (-> s5-0 total-prims) (the-as uint 1))
+      (set! (-> s5-0 root-prim) v1-2)
+      )
+    (set! (-> s5-0 nav-radius) 10240.0)
+    (let ((v1-5 (-> s5-0 root-prim)))
+      (set! (-> s5-0 backup-collide-as) (-> v1-5 prim-core collide-as))
+      (set! (-> s5-0 backup-collide-with) (-> v1-5 prim-core collide-with))
+      )
+    (set! (-> this root) s5-0)
+    )
+  (process-drawable-from-entity! this arg0)
+  (initialize-skeleton this *hj2-yakow-sg* (the-as pair 0))
+  (vector-copy! (-> this home) (-> this root trans))
+  (vector-copy! (-> this dest) (-> this root trans))
+  (transform-post)
+  (go (method-of-object this idle))
   )

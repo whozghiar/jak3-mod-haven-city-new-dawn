@@ -2,6 +2,19 @@
 ;; DGO definition file for hj2-pcab: the palace cable, between the pillar tops.
 ("HJQ.DGO"
  (
-  "com-airlock-outer-ag.go"
+  "searchlight-ag.go"
+  "jak-pole+0-ag.go"
+  "hj2-airlock-outer-ag.go"
+  "hj2-pal-cable-nut-ag.go"
+  "hj2-pal-falling-plat-ag.go"
+  "hj2-pal-flip-step-ag.go"
+  "hj2-pal-electric-fan-ag.go"
+  "hj2-pal-rot-gun-ag.go"
+  "hj2-pal-gun-turret-ag.go"
+  "hj2-pal-gun-turret-explode-ag.go"
+  "hj2-pal-windmill-ag.go"
+  "searchlight.o"
+  "hj2-pcab-obs.o"
+  "hj2-pcab-part.o"
   "hj2-pcab.go"
   ))

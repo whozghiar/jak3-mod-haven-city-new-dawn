@@ -16,7 +16,7 @@
   ],
   // models of its custom actors, built by build-actor
   "custom_models": ["hj2-fort-lift-plat"],
-  "art_groups": [],
+  "art_groups": ["jak-pole+0-ag"],
   "actors": [
     // Jak 2's crate-577 (forexita)
     {"trans": [596.5645, 25.99, 193.551], "etype": "crate", "game_task": 0, "quat": [0.0, 0.8765, 0.0, 0.4815], "bsphere": [596.5645, 25.99, 193.551, 6.9282], "lump": {"name": "crate-577"}},
@@ -37,6 +37,146 @@
     // Jak 2's fort-lift-plat-6 (forexita)
     {"trans": [642.9142, 76.9044, 143.5987], "etype": "hj2-fort-lift-plat", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [642.9142, 76.9044, 143.5987, 28.0608], "lump": {"name": "fort-lift-plat-6", "path": ["vector", [2633107.25, 297650.09375, 588123.875, 1.0], [2661809.75, 297650.09375, 588123.875, 1.0]]}},
     // Jak 2's swingpole-131 (forexita)
-    {"trans": [684.0533, 70.0555, 125.9619], "etype": "swingpole", "game_task": 0, "quat": [0.7096, -0.7046, -0.0, 0.0], "bsphere": [684.0533, 70.0555, 125.9619, 6.9282], "lump": {"name": "swingpole-131"}}
+    {"trans": [684.0533, 70.0555, 125.9619], "etype": "swingpole", "game_task": 0, "quat": [0.7096, -0.7046, -0.0, 0.0], "bsphere": [684.0533, 70.0555, 125.9619, 6.9282], "lump": {"name": "swingpole-131"}},
+    // Jak 2's part-spawner-83 (forexita): group-forexita-overhead-lights
+    {"trans": [734.5461, 85.0222, 172.4562], "etype": "part-spawner", "game_task": 0, "quat": [0.7071, 0.0, 0.0, 0.7071], "bsphere": [734.5461, 85.0222, 172.4562, 6.9282], "lump": {"name": "part-spawner-83", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-overhead-lights"}},
+    // Jak 2's part-spawner-84 (forexita): group-forexita-overhead-lights
+    {"trans": [744.8251, 85.0222, 163.0832], "etype": "part-spawner", "game_task": 0, "quat": [0.7071, 0.0, 0.0, 0.7071], "bsphere": [744.8251, 85.0222, 163.0832, 6.9282], "lump": {"name": "part-spawner-84", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-overhead-lights"}},
+    // Jak 2's part-spawner-87 (forexita): group-forexita-blue-lights
+    {"trans": [738.8464, 81.2715, 159.5134], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [738.8464, 81.2715, 159.5134, 6.9282], "lump": {"name": "part-spawner-87", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-blue-lights"}},
+    // Jak 2's part-spawner-88 (forexita): group-forexita-blue-lights
+    {"trans": [747.4069, 81.2715, 160.0442], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [747.4069, 81.2715, 160.0442, 6.9282], "lump": {"name": "part-spawner-88", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-blue-lights"}},
+    // Jak 2's part-spawner-627 (forexita): group-forexita-yellow-lights
+    {"trans": [729.0904, 67.7169, 161.582], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [729.0904, 67.7169, 161.582, 6.9282], "lump": {"name": "part-spawner-627", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-yellow-lights"}},
+    // Jak 2's part-spawner-634 (forexita): group-forexita-yellow-lights
+    {"trans": [750.1425, 81.0908, 161.8078], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [750.1425, 81.0908, 161.8078, 6.9282], "lump": {"name": "part-spawner-634", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-yellow-lights"}},
+    // Jak 2's part-spawner-639 (forexita): group-forexita-yellow-lights
+    {"trans": [735.2342, 73.6599, 149.3416], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [735.2342, 73.6599, 149.3416, 6.9282], "lump": {"name": "part-spawner-639", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-yellow-lights"}},
+    // Jak 2's part-spawner-640 (forexita): group-forexita-yellow-lights
+    {"trans": [735.2342, 81.0908, 149.3416], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [735.2342, 81.0908, 149.3416, 6.9282], "lump": {"name": "part-spawner-640", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-yellow-lights"}},
+    // Jak 2's part-spawner-730 (forexita): group-forexita-l-panel
+    {"trans": [732.7347, 56.3842, 175.106], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [732.7347, 56.3842, 175.106, 6.9282], "lump": {"name": "part-spawner-730", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-l-panel"}},
+    // Jak 2's part-spawner-731 (forexita): group-forexita-l-upsideown-panel
+    {"trans": [732.7347, 55.9368, 168.6577], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [732.7347, 55.9368, 168.6577, 6.9282], "lump": {"name": "part-spawner-731", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-l-upsideown-panel"}},
+    // Jak 2's part-spawner-635 (forexita): group-forexita-yellow-lights
+    {"trans": [735.2342, 26.3707, 149.3416], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [735.2342, 26.3707, 149.3416, 6.9282], "lump": {"name": "part-spawner-635", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-yellow-lights"}},
+    // Jak 2's part-spawner-636 (forexita): group-forexita-yellow-lights
+    {"trans": [735.2342, 44.107, 149.3416], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [735.2342, 44.107, 149.3416, 6.9282], "lump": {"name": "part-spawner-636", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-yellow-lights"}},
+    // Jak 2's part-spawner-637 (forexita): group-forexita-yellow-lights
+    {"trans": [735.2342, 61.3803, 149.3416], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [735.2342, 61.3803, 149.3416, 6.9282], "lump": {"name": "part-spawner-637", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-yellow-lights"}},
+    // Jak 2's part-spawner-638 (forexita): group-forexita-yellow-lights
+    {"trans": [735.2342, 67.2591, 149.3416], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [735.2342, 67.2591, 149.3416, 6.9282], "lump": {"name": "part-spawner-638", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-yellow-lights"}},
+    // Jak 2's part-spawner-643 (forexita): group-forexita-yellow-lights
+    {"trans": [732.7144, 67.71, 173.8121], "etype": "part-spawner", "game_task": 0, "quat": [0.5, -0.5, -0.5, 0.5], "bsphere": [732.7144, 67.71, 173.8121, 6.9282], "lump": {"name": "part-spawner-643", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-yellow-lights"}},
+    // Jak 2's part-spawner-644 (forexita): group-forexita-yellow-lights
+    {"trans": [732.7144, 67.71, 167.0082], "etype": "part-spawner", "game_task": 0, "quat": [0.5, -0.5, -0.5, 0.5], "bsphere": [732.7144, 67.71, 167.0082, 6.9282], "lump": {"name": "part-spawner-644", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-yellow-lights"}},
+    // Jak 2's part-spawner-80 (forexita): group-forexita-overhead-lights
+    {"trans": [689.2224, 85.0222, 172.4562], "etype": "part-spawner", "game_task": 0, "quat": [0.7071, 0.0, 0.0, 0.7071], "bsphere": [689.2224, 85.0222, 172.4562, 6.9282], "lump": {"name": "part-spawner-80", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-overhead-lights"}},
+    // Jak 2's part-spawner-81 (forexita): group-forexita-overhead-lights
+    {"trans": [702.6437, 85.0222, 172.4562], "etype": "part-spawner", "game_task": 0, "quat": [0.7071, 0.0, 0.0, 0.7071], "bsphere": [702.6437, 85.0222, 172.4562, 6.9282], "lump": {"name": "part-spawner-81", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-overhead-lights"}},
+    // Jak 2's part-spawner-82 (forexita): group-forexita-overhead-lights
+    {"trans": [718.7813, 85.0222, 172.4562], "etype": "part-spawner", "game_task": 0, "quat": [0.7071, 0.0, 0.0, 0.7071], "bsphere": [718.7813, 85.0222, 172.4562, 6.9282], "lump": {"name": "part-spawner-82", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-overhead-lights"}},
+    // Jak 2's part-spawner-645 (forexita): group-forexita-yellow-lights
+    {"trans": [716.4431, 67.71, 167.0082], "etype": "part-spawner", "game_task": 0, "quat": [0.5, 0.5, 0.5, 0.5], "bsphere": [716.4431, 67.71, 167.0082, 6.9282], "lump": {"name": "part-spawner-645", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-yellow-lights"}},
+    // Jak 2's part-spawner-646 (forexita): group-forexita-yellow-lights
+    {"trans": [716.4431, 67.71, 173.8121], "etype": "part-spawner", "game_task": 0, "quat": [0.5, 0.5, 0.5, 0.5], "bsphere": [716.4431, 67.71, 173.8121, 6.9282], "lump": {"name": "part-spawner-646", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-yellow-lights"}},
+    // Jak 2's part-spawner-647 (forexita): group-forexita-l-panel
+    {"trans": [716.3257, 66.1604, 170.3307], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [716.3257, 66.1604, 170.3307, 6.9282], "lump": {"name": "part-spawner-647", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-l-panel"}},
+    // Jak 2's part-spawner-628 (forexita): group-forexita-yellow-lights
+    {"trans": [723.1805, 67.6836, 161.582], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [723.1805, 67.6836, 161.582, 6.9282], "lump": {"name": "part-spawner-628", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-yellow-lights"}},
+    // Jak 2's part-spawner-79 (forexita): group-forexita-overhead-lights
+    {"trans": [674.6825, 85.0222, 172.4562], "etype": "part-spawner", "game_task": 0, "quat": [0.7071, 0.0, 0.0, 0.7071], "bsphere": [674.6825, 85.0222, 172.4562, 6.9282], "lump": {"name": "part-spawner-79", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-overhead-lights"}},
+    // Jak 2's part-spawner-648 (forexita): group-forexita-yellow-lights
+    {"trans": [671.6771, 61.7514, 162.3383], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [671.6771, 61.7514, 162.3383, 6.9282], "lump": {"name": "part-spawner-648", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-yellow-lights"}},
+    // Jak 2's part-spawner-649 (forexita): group-forexita-yellow-lights
+    {"trans": [671.6771, 67.6836, 162.3383], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [671.6771, 67.6836, 162.3383, 6.9282], "lump": {"name": "part-spawner-649", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-yellow-lights"}},
+    // Jak 2's part-spawner-98 (forexita): group-forexita-yellow-glows
+    {"trans": [672.2998, 80.3544, 146.4895], "etype": "part-spawner", "game_task": 0, "quat": [-0.5, 0.5, 0.5, -0.5], "bsphere": [672.2998, 80.3544, 146.4895, 6.9282], "lump": {"name": "part-spawner-98", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-yellow-glows"}},
+    // Jak 2's part-spawner-625 (forexita): group-forexita-yellow-lights
+    {"trans": [683.8494, 61.7514, 162.3383], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [683.8494, 61.7514, 162.3383, 6.9282], "lump": {"name": "part-spawner-625", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-yellow-lights"}},
+    // Jak 2's part-spawner-626 (forexita): group-forexita-yellow-lights
+    {"trans": [683.8494, 67.6836, 162.3383], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [683.8494, 67.6836, 162.3383, 6.9282], "lump": {"name": "part-spawner-626", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-yellow-lights"}},
+    // Jak 2's part-spawner-94 (forexita): group-forexita-panel-2
+    {"trans": [676.8614, 75.5531, 148.2112], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9021, 0.4314, -0.0], "bsphere": [676.8614, 75.5531, 148.2112, 6.9282], "lump": {"name": "part-spawner-94", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-panel-2"}},
+    // Jak 2's part-spawner-95 (forexita): group-forexita-panel-4
+    {"trans": [676.8542, 78.5167, 148.0932], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9239, -0.3827, -0.0], "bsphere": [676.8542, 78.5167, 148.0932, 6.9282], "lump": {"name": "part-spawner-95", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-panel-4"}},
+    // Jak 2's part-spawner-85 (forexita): group-forexita-blue-lights
+    {"trans": [739.166, 81.2715, 136.9757], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [739.166, 81.2715, 136.9757, 6.9282], "lump": {"name": "part-spawner-85", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-blue-lights"}},
+    // Jak 2's part-spawner-86 (forexita): group-forexita-blue-lights
+    {"trans": [749.2024, 81.2715, 137.1933], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [749.2024, 81.2715, 137.1933, 6.9282], "lump": {"name": "part-spawner-86", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-blue-lights"}},
+    // Jak 2's part-spawner-92 (forexita): group-forexita-yellow-glows
+    {"trans": [690.2474, 78.492, 110.0364], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [690.2474, 78.492, 110.0364, 6.9282], "lump": {"name": "part-spawner-92", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-yellow-glows"}},
+    // Jak 2's part-spawner-101 (forexita): group-forexita-blue-lights
+    {"trans": [681.791, 72.2484, 93.5012], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, 0.0, -0.7071, 0.7071], "bsphere": [681.791, 72.2484, 93.5012, 6.9282], "lump": {"name": "part-spawner-101", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-blue-lights"}},
+    // Jak 2's part-spawner-102 (forexita): group-forexita-yellow-glows
+    {"trans": [683.9052, 72.2484, 92.2208], "etype": "part-spawner", "game_task": 0, "quat": [-0.5, 0.5, -0.5, 0.5], "bsphere": [683.9052, 72.2484, 92.2208, 6.9282], "lump": {"name": "part-spawner-102", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-yellow-glows"}},
+    // Jak 2's part-spawner-652 (forexita): group-forexita-yellow-lights
+    {"trans": [672.9666, 83.3898, 104.7154], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, -0.0, 1.0, 0.0], "bsphere": [672.9666, 83.3898, 104.7154, 6.9282], "lump": {"name": "part-spawner-652", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-yellow-lights"}},
+    // Jak 2's part-spawner-90 (forexita): group-forexita-yellow-glows
+    {"trans": [681.1481, 84.4581, 133.7924], "etype": "part-spawner", "game_task": 0, "quat": [0.7071, -0.0, 0.0, 0.7071], "bsphere": [681.1481, 84.4581, 133.7924, 6.9282], "lump": {"name": "part-spawner-90", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-yellow-glows"}},
+    // Jak 2's part-spawner-650 (forexita): group-forexita-yellow-lights
+    {"trans": [674.419, 93.8082, 124.5056], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.7071, 0.0], "bsphere": [674.419, 93.8082, 124.5056, 6.9282], "lump": {"name": "part-spawner-650", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-yellow-lights"}},
+    // Jak 2's part-spawner-654 (forexita): group-forexita-yellow-lights
+    {"trans": [676.5977, 59.6799, 135.5637], "etype": "part-spawner", "game_task": 0, "quat": [1.0, -0.0, 0.0, 0.0], "bsphere": [676.5977, 59.6799, 135.5637, 6.9282], "lump": {"name": "part-spawner-654", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-yellow-lights"}},
+    // Jak 2's part-spawner-89 (forexita): group-forexita-panel-1
+    {"trans": [679.9385, 83.4974, 139.6713], "etype": "part-spawner", "game_task": 0, "quat": [-0.6649, -0.2405, 0.6649, -0.2405], "bsphere": [679.9385, 83.4974, 139.6713, 6.9282], "lump": {"name": "part-spawner-89", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-panel-1"}},
+    // Jak 2's part-spawner-96 (forexita): group-forexita-blue-lights
+    {"trans": [679.2256, 80.3544, 145.209], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.7071, 0.0, -0.0], "bsphere": [679.2256, 80.3544, 145.209, 6.9282], "lump": {"name": "part-spawner-96", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-blue-lights"}},
+    // Jak 2's part-spawner-97 (forexita): group-forexita-blue-lights
+    {"trans": [674.4141, 80.3544, 145.209], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.7071, 0.0, -0.0], "bsphere": [674.4141, 80.3544, 145.209, 6.9282], "lump": {"name": "part-spawner-97", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-blue-lights"}},
+    // Jak 2's part-spawner-653 (forexita): group-forexita-yellow-lights
+    {"trans": [674.4735, 97.9414, 145.2484], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.7071, 0.0], "bsphere": [674.4735, 97.9414, 145.2484, 6.9282], "lump": {"name": "part-spawner-653", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-yellow-lights"}},
+    // Jak 2's part-spawner-99 (forexita): group-forexita-panel-4
+    {"trans": [679.3508, 70.4108, 90.6171], "etype": "part-spawner", "game_task": 0, "quat": [0.3827, 0.0, -0.0, 0.9239], "bsphere": [679.3508, 70.4108, 90.6171, 6.9282], "lump": {"name": "part-spawner-99", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-panel-4"}},
+    // Jak 2's part-spawner-103 (forexita): group-forexita-panel-3
+    {"trans": [679.3427, 67.5859, 90.5465], "etype": "part-spawner", "game_task": 0, "quat": [-0.4314, 0.0, 0.0, 0.9021], "bsphere": [679.3427, 67.5859, 90.5465, 6.9282], "lump": {"name": "part-spawner-103", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-panel-3"}},
+    // Jak 2's part-spawner-651 (forexita): group-forexita-yellow-lights
+    {"trans": [670.0765, 81.6832, 101.0282], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.7071, 0.0], "bsphere": [670.0765, 81.6832, 101.0282, 6.9282], "lump": {"name": "part-spawner-651", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-yellow-lights"}},
+    // Jak 2's part-spawner-100 (forexita): group-forexita-blue-lights
+    {"trans": [676.9794, 72.2484, 93.5012], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, 0.0, -0.7071, 0.7071], "bsphere": [676.9794, 72.2484, 93.5012, 6.9282], "lump": {"name": "part-spawner-100", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-blue-lights"}},
+    // Jak 2's part-spawner-111 (forexita): group-forexita-blue-lights
+    {"trans": [653.649, 80.5487, 145.9333], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.7071, 0.0, -0.0], "bsphere": [653.649, 80.5487, 145.9333, 6.9282], "lump": {"name": "part-spawner-111", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-blue-lights"}},
+    // Jak 2's part-spawner-112 (forexita): group-forexita-yellow-glows
+    {"trans": [651.5347, 80.5487, 147.2138], "etype": "part-spawner", "game_task": 0, "quat": [-0.5, 0.5, 0.5, -0.5], "bsphere": [651.5347, 80.5487, 147.2138, 6.9282], "lump": {"name": "part-spawner-112", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-yellow-glows"}},
+    // Jak 2's part-spawner-78 (forexita): group-forexita-overhead-lights
+    {"trans": [659.6634, 85.0222, 172.4562], "etype": "part-spawner", "game_task": 0, "quat": [0.7071, 0.0, 0.0, 0.7071], "bsphere": [659.6634, 85.0222, 172.4562, 6.9282], "lump": {"name": "part-spawner-78", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-overhead-lights"}},
+    // Jak 2's part-spawner-108 (forexita): group-forexita-panel-3
+    {"trans": [656.0973, 75.8862, 148.8881], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, 0.9021, 0.4314, 0.0], "bsphere": [656.0973, 75.8862, 148.8881, 6.9282], "lump": {"name": "part-spawner-108", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-panel-3"}},
+    // Jak 2's part-spawner-109 (forexita): group-forexita-panel-4
+    {"trans": [656.0891, 78.711, 148.8174], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9239, -0.3827, 0.0], "bsphere": [656.0891, 78.711, 148.8174, 6.9282], "lump": {"name": "part-spawner-109", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-panel-4"}},
+    // Jak 2's part-spawner-110 (forexita): group-forexita-blue-lights
+    {"trans": [658.4606, 80.5487, 145.9333], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.7071, 0.0, -0.0], "bsphere": [658.4606, 80.5487, 145.9333, 6.9282], "lump": {"name": "part-spawner-110", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-blue-lights"}},
+    // Jak 2's part-spawner-656 (forexita): group-forexita-yellow-lights
+    {"trans": [647.0359, 37.3126, 103.7304], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.0, 1.0, 0.0], "bsphere": [647.0359, 37.3126, 103.7304, 6.9282], "lump": {"name": "part-spawner-656", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-yellow-lights"}},
+    // Jak 2's part-spawner-91 (forexita): group-forexita-yellow-glows
+    {"trans": [659.028, 78.492, 90.0937], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, -0.0, -0.0, 1.0], "bsphere": [659.028, 78.492, 90.0937, 6.9282], "lump": {"name": "part-spawner-91", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-yellow-glows"}},
+    // Jak 2's part-spawner-655 (forexita): group-forexita-yellow-lights
+    {"trans": [662.2888, 46.3911, 103.0889], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.0, 1.0, 0.0], "bsphere": [662.2888, 46.3911, 103.0889, 6.9282], "lump": {"name": "part-spawner-655", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-yellow-lights"}},
+    // Jak 2's part-spawner-657 (forexita): group-forexita-yellow-lights
+    {"trans": [653.9261, 59.6799, 125.9389], "etype": "part-spawner", "game_task": 0, "quat": [1.0, -0.0, 0.0, 0.0], "bsphere": [653.9261, 59.6799, 125.9389, 6.9282], "lump": {"name": "part-spawner-657", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-yellow-lights"}},
+    // Jak 2's part-spawner-104 (forexita): group-forexita-panel-4
+    {"trans": [650.2899, 74.1405, 128.7434], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9239, 0.3827, -0.0], "bsphere": [650.2899, 74.1405, 128.7434, 6.9282], "lump": {"name": "part-spawner-104", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-panel-4"}},
+    // Jak 2's part-spawner-105 (forexita): group-forexita-blue-lights
+    {"trans": [652.6613, 77.0246, 130.581], "etype": "part-spawner", "game_task": 0, "quat": [-0.5, 0.5, 0.5, 0.5], "bsphere": [652.6613, 77.0246, 130.581, 6.9282], "lump": {"name": "part-spawner-105", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-blue-lights"}},
+    // Jak 2's part-spawner-106 (forexita): group-forexita-blue-lights
+    {"trans": [647.8497, 77.0246, 130.581], "etype": "part-spawner", "game_task": 0, "quat": [-0.5, 0.5, 0.5, 0.5], "bsphere": [647.8497, 77.0246, 130.581, 6.9282], "lump": {"name": "part-spawner-106", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-blue-lights"}},
+    // Jak 2's part-spawner-107 (forexita): group-forexita-yellow-glows
+    {"trans": [645.7355, 75.7442, 130.581], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.7071, 0.0], "bsphere": [645.7355, 75.7442, 130.581, 6.9282], "lump": {"name": "part-spawner-107", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-yellow-glows"}},
+    // Jak 2's part-spawner-114 (forexita): group-forexita-panel-1
+    {"trans": [606.0213, 58.0601, 93.507], "etype": "part-spawner", "game_task": 0, "quat": [-0.3401, 0.0, 0.0, 0.9404], "bsphere": [606.0213, 58.0601, 93.507, 6.9282], "lump": {"name": "part-spawner-114", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-panel-1"}},
+    // Jak 2's part-spawner-733 (forexita): group-forexita-claw-panel
+    {"trans": [600.7386, 26.2278, 172.3951], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [600.7386, 26.2278, 172.3951, 6.9282], "lump": {"name": "part-spawner-733", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-claw-panel"}},
+    // Jak 2's part-spawner-734 (forexita): group-forexita-claw-panel
+    {"trans": [598.1239, 32.1838, 148.3598], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [598.1239, 32.1838, 148.3598, 6.9282], "lump": {"name": "part-spawner-734", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-claw-panel"}},
+    // Jak 2's part-spawner-116 (forexita): group-forexita-panel-2
+    {"trans": [606.11, 62.6201, 92.7239], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.4314, 0.9021, -0.0], "bsphere": [606.11, 62.6201, 92.7239, 6.9282], "lump": {"name": "part-spawner-116", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-panel-2"}},
+    // Jak 2's part-spawner-93 (forexita): group-forexita-yellow-glows
+    {"trans": [638.1207, 78.492, 90.0937], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, -0.0, -0.0, 1.0], "bsphere": [638.1207, 78.492, 90.0937, 6.9282], "lump": {"name": "part-spawner-93", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-yellow-glows"}},
+    // Jak 2's part-spawner-115 (forexita): group-forexita-panel-1
+    {"trans": [570.8912, 58.0601, 93.507], "etype": "part-spawner", "game_task": 0, "quat": [-0.3401, 0.0, 0.0, 0.9404], "bsphere": [570.8912, 58.0601, 93.507, 6.9282], "lump": {"name": "part-spawner-115", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-panel-1"}},
+    // Jak 2's part-spawner-113 (forexita): group-forexita-panel-3
+    {"trans": [588.9184, 59.7051, 92.7239], "etype": "part-spawner", "game_task": 0, "quat": [-0.4314, 0.0, 0.0, 0.9021], "bsphere": [588.9184, 59.7051, 92.7239, 6.9282], "lump": {"name": "part-spawner-113", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-panel-3"}},
+    // Jak 2's part-spawner-732 (forexita): group-forexita-claw-panel
+    {"trans": [594.7339, 29.1838, 160.3598], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [594.7339, 29.1838, 160.3598, 6.9282], "lump": {"name": "part-spawner-732", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-forexita-claw-panel"}}
   ]
 }

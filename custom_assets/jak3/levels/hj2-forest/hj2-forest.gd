@@ -2,6 +2,13 @@
 ;; DGO definition file for hj2-forest: Haven Forest.
 ("HJF.DGO"
  (
+  "hj2-wren-ag.go"
+  "hj2-wren-fly-ag.go"
+  "hj2-minnow-blue-ag.go"
+  "hj2-minnow-green-ag.go"
+  "hj2-minnow-red-ag.go"
+  "hj2-minnow-yellow-ag.go"
+  "hj2-forest-obs.o"
   "hj2-forest-part.o"
   "hj2-forest.go"
   ))

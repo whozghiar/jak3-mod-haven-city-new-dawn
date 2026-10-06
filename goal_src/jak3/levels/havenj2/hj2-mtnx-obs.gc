@@ -1,0 +1,442 @@
+;;-*-Lisp-*-
+(in-package goal)
+
+;; name: hj2-mtnx-obs.gc
+;; name in dgo: hj2-mtnx-obs
+;; dgos: HJX
+
+;; og:jak2-haven-city Level code for hj2-mtnx, the outside of Jak 2's mountain temple (mtnext): the
+;; avalanche of the gully under the mountain top (Jak 2's mtn-aval-rocks, levels/mountain/
+;; mountain-obs.gc there). Its model is Jak 2's (hj2-mtn-aval-rocks.glb, made by the level port,
+;; scripts/level_port): 48 rocks, one joint each, all at the origin in the rip.
+;;
+;; Jak 2 moves the rocks with a streamed animation (mtn-aval-rocks-1 "1-fall", 8 parts of
+;; MTAR1.STR) that the decompiler doesn't extract. Here each rock is a small simulation instead:
+;; dropped above the plateau at the top of the gully, it falls, bounces and rolls down the slope on
+;; the background collision (one ground probe per rock and frame, like Jak 2's 48 rock shadows),
+;; then starts again from the top. Its joint is placed by a joint callback (world transform).
+;;
+;; Like Jak 2: hidden until it gets 'draw #t (region 894, the slope; the level port's
+;; region_script_overrides) or until the current continue is the slope's foot (hj2-mountain-aval,
+;; set by region 459); 'draw #f (leaving region 894 at the top) hides it again. A rock touching a
+;; focusable hurts it (Jak 2's attack: 3m up, 1 damage), and its landings near Jak raise dust (Jak 3's
+;; stone landing dust, group-land-poof-stn: Jak 2's rock-hit group 352 is made of Jak 2's own land
+;; dust parts), shake the camera and buzz the pad.
+;;
+;; Not ported: Jak 2's sounds (mtn-aval-loop, mtn-boulder: not in Jak 3) and the rocks' shadows
+;; (mtn-aval-rocks-shadow, a second model with a shadow mesh).
+
+;; Calibration //////////////////////////////////////////////////////////////////////////////////
+
+;; Where the rocks start, in the actor's frame (Jak 2 turns it to face the slope: -z is downhill):
+;;   x: half the width of the start area, y: height above the actor (above the plateau, which is
+;;   about 30m above it), z: the start area's center along the actor's z axis (negative: downhill),
+;;   w: half the start area's length along z.
+(define *hj2-aval-spawn* (new 'static 'vector :x (meters 10) :y (meters 37) :z (meters -12) :w (meters 5)))
+
+;; When a rock is taken back to the top, from the actor: x: its age (seconds), y: its drop (below
+;; the actor), z: its run downhill. w: the share of its speed into the ground kept as a bounce.
+(define *hj2-aval-limits* (new 'static 'vector :x 12.0 :y (meters 135) :z (meters 215) :w 0.4))
+
+;; Jak 2's collision radius of each rock (index = joint - 3), from its prim list: 2.2m, 1.5m, 0.9m.
+(define *hj2-aval-rock-radius* (new 'static 'array float 48
+                                 9011.0 9011.0 9011.0 9011.0 6144.0 6144.0 6144.0 6144.0
+                                 6144.0 6144.0 9011.0 9011.0 9011.0 9011.0 6144.0 6144.0
+                                 6144.0 6144.0 6144.0 9011.0 9011.0 3686.0 3686.0 9011.0
+                                 9011.0 3686.0 3686.0 3686.0 3686.0 3686.0 3686.0 3686.0
+                                 9011.0 9011.0 9011.0 3686.0 3686.0 3686.0 3686.0 9011.0
+                                 3686.0 3686.0 9011.0 9011.0 9011.0 9011.0 6144.0 3686.0
+                                 )
+        )
+
+;; The avalanche ////////////////////////////////////////////////////////////////////////////////
+
+;; One rock of the avalanche.
+;;   pos, vel: its center and velocity (world, units per second); quat: its orientation;
+;;   radius: its size (collision and ground contact); delay: seconds before it starts again from
+;;   the top (above 0: hidden); age: seconds since it started; dust-timer: seconds before its
+;;   landings can raise dust again; attack-id: the id of its attacks (new at every start).
+(deftype hj2-aval-rock (structure)
+  ((pos         vector      :inline)
+   (vel         vector      :inline)
+   (quat        quaternion  :inline)
+   (radius      float)
+   (delay       float)
+   (age         float)
+   (dust-timer  float)
+   (attack-id   uint32)
+   )
+  )
+
+
+;; Jak 2's mtn-aval-rocks: the avalanche (see the top of the file).
+;;   rocks: the 48 rocks (rock i is joint i + 3); downhill: the actor's -z axis (world)
+(deftype hj2-mtn-aval-rocks (process-drawable)
+  ((root      collide-shape   :override)
+   (rocks     hj2-aval-rock   48 :inline)
+   (downhill  vector          :inline)
+   )
+  (:state-methods
+    idle
+    fall
+    )
+  (:methods
+    (spawn-rock! (_type_ int) none)
+    (step-rocks! (_type_) none)
+    )
+  )
+
+
+;; Jak 2's bounds (around the slope, 100m downhill from the actor)
+(def-actor hj2-mtn-aval-rocks
+  :bounds (0 0 -100 140)
+  )
+
+;; The process holds 48 rocks and 49 collision prims on top of a 51 joint skeleton: past the 16KB an
+;; entity gets by default. Jak 3's entity-actor birth! reads the heap size from the entity-info its
+;; entity-info-lookup caches in method slot 13 of the type (like hj2-pal-electric-fan).
+(define *hj2-mtn-aval-rocks-entity-info*
+  (new 'static 'entity-info :ptype 'hj2-mtn-aval-rocks :pool '*16k-dead-pool* :heap-size #x8000)
+  )
+
+(set! (-> hj2-mtn-aval-rocks method-table 13) (the-as function *hj2-mtn-aval-rocks-entity-info*))
+
+(defun hj2-aval-rock-joint-callback ((bone-cspace cspace) (joint-transform transformq))
+  "Joint callback of a rock (param1: the avalanche, param2: the rock's index): sets the joint's world
+transform to the rock's position and orientation, or, while the rock waits (delay above 0), shrinks
+it to nothing 200m under the actor (its collision sphere goes with it). Ignores the animation's
+joint-transform. Returns nothing."
+  (let* ((this (the-as hj2-mtn-aval-rocks (-> bone-cspace param1)))
+         (rock (-> this rocks (the-as int (-> bone-cspace param2))))
+         (tq (new 'stack-no-clear 'transformq))
+         )
+    (cond
+      ((< 0.0 (-> rock delay))
+       (vector-copy! (-> tq trans) (-> this root trans))
+       (+! (-> tq trans y) (meters -200))
+       (quaternion-identity! (-> tq quat))
+       (set-vector! (-> tq scale) 0.0 0.0 0.0 1.0)
+       )
+      (else
+        (vector-copy! (-> tq trans) (-> rock pos))
+        (quaternion-copy! (-> tq quat) (-> rock quat))
+        (set-vector! (-> tq scale) 1.0 1.0 1.0 1.0)
+        )
+      )
+    (cspace<-transformq! bone-cspace tq)
+    )
+  (none)
+  )
+
+(defmethod spawn-rock! ((this hj2-mtn-aval-rocks) (i int))
+  "Starts rock i again from the top: a random point of the start area (*hj2-aval-spawn*), a random
+orientation, rolling downhill at 6 to 12m/s (and up to 1.5m/s sideways), age 0, a new attack id.
+Returns nothing."
+  (let ((rock (-> this rocks i))
+        (off (new 'stack-no-clear 'vector))
+        )
+    (set-vector!
+      off
+      (rand-vu-float-range (- (-> *hj2-aval-spawn* x)) (-> *hj2-aval-spawn* x))
+      (-> *hj2-aval-spawn* y)
+      (+ (-> *hj2-aval-spawn* z) (rand-vu-float-range (- (-> *hj2-aval-spawn* w)) (-> *hj2-aval-spawn* w)))
+      1.0
+      )
+    (vector-orient-by-quat! off off (-> this root quat))
+    (vector+! (-> rock pos) (-> this root trans) off)
+    (set-vector! (-> rock vel) (rand-vu-float-range (meters -1.5) (meters 1.5)) 0.0 (rand-vu-float-range (meters -12) (meters -6)) 0.0)
+    (vector-orient-by-quat! (-> rock vel) (-> rock vel) (-> this root quat))
+    (quaternion-identity! (-> rock quat))
+    (quaternion-rotate-y! (-> rock quat) (-> rock quat) (rand-vu-float-range 0.0 65536.0))
+    (quaternion-rotate-local-x! (-> rock quat) (-> rock quat) (rand-vu-float-range 0.0 65536.0))
+    (set! (-> rock delay) 0.0)
+    (set! (-> rock age) 0.0)
+    (set! (-> rock dust-timer) 0.0)
+    (set! (-> rock attack-id) (new-attack-id))
+    )
+  0
+  (none)
+  )
+
+(defmethod step-rocks! ((this hj2-mtn-aval-rocks))
+  "One frame of the avalanche. A waiting rock counts its delay down and starts again (spawn-rock!).
+A moving rock: gravity (60m/s^2), a ground probe under it (background only); on the ground (a
+surface facing up), it is pushed out of it, bounces (*hj2-aval-limits* w), slows down a little and
+rolls (turns around the horizontal axis across its motion); its speed is kept under 28m/s. A
+landing faster than 6m/s (Jak 2's threshold) within 50m of Jak raises dust (at most every 0.33s per
+rock); within 30m it also shakes the camera and buzzes the pad (Jak 2's). A rock older, lower or
+further downhill than *hj2-aval-limits* waits 0.2 to 2s and starts again. Returns nothing."
+  (let ((dt (seconds-per-frame))
+        (target (target-pos 0))
+        (cq (new 'stack-no-clear 'collide-query))
+        (normal (new 'stack-no-clear 'vector))
+        (rel (new 'stack-no-clear 'vector))
+        (axis (new 'stack-no-clear 'vector))
+        (spin (new 'stack-no-clear 'quaternion))
+        )
+    (dotimes (i 48)
+      (let ((rock (-> this rocks i)))
+        (cond
+          ((< 0.0 (-> rock delay))
+           (set! (-> rock delay) (- (-> rock delay) dt))
+           (if (>= 0.0 (-> rock delay))
+               (spawn-rock! this i)
+               )
+           )
+          (else
+            (+! (-> rock age) dt)
+            (set! (-> rock dust-timer) (- (-> rock dust-timer) dt))
+            (+! (-> rock vel y) (* (meters -60) dt))
+            (vector+float*! (-> rock pos) (-> rock pos) (-> rock vel) dt)
+            ;; the ground under it: a 0.4m sphere from 6m above its center to 2m under its bottom
+            (vector-copy! (-> cq start-pos) (-> rock pos))
+            (+! (-> cq start-pos y) (meters 6))
+            (set-vector! (-> cq move-dist) 0.0 (- (+ (meters 8) (-> rock radius))) 0.0 1.0)
+            (let ((v1-10 cq))
+              (set! (-> v1-10 radius) 1638.4)
+              (set! (-> v1-10 collide-with) (collide-spec backgnd))
+              (set! (-> v1-10 ignore-process0) this)
+              (set! (-> v1-10 ignore-process1) #f)
+              (set! (-> v1-10 ignore-pat)
+                    (new 'static 'pat-surface :noentity #x1 :nojak #x1 :probe #x1 :noendlessfall #x1 :board #x1)
+                    )
+              (set! (-> v1-10 action-mask) (collide-action solid))
+              )
+            (when (and (>= (fill-and-probe-using-line-sphere *collide-cache* cq) 0.0)
+                       (< 0.3 (-> cq best-other-tri normal y))
+                       )
+              (vector-copy! normal (-> cq best-other-tri normal))
+              (vector-! rel (-> rock pos) (-> cq best-other-tri intersect))
+              (let ((depth (- (-> rock radius) (vector-dot rel normal))))
+                (when (< 0.0 depth)
+                  (vector+float*! (-> rock pos) (-> rock pos) normal depth)
+                  (let ((vn (vector-dot (-> rock vel) normal)))
+                    (when (< vn 0.0)
+                      (vector+float*! (-> rock vel) (-> rock vel) normal (* -1.0 (+ 1.0 (-> *hj2-aval-limits* w)) vn))
+                      ;; a hard landing: dust, camera shake and pad buzz near Jak
+                      (when (and (< vn (meters -6)) (>= 0.0 (-> rock dust-timer)))
+                        (let ((dist (vector-vector-distance target (-> rock pos))))
+                          (when (< dist (meters 50))
+                            (set! (-> rock dust-timer) 0.33)
+                            (let ((mat (new 'stack-no-clear 'matrix)))
+                              (matrix-identity! mat)
+                              (vector-copy! (-> mat trans) (-> rock pos))
+                              (set! (-> mat trans y) (- (-> mat trans y) (-> rock radius)))
+                              (part-tracker-spawn part-tracker :to *entity-pool* :group group-land-poof-stn :mat-joint mat)
+                              )
+                            (when (< dist (meters 30))
+                              (cpad-set-buzz!
+                                (-> *cpad-list* cpads 0)
+                                1
+                                (the int (* 255.0 (- 1.0 (/ dist (meters 30)))))
+                                (seconds 0.2)
+                                )
+                              (activate!
+                                *camera-smush-control*
+                                (lerp-scale 1638.4 0.0 dist 0.0 (meters 30))
+                                15
+                                75
+                                1.0
+                                0.9
+                                (-> *display* camera-clock)
+                                )
+                              )
+                            )
+                          )
+                        )
+                      )
+                    )
+                  ;; rolling friction
+                  (vector-float*! (-> rock vel) (-> rock vel) (fmax 0.0 (- 1.0 (* 0.3 dt))))
+                  )
+                )
+              )
+            ;; rolls: turns around (up x velocity), by its horizontal speed over its radius
+            (vector-cross! axis *y-vector* (-> rock vel))
+            (let ((hspeed (vector-length axis)))
+              (when (< 409.6 hspeed)
+                (vector-normalize! axis 1.0)
+                (quaternion-vector-angle! spin axis (* 10430.378 dt (/ hspeed (-> rock radius))))
+                (quaternion*! (-> rock quat) spin (-> rock quat))
+                (quaternion-normalize! (-> rock quat))
+                )
+              )
+            (if (< (meters 28) (vector-length (-> rock vel)))
+                (vector-normalize! (-> rock vel) (meters 28))
+                )
+            ;; done: back to the top after a short wait
+            (vector-! rel (-> rock pos) (-> this root trans))
+            (when (or (< (-> *hj2-aval-limits* x) (-> rock age))
+                      (< (-> *hj2-aval-limits* y) (- (-> rel y)))
+                      (< (-> *hj2-aval-limits* z) (vector-dot rel (-> this downhill)))
+                      )
+              (set! (-> rock delay) (rand-vu-float-range 0.2 2.0))
+              )
+            )
+          )
+        )
+      )
+    )
+  0
+  (none)
+  )
+
+;; Hidden, waiting for its region.
+;;   event 'draw #t: starts the avalanche (fall).
+;;   trans: starts it as soon as the current continue is the slope's foot (hj2-mountain-aval, Jak 2's
+;;     mountain-aval): Jak respawned there, or entered region 459.
+;;   code: hides the model, parks every rock (waiting, so under the slope with its collision), then
+;;     sleeps.
+(defstate idle (hj2-mtn-aval-rocks)
+  :virtual #t
+  :event (behavior ((proc process) (argc int) (message symbol) (block event-message-block))
+    (case message
+      (('draw)
+       (if (-> block param 0)
+           (go-virtual fall)
+           )
+       )
+      )
+    )
+  :trans (behavior ()
+    (if (and *target* (string= (-> *game-info* current-continue name) "hj2-mountain-aval"))
+        (go-virtual fall)
+        )
+    )
+  :code (behavior ()
+    (logior! (-> self draw status) (draw-control-status no-draw))
+    (dotimes (i 48)
+      (set! (-> self rocks i delay) 1.0)
+      )
+    (transform-post)
+    (sleep-code)
+    )
+  )
+
+;; The avalanche, until 'draw #f.
+;;   enter: shows the model; every rock starts within 5 seconds (the avalanche builds up).
+;;   exit: hides the model.
+;;   event 'touch/'attack: a rock's sphere touching a focusable attacks it (Jak 2's attack, the
+;;     rock's attack id); 'draw #f: back to idle.
+;;   post: moves the rocks (step-rocks!), then places the joints and the collision (transform-post).
+(defstate fall (hj2-mtn-aval-rocks)
+  :virtual #t
+  :event (behavior ((proc process) (argc int) (message symbol) (block event-message-block))
+    (case message
+      (('touch 'attack)
+       (let ((focus (as-type proc process-focusable))
+             (tse (the-as touching-shapes-entry (-> block param 0)))
+             )
+         (when (and focus tse)
+           (let ((tpe (prims-touching? tse (-> self root) (the-as uint -1))))
+             (when tpe
+               (let ((prim (get-touched-prim tpe (-> self root) tse)))
+                 (when prim
+                   (let ((idx (+ -1 (the-as int (-> prim prim-id)))))
+                     (when (and (>= idx 0) (< idx 48))
+                       (send-event
+                         focus
+                         'attack
+                         tse
+                         (static-attack-info ((id (-> self rocks idx attack-id)) (shove-up (meters 3)) (damage 1.0)))
+                         )
+                       )
+                     )
+                   )
+                 )
+               )
+             )
+           )
+         )
+       )
+      (('draw)
+       (if (not (-> block param 0))
+           (go-virtual idle)
+           )
+       )
+      )
+    )
+  :enter (behavior ()
+    (logclear! (-> self draw status) (draw-control-status no-draw))
+    (dotimes (i 48)
+      (set! (-> self rocks i delay) (rand-vu-float-range 0.05 5.0))
+      )
+    )
+  :exit (behavior ()
+    (logior! (-> self draw status) (draw-control-status no-draw))
+    )
+  :code sleep-code
+  :post (behavior ()
+    (step-rocks! self)
+    (transform-post)
+    )
+  )
+
+;; WARN: Return type mismatch object vs none.
+(defmethod init-from-entity! ((this hj2-mtn-aval-rocks) (arg0 entity-actor))
+  "Jak 2's mtn-aval-rocks setup, from the entity arg0: 48 touch spheres (Jak 2's radii, no collide
+action: they only send 'touch), one per rock joint (transform index i + 3, prim id i + 1), in a group
+around the slope; the placement turned half a turn like Jak 2's (it then faces the slope: -z is
+downhill); the skeleton with its joint math done at once (sync-math) and every rock joint placed by
+hj2-aval-rock-joint-callback. Not paused with the actors. Goes to idle (hidden)."
+  (stack-size-set! (-> this main-thread) 512)
+  (let ((s4-0 (new 'process 'collide-shape this (collide-list-enum hit-by-player))))
+    (set! (-> s4-0 penetrated-by) (penetrate))
+    (let ((s3-0 (new 'process 'collide-shape-prim-group s4-0 (the-as uint 48) 0)))
+      (set! (-> s4-0 total-prims) (the-as uint 49))
+      (set! (-> s3-0 prim-core collide-as) (collide-spec obstacle pusher))
+      (set! (-> s3-0 prim-core collide-with) (collide-spec jak player-list))
+      (set! (-> s3-0 transform-index) 0)
+      (set-vector! (-> s3-0 local-sphere) 0.0 0.0 (meters -100) (meters 140))
+      (set! (-> s4-0 root-prim) s3-0)
+      (pusher-init s4-0)
+      (dotimes (i 48)
+        (let ((sphere (new 'process 'collide-shape-prim-sphere s4-0 (the-as uint (+ i 1)))))
+          (set! (-> sphere prim-core collide-as) (-> s3-0 prim-core collide-as))
+          (set! (-> sphere prim-core collide-with) (-> s3-0 prim-core collide-with))
+          (set! (-> sphere prim-core action) (-> s3-0 prim-core action))
+          (set! (-> sphere transform-index) (+ i 3))
+          (set! (-> sphere prim-id) (the-as uint (+ i 1)))
+          (set-vector! (-> sphere local-sphere) 0.0 0.0 0.0 (-> *hj2-aval-rock-radius* i))
+          )
+        )
+      )
+    (set! (-> s4-0 nav-radius) (* 0.75 (-> s4-0 root-prim local-sphere w)))
+    (let ((v1-27 (-> s4-0 root-prim)))
+      (set! (-> s4-0 backup-collide-as) (-> v1-27 prim-core collide-as))
+      (set! (-> s4-0 backup-collide-with) (-> v1-27 prim-core collide-with))
+      )
+    (set! (-> this root) s4-0)
+    )
+  (process-drawable-from-entity! this arg0)
+  (logclear! (-> this mask) (process-mask actor-pause))
+  (quaternion-rotate-y! (-> this root quat) (-> this root quat) 32768.0)
+  (initialize-skeleton this *hj2-mtn-aval-rocks-sg* (the-as pair 0))
+  (logior! (-> this skel status) (joint-control-status sync-math))
+  (vector-z-quaternion! (-> this downhill) (-> this root quat))
+  (vector-float*! (-> this downhill) (-> this downhill) -1.0)
+  (dotimes (i 48)
+    (let ((rock (-> this rocks i)))
+      (vector-copy! (-> rock pos) (-> this root trans))
+      (vector-reset! (-> rock vel))
+      (quaternion-identity! (-> rock quat))
+      (set! (-> rock radius) (-> *hj2-aval-rock-radius* i))
+      (set! (-> rock delay) 1.0)
+      (set! (-> rock age) 0.0)
+      (set! (-> rock dust-timer) 0.0)
+      (set! (-> rock attack-id) (new-attack-id))
+      )
+    )
+  ;; the rock joints (node list 3 to 50) follow their rock; skipped if the model lost joints
+  (when (>= (-> this node-list length) 51)
+    (dotimes (i 48)
+      (let ((cs (-> this node-list data (+ i 3))))
+        (set! (-> cs param0) hj2-aval-rock-joint-callback)
+        (set! (-> cs param1) this)
+        (set! (-> cs param2) (the-as basic i))
+        )
+      )
+    )
+  (go (method-of-object this idle))
+  (none)
+  )

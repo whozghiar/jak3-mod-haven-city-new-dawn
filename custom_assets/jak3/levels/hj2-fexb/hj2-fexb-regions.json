@@ -46,7 +46,7 @@
             ]
           ]
         },
-        "on-enter": "(want-load 'hj2-fexb 'havenj2)"
+        "on-enter": "(want-load 'havenj2 'hj2-fexb 'hj2-slmb)"
       }
     ]
   }

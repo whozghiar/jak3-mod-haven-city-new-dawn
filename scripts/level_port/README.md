@@ -38,11 +38,10 @@ changes, so `goalc` only rebuilds the levels that changed.
 
 | Step | Writes |
 |---|---|
-| `water` | `<level>-water-regions.json`: the water of the level's pools (a level's `water` block) |
-| `mesh` | `<level>-mesh.glb`: the source props kept as background, and the pool surfaces (`mesh`) |
+| `mesh` | `<level>-mesh.glb`: the source props kept as background, and the pool surfaces (`mesh`, `water`) |
 | `ocean` | `<level>-ocean.gc`: a level's own ocean map, copied from the source game (`ocean_source`) |
 | `nav` | `<level>-nav.json`: the traffic navigation data merged for the level (`nav`), and its height map |
-| `levels` | Each level's `.jsonc` (or its GENERATED section) and `.gd`, its regions, its particles (`<level>-part.gc`), the models its actors use (`<model>.glb`), the level-load-infos and continue points (`level_info`), and the levels' `goalc` build steps (`build`) |
+| `levels` | Each level's `.jsonc` and `.gd`, its regions and water regions (`<level>-water-regions.json`), its particles (`<level>-part.gc`), the models its actors use (`<model>.glb`), the level-load-infos and continue points (`level_info`), and the levels' `goalc` build steps (`build`) |
 
 Every generated file says so in its first lines. A fix goes into the manifest or the tool, never
 into a generated file.
@@ -62,8 +61,8 @@ scripts/level_port/
   convert/scripts.py     the translator of entity and region scripts (want-load, want-display...)
   convert/<a>_<b>.py     what changes between two games: door classes, pickup ids, particle flag
                          names and callbacks, continue flags, ocean maps...
-  steps/                 the steps, run in order: water, mesh, ocean, nav, levels (which runs
-                         props.py and particles.py for each level)
+  steps/                 the steps, run in order: mesh, ocean, nav, levels (which runs
+                         props.py, particles.py and water.py for the levels)
 ```
 
 The data of a mod (its level names and ids, the doors it keeps, its own classes, its models...) is
@@ -81,8 +80,9 @@ names (`callbacks_file`) are in the same folder. Top-level keys:
 | `paths` | `levels` (custom levels), `models` (build-actor models), `code` (the levels' GOAL code) |
 | `story` | The source game's story state the levels are ported in: `state` (`end`: every task done) and `open_tasks` |
 | `build` | The `goalc` build steps file (`file`), loaded by the target game's `game.gp`, and the dependencies of the level code (`default_deps`, `code_deps`) |
-| `level_info` | The GOAL file of the level-load-infos (`file`), its `comment`, and `levels_var`: a list of every level of the port |
+| `level_info` | The GOAL file of the level-load-infos (`file`), its `comment`, `levels_var`: a list of every level of the port, and `hubs_var`: the list of `(level . hub)` pairs (each with a `..._comment`) |
 | `level_defaults` | The `level_info` of a level unless it says otherwise (`callbacks`, `draw_priority`, `mood`: `update-mood-{name}` by default) |
+| `level_templates` | Named sets of level keys: a level with `template` takes the keys of that set it doesn't set itself (the districts of a city) |
 | `ocean_map` | The ocean map of the levels whose `ocean` is `true` |
 | `levels` | The levels, below |
 | `particles` | For every level: `copied_callbacks`, `level_callbacks`, `reserved` ids ([steps/particles.py](steps/particles.py)) |
@@ -92,9 +92,9 @@ names (`callbacks_file`) are in the same folder. Top-level keys:
 | `script_overrides`, `next_actor_overrides` | Per source level and name: scripts replaced (`null` removes one); a door's pair |
 | `backdrop_levels` | Source levels that are only a backdrop: a door waiting for them doesn't need them |
 | `art_groups` | The target game art group of the mod's classes (the pair's `ART_GROUPS` and the classes with a model need none) |
-| `named_actors`, `named_etypes` | Source actors placed by name, and their classes and lumps (`path`, `float`, `int32`, `uint32`, `vector`) |
+| `named_actors`, `named_etypes` | Source actors placed by name, and their classes and lumps (`path`, `float`, `int32`, `uint32`, `vector`, `string`, `symbol`, `type`) |
 | `teleporters`, `new_teleporters` | A source actor replaced by a teleporter class; a teleporter at a position. Their `dest` is a continue |
-| `ported_levels`, `ported_etypes`, `ported_everywhere` | Source actors placed by class: in these source levels, or everywhere. Crates always are (the pair's `CRATES`) |
+| `ported_levels`, `ported_etypes`, `ported_everywhere` | Source actors placed by class: in these source levels, or everywhere. Crates always are (the pair's `CRATES`). A placed class's `art_groups` entry goes into the level's DGO |
 | `models` | Models rebuilt from source rips for `build-actor`, by the class using them: `rip`, `prims`, `collide`, `anims`, `extras` ([common/glb.py](common/glb.py) `rebuild_model`) |
 | `region_id_offset`, `region_open_tasks`, `region_script_overrides` | Our region ids; per source region, tasks taken as open, scripts replaced |
 | `continues` | Our continue names (`prefix`, `names`), the source continues `kept` anyway, level lists (`wants`), and continues added: in front of a door (`door_continues`), at a position in a source level (`new_continues`), in a target game level (`target_continues`) |
@@ -106,19 +106,21 @@ A level:
 | `name`, `nick`, `iso`, `index`, `base_id` | The level's name (10 characters at most), nickname (its DGO is `<NICK>.DGO`), ISO name, level index (a string, `"0x12A"`), first actor and region id |
 | `what` | What it is, for the comments |
 | `sources` | The source levels merged into it: its own, then the others |
-| `jsonc` | `full` (generated, the default) or `section`: its `.jsonc` is written by hand but for the part between its `BEGIN GENERATED` and `END GENERATED` lines |
-| `shown` | Always shown while Jak is in it: the source scripts showing or hiding its parts are dropped (a level merging a whole city) |
+| `template` | The `level_templates` set it takes its other keys from |
+| `hub` | The level it is always loaded after (a city district and its city-wide level, holding their shared code, traffic and navigation): every translated level list naming it gets the hub, first, hidden when the source game didn't show it. The generation fails if a set of levels loads it without its hub |
+| `level_flags` | Level flags added to its level-load-info (`not-physical`, `display-wait`...) |
 | `memory` | A fixed level-memory-mode; else the source's, changed only where a set of levels loaded together doesn't fit the target's level heap |
 | `sky`, `ocean`, `ocean_source` | Its sky (and weather), its ocean map (`true`: `ocean_map`), where its own map comes from |
 | `collision_bounds` | `[xmin, ymin, zmin, xmax, ymax, zmax]` meters: the imported collision kept |
 | `ported_actors` | `false`: none of the `ported_*` actors (the default is `true`) |
+| `particles` (on a level) | [steps/particles.py](steps/particles.py): `"page"`, `"parts"`, `"groups"` can be `"auto"` (a free texture page and ids, chosen by the step), `skip_groups` (source groups whose spawners aren't placed), `levels` |
 | `continues` | Its continues, as source names; without it, all its source levels' but the title, intro, demo and cutscene ones |
 | `code`, `models` | Objects of its DGO after the art groups; models built for it besides its actors' |
 | `level_info` | Its level-load-info: `callbacks`, `draw_priority`, `part_engine_max`, `comment`, `mood` |
-| `water`, `mesh`, `ocean_source`, `nav` | [steps/water.py](steps/water.py), [steps/mesh.py](steps/mesh.py), [steps/ocean.py](steps/ocean.py), [steps/nav.py](steps/nav.py) |
+| `water`, `mesh`, `ocean_source`, `nav` | [steps/water.py](steps/water.py), [steps/mesh.py](steps/mesh.py), [steps/ocean.py](steps/ocean.py), [steps/nav.py](steps/nav.py) (`nav.sources`: the source levels whose navigation it holds; one is kept as it is, several are merged; none: only the height map) |
 | `traffic` | The target game's traffic code taken from one of its DGOs (`code_from`, `skip`, `replace`), the level's own (`code`), the traffic's art groups (`art`) |
 | `props`, `custom_props` | [steps/props.py](steps/props.py) |
-| `particles` | [steps/particles.py](steps/particles.py) |
+| `particles` | [steps/particles.py](steps/particles.py) (`particles.levels`: the part spawners of other levels' sources go to those levels) |
 
 ## Adding a game or a game pair
 

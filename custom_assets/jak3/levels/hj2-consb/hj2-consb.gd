@@ -2,7 +2,8 @@
 ;; DGO definition file for hj2-consb: the tunnel to the construction site, from the industrial section.
 ("HJB.DGO"
  (
-  "vin-door-ctyinda-ag.go"
-  "com-airlock-inner-ag.go"
+  "hj2-airlock-inner-ag.go"
+  "hj2-vin-door-ctyinda-ag.go"
+  "hj2-consb-part.o"
   "hj2-consb.go"
   ))

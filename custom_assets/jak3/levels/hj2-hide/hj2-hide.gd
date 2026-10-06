@@ -2,7 +2,11 @@
 ;; DGO definition file for hj2-hide: the Underground's hideout.
 ("HJD.DGO"
  (
-  "hip-door-a-ag.go"
   "warp-gate-ag.go"
+  "hj2-hide-door-b-ag.go"
+  "hj2-hide-light-ag.go"
+  "hj2-hide-light-fog-ag.go"
+  "hj2-hide-obs.o"
+  "hj2-hide-part.o"
   "hj2-hide.go"
   ))

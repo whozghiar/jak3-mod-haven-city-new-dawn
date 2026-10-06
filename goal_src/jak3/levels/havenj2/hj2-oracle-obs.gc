@@ -1,0 +1,68 @@
+;;-*-Lisp-*-
+(in-package goal)
+
+;; name: hj2-oracle-obs.gc
+;; name in dgo: hj2-oracle-obs
+;; dgos: HJO
+
+;; og:jak2-haven-city Level code for hj2-oracle, Jak 2's Oracle (levels/city/oracle there): its 20
+;; banners, cloth moving in their idle animation. Jak 2 has no class for them: its entity-actor
+;; birth! falls back to birth-viewer (engine/debug/viewer.gc there), which loops the idle animation
+;; of the art group named after the etype, with no collision. Here each banner is a hj2-anim-loop
+;; (hj2-common-obs.gc, GAME) with its model rebuilt by build-actor (hj2-oracle-*.glb, made by the
+;; level port, scripts/level_port). The classes are written out instead of using def-hj2-anim-loop:
+;; that macro only exists in a goalc session once hj2-common-obs.gc is compiled in it.
+
+;; Jak 2's oracle-wall-banner (x12): a banner hanging on the wall, 4.3m long.
+(deftype hj2-oracle-wall-banner (hj2-anim-loop)
+  ()
+  )
+
+
+(def-actor hj2-oracle-wall-banner
+  :bounds (0 -2.2 0 3)
+  )
+
+(defmethod init-from-entity! ((this hj2-oracle-wall-banner) (arg0 entity-actor))
+  "A wall banner: placement and skeleton (hj2-anim-loop-init!), then its idle loop.
+arg0: the entity. Side effects: see hj2-anim-loop-init!. Returns nothing."
+  (hj2-anim-loop-init! this arg0 *hj2-oracle-wall-banner-sg*)
+  (go (method-of-object this idle))
+  (none)
+  )
+
+;; Jak 2's oracle-roof-banner (x4): a banner hanging from the roof, 3.3m long.
+(deftype hj2-oracle-roof-banner (hj2-anim-loop)
+  ()
+  )
+
+
+(def-actor hj2-oracle-roof-banner
+  :bounds (0 -1.5 0 2.5)
+  )
+
+(defmethod init-from-entity! ((this hj2-oracle-roof-banner) (arg0 entity-actor))
+  "A roof banner: placement and skeleton (hj2-anim-loop-init!), then its idle loop.
+arg0: the entity. Side effects: see hj2-anim-loop-init!. Returns nothing."
+  (hj2-anim-loop-init! this arg0 *hj2-oracle-roof-banner-sg*)
+  (go (method-of-object this idle))
+  (none)
+  )
+
+;; Jak 2's oracle-roof-banner-b (x4): the same banner, with a slower idle (12.8 s instead of 8 s).
+(deftype hj2-oracle-roof-banner-b (hj2-anim-loop)
+  ()
+  )
+
+
+(def-actor hj2-oracle-roof-banner-b
+  :bounds (0 -1.5 0 2.5)
+  )
+
+(defmethod init-from-entity! ((this hj2-oracle-roof-banner-b) (arg0 entity-actor))
+  "A roof banner (b): placement and skeleton (hj2-anim-loop-init!), then its idle loop.
+arg0: the entity. Side effects: see hj2-anim-loop-init!. Returns nothing."
+  (hj2-anim-loop-init! this arg0 *hj2-oracle-roof-banner-b-sg*)
+  (go (method-of-object this idle))
+  (none)
+  )

@@ -2,6 +2,6 @@
 ;; DGO definition file for hj2-atollx: the way to the pumping station, from the slums airlock.
 ("HJA.DGO"
  (
-  "com-airlock-inner-ag.go"
+  "hj2-airlock-inner-ag.go"
   "hj2-atollx.go"
   ))

@@ -2,6 +2,11 @@
 ;; DGO definition file for hj2-oracle: the Oracle.
 ("HJO.DGO"
  (
-  "cty-door-ag.go"
+  "hj2-oracle-door-ag.go"
+  "hj2-oracle-wall-banner-ag.go"
+  "hj2-oracle-roof-banner-ag.go"
+  "hj2-oracle-roof-banner-b-ag.go"
+  "hj2-oracle-obs.o"
+  "hj2-oracle-part.o"
   "hj2-oracle.go"
   ))

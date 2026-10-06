@@ -13,14 +13,204 @@
 
   ],
   // models of its custom actors, built by build-actor
-  "custom_models": ["hj2-cons-silo-doors", "hj2-cons-bomb-elevator", "hj2-cons-bomb-hinges"],
-  "art_groups": ["com-airlock-outer-ag"],
+  "custom_models": ["hj2-airlock-outer", "hj2-cons-silo-doors", "hj2-cons-bomb-elevator", "hj2-cons-bomb-hinges"],
+  "art_groups": [],
   "actors": [
-    // Jak 2's com-airlock-outer-34 (consite)
-    {"trans": [734.1934, 18.2794, 917.1318], "etype": "com-airlock-outer", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [734.1934, 18.2794, 917.1318, 13.8564], "lump": {"name": "com-airlock-outer-34", "distance": ["float", 81920.0], "idle-distance": ["float", 122880.0], "on-activate": ["pair", "(want-load 'hj2-cons 'hj2-consb)"], "on-deactivate": ["pair", "(want-display 'hj2-consb 'display)"], "on-enter": ["pair", "(want-display 'hj2-consb 'display)"], "on-notice": ["pair", "'(hj2-consb)"], "next-actor": ["string", "com-airlock-inner-40"]}},
+    // Jak 2's com-airlock-outer-34 (consite) [as hj2-airlock-outer]
+    {"trans": [734.1934, 18.2794, 917.1318], "etype": "hj2-airlock-outer", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [734.1934, 18.2794, 917.1318, 13.8564], "lump": {"name": "com-airlock-outer-34", "distance": ["float", 81920.0], "idle-distance": ["float", 122880.0], "height": ["vector", [81920.0, 81920.0, 0.0, 0.0]], "on-activate": ["pair", "(want-load 'hj2-cons 'hj2-consb)"], "on-deactivate": ["pair", "(want-display 'hj2-consb 'display)"], "on-enter": ["pair", "(want-display 'hj2-consb 'display)"], "on-notice": ["pair", "'(hj2-consb)"], "next-actor": ["string", "com-airlock-inner-40"]}},
     // Jak 2's consite-bomb-elevator-1 (consite)
     {"trans": [664.7227, -9.9791, 843.0958], "etype": "hj2-cons-bomb-elevator", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [664.7227, -9.9791, 843.0958, 6.9282], "lump": {"name": "consite-bomb-elevator-1"}},
     // Jak 2's consite-silo-doors-1 (consite)
-    {"trans": [664.728, -11.454, 843.0977], "etype": "hj2-cons-silo-doors", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [664.728, -11.454, 843.0977, 6.9282], "lump": {"name": "consite-silo-doors-1"}}
+    {"trans": [664.728, -11.454, 843.0977], "etype": "hj2-cons-silo-doors", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [664.728, -11.454, 843.0977, 6.9282], "lump": {"name": "consite-silo-doors-1"}},
+    // Jak 2's consite-part-41 (consite): group-consite-crane-fx
+    {"trans": [698.429, 153.9053, 964.1922], "etype": "part-spawner", "game_task": 0, "quat": [1.0, 0.0, 0.0051, -0.0], "bsphere": [698.429, 153.9053, 964.1922, 6.9282], "lump": {"name": "consite-part-41", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-crane-fx"}},
+    // Jak 2's consite-part-42 (consite): group-consite-crane-fx
+    {"trans": [698.3389, 153.9053, 973.0593], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.0051, 0.0, 1.0], "bsphere": [698.3389, 153.9053, 973.0593, 6.9282], "lump": {"name": "consite-part-42", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-crane-fx"}},
+    // Jak 2's consite-part-44 (consite): group-consite-crane-fx
+    {"trans": [740.7154, 157.3581, 960.3548], "etype": "part-spawner", "game_task": 0, "quat": [1.0, 0.0, 0.0051, -0.0], "bsphere": [740.7154, 157.3581, 960.3548, 6.9282], "lump": {"name": "consite-part-44", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-crane-fx"}},
+    // Jak 2's consite-part-45 (consite): group-consite-crane-fx
+    {"trans": [740.5386, 157.3581, 977.7552], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.0051, 0.0, 1.0], "bsphere": [740.5386, 157.3581, 977.7552, 6.9282], "lump": {"name": "consite-part-45", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-crane-fx"}},
+    // Jak 2's consite-part-7 (consite): group-consite-arch-light
+    {"trans": [694.5673, 157.1375, 989.5761], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, 0.0], "bsphere": [694.5673, 157.1375, 989.5761, 6.9282], "lump": {"name": "consite-part-7", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-arch-light"}},
+    // Jak 2's consite-part-8 (consite): group-consite-arch-light
+    {"trans": [719.3016, 143.7986, 989.5831], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, 0.0], "bsphere": [719.3016, 143.7986, 989.5831, 6.9282], "lump": {"name": "consite-part-8", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-arch-light"}},
+    // Jak 2's consite-part-9 (consite): group-consite-arch-light
+    {"trans": [669.9224, 143.7986, 989.5831], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, 0.0], "bsphere": [669.9224, 143.7986, 989.5831, 6.9282], "lump": {"name": "consite-part-9", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-arch-light"}},
+    // Jak 2's consite-part-13 (consite): group-consite-tower-red-light
+    {"trans": [713.6556, 97.3979, 963.3939], "etype": "part-spawner", "game_task": 0, "quat": [0.6519, -0.2739, 0.2739, 0.6519], "bsphere": [713.6556, 97.3979, 963.3939, 6.9282], "lump": {"name": "consite-part-13", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-tower-red-light"}},
+    // Jak 2's consite-part-92 (consite): group-consite-large-pipe-steam
+    {"trans": [719.9589, 43.4912, 890.264], "etype": "part-spawner", "game_task": 0, "quat": [0.1951, -0.4116, 0.1634, 0.8751], "bsphere": [719.9589, 43.4912, 890.264, 6.9282], "lump": {"name": "consite-part-92", "vis-dist": ["float", 532480.0], "art-name": "group-hj2-consite-large-pipe-steam"}},
+    // Jak 2's consite-part-93 (consite): group-consite-large-pipe-steam
+    {"trans": [722.3904, 43.4816, 891.7614], "etype": "part-spawner", "game_task": 0, "quat": [0.4054, 0.1729, -0.0084, 0.8976], "bsphere": [722.3904, 43.4816, 891.7614, 6.9282], "lump": {"name": "consite-part-93", "vis-dist": ["float", 532480.0], "art-name": "group-hj2-consite-large-pipe-steam"}},
+    // Jak 2's consite-part-94 (consite): group-consite-large-pipe-steam
+    {"trans": [729.8658, 37.4841, 891.2411], "etype": "part-spawner", "game_task": 0, "quat": [-0.1876, -0.3291, -0.2032, 0.9029], "bsphere": [729.8658, 37.4841, 891.2411, 6.9282], "lump": {"name": "consite-part-94", "vis-dist": ["float", 532480.0], "art-name": "group-hj2-consite-large-pipe-steam"}},
+    // Jak 2's consite-part-58 (consite): group-consite-spotlight
+    {"trans": [731.0328, 60.71, 946.4803], "etype": "part-spawner", "game_task": 0, "quat": [0.5245, 0.8362, 0.1568, 0.0332], "bsphere": [731.0328, 60.71, 946.4803, 6.9282], "lump": {"name": "consite-part-58", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-spotlight"}},
+    // Jak 2's consite-part-57 (consite): group-consite-spotlight
+    {"trans": [732.212, 60.5611, 919.5371], "etype": "part-spawner", "game_task": 0, "quat": [0.4236, 0.8826, 0.0882, 0.1837], "bsphere": [732.212, 60.5611, 919.5371, 6.9282], "lump": {"name": "consite-part-57", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-spotlight"}},
+    // Jak 2's consite-part-46 (consite): group-consite-spotlight
+    {"trans": [717.9617, 39.5636, 927.6043], "etype": "part-spawner", "game_task": 0, "quat": [-0.0689, 0.855, 0.2252, 0.462], "bsphere": [717.9617, 39.5636, 927.6043, 6.9282], "lump": {"name": "consite-part-46", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-spotlight"}},
+    // Jak 2's consite-part-14 (consite): group-consite-tower-red-light
+    {"trans": [702.7731, 97.3979, 974.0574], "etype": "part-spawner", "game_task": 0, "quat": [-0.2739, -0.6519, 0.6519, -0.2739], "bsphere": [702.7731, 97.3979, 974.0574, 6.9282], "lump": {"name": "consite-part-14", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-tower-red-light"}},
+    // Jak 2's consite-part-15 (consite): group-consite-tower-red-light
+    {"trans": [702.8826, 97.3979, 963.2844], "etype": "part-spawner", "game_task": 0, "quat": [0.6546, 0.2673, -0.2673, 0.6546], "bsphere": [702.8826, 97.3979, 963.2844, 6.9282], "lump": {"name": "consite-part-15", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-tower-red-light"}},
+    // Jak 2's consite-part-90 (consite): group-consite-small-pipe-steam
+    {"trans": [731.8546, 15.4104, 898.7487], "etype": "part-spawner", "game_task": 0, "quat": [-0.5563, -0.518, 0.0711, 0.6458], "bsphere": [731.8546, 15.4104, 898.7487, 6.9282], "lump": {"name": "consite-part-90", "vis-dist": ["float", 532480.0], "art-name": "group-hj2-consite-small-pipe-steam"}},
+    // Jak 2's consite-part-89 (consite): group-consite-small-pipe-steam
+    {"trans": [724.2415, 15.3382, 898.7487], "etype": "part-spawner", "game_task": 0, "quat": [-0.3261, 0.6636, 0.2936, 0.6059], "bsphere": [724.2415, 15.3382, 898.7487, 6.9282], "lump": {"name": "consite-part-89", "vis-dist": ["float", 532480.0], "art-name": "group-hj2-consite-small-pipe-steam"}},
+    // Jak 2's consite-part-88 (consite): group-consite-small-pipe-steam
+    {"trans": [722.9162, 14.982, 899.5388], "etype": "part-spawner", "game_task": 0, "quat": [-0.127, -0.5492, -0.3389, 0.7533], "bsphere": [722.9162, 14.982, 899.5388, 6.9282], "lump": {"name": "consite-part-88", "vis-dist": ["float", 532480.0], "art-name": "group-hj2-consite-small-pipe-steam"}},
+    // Jak 2's consite-part-87 (consite): group-consite-small-pipe-steam
+    {"trans": [716.3222, -1.6331, 898.4424], "etype": "part-spawner", "game_task": 0, "quat": [-0.1031, 0.7816, -0.4243, -0.4455], "bsphere": [716.3222, -1.6331, 898.4424, 6.9282], "lump": {"name": "consite-part-87", "vis-dist": ["float", 532480.0], "art-name": "group-hj2-consite-small-pipe-steam"}},
+    // Jak 2's consite-part-86 (consite): group-consite-small-pipe-steam
+    {"trans": [716.3005, -0.2756, 898.91], "etype": "part-spawner", "game_task": 0, "quat": [-0.2593, -0.6447, -0.255, 0.6724], "bsphere": [716.3005, -0.2756, 898.91, 6.9282], "lump": {"name": "consite-part-86", "vis-dist": ["float", 532480.0], "art-name": "group-hj2-consite-small-pipe-steam"}},
+    // Jak 2's consite-part-47 (consite): group-consite-spotlight
+    {"trans": [691.5915, 31.7917, 933.8334], "etype": "part-spawner", "game_task": 0, "quat": [0.0806, 0.7358, 0.3936, 0.5451], "bsphere": [691.5915, 31.7917, 933.8334, 6.9282], "lump": {"name": "consite-part-47", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-spotlight"}},
+    // Jak 2's consite-part-83 (consite): group-consite-small-pipe-steam
+    {"trans": [725.14, -0.26, 880.5695], "etype": "part-spawner", "game_task": 0, "quat": [-0.2739, -0.6524, -0.2356, 0.6662], "bsphere": [725.14, -0.26, 880.5695, 6.9282], "lump": {"name": "consite-part-83", "vis-dist": ["float", 532480.0], "art-name": "group-hj2-consite-small-pipe-steam"}},
+    // Jak 2's consite-part-79 (consite): group-consite-small-pipe-steam
+    {"trans": [725.1309, 7.5388, 880.4228], "etype": "part-spawner", "game_task": 0, "quat": [0.2054, -0.7809, 0.1736, 0.5638], "bsphere": [725.1309, 7.5388, 880.4228, 6.9282], "lump": {"name": "consite-part-79", "vis-dist": ["float", 532480.0], "art-name": "group-hj2-consite-small-pipe-steam"}},
+    // Jak 2's consite-part-91 (consite): group-consite-small-pipe-steam
+    {"trans": [731.9499, 15.0089, 891.9864], "etype": "part-spawner", "game_task": 0, "quat": [-0.637, -0.5059, 0.0287, 0.5809], "bsphere": [731.9499, 15.0089, 891.9864, 6.9282], "lump": {"name": "consite-part-91", "vis-dist": ["float", 532480.0], "art-name": "group-hj2-consite-small-pipe-steam"}},
+    // Jak 2's consite-part-85 (consite): group-consite-small-pipe-steam
+    {"trans": [722.8957, 11.9495, 891.1799], "etype": "part-spawner", "game_task": 0, "quat": [-0.2645, 0.8692, -0.2161, -0.3574], "bsphere": [722.8957, 11.9495, 891.1799, 6.9282], "lump": {"name": "consite-part-85", "vis-dist": ["float", 532480.0], "art-name": "group-hj2-consite-small-pipe-steam"}},
+    // Jak 2's consite-part-84 (consite): group-consite-small-pipe-steam
+    {"trans": [719.992, -1.6063, 891.5975], "etype": "part-spawner", "game_task": 0, "quat": [0.1359, 0.8893, -0.2737, 0.3403], "bsphere": [719.992, -1.6063, 891.5975, 6.9282], "lump": {"name": "consite-part-84", "vis-dist": ["float", 532480.0], "art-name": "group-hj2-consite-small-pipe-steam"}},
+    // Jak 2's consite-part-81 (consite): group-consite-small-pipe-steam
+    {"trans": [725.7977, 8.2669, 885.0356], "etype": "part-spawner", "game_task": 0, "quat": [0.0567, 0.8953, 0.2975, -0.3268], "bsphere": [725.7977, 8.2669, 885.0356, 6.9282], "lump": {"name": "consite-part-81", "vis-dist": ["float", 532480.0], "art-name": "group-hj2-consite-small-pipe-steam"}},
+    // Jak 2's consite-part-80 (consite): group-consite-small-pipe-steam
+    {"trans": [725.5912, 7.5315, 887.9299], "etype": "part-spawner", "game_task": 0, "quat": [0.157, -0.5582, 0.272, 0.768], "bsphere": [725.5912, 7.5315, 887.9299, 6.9282], "lump": {"name": "consite-part-80", "vis-dist": ["float", 532480.0], "art-name": "group-hj2-consite-small-pipe-steam"}},
+    // Jak 2's consite-part-95 (consite): group-consite-large-pipe-steam
+    {"trans": [729.8638, 33.3113, 889.0302], "etype": "part-spawner", "game_task": 0, "quat": [0.4142, -0.3654, -0.1418, 0.8215], "bsphere": [729.8638, 33.3113, 889.0302, 6.9282], "lump": {"name": "consite-part-95", "vis-dist": ["float", 532480.0], "art-name": "group-hj2-consite-large-pipe-steam"}},
+    // Jak 2's consite-part-31 (consite): group-consite-crane-fx
+    {"trans": [600.4882, 144.8706, 964.9093], "etype": "part-spawner", "game_task": 0, "quat": [0.3827, 0.0, 0.9239, -0.0], "bsphere": [600.4882, 144.8706, 964.9093, 6.9282], "lump": {"name": "consite-part-31", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-crane-fx"}},
+    // Jak 2's consite-part-33 (consite): group-consite-crane-fx
+    {"trans": [639.8706, 146.4397, 919.1997], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9239, 0.0, 0.3827], "bsphere": [639.8706, 146.4397, 919.1997, 6.9282], "lump": {"name": "consite-part-33", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-crane-fx"}},
+    // Jak 2's consite-part-36 (consite): group-consite-crane-fx
+    {"trans": [604.6263, 251.065, 1013.8197], "etype": "part-spawner", "game_task": 0, "quat": [0.9239, 0.0, 0.3827, -0.0], "bsphere": [604.6263, 251.065, 1013.8197, 6.9282], "lump": {"name": "consite-part-36", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-crane-fx"}},
+    // Jak 2's consite-part-37 (consite): group-consite-crane-fx
+    {"trans": [598.3559, 251.065, 1020.0901], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.3827, 0.0, 0.9239], "bsphere": [598.3559, 251.065, 1020.0901, 6.9282], "lump": {"name": "consite-part-37", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-crane-fx"}},
+    // Jak 2's consite-part-39 (consite): group-consite-crane-fx
+    {"trans": [637.5153, 254.5178, 1040.6744], "etype": "part-spawner", "game_task": 0, "quat": [0.9239, 0.0, 0.3827, -0.0], "bsphere": [637.5153, 254.5178, 1040.6744, 6.9282], "lump": {"name": "consite-part-39", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-crane-fx"}},
+    // Jak 2's consite-part-40 (consite): group-consite-crane-fx
+    {"trans": [625.2107, 254.5178, 1052.979], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.3827, 0.0, 0.9239], "bsphere": [625.2107, 254.5178, 1052.979, 6.9282], "lump": {"name": "consite-part-40", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-crane-fx"}},
+    // Jak 2's consite-part-43 (consite): group-consite-crane-fx
+    {"trans": [638.2176, 155.4744, 968.0546], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7107, 0.0, 0.7035], "bsphere": [638.2176, 155.4744, 968.0546, 6.9282], "lump": {"name": "consite-part-43", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-crane-fx"}},
+    // Jak 2's consite-part-4 (consite): group-consite-arch-light
+    {"trans": [631.0986, 157.1375, 989.5761], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, 0.0], "bsphere": [631.0986, 157.1375, 989.5761, 6.9282], "lump": {"name": "consite-part-4", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-arch-light"}},
+    // Jak 2's consite-part-26 (consite): group-consite-crane-fx
+    {"trans": [508.2294, 197.3098, 909.2206], "etype": "part-spawner", "game_task": 0, "quat": [0.318, 0.0, 0.9481, -0.0], "bsphere": [508.2294, 197.3098, 909.2206, 6.9282], "lump": {"name": "consite-part-26", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-crane-fx"}},
+    // Jak 2's consite-part-27 (consite): group-consite-crane-fx
+    {"trans": [502.8829, 197.3098, 902.1461], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9481, 0.0, -0.318], "bsphere": [502.8829, 197.3098, 902.1461, 6.9282], "lump": {"name": "consite-part-27", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-crane-fx"}},
+    // Jak 2's consite-part-29 (consite): group-consite-crane-fx
+    {"trans": [477.099, 200.7625, 938.0955], "etype": "part-spawner", "game_task": 0, "quat": [0.318, 0.0, 0.9481, -0.0], "bsphere": [477.099, 200.7625, 938.0955, 6.9282], "lump": {"name": "consite-part-29", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-crane-fx"}},
+    // Jak 2's consite-part-30 (consite): group-consite-crane-fx
+    {"trans": [466.6073, 200.7625, 924.2129], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9481, 0.0, -0.318], "bsphere": [466.6073, 200.7625, 924.2129, 6.9282], "lump": {"name": "consite-part-30", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-crane-fx"}},
+    // Jak 2's consite-part-34 (consite): group-consite-crane-fx
+    {"trans": [573.6335, 148.3234, 997.7983], "etype": "part-spawner", "game_task": 0, "quat": [0.3827, 0.0, 0.9239, -0.0], "bsphere": [573.6335, 148.3234, 997.7983, 6.9282], "lump": {"name": "consite-part-34", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-crane-fx"}},
+    // Jak 2's consite-part-35 (consite): group-consite-crane-fx
+    {"trans": [561.3289, 148.3234, 985.4937], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9239, 0.0, -0.3827], "bsphere": [561.3289, 148.3234, 985.4937, 6.9282], "lump": {"name": "consite-part-35", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-crane-fx"}},
+    // Jak 2's consite-part-38 (consite): group-consite-crane-fx
+    {"trans": [558.9167, 252.6341, 974.4374], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9239, 0.0, -0.3827], "bsphere": [558.9167, 252.6341, 974.4374, 6.9282], "lump": {"name": "consite-part-38", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-crane-fx"}},
+    // Jak 2's consite-part-32 (consite): group-consite-crane-fx
+    {"trans": [594.2179, 144.8706, 958.639], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9239, 0.0, -0.3827], "bsphere": [594.2179, 144.8706, 958.639, 6.9282], "lump": {"name": "consite-part-32", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-crane-fx"}},
+    // Jak 2's consite-part-10 (consite): group-consite-tower-red-light
+    {"trans": [590.4016, 88.3632, 976.3437], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.7071, 0.0], "bsphere": [590.4016, 88.3632, 976.3437, 6.9282], "lump": {"name": "consite-part-10", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-tower-red-light"}},
+    // Jak 2's consite-part-11 (consite): group-consite-tower-red-light
+    {"trans": [590.4016, 88.3632, 961.1075], "etype": "part-spawner", "game_task": 0, "quat": [0.7071, -0.0, 0.0, 0.7071], "bsphere": [590.4016, 88.3632, 961.1075, 6.9282], "lump": {"name": "consite-part-11", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-tower-red-light"}},
+    // Jak 2's consite-part-12 (consite): group-consite-tower-red-light
+    {"trans": [598.0196, 88.3632, 968.7256], "etype": "part-spawner", "game_task": 0, "quat": [0.5, -0.5, 0.5, 0.5], "bsphere": [598.0196, 88.3632, 968.7256, 6.9282], "lump": {"name": "consite-part-12", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-tower-red-light"}},
+    // Jak 2's consite-part-6 (consite): group-consite-arch-light
+    {"trans": [606.4536, 143.7986, 989.5831], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, 0.0], "bsphere": [606.4536, 143.7986, 989.5831, 6.9282], "lump": {"name": "consite-part-6", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-arch-light"}},
+    // Jak 2's consite-part-5 (consite): group-consite-arch-light
+    {"trans": [655.8328, 143.7986, 989.5831], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, 0.0], "bsphere": [655.8328, 143.7986, 989.5831, 6.9282], "lump": {"name": "consite-part-5", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-arch-light"}},
+    // Jak 2's consite-part-63 (consite): group-consite-orange-skybox-corner
+    {"trans": [579.1161, 74.3477, 963.9957], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.3827, 0.0, 0.9239], "bsphere": [579.1161, 74.3477, 963.9957, 6.9282], "lump": {"name": "consite-part-63", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-orange-skybox-corner"}},
+    // Jak 2's consite-part-96 (consite): group-consite-orange-skybox
+    {"trans": [580.5, 74.4993, 949.3345], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [580.5, 74.4993, 949.3345, 6.9282], "lump": {"name": "consite-part-96", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-orange-skybox"}},
+    // Jak 2's consite-part-97 (consite): group-consite-orange-skybox
+    {"trans": [580.5, 74.4993, 934.2626], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [580.5, 74.4993, 934.2626, 6.9282], "lump": {"name": "consite-part-97", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-orange-skybox"}},
+    // Jak 2's consite-part-56 (consite): group-consite-spotlight
+    {"trans": [608.7606, 32.1297, 930.554], "etype": "part-spawner", "game_task": 0, "quat": [0.3624, 0.5252, 0.312, 0.7039], "bsphere": [608.7606, 32.1297, 930.554, 6.9282], "lump": {"name": "consite-part-56", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-spotlight"}},
+    // Jak 2's consite-part-55 (consite): group-consite-spotlight
+    {"trans": [571.1849, 32.7227, 915.3691], "etype": "part-spawner", "game_task": 0, "quat": [0.1418, 0.3291, 0.3845, 0.8507], "bsphere": [571.1849, 32.7227, 915.3691, 6.9282], "lump": {"name": "consite-part-55", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-spotlight"}},
+    // Jak 2's consite-part-48 (consite): group-consite-spotlight
+    {"trans": [650.1382, 32.4498, 932.9419], "etype": "part-spawner", "game_task": 0, "quat": [0.3624, 0.5252, 0.312, 0.7039], "bsphere": [650.1382, 32.4498, 932.9419, 6.9282], "lump": {"name": "consite-part-48", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-spotlight"}},
+    // Jak 2's consite-part-98 (consite): group-consite-orange-skybox
+    {"trans": [580.5, 74.4993, 888.9691], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [580.5, 74.4993, 888.9691, 6.9282], "lump": {"name": "consite-part-98", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-orange-skybox"}},
+    // Jak 2's consite-part-99 (consite): group-consite-orange-skybox
+    {"trans": [565.0737, 74.4993, 965.2657], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [565.0737, 74.4993, 965.2657, 6.9282], "lump": {"name": "consite-part-99", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-orange-skybox"}},
+    // Jak 2's consite-part-64 (consite): group-consite-orange-skybox-corner
+    {"trans": [550.6777, 74.3477, 963.882], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.3827, 0.0, 0.9239], "bsphere": [550.6777, 74.3477, 963.882, 6.9282], "lump": {"name": "consite-part-64", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-orange-skybox-corner"}},
+    // Jak 2's consite-part-100 (consite): group-consite-orange-skybox
+    {"trans": [580.5, 74.4993, 904.0267], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [580.5, 74.4993, 904.0267, 6.9282], "lump": {"name": "consite-part-100", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-orange-skybox"}},
+    // Jak 2's consite-part-101 (consite): group-consite-orange-skybox
+    {"trans": [580.5, 74.4993, 919.0986], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [580.5, 74.4993, 919.0986, 6.9282], "lump": {"name": "consite-part-101", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-orange-skybox"}},
+    // Jak 2's consite-part-18 (consite): group-consite-crane-fx
+    {"trans": [650.8729, 196.1441, 799.6083], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.3827, 0.0, 0.9239], "bsphere": [650.8729, 196.1441, 799.6083, 6.9282], "lump": {"name": "consite-part-18", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-crane-fx"}},
+    // Jak 2's consite-part-104 (consite): group-consite-orange-skybox
+    {"trans": [680.7253, 105.8962, 784.6488], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [680.7253, 105.8962, 784.6488, 6.9282], "lump": {"name": "consite-part-104", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-orange-skybox"}},
+    // Jak 2's consite-part-106 (consite): group-consite-orange-skybox
+    {"trans": [665.6677, 105.8962, 784.6488], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [665.6677, 105.8962, 784.6488, 6.9282], "lump": {"name": "consite-part-106", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-orange-skybox"}},
+    // Jak 2's consite-part-107 (consite): group-consite-orange-skybox
+    {"trans": [696.5256, 105.8962, 768.7175], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [696.5256, 105.8962, 768.7175, 6.9282], "lump": {"name": "consite-part-107", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-orange-skybox"}},
+    // Jak 2's consite-part-1 (consite): group-consite-arch-light
+    {"trans": [738.4736, 163.2129, 847.5313], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, -0.7071, -0.0, 0.7071], "bsphere": [738.4736, 163.2129, 847.5313, 6.9282], "lump": {"name": "consite-part-1", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-arch-light"}},
+    // Jak 2's consite-part-2 (consite): group-consite-arch-light
+    {"trans": [738.4806, 149.874, 822.797], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, -0.7071, -0.0, 0.7071], "bsphere": [738.4806, 149.874, 822.797, 6.9282], "lump": {"name": "consite-part-2", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-arch-light"}},
+    // Jak 2's consite-part-3 (consite): group-consite-arch-light
+    {"trans": [738.4806, 149.874, 872.1763], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, -0.7071, -0.0, 0.7071], "bsphere": [738.4806, 149.874, 872.1763, 6.9282], "lump": {"name": "consite-part-3", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-arch-light"}},
+    // Jak 2's consite-part-61 (consite): group-consite-orange-skybox-corner
+    {"trans": [695.2169, 105.7446, 783.3787], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.3827, 0.0, 0.9239], "bsphere": [695.2169, 105.7446, 783.3787, 6.9282], "lump": {"name": "consite-part-61", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-orange-skybox-corner"}},
+    // Jak 2's consite-part-16 (consite): group-consite-crane-fx
+    {"trans": [605.1633, 194.575, 760.226], "etype": "part-spawner", "game_task": 0, "quat": [-0.3827, 0.0, 0.9239, 0.0], "bsphere": [605.1633, 194.575, 760.226, 6.9282], "lump": {"name": "consite-part-16", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-crane-fx"}},
+    // Jak 2's consite-part-17 (consite): group-consite-crane-fx
+    {"trans": [611.4337, 194.575, 753.9556], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9239, 0.0, 0.3827], "bsphere": [611.4337, 194.575, 753.9556, 6.9282], "lump": {"name": "consite-part-17", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-crane-fx"}},
+    // Jak 2's consite-part-19 (consite): group-consite-crane-fx
+    {"trans": [572.2744, 198.0278, 733.3712], "etype": "part-spawner", "game_task": 0, "quat": [-0.3827, 0.0, 0.9239, 0.0], "bsphere": [572.2744, 198.0278, 733.3712, 6.9282], "lump": {"name": "consite-part-19", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-crane-fx"}},
+    // Jak 2's consite-part-20 (consite): group-consite-crane-fx
+    {"trans": [584.5789, 198.0278, 721.0666], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9239, 0.0, 0.3827], "bsphere": [584.5789, 198.0278, 721.0666, 6.9282], "lump": {"name": "consite-part-20", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-crane-fx"}},
+    // Jak 2's consite-part-105 (consite): group-consite-orange-skybox
+    {"trans": [634.8932, 105.8962, 769.2225], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [634.8932, 105.8962, 769.2225, 6.9282], "lump": {"name": "consite-part-105", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-orange-skybox"}},
+    // Jak 2's consite-part-59 (consite): group-consite-orange-skybox-corner
+    {"trans": [636.1632, 105.7446, 783.265], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.3827, 0.0, 0.9239], "bsphere": [636.1632, 105.7446, 783.265, 6.9282], "lump": {"name": "consite-part-59", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-orange-skybox-corner"}},
+    // Jak 2's consite-part-60 (consite): group-consite-orange-skybox-corner
+    {"trans": [636.277, 105.7446, 754.8265], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9239, 0.0, -0.3827], "bsphere": [636.277, 105.7446, 754.8265, 6.9282], "lump": {"name": "consite-part-60", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-orange-skybox-corner"}},
+    // Jak 2's consite-part-103 (consite): group-consite-orange-skybox
+    {"trans": [650.8245, 105.8962, 784.6488], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [650.8245, 105.8962, 784.6488, 6.9282], "lump": {"name": "consite-part-103", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-orange-skybox"}},
+    // Jak 2's consite-part-49 (consite): group-consite-spotlight
+    {"trans": [697.0753, 32.7716, 792.173], "etype": "part-spawner", "game_task": 0, "quat": [0.3727, 0.8299, -0.37, -0.1883], "bsphere": [697.0753, 32.7716, 792.173, 6.9282], "lump": {"name": "consite-part-49", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-spotlight"}},
+    // Jak 2's consite-part-82 (consite): group-consite-small-pipe-steam
+    {"trans": [725.5387, -1.5936, 879.2542], "etype": "part-spawner", "game_task": 0, "quat": [-0.1602, 0.8583, -0.3437, -0.3458], "bsphere": [725.5387, -1.5936, 879.2542, 6.9282], "lump": {"name": "consite-part-82", "vis-dist": ["float", 532480.0], "art-name": "group-hj2-consite-small-pipe-steam"}},
+    // Jak 2's consite-part-62 (consite): group-consite-orange-skybox
+    {"trans": [695.3307, 105.7446, 754.3491], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9239, 0.0, 0.3827], "bsphere": [695.3307, 105.7446, 754.3491, 6.9282], "lump": {"name": "consite-part-62", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-orange-skybox"}},
+    // Jak 2's consite-part-53 (consite): group-consite-spotlight
+    {"trans": [575.4088, 33.2268, 833.6712], "etype": "part-spawner", "game_task": 0, "quat": [0.2552, -0.6301, 0.3155, 0.662], "bsphere": [575.4088, 33.2268, 833.6712, 6.9282], "lump": {"name": "consite-part-53", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-spotlight"}},
+    // Jak 2's consite-part-52 (consite): group-consite-spotlight
+    {"trans": [575.6996, 31.9834, 793.4307], "etype": "part-spawner", "game_task": 0, "quat": [-0.0712, -0.5288, 0.4768, 0.6986], "bsphere": [575.6996, 31.9834, 793.4307, 6.9282], "lump": {"name": "consite-part-52", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-spotlight"}},
+    // Jak 2's consite-part-51 (consite): group-consite-spotlight
+    {"trans": [615.8097, 34.3121, 793.8008], "etype": "part-spawner", "game_task": 0, "quat": [0.2333, 0.7757, -0.4087, -0.4206], "bsphere": [615.8097, 34.3121, 793.8008, 6.9282], "lump": {"name": "consite-part-51", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-spotlight"}},
+    // Jak 2's consite-part-54 (consite): group-consite-spotlight
+    {"trans": [574.9101, 33.0775, 875.0677], "etype": "part-spawner", "game_task": 0, "quat": [0.0915, -0.3099, 0.3016, 0.897], "bsphere": [574.9101, 33.0775, 875.0677, 6.9282], "lump": {"name": "consite-part-54", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-spotlight"}},
+    // Jak 2's consite-part-65 (consite): group-consite-orange-skybox-corner
+    {"trans": [579.2299, 74.3477, 874.4775], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9239, 0.0, 0.3827], "bsphere": [579.2299, 74.3477, 874.4775, 6.9282], "lump": {"name": "consite-part-65", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-orange-skybox-corner"}},
+    // Jak 2's consite-part-102 (consite): group-consite-orange-skybox
+    {"trans": [564.5687, 74.4993, 873.1688], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, -0.0], "bsphere": [564.5687, 74.4993, 873.1688, 6.9282], "lump": {"name": "consite-part-102", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-orange-skybox"}},
+    // Jak 2's consite-part-50 (consite): group-consite-spotlight
+    {"trans": [657.8984, 32.0718, 792.4059], "etype": "part-spawner", "game_task": 0, "quat": [0.0102, -0.6204, 0.4882, 0.6137], "bsphere": [657.8984, 32.0718, 792.4059, 6.9282], "lump": {"name": "consite-part-50", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-spotlight"}},
+    // Jak 2's consite-part-21 (consite): group-consite-crane-fx
+    {"trans": [479.0983, 227.3595, 814.3983], "etype": "part-spawner", "game_task": 0, "quat": [-0.2453, 0.0, 0.9695, 0.0], "bsphere": [479.0983, 227.3595, 814.3983, 6.9282], "lump": {"name": "consite-part-21", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-crane-fx"}},
+    // Jak 2's consite-part-22 (consite): group-consite-crane-fx
+    {"trans": [483.3154, 227.3595, 806.5977], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9695, 0.0, 0.2453], "bsphere": [483.3154, 227.3595, 806.5977, 6.9282], "lump": {"name": "consite-part-22", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-crane-fx"}},
+    // Jak 2's consite-part-23 (consite): group-consite-crane-fx
+    {"trans": [534.1555, 228.9286, 839.0771], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.5121, 0.0, 0.8589], "bsphere": [534.1555, 228.9286, 839.0771, 6.9282], "lump": {"name": "consite-part-23", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-crane-fx"}},
+    // Jak 2's consite-part-24 (consite): group-consite-crane-fx
+    {"trans": [439.9069, 230.8123, 798.0613], "etype": "part-spawner", "game_task": 0, "quat": [-0.2453, 0.0, 0.9695, 0.0], "bsphere": [439.9069, 230.8123, 798.0613, 6.9282], "lump": {"name": "consite-part-24", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-crane-fx"}},
+    // Jak 2's consite-part-25 (consite): group-consite-crane-fx
+    {"trans": [448.1823, 230.8123, 782.7538], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9695, 0.0, 0.2453], "bsphere": [448.1823, 230.8123, 782.7538, 6.9282], "lump": {"name": "consite-part-25", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-crane-fx"}},
+    // Jak 2's consite-part-28 (consite): group-consite-crane-fx
+    {"trans": [553.5345, 198.8788, 869.3735], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.8952, 0.0, 0.4456], "bsphere": [553.5345, 198.8788, 869.3735, 6.9282], "lump": {"name": "consite-part-28", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-crane-fx"}},
+    // Jak 2's consite-part-66 (consite): group-consite-orange-skybox-corner
+    {"trans": [550.2003, 74.3477, 874.3638], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9239, 0.0, -0.3827], "bsphere": [550.2003, 74.3477, 874.3638, 6.9282], "lump": {"name": "consite-part-66", "vis-dist": ["float", 4096000.0], "art-name": "group-hj2-consite-orange-skybox-corner"}}
   ]
 }

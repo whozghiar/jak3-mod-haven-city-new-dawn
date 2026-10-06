@@ -46,7 +46,7 @@
             ]
           ]
         },
-        "on-exit": "(want-load 'havenj2 'hj2-pshaft)"
+        "on-exit": "(want-load 'havenj2 'hj2-genb 'hj2-pshaft)"
       },
       {
         "id": 1526,
@@ -88,7 +88,7 @@
           ]
         },
         "on-enter": "(want-load 'hj2-pshaft 'hj2-pcab 'hj2-proof)",
-        "on-exit": "(want-load 'havenj2 'hj2-pshaft)"
+        "on-exit": "(want-load 'havenj2 'hj2-genb 'hj2-pshaft)"
       },
       {
         "id": 1527,
@@ -129,7 +129,7 @@
             ]
           ]
         },
-        "on-exit": "(want-load 'havenj2 'hj2-pshaft)"
+        "on-exit": "(want-load 'havenj2 'hj2-pal 'hj2-pshaft)"
       },
       {
         "id": 1528,

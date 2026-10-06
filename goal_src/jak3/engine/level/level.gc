@@ -715,6 +715,12 @@
 
 (define *login-state* (new 'global 'login-state))
 
+;; og:jak2-haven-city added: a predicate (level name -> #t) for the levels whose geometry the PC
+;; renderer may start loading while the level is still loading (see the end of level-update): #f,
+;; none (Jak 3's own behavior). A mod sets it for its own levels, whose renderer upload otherwise
+;; starts only once they're loaded and shows nothing for a while.
+(define *pc-renderer-early-level?* (the-as (function symbol symbol) #f))
+
 (define *print-login* #t)
 
 (defun load-buffer-resize ((arg0 level) (arg1 dgo-header))
@@ -3875,7 +3881,13 @@
       (cond
         ((or (= (-> this level i status) 'active)
              (= (-> this level i status) 'alive)
-             (= (-> this level i status) 'loaded))
+             (= (-> this level i status) 'loaded)
+             ;; og:jak2-haven-city added: a loading level of a mod (*pc-renderer-early-level?*)
+             (and *pc-renderer-early-level?*
+                  (member (-> this level i status) '(loading loading-bt loading-done login))
+                  (*pc-renderer-early-level?* (-> this level i name))
+                  )
+             )
           (set! (-> lev-names i) (symbol->string (bsp-name (-> this level i))))
           (if (-> this level i display?)
               (set! (-> active-lev-names i) (-> lev-names i)))

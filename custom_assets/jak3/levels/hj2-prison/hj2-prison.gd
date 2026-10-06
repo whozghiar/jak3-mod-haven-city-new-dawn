@@ -9,5 +9,6 @@
   "hj2-prsn-hang-cell-ag.go"
   "hj2-warp-gate-b-ag.go"
   "hj2-prison-obs.o"
+  "hj2-prison-part.o"
   "hj2-prison.go"
   ))

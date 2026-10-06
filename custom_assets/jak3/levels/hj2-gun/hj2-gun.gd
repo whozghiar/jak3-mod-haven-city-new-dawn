@@ -2,6 +2,8 @@
 ;; DGO definition file for hj2-gun: the gun course.
 ("HJG.DGO"
  (
-  "hip-door-a-ag.go"
+  "hj2-hip-door-ag.go"
+  "hj2-fort-gate-ag.go"
+  "hj2-gun-part.o"
   "hj2-gun.go"
   ))

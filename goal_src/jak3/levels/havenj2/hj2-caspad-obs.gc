@@ -1,0 +1,86 @@
+;;-*-Lisp-*-
+(in-package goal)
+
+;; name: hj2-caspad-obs.gc
+;; name in dgo: hj2-caspad-obs
+;; dgos: HJY
+
+;; og:jak2-haven-city Level code for hj2-caspad, Jak 2's castle pad: its electric gate
+;; (levels/common/elec-gate.gc there, caspad-elec-gate), between two posts of the castle's front.
+;; Jak 2 keeps it on for good: it only goes idle with actor option user17 (it has no options lump) or
+;; once its entity is marked subtask-complete, which only its shutdown state does, and nothing sends
+;; it 'shutdown. Here it is Jak 3's elec-gate (levels/common/elec-gate.gc, elec-gate.o linked into
+;; HJY before this file) with Jak 2's lightning: 5 bolts sliding up between its pathl and pathr posts,
+;; each circled by 2 rings, hurting and shoving back Jak when he crosses it (Jak 3's active state,
+;; the same as Jak 2's), and Jak 3's blocking plane across it (Jak 2 spawns the same plane, 2m wider
+;; than the posts and 20m higher). Jak 2's caspad gate has no particles and its electricity scale
+;; does nothing (Jak 3's base elec-gate-method-30 is a no-op too). Sound: Jak 3's elec-gate ambient
+;; loop "electric-gate" (silent if no loaded bank holds it).
+
+;; Jak 2's *caspad-elec-gate-params*: big bolts (4.6m thick lightning) and wide rings (10 to 13m),
+;; sliding slowly (speed 0.3). The lightning texture is Jak 3's: Jak 2's default lightning texture
+;; (page #xc index #x83) is page #x4 index #x3f in Jak 3 (lightning.gc). The fields Jak 2 doesn't
+;; have are its hardcoded values, which are also Jak 3's defaults: lightning quality from 40m (full)
+;; to 120m (lowest), the blocking plane 2m wider on each side and 20m higher than the posts.
+(define *hj2-caspad-elec-gate-params*
+  (new 'static 'elec-gate-params
+    :bolt-spec (new 'static 'lightning-spec
+      :name #f
+      :flags (lightning-spec-flags lsf2)
+      :start-color (new 'static 'rgba :r #xff :g #xff :b #xff :a #x80)
+      :end-color (new 'static 'rgba :a #x80)
+      :fade-to-color (new 'static 'rgba :r #xbf :b #x8f :a #x5)
+      :fade-start-factor 0.2
+      :fade-time 120.0
+      :texture (new 'static 'texture-id :index #x3f :page #x4)
+      :reduction 0.42
+      :num-points 16
+      :box-size 16793.6
+      :merge-factor 0.5
+      :merge-count 2
+      :radius 18841.6
+      :duration -1.0
+      :sound #f
+      )
+    :ring-spec (new 'static 'lightning-spec
+      :name #f
+      :flags (lightning-spec-flags lsf2)
+      :rand-func #x3
+      :start-color (new 'static 'rgba :r #xff :g #xff :b #xff :a #x80)
+      :end-color (new 'static 'rgba :r #xff :g #xff :b #xff :a #x80)
+      :fade-to-color (new 'static 'rgba :r #xbf :b #x8f :a #x5)
+      :fade-start-factor 0.2
+      :fade-time 120.0
+      :texture (new 'static 'texture-id :index #x3f :page #x4)
+      :reduction 0.42
+      :num-points 12
+      :box-size 17408.0
+      :merge-factor 0.5
+      :merge-count 2
+      :radius 17612.8
+      :duration -1.0
+      :sound #f
+      )
+    :ring-radius-min 40960.0
+    :ring-radius-max 53248.0
+    :speed-mult 0.3
+    :min-dist 163840.0
+    :max-dist 491520.0
+    :plane-expand-xz 8192.0
+    :plane-expand-y 81920.0
+    )
+  )
+
+;; Jak 2's caspad-elec-gate: Jak 3's elec-gate with the castle pad's lightning. Lumps (kept by the
+;; manifest): pathl and pathr, the two posts' bottom-to-top lines. Everything else is the base
+;; class's (init-from-entity!, the active state, the attack).
+(deftype hj2-caspad-elec-gate (elec-gate)
+  ()
+  )
+
+
+(defmethod get-params ((this hj2-caspad-elec-gate))
+  "The gate's lightning and sizes (read once by elec-gate's init-from-entity!).
+Returns *hj2-caspad-elec-gate-params*. No side effects."
+  *hj2-caspad-elec-gate-params*
+  )

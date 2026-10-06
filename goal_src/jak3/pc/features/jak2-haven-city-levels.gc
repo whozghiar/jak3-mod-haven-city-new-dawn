@@ -12,13 +12,197 @@
 ;; at boot (warps, saves). Moods and callbacks: jak2-haven-city-world.gc.
 
 ;; every level of this mod (the clock stays as set while one of them is active)
-(define *havenj2-levels* '(havenj2 hj2-hiphog hj2-gun hj2-vin hj2-hide hj2-oracle hj2-garage hj2-ruins hj2-consb hj2-cons hj2-pshaft hj2-proof hj2-pcab hj2-atollx hj2-atoll hj2-mount hj2-mtnx hj2-forest hj2-forstb hj2-caspad hj2-dig hj2-digb hj2-forta hj2-fortb hj2-prison hj2-fexa hj2-fexb hj2-stadd))
+(define *havenj2-levels* '(havenj2 hj2-slma hj2-slmb hj2-slmc hj2-port hj2-marka hj2-markb hj2-inda hj2-indb hj2-gena hj2-genb hj2-genc hj2-farma hj2-farmb hj2-pal hj2-stdm hj2-hiphog hj2-gun hj2-vin hj2-hide hj2-oracle hj2-garage hj2-ruins hj2-consb hj2-cons hj2-pshaft hj2-proof hj2-pcab hj2-atollx hj2-atoll hj2-mount hj2-mtnx hj2-forest hj2-forstb hj2-caspad hj2-dig hj2-digb hj2-forta hj2-fortb hj2-prison hj2-fexa hj2-fexb hj2-stadd hj2-kiosk hj2-onin hj2-mincan))
 
-;; Jak 2's whole Haven City as one custom level (custom_assets/jak3/levels/havenj2). Kept at
-;; Jak 2's world coordinates, so it must never be loaded together with Jak 3's own city levels.
+;; the city's districts and their hub, (district . hub): a district is loaded after its hub
+(define *havenj2-hubs* '((hj2-slma . havenj2) (hj2-slmb . havenj2) (hj2-slmc . havenj2) (hj2-port . havenj2) (hj2-marka . havenj2) (hj2-markb . havenj2) (hj2-inda . havenj2) (hj2-indb . havenj2) (hj2-gena . havenj2) (hj2-genb . havenj2) (hj2-genc . havenj2) (hj2-farma . havenj2) (hj2-farmb . havenj2) (hj2-pal . havenj2) (hj2-stdm . havenj2)))
+
+;; the city's districts, and which of them holds each 25.0m square of the city's streets (1 + its
+;; index in *havenj2-district-names*, 0: none), from Jak 2's traffic cells. The grid: x and z of its first
+;; square (game units), square size, squares per row.
+(define *havenj2-district-names* (new 'static 'boxed-array :type symbol 'hj2-slma 'hj2-slmb 'hj2-slmc 'hj2-port 'hj2-marka 'hj2-markb 'hj2-inda 'hj2-indb 'hj2-gena 'hj2-genb 'hj2-genc 'hj2-farma 'hj2-farmb 'hj2-pal 'hj2-stdm))
+
+(define *havenj2-district-grid* (new 'static 'vector :x -1638400.0 :y -3174400.0 :z 102400.0 :w 64.0))
+
+(define *havenj2-district-cells* (new 'static 'boxed-array :type uint8
+  0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 15 15 15 15 15 15 15 15 15 15 0 0 0 0 0 0 0
+  0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+  0 0 0 0 0 15 15 15 15 15 15 15 15 15 15 15 15 0 0 3 3 3 3 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+  0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 15 15 15 15 15 15 15 15 15 15 15
+  15 0 0 3 3 3 3 3 3 3 3 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+  0 0 0 0 0 0 0 0 0 0 0 0 15 15 15 15 15 15 15 15 15 15 15 15 15 0 0 3 3 3 3 3 3 3 3 3 3 3 3 0
+  0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 15 15 15 15
+  15 15 15 15 15 15 15 15 15 0 0 3 3 3 3 3 3 3 3 3 3 3 3 3 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+  0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 15 15 15 15 15 15 15 15 15 15 15 15 15 0 0 3 3 3 3 3
+  3 3 3 3 3 3 3 3 3 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+  0 0 0 0 15 15 15 15 15 15 15 15 15 15 15 15 0 0 0 3 3 3 3 3 3 3 3 3 3 3 3 3 3 0 0 0 0 0 0 0
+  0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 15 15 15 15 15 15 15 15 15 15 15 15
+  0 0 0 0 0 3 3 3 3 3 3 3 3 3 3 3 3 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+  0 0 0 0 0 0 0 0 0 0 0 0 0 15 15 15 15 15 15 15 15 15 15 15 0 0 0 0 3 3 3 3 3 3 3 3 3 3 3 3
+  3 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 15 15 15 15
+  15 15 15 15 15 15 15 15 0 0 0 3 3 3 3 3 3 3 3 3 3 3 3 3 3 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+  0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 15 15 15 15 15 15 15 15 15 15 15 15 15 0 3 3 3 3 3 3
+  3 3 3 3 3 3 3 3 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+  0 0 0 0 15 15 15 15 15 15 15 15 15 15 15 15 15 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 0 0 0 0 0 0 0 0
+  0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 15 15 15 15 15 15 15 15 15 15 15 15
+  15 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+  0 0 0 0 0 0 0 0 0 0 0 0 15 15 15 15 15 15 15 15 15 15 15 15 15 3 3 3 3 3 3 3 3 3 3 3 3 3 3 0
+  0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 9 9 9 9 9 9 9 9 0 0 0 15 15 15
+  15 15 15 15 15 15 15 15 15 3 3 3 3 3 3 3 3 3 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+  0 0 0 0 0 0 0 0 9 9 9 9 9 9 9 9 9 9 10 10 10 10 10 10 15 15 15 15 10 15 15 15 3 3 3 3 3 3 3 3
+  2 2 2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 9 9 9 9 9 9 9 9 9 9 9 9 9 9 9 9
+  9 10 10 10 10 10 10 10 10 15 10 10 10 10 10 10 3 3 3 3 3 3 2 2 2 2 2 2 0 0 0 0 0 0 0 0 0 0 0 0
+  0 0 0 0 0 0 0 0 9 9 9 9 9 9 9 9 9 9 9 9 9 9 9 9 9 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10
+  3 3 3 3 3 3 2 2 2 2 2 2 2 2 2 2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 9 9 9 9 9 9 9 9
+  9 9 9 9 9 9 9 9 9 9 10 10 10 10 10 10 10 10 10 10 10 10 10 10 3 3 3 3 3 2 2 2 2 2 2 2 2 2 2 2
+  2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 9 9 9 9 9 9 9 9 9 9 9 9 9 9 9 9 10 10 10 10 10 10 10 10
+  10 10 10 10 10 10 10 10 3 3 3 3 3 2 2 2 2 2 2 2 2 2 2 2 2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+  9 9 9 9 9 9 9 9 9 9 9 9 9 9 9 9 9 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 3 3 3 2 2 2 2 2
+  2 2 2 2 2 2 2 2 2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 9 9 9 9 9 9 9 9 9 9 9 9 9 9 9 9
+  9 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 0 0 0 0 0 0 0
+  0 0 0 0 0 0 0 0 9 9 9 9 9 9 9 9 9 9 9 9 9 9 9 9 9 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10
+  2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 9 9 9 9 9 9 9 9
+  9 9 9 9 9 9 9 9 9 10 10 10 10 10 10 10 10 10 10 10 10 10 10 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2
+  2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 9 9 9 9 9 9 9 9 9 9 9 9 9 9 9 9 9 10 10 10 10 10 10 10
+  10 10 10 10 10 10 10 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+  9 9 9 9 9 9 9 9 9 9 9 9 9 9 9 9 9 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 2 2 2 2 2 2 2 2
+  2 2 2 2 2 2 2 2 2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 9 9 9 9 9 9 9 9 9 9 9 9 9 9 9 9
+  10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 0 0 0 0 0 0 0
+  0 0 0 0 0 0 0 0 9 9 9 9 9 9 9 9 9 9 9 9 9 9 9 9 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10
+  2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 9 9 9 9 9 9 9 9
+  9 9 9 9 9 9 9 9 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 2 2 2 2 2 2 2 2 2 2 2 2 2 2 1 1
+  1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 9 9 9 9 9 9 9 9 9 9 9 9 9 9 9 9 9 10 10 10 10 10 10 10
+  10 10 10 10 10 10 10 10 2 2 2 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0
+  9 9 9 9 9 9 9 9 9 9 9 9 9 9 9 9 9 10 10 10 10 10 10 10 10 10 10 11 11 10 10 10 2 2 2 2 2 2 2 2
+  2 2 2 2 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 12 12 12 12 11 11 11 11 11 11 11 11 11 11 11 11
+  11 11 11 11 11 11 11 11 11 11 11 11 11 11 10 2 2 2 2 2 2 2 2 2 2 2 2 2 0 1 1 1 1 1 1 1 1 0 0 0
+  0 0 0 0 0 0 0 0 12 12 12 12 12 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 2
+  2 2 2 2 2 2 2 2 2 2 2 2 0 0 1 1 1 1 1 1 1 0 0 0 1 1 1 1 1 1 0 0 12 12 12 12 12 12 12 12
+  12 12 12 12 12 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1
+  1 1 1 1 1 0 0 0 1 1 1 1 1 1 0 0 12 12 12 12 12 12 12 12 12 12 12 12 12 12 11 11 11 11 11 11 11 11 11 11
+  11 11 11 11 11 11 11 11 11 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 0 0 1 1 1 1 1 1 1 0
+  12 12 12 12 12 12 12 12 12 12 12 12 12 12 12 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 0 0 0 0 0 0 0
+  0 0 0 0 0 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 12 12 12 12 12 12 11
+  11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 1 1
+  1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 12 12 12 12 12 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11
+  11 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 12 12 12 12 12 12 12
+  12 12 12 12 12 12 12 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1
+  1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 12 12 12 12 12 12 12 12 12 12 12 12 12 12 11 11 11 11 11 11 11 11 11
+  11 11 11 11 11 11 11 11 11 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+  0 12 12 12 12 12 12 12 12 12 12 12 12 12 12 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 0 0 0 0 0 0 0
+  0 0 0 0 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 12 12 12 12 12 12 12 12 12 12 12 12 12 12 11
+  11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 1 1 1
+  1 1 1 1 1 1 1 1 0 12 12 12 12 12 12 12 12 12 12 12 12 12 12 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11
+  11 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 0 0 12 12 12 12 12
+  12 12 12 12 12 12 12 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1
+  1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 0 0 12 12 12 12 12 12 12 12 12 12 12 12 11 11 11 11 11 11 11 11 11
+  11 11 11 11 11 11 11 11 11 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+  0 0 0 12 12 12 12 12 12 12 12 12 12 12 12 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 0 0 0 0 0 0 0
+  0 0 0 0 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 0 5 12 12 12 12 12 12 12 12 12 12 12 12 11
+  11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 11 14 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 1 1 1
+  1 1 1 8 8 8 8 8 0 5 5 5 12 12 12 5 5 5 5 5 5 5 5 5 14 14 14 14 14 14 14 14 14 14 14 14 14 14 14 14
+  14 6 6 6 6 6 6 6 6 6 6 6 6 6 1 1 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 5 5 5 5 5 5 5 5
+  5 5 5 5 5 5 5 5 14 14 14 14 14 14 14 14 14 14 14 14 14 14 14 14 14 6 6 6 6 6 6 6 6 6 6 6 6 6 6 8
+  8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 14 14 14 14 14 14 14 14
+  14 14 14 14 14 14 14 14 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8
+  5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 14 14 14 0 0 0 0 0 0 0 0 14 14 14 14 14 6 6 6 6 6 6 6 6
+  6 6 6 6 6 6 6 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+  14 14 14 0 0 0 0 0 0 0 0 14 14 14 14 14 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 8 8 8 8 8 8 8 8 8
+  8 8 8 8 8 8 8 8 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 14 14 14 0 0 0 0 0 0 0 0 14 14 14 14 14
+  6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 5 5 5 5 5 5 5 5
+  5 5 5 5 5 5 5 5 14 14 14 0 0 0 0 0 0 0 0 14 14 14 14 14 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 8
+  8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 14 14 14 0 0 0 0 0
+  0 0 0 14 14 14 14 14 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8
+  5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 14 14 14 0 0 0 0 0 0 0 0 14 14 14 14 14 6 6 6 6 6 6 6 6
+  6 6 6 6 6 6 6 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 0 5 5 5 5 5 5 5 5 5 5 5 5 5 5 14
+  14 14 14 0 0 0 0 0 0 0 0 14 14 14 14 14 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 8 8 8 8 8 8 8 8 8
+  8 8 8 8 8 8 8 8 0 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 14 14 14 0 0 0 0 0 0 0 0 14 14 14 14 14
+  14 6 6 6 6 6 6 6 6 6 6 6 6 6 6 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 0 5 5 5 5 5 5 5
+  5 5 5 5 5 5 5 5 14 14 14 0 0 0 0 0 0 0 0 14 14 14 14 14 14 6 6 6 6 6 6 6 6 6 6 6 6 6 6 8
+  8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 0 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 14 14 14 0 0 0 0 0
+  0 0 0 14 14 14 14 14 14 6 6 6 6 6 6 6 6 6 6 6 6 6 6 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8
+  0 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 14 14 14 14 14 14 14 14 14 14 14 14 14 14 14 14 14 6 6 6 6 6 6 6
+  6 6 6 6 6 6 8 8 8 8 8 8 8 8 8 8 8 8 7 7 8 8 8 8 0 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+  14 14 14 14 14 14 14 14 14 14 14 14 14 14 14 14 14 6 6 6 6 6 6 6 6 6 6 6 6 6 8 8 8 8 8 8 8 8 8 8
+  8 8 7 7 7 7 0 0 0 5 5 5 5 5 5 5 5 5 5 5 5 5 5 14 14 14 14 14 14 14 14 14 14 14 14 14 14 14 14 14
+  14 14 6 6 6 6 6 6 6 6 6 6 6 6 8 8 8 8 7 7 8 8 8 8 8 7 7 7 7 7 7 7 0 0 5 5 5 5 5 5
+  5 5 5 5 5 5 0 14 14 14 14 14 14 14 14 14 14 14 14 14 14 14 14 14 14 14 0 6 6 6 6 6 6 6 6 6 6 6 7 7
+  7 7 7 7 7 8 8 8 7 7 7 7 7 7 7 7 0 0 5 5 5 5 5 5 5 5 5 5 5 5 0 14 14 14 14 14 14 14 14 14
+  14 14 14 14 14 14 14 14 14 14 0 0 0 0 0 0 0 0 0 0 0 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7
+  0 0 5 5 5 5 5 5 5 5 5 5 5 5 0 0 0 0 14 14 14 14 14 14 14 14 14 14 14 14 0 0 0 0 0 0 0 0 0 0
+  0 0 0 0 0 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 0 0 0 5 5 5 5 5 5 5 5 5 5 5 13 0
+  0 0 14 14 14 14 14 14 14 14 14 14 14 14 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 7 7 7 7 7 7 7 7 7 7 7
+  7 7 7 7 7 7 7 7 0 0 0 0 0 0 0 0 0 13 13 13 13 13 13 0 0 0 14 14 14 14 14 14 14 14 14 14 14 14 0 0
+  0 0 0 0 0 0 0 0 0 0 0 0 0 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 0 0 0 0 0 0 0 0
+  0 13 13 13 13 13 13 13 0 0 14 14 14 14 14 14 14 14 14 14 14 14 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 7 7 7
+  7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 13 13 13 13 13 13 13 13 13 13 13 13 13 13 13 13 13 0 14 14 14 14 0 0
+  14 14 14 14 14 14 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7
+  13 13 13 13 13 13 13 13 13 0 13 13 13 13 13 13 13 0 14 14 14 14 0 0 14 14 14 14 14 14 0 0 0 0 0 0 0 0 0 0
+  0 0 0 0 0 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 13 13 13 13 13 13 13 13 13 0 0 13 13 13 13 13
+  13 0 14 14 14 14 14 14 14 14 14 14 14 14 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 7 7 7 7 7 7 7 7 7 7 7
+  7 7 7 7 7 7 7 7 13 13 13 13 13 13 13 13 13 0 0 0 13 13 13 13 13 0 14 14 14 14 14 14 14 14 14 14 14 14 0 0
+  0 0 0 0 0 0 0 0 0 0 0 0 0 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 13 13 13 13 13 13 13 13
+  13 0 0 0 13 13 13 13 13 0 14 14 14 14 14 14 14 14 14 14 14 14 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 7 7 7
+  7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 13 13 13 13 13 13 13 13 13 13 13 13 13 13 13 13 13 0 14 14 14 14 14 14
+  14 14 14 14 14 14 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7
+  13 13 13 13 13 13 13 13 13 13 13 13 13 13 13 13 13 0 14 14 14 14 14 14 14 14 14 14 14 14 0 0 0 0 0 0 0 0 0 0
+  0 0 0 0 0 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 13 13 13 13 13 13 13 13 13 13 13 13 13 13 13 13
+  13 0 14 14 14 14 14 14 14 14 14 14 14 14 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 7 7 7 7 7 7 7 7 7 7 7
+  7 7 7 7 7 7 7 7 13 13 4 4 13 13 13 13 13 13 13 13 13 13 13 13 13 0 0 0 0 14 14 14 14 14 4 4 0 0 0 0
+  0 0 0 0 0 0 0 0 0 0 0 0 7 7 4 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 0 0 4 4 4 4 13 13 13 13
+  13 13 13 13 13 0 0 0 0 0 0 0 0 14 14 14 14 4 4 4 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 4 4 7 7 7
+  7 7 7 7 7 7 7 7 7 7 7 7 7 7 0 0 4 4 4 4 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 4 4 4
+  4 4 4 4 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 4 4 4 4 4 4 7 4 4 0 0 0 0 0 0 0 0 0 0 0 0
+  4 4 4 4 0 0 0 0 0 0 0 0 0 0 0 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 0 0 0 0 0 0
+  0 0 0 4 4 4 4 4 4 4 4 4 0 0 0 0 0 0 0 0 0 0 0 0 4 4 4 4 0 0 0 0 0 0 0 0 0 0 0 4
+  4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 0 0 0 0 0 0 0 0 0 4 4 4 4 4 4 4 0 0 0 0 0 0
+  0 0 0 0 0 0 0 0 4 4 4 4 4 4 0 0 0 0 0 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4
+  4 4 4 4 4 4 0 0 0 0 0 4 4 4 4 4 4 4 0 0 0 0 0 0 0 0 0 0 0 0 0 0 4 4 4 4 4 4 0 0
+  0 0 0 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 0 0 0 0 0 4 4 4 4 4
+  4 4 0 0 0 0 0 0 0 0 0 0 0 0 0 0 4 4 4 4 4 4 4 4 0 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4
+  4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 0 4 4 4 4 4 4 4 4 4 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+  4 4 4 4 4 4 4 4 0 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4
+  0 4 4 4 4 4 4 4 4 4 0 0 0 0 0 0 0 0 0 0 0 0 0 0 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4
+  4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 0 0 0 0 0 0
+  0 0 0 0 0 0 0 0 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4
+  4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 0 0 0 0 0 0 0 0 0 0 0 0 0 0 4 4 4 4 4 4 4 4
+  4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4
+  4 4 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 4 4 4 4 4 4 4 4 4 4 4 4 4 0 0 0 4 4 4 4 4 4 4
+  4 4 4 4 4 4 0 0 0 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+  0 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4
+  4 4 4 4 4 4 4 4 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 4 4 4 4 4 4 4 4 4 4 4 4 4
+  4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 0 0 0 0 0 0 0 0 0 0
+  0 0 0 0 0 0 0 0 0 0 0 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4
+  4 4 4 4 4 4 4 4 4 4 4 4 4 4 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 4 4 4 4 4
+  4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 0 0 0 0
+  0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4
+  4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+  0 0 0 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4
+  4 4 4 4 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 4 4 4 4 4 4 4 4 4 4 4 4 4
+  4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 0 0 0 0 0 0 0 0 0 0 0 0
+  0 0 0 0 0 0 0 0 0 0 0 0 0 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4
+  4 4 4 4 4 4 4 4 4 4 4 4 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 4 4 4
+  4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 0 0 0 0
+  0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4
+  4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+  0 0 0 0 0 0 0 0 0 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4
+  0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 4 4 4
+  4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+  0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4
+  4 4 4 4 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+  0 0 0 0 0 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+  0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 4 4 4 4 4 4 4 4 4 4 4
+  4 4 4 4 4 4 4 4 4 4 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+  0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 4 4 4 4 4 4 4 0 0 0 0 0 4 4 4 4 4 4 4 0 0 0 0 0 0
+  0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+  ))
+
+;; Jak 2's ctywide, the city-wide level of Jak 2's Haven City (custom_assets/jak3/levels/havenj2),
+;; loaded first with every district (hj2-slma...). Kept at Jak 2's world coordinates, so it
+;; must never be loaded together with Jak 3's own city levels.
 ;; sky: the sky is only drawn when an active level has this flag.
-;; part-engine-max: the static particles of Jak 2's lights (x16, see part-spawner).
 ;; login/logout: the traffic engine, in havenj2's own code (havenj2-traffic.gc).
+;; 6: the force-field walls' color texture animation (Jak 3's ctywide-texture.gc).
 (define havenj2
   (new 'static 'level-load-info
     :name 'havenj2
@@ -28,10 +212,10 @@
     :taskname 'default
     :index #x129
     :master-level #f
-    :level-flags (level-flags sky ocean-near-translucent)
+    :level-flags (level-flags sky ocean-near-translucent not-physical)
     :packages '()
     :run-packages '("common")
-    :memory-mode (level-memory-mode large)
+    :memory-mode (level-memory-mode small-center)
     :music-bank #f
     :extra-sound-bank #f
     :mood-func 'update-mood-havenj2
@@ -40,813 +224,13 @@
     :ocean-alpha 1.0
     :priority 100
     :draw-priority 9.0
-    :part-engine-max 255
+    :part-engine-max 4
     :base-task-mask (task-mask task0)
     :bigmap-id (bigmap-id none)
     :continues '(
-      (new 'static 'continue-point
-        :name "havenj2-start"
-        :level 'havenj2
-        :trans (static-vectorm 1062.2327 8.1445 221.9110)
-        :camera-trans (static-vectorm 1061.8359 13.2938 234.4017)
-        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 -3 32606 0 -3208))
-        :camera-rot (new 'static 'array int16 9 -32751 0 -1006 121 32521 -3984 999 -3984 -32508)
-        :on-goto #f
-        :vis-nick 'havenj2
-        :vehicle-type #x1b
-        :want-count 1
-        :want (new 'static 'inline-array level-buffer-state-small 1
-          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
-          )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
-        )
-      (new 'static 'continue-point
-        :name "hj2-ctysluma-alley"
-        :level 'havenj2
-        :trans (static-vectorm 1137.8684 8.1456 14.9806)
-        :camera-trans (static-vectorm 1131.8160 13.2955 6.4000)
-        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 -8139 0 -31738))
-        :camera-rot (new 'static 'array int16 9 26787 0 -18867 3319 32253 4715 18572 -5767 26371)
-        :flags (continue-flags no-auto)
-        :on-goto #f
-        :vis-nick 'havenj2
-        :vehicle-type #x1b
-        :want-count 2
-        :want (new 'static 'inline-array level-buffer-state-small 2
-          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
-          (new 'static 'level-buffer-state-small :name 'hj2-hide :display? 'display)
-          )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
-        )
-      (new 'static 'continue-point
-        :name "hj2-ctyslumb-start"
-        :level 'havenj2
-        :trans (static-vectorm 587.9945 7.9922 -248.0183)
-        :camera-trans (static-vectorm 584.2896 12.6448 -242.0224)
-        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 -59 24405 -72 -21862))
-        :camera-rot (new 'static 'array int16 9 -29503 0 -14254 4446 31129 -9208 13543 -10223 -28029)
-        :on-goto #f
-        :vis-nick 'havenj2
-        :vehicle-type #x1b
-        :want-count 1
-        :want (new 'static 'inline-array level-buffer-state-small 1
-          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
-          )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
-        )
-      (new 'static 'continue-point
-        :name "hj2-ctyslumb-fort"
-        :level 'havenj2
-        :trans (static-vectorm 609.6243 7.9982 -26.2274)
-        :camera-trans (static-vectorm 604.5021 13.3253 -15.1040)
-        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 30463 0 12065))
-        :camera-rot (new 'static 'array int16 9 -29539 0 -14178 1969 32446 -4106 14041 -4555 -29251)
-        :on-goto #f
-        :vis-nick 'havenj2
-        :vehicle-type #x1b
-        :want-count 1
-        :want (new 'static 'inline-array level-buffer-state-small 1
-          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
-          )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
-        )
-      (new 'static 'continue-point
-        :name "hj2-ctyslumc-start"
-        :level 'havenj2
-        :trans (static-vectorm 598.9013 7.9360 -553.9289)
-        :camera-trans (static-vectorm 602.7109 13.0790 -542.0228)
-        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 -22799 0 23533))
-        :camera-rot (new 'static 'array int16 9 -30126 0 12881 -1507 32541 -3526 -12792 -3834 -29920)
-        :on-goto #f
-        :vis-nick 'havenj2
-        :vehicle-type #x1b
-        :want-count 1
-        :want (new 'static 'inline-array level-buffer-state-small 1
-          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
-          )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
-        )
-      (new 'static 'continue-point
-        :name "hj2-ctyslumc-slums"
-        :level 'havenj2
-        :trans (static-vectorm 755.8471 9.3700 -715.6014)
-        :camera-trans (static-vectorm 758.0988 14.2974 -727.0823)
-        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 -3758 0 32547))
-        :camera-rot (new 'static 'array int16 9 32158 0 6272 -747 32531 3834 -6229 -3906 31928)
-        :on-goto #f
-        :vis-nick 'havenj2
-        :vehicle-type #x1b
-        :want-count 2
-        :want (new 'static 'inline-array level-buffer-state-small 2
-          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
-          (new 'static 'level-buffer-state-small :name 'hj2-atollx :display? #f)
-          )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
-        )
-      (new 'static 'continue-point
-        :name "hj2-ctyport-start"
-        :level 'havenj2
-        :trans (static-vectorm 193.0205 17.2856 1753.9814)
-        :camera-trans (static-vectorm 192.9799 22.4356 1766.4790)
-        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 -32738 0 -1357))
-        :camera-rot (new 'static 'array int16 9 -32764 0 -183 20 32521 -3984 180 -3984 -32521)
-        :on-goto #f
-        :vis-nick 'havenj2
-        :vehicle-type #x1b
-        :want-count 1
-        :want (new 'static 'inline-array level-buffer-state-small 1
-          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
-          )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
-        )
-      (new 'static 'continue-point
-        :name "hj2-ctyport-hiphog"
-        :level 'havenj2
-        :trans (static-vectorm -57.9017 7.7235 1346.9315)
-        :camera-trans (static-vectorm -52.0969 12.8738 1355.7111)
-        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 -31813 0 7831))
-        :camera-rot (new 'static 'array int16 9 -27328 0 18074 -3142 32266 -4751 -17799 -5698 -26912)
-        :on-goto #f
-        :vis-nick 'havenj2
-        :vehicle-type #x1b
-        :want-count 2
-        :want (new 'static 'inline-array level-buffer-state-small 2
-          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
-          (new 'static 'level-buffer-state-small :name 'hj2-hiphog :display? 'display)
-          )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
-        )
-      (new 'static 'continue-point
-        :name "hj2-ctyport-gungame"
-        :level 'havenj2
-        :trans (static-vectorm 424.8708 7.7320 1322.4294)
-        :camera-trans (static-vectorm 419.8672 12.8819 1333.8837)
-        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 31794 0 7920))
-        :camera-rot (new 'static 'array int16 9 -30021 0 -13126 1589 32525 -3640 13028 -3971 -29798)
-        :flags (continue-flags no-auto)
-        :on-goto #f
-        :vis-nick 'havenj2
-        :vehicle-type #x1b
-        :want-count 2
-        :want (new 'static 'inline-array level-buffer-state-small 2
-          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
-          (new 'static 'level-buffer-state-small :name 'hj2-gun :display? #f)
-          )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
-        )
-      (new 'static 'continue-point
-        :name "hj2-ctyport-warp"
-        :level 'havenj2
-        :trans (static-vectorm 372.6321 7.6778 1799.3531)
-        :camera-trans (static-vectorm 368.9453 12.3704 1789.2371)
-        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 -46 -31145 -16 10177))
-        :camera-rot (new 'static 'array int16 9 31178 0 -10076 1478 32410 4574 9968 -4807 30840)
-        :on-goto #f
-        :vis-nick 'havenj2
-        :vehicle-type #x1b
-        :want-count 1
-        :want (new 'static 'inline-array level-buffer-state-small 1
-          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
-          )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
-        )
-      (new 'static 'continue-point
-        :name "hj2-ctyport-under"
-        :level 'havenj2
-        :trans (static-vectorm 10.8055 7.6977 1742.0078)
-        :camera-trans (static-vectorm 0.6041 12.7799 1740.8260)
-        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 -10 27947 -49 17101))
-        :camera-rot (new 'static 'array int16 9 3441 0 -32584 5872 32230 619 32049 -5905 3385)
-        :on-goto #f
-        :vis-nick 'havenj2
-        :vehicle-type #x1b
-        :want-count 1
-        :want (new 'static 'inline-array level-buffer-state-small 1
-          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
-          )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
-        )
-      (new 'static 'continue-point
-        :name "hj2-ctyfarma-start"
-        :level 'havenj2
-        :trans (static-vectorm -328.6530 8.5787 209.5328)
-        :camera-trans (static-vectorm -316.1531 13.7317 209.6537)
-        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 -15440 0 28900))
-        :camera-rot (new 'static 'array int16 9 -177 0 32764 -3958 32525 -20 -32525 -3958 -177)
-        :on-goto #f
-        :vis-nick 'havenj2
-        :vehicle-type #x1b
-        :want-count 1
-        :want (new 'static 'inline-array level-buffer-state-small 1
-          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
-          )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
-        )
-      (new 'static 'continue-point
-        :name "hj2-ctyfarmb-start"
-        :level 'havenj2
-        :trans (static-vectorm -359.7955 7.9978 1146.2712)
-        :camera-trans (static-vectorm -355.9259 13.2403 1156.0312)
-        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 -30893 0 10918))
-        :camera-rot (new 'static 'array int16 9 -30441 0 12121 -2251 32194 -5652 -11911 -6085 -29910)
-        :on-goto #f
-        :vis-nick 'havenj2
-        :vehicle-type #x1b
-        :want-count 1
-        :want (new 'static 'inline-array level-buffer-state-small 1
-          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
-          )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
-        )
-      (new 'static 'continue-point
-        :name "hj2-ctyinda-start"
-        :level 'havenj2
-        :trans (static-vectorm 963.1586 26.9982 908.6486)
-        :camera-trans (static-vectorm 969.6926 31.6806 900.1172)
-        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 1746 0 32718))
-        :camera-rot (new 'static 'array int16 9 26292 0 19552 -2585 32479 3477 -19378 -4332 26063)
-        :on-goto #f
-        :vis-nick 'havenj2
-        :vehicle-type #x1b
-        :want-count 1
-        :want (new 'static 'inline-array level-buffer-state-small 1
-          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
-          )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
-        )
-      (new 'static 'continue-point
-        :name "hj2-ctyinda-vinroom"
-        :level 'havenj2
-        :trans (static-vectorm 1092.6700 24.8336 1093.5424)
-        :camera-trans (static-vectorm 1084.5714 29.6370 1085.8448)
-        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 28255 0 -16590))
-        :camera-rot (new 'static 'array int16 9 23343 0 -22993 3404 32403 3457 22737 -4853 23088)
-        :on-goto #f
-        :vis-nick 'havenj2
-        :vehicle-type #x1b
-        :want-count 2
-        :want (new 'static 'inline-array level-buffer-state-small 2
-          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
-          (new 'static 'level-buffer-state-small :name 'hj2-vin :display? #f)
-          )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
-        )
-      (new 'static 'continue-point
-        :name "hj2-ctyinda-consite"
-        :level 'havenj2
-        :trans (static-vectorm 777.3209 7.9936 867.1732)
-        :camera-trans (static-vectorm 787.7605 13.1436 865.9193)
-        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 -22000 -3 24280))
-        :camera-rot (new 'static 'array int16 9 3903 0 32531 -5682 32262 682 -32033 -5721 3844)
-        :on-goto #f
-        :vis-nick 'havenj2
-        :vehicle-type #x1b
-        :want-count 2
-        :want (new 'static 'inline-array level-buffer-state-small 2
-          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
-          (new 'static 'level-buffer-state-small :name 'hj2-consb :display? 'display)
-          )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
-        )
-      (new 'static 'continue-point
-        :name "hj2-ctyindb-start"
-        :level 'havenj2
-        :trans (static-vectorm 971.4156 7.9984 546.1059)
-        :camera-trans (static-vectorm 963.5841 12.7481 553.6734)
-        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 31106 0 10292))
-        :camera-rot (new 'static 'array int16 9 -22753 0 -23576 3123 32475 -3015 23369 -4342 -22554)
-        :on-goto #f
-        :vis-nick 'havenj2
-        :vehicle-type #x1b
-        :want-count 1
-        :want (new 'static 'inline-array level-buffer-state-small 1
-          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
-          )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
-        )
-      (new 'static 'continue-point
-        :name "hj2-ctymarka-brutter"
-        :level 'havenj2
-        :trans (static-vectorm -107.1954 8.0000 477.7272)
-        :camera-trans (static-vectorm -96.7402 13.1499 476.6821)
-        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 -5184 0 32354))
-        :camera-rot (new 'static 'array int16 9 5190 0 32351 -5705 32253 914 -31843 -5777 5108)
-        :on-goto #f
-        :vis-nick 'havenj2
-        :vehicle-type #x1b
-        :want-count 1
-        :want (new 'static 'inline-array level-buffer-state-small 1
-          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
-          )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
-        )
-      (new 'static 'continue-point
-        :name "hj2-ctymarkb-tanker"
-        :level 'havenj2
-        :trans (static-vectorm 524.2893 8.4094 475.5867)
-        :camera-trans (static-vectorm 531.2816 13.5594 465.2251)
-        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 7618 0 -31866))
-        :camera-rot (new 'static 'array int16 9 27138 0 18359 -2228 32521 3296 -18222 -3981 26938)
-        :on-goto #f
-        :vis-nick 'havenj2
-        :vehicle-type #x1b
-        :want-count 1
-        :want (new 'static 'inline-array level-buffer-state-small 1
-          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
-          )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
-        )
-      (new 'static 'continue-point
-        :name "hj2-ctypal-shaft"
-        :level 'havenj2
-        :trans (static-vectorm 191.1746 7.9977 773.6696)
-        :camera-trans (static-vectorm 190.2588 13.1720 786.1343)
-        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 32760 0 600))
-        :camera-rot (new 'static 'array int16 9 -32679 0 -2399 295 32511 -4050 2379 -4063 -32426)
-        :on-goto #f
-        :vis-nick 'havenj2
-        :vehicle-type #x1b
-        :want-count 2
-        :want (new 'static 'inline-array level-buffer-state-small 2
-          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
-          (new 'static 'level-buffer-state-small :name 'hj2-pshaft :display? #f)
-          )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
-        )
-      (new 'static 'continue-point
-        :name "hj2-ctypal-tomb"
-        :level 'havenj2
-        :trans (static-vectorm 191.7924 8.0000 907.7653)
-        :camera-trans (static-vectorm 192.4380 13.1499 895.2814)
-        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 -8274 0 31702))
-        :camera-rot (new 'static 'array int16 9 32718 0 1769 -213 32525 3962 -1756 -3968 32475)
-        :on-goto #f
-        :vis-nick 'havenj2
-        :vehicle-type #x1b
-        :want-count 1
-        :want (new 'static 'inline-array level-buffer-state-small 1
-          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
-          )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
-        )
-      (new 'static 'continue-point
-        :name "hj2-ctygena-start"
-        :level 'havenj2
-        :trans (static-vectorm -234.5832 9.7087 -196.6679)
-        :camera-trans (static-vectorm -246.6077 14.7276 -197.0967)
-        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 36 -23340 16 -22996))
-        :camera-rot (new 'static 'array int16 9 1189 0 -32744 3929 32528 141 32508 -3929 1183)
-        :on-goto #f
-        :vis-nick 'havenj2
-        :vehicle-type #x1b
-        :want-count 1
-        :want (new 'static 'inline-array level-buffer-state-small 1
-          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
-          )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
-        )
-      (new 'static 'continue-point
-        :name "hj2-ctygenb-start"
-        :level 'havenj2
-        :trans (static-vectorm 167.6122 9.8320 -247.8454)
-        :camera-trans (static-vectorm 157.9809 14.4884 -250.5371)
-        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 29 21446 23 -24772))
-        :camera-rot (new 'static 'array int16 9 10469 0 -31047 4948 32348 1668 30650 -5223 10335)
-        :on-goto #f
-        :vis-nick 'havenj2
-        :vehicle-type #x1b
-        :want-count 1
-        :want (new 'static 'inline-array level-buffer-state-small 1
-          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
-          )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
-        )
-      (new 'static 'continue-point
-        :name "hj2-ctygenc-start"
-        :level 'havenj2
-        :trans (static-vectorm 190.8028 9.7006 322.8639)
-        :camera-trans (static-vectorm 190.1664 14.8532 335.3476)
-        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 -31696 0 8303))
-        :camera-rot (new 'static 'array int16 9 -32728 0 -1543 187 32521 -3975 1533 -3978 -32485)
-        :on-goto #f
-        :vis-nick 'havenj2
-        :vehicle-type #x1b
-        :want-count 1
-        :want (new 'static 'inline-array level-buffer-state-small 1
-          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
-          )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
-        )
-      (new 'static 'continue-point
-        :name "hj2-ctysluma-burning-bush"
-        :level 'havenj2
-        :trans (static-vectorm 834.9775 8.1439 240.2789)
-        :camera-trans (static-vectorm 846.1838 13.1718 244.7522)
-        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 7 -16642 0 28225))
-        :camera-rot (new 'static 'array int16 9 -11819 0 30559 -3640 32531 -1406 -30339 -3903 -11737)
-        :flags (continue-flags no-auto)
-        :on-goto #f
-        :vis-nick 'havenj2
-        :vehicle-type #x1b
-        :want-count 1
-        :want (new 'static 'inline-array level-buffer-state-small 1
-          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
-          )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
-        )
-      (new 'static 'continue-point
-        :name "hj2-ctyslumb-burning-bush"
-        :level 'havenj2
-        :trans (static-vectorm 706.9550 8.1251 -81.2453)
-        :camera-trans (static-vectorm 706.2045 13.2782 -93.7254)
-        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 7 19490 -10 26338))
-        :camera-rot (new 'static 'array int16 9 32518 0 -4030 465 32544 3775 4001 -3804 32295)
-        :flags (continue-flags no-auto)
-        :on-goto #f
-        :vis-nick 'havenj2
-        :vehicle-type #x1b
-        :want-count 1
-        :want (new 'static 'inline-array level-buffer-state-small 1
-          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
-          )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
-        )
-      (new 'static 'continue-point
-        :name "hj2-ctyslumb-burning-bush-2"
-        :level 'havenj2
-        :trans (static-vectorm 426.5194 7.9997 -60.9220)
-        :camera-trans (static-vectorm 430.5606 13.1489 -49.0258)
-        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 32741 0 -1252))
-        :camera-rot (new 'static 'array int16 9 -31024 0 10541 -1262 32528 -3716 -10466 -3925 -30801)
-        :flags (continue-flags no-auto)
-        :on-goto #f
-        :vis-nick 'havenj2
-        :vehicle-type #x1b
-        :want-count 1
-        :want (new 'static 'inline-array level-buffer-state-small 1
-          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
-          )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
-        )
-      (new 'static 'continue-point
-        :name "hj2-ctyslumc-burning-bush"
-        :level 'havenj2
-        :trans (static-vectorm 537.4900 7.9966 -580.5659)
-        :camera-trans (static-vectorm 544.6313 13.1558 -570.3065)
-        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 28812 0 -15604))
-        :camera-rot (new 'static 'array int16 9 -26875 0 18743 -2300 32518 -3296 -18602 -4021 -26672)
-        :flags (continue-flags no-auto)
-        :on-goto #f
-        :vis-nick 'havenj2
-        :vehicle-type #x1b
-        :want-count 1
-        :want (new 'static 'inline-array level-buffer-state-small 1
-          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
-          )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
-        )
-      (new 'static 'continue-point
-        :name "hj2-ctyport-burning-bush"
-        :level 'havenj2
-        :trans (static-vectorm -99.8731 7.7537 1361.7355)
-        :camera-trans (static-vectorm -92.3707 12.9036 1369.0938)
-        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 32004 0 -7029))
-        :camera-rot (new 'static 'array int16 9 -22914 0 23422 -4116 32256 -4024 -23055 -5757 -22557)
-        :flags (continue-flags no-auto)
-        :on-goto #f
-        :vis-nick 'havenj2
-        :vehicle-type #x1b
-        :want-count 2
-        :want (new 'static 'inline-array level-buffer-state-small 2
-          (new 'static 'level-buffer-state-small :name 'hj2-hiphog :display? 'display)
-          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
-          )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
-        )
-      (new 'static 'continue-point
-        :name "hj2-ctyport-burning-bush-3"
-        :level 'havenj2
-        :trans (static-vectorm 627.1965 7.7250 1579.5106)
-        :camera-trans (static-vectorm 616.9392 12.7510 1585.9714)
-        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 29087 0 15079))
-        :camera-rot (new 'static 'array int16 9 -17540 0 -27675 3368 32521 -2133 27469 -3988 -17409)
-        :flags (continue-flags no-auto)
-        :on-goto #f
-        :vis-nick 'havenj2
-        :vehicle-type #x1b
-        :want-count 1
-        :want (new 'static 'inline-array level-buffer-state-small 1
-          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
-          )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
-        )
-      (new 'static 'continue-point
-        :name "hj2-ctyfarma-burning-bush"
-        :level 'havenj2
-        :trans (static-vectorm -57.7186 7.9990 95.1026)
-        :camera-trans (static-vectorm -62.9970 13.1644 106.4909)
-        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 32121 0 6462))
-        :camera-rot (new 'static 'array int16 9 -29690 0 -13860 1684 32521 -3611 13756 -3984 -29467)
-        :flags (continue-flags no-auto)
-        :on-goto #f
-        :vis-nick 'havenj2
-        :vehicle-type #x1b
-        :want-count 1
-        :want (new 'static 'inline-array level-buffer-state-small 1
-          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
-          )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
-        )
-      (new 'static 'continue-point
-        :name "hj2-ctyfarmb-burning-bush"
-        :level 'havenj2
-        :trans (static-vectorm -315.6613 7.9990 1076.1625)
-        :camera-trans (static-vectorm -326.6026 12.7336 1075.6562)
-        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 -23255 0 -23081))
-        :camera-rot (new 'static 'array int16 9 1527 0 -32731 4207 32492 197 32459 -4214 1517)
-        :flags (continue-flags no-auto)
-        :on-goto #f
-        :vis-nick 'havenj2
-        :vehicle-type #x1b
-        :want-count 1
-        :want (new 'static 'inline-array level-buffer-state-small 1
-          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
-          )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
-        )
-      (new 'static 'continue-point
-        :name "hj2-ctyinda-burning-bush"
-        :level 'havenj2
-        :trans (static-vectorm 777.3657 8.3889 821.6479)
-        :camera-trans (static-vectorm 778.9871 13.5388 834.0406)
-        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 -32764 0 -23))
-        :camera-rot (new 'static 'array int16 9 -32495 0 4204 -511 32521 -3955 -4175 -3988 -32253)
-        :flags (continue-flags no-auto)
-        :on-goto #f
-        :vis-nick 'havenj2
-        :vehicle-type #x1b
-        :want-count 2
-        :want (new 'static 'inline-array level-buffer-state-small 2
-          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
-          (new 'static 'level-buffer-state-small :name 'hj2-consb :display? #f)
-          )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
-        )
-      (new 'static 'continue-point
-        :name "hj2-ctyindb-burning-bush"
-        :level 'havenj2
-        :trans (static-vectorm 784.6859 7.9936 711.2930)
-        :camera-trans (static-vectorm 796.0364 12.8914 709.1367)
-        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 -17530 0 27682))
-        :camera-rot (new 'static 'array int16 9 6049 0 32203 -3867 32528 724 -31967 -3935 6006)
-        :flags (continue-flags no-auto)
-        :on-goto #f
-        :vis-nick 'havenj2
-        :vehicle-type #x1b
-        :want-count 1
-        :want (new 'static 'inline-array level-buffer-state-small 1
-          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
-          )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
-        )
-      (new 'static 'continue-point
-        :name "hj2-ctymarka-burning-bush"
-        :level 'havenj2
-        :trans (static-vectorm -178.3332 7.9994 843.3695)
-        :camera-trans (static-vectorm -177.5493 13.1494 830.8918)
-        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 -33 -387 -29 32764))
-        :camera-rot (new 'static 'array int16 9 32701 0 2068 -249 32525 3958 -2051 -3965 32459)
-        :flags (continue-flags no-auto)
-        :on-goto #f
-        :vis-nick 'havenj2
-        :vehicle-type #x1b
-        :want-count 1
-        :want (new 'static 'inline-array level-buffer-state-small 1
-          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
-          )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
-        )
-      (new 'static 'continue-point
-        :name "hj2-ctymarkb-burning-bush"
-        :level 'havenj2
-        :trans (static-vectorm 727.0430 8.4094 527.4226)
-        :camera-trans (static-vectorm 723.8246 13.1935 516.7559)
-        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 -4581 0 -32443))
-        :camera-rot (new 'static 'array int16 9 31420 0 -9289 1183 32498 3998 9214 -4171 31165)
-        :flags (continue-flags no-auto)
-        :on-goto #f
-        :vis-nick 'havenj2
-        :vehicle-type #x1b
-        :want-count 1
-        :want (new 'static 'inline-array level-buffer-state-small 1
-          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
-          )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
-        )
-      (new 'static 'continue-point
-        :name "hj2-ctymarkb-burning-bush-2"
-        :level 'havenj2
-        :trans (static-vectorm 628.7208 8.4094 757.5799)
-        :camera-trans (static-vectorm 625.7500 13.4239 745.9588)
-        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 2579 0 32662))
-        :camera-rot (new 'static 'array int16 9 31705 0 -8264 999 32525 3844 8202 -3971 31473)
-        :flags (continue-flags no-auto)
-        :on-goto #f
-        :vis-nick 'havenj2
-        :vehicle-type #x1b
-        :want-count 1
-        :want (new 'static 'inline-array level-buffer-state-small 1
-          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
-          )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
-        )
-      (new 'static 'continue-point
-        :name "hj2-ctypal-burning-bush"
-        :level 'havenj2
-        :trans (static-vectorm 92.1354 16.0026 447.9555)
-        :camera-trans (static-vectorm 90.9371 21.0678 435.8203)
-        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 -1537 0 32728))
-        :camera-rot (new 'static 'array int16 9 32610 0 -3172 380 32528 3922 3149 -3942 32374)
-        :flags (continue-flags no-auto)
-        :on-goto #f
-        :vis-nick 'havenj2
-        :vehicle-type #x1b
-        :want-count 1
-        :want (new 'static 'inline-array level-buffer-state-small 1
-          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
-          )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
-        )
-      (new 'static 'continue-point
-        :name "hj2-ctypal-burning-bush-2"
-        :level 'havenj2
-        :trans (static-vectorm 301.9563 7.9996 884.3287)
-        :camera-trans (static-vectorm 289.5202 13.1496 885.7111)
-        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 24415 0 21849))
-        :camera-rot (new 'static 'array int16 9 -3611 0 -32567 3929 32525 -436 32328 -3952 -3585)
-        :flags (continue-flags no-auto)
-        :on-goto #f
-        :vis-nick 'havenj2
-        :vehicle-type #x1b
-        :want-count 1
-        :want (new 'static 'inline-array level-buffer-state-small 1
-          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
-          )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
-        )
-      (new 'static 'continue-point
-        :name "hj2-ctygena-burning-bush"
-        :level 'havenj2
-        :trans (static-vectorm -62.6251 8.0000 -28.3599)
-        :camera-trans (static-vectorm -62.2564 13.1499 -40.8544)
-        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 1527 0 -32731))
-        :camera-rot (new 'static 'array int16 9 32751 0 999 -121 32521 3984 -990 -3984 32508)
-        :flags (continue-flags no-auto)
-        :on-goto #f
-        :vis-nick 'havenj2
-        :vehicle-type #x1b
-        :want-count 1
-        :want (new 'static 'inline-array level-buffer-state-small 1
-          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
-          )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
-        )
-      (new 'static 'continue-point
-        :name "hj2-ctygena-burning-bush-2"
-        :level 'havenj2
-        :trans (static-vectorm -378.2776 7.9964 -196.7095)
-        :camera-trans (static-vectorm -365.7996 13.1464 -197.4622)
-        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 -20954 0 25188))
-        :camera-rot (new 'static 'array int16 9 1963 0 32708 -3955 32525 236 -32466 -3962 1950)
-        :flags (continue-flags no-auto)
-        :on-goto #f
-        :vis-nick 'havenj2
-        :vehicle-type #x1b
-        :want-count 1
-        :want (new 'static 'inline-array level-buffer-state-small 1
-          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
-          )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
-        )
-      (new 'static 'continue-point
-        :name "hj2-ctygenb-burning-bush"
-        :level 'havenj2
-        :trans (static-vectorm 167.4189 7.9994 -296.3857)
-        :camera-trans (static-vectorm 167.7209 13.1493 -283.8793)
-        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 32600 0 3300))
-        :camera-rot (new 'static 'array int16 9 -32757 0 796 -95 32525 -3955 -793 -3955 -32515)
-        :flags (continue-flags no-auto)
-        :on-goto #f
-        :vis-nick 'havenj2
-        :vehicle-type #x1b
-        :want-count 1
-        :want (new 'static 'inline-array level-buffer-state-small 1
-          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
-          )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
-        )
-      (new 'static 'continue-point
-        :name "hj2-ctygenb-burning-bush-2"
-        :level 'havenj2
-        :trans (static-vectorm 266.7039 8.0000 -65.9144)
-        :camera-trans (static-vectorm 254.2050 13.1515 -66.0886)
-        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 24542 0 21705))
-        :camera-rot (new 'static 'array int16 9 478 0 -32760 3988 32521 56 32518 -3988 475)
-        :flags (continue-flags no-auto)
-        :on-goto #f
-        :vis-nick 'havenj2
-        :vehicle-type #x1b
-        :want-count 1
-        :want (new 'static 'inline-array level-buffer-state-small 1
-          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
-          )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
-        )
-      (new 'static 'continue-point
-        :name "hj2-ctygenc-burning-bush"
-        :level 'havenj2
-        :trans (static-vectorm 215.7232 8.0005 8.7579)
-        :camera-trans (static-vectorm 215.8158 12.9942 20.6580)
-        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 -32764 0 279))
-        :camera-rot (new 'static 'array int16 9 -32764 0 285 -33 32525 -3968 -282 -3968 -32521)
-        :flags (continue-flags no-auto)
-        :on-goto #f
-        :vis-nick 'havenj2
-        :vehicle-type #x1b
-        :want-count 1
-        :want (new 'static 'inline-array level-buffer-state-small 1
-          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
-          )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
-        )
-      (new 'static 'continue-point
-        :name "hj2-ctygenc-burning-bush-2"
-        :level 'havenj2
-        :trans (static-vectorm 34.5640 8.0010 263.9435)
-        :camera-trans (static-vectorm 22.0581 13.1510 263.7356)
-        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 -25116 0 -21043))
-        :camera-rot (new 'static 'array int16 9 547 0 -32760 3952 32525 66 32521 -3952 544)
-        :flags (continue-flags no-auto)
-        :on-goto #f
-        :vis-nick 'havenj2
-        :vehicle-type #x1b
-        :want-count 1
-        :want (new 'static 'inline-array level-buffer-state-small 1
-          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
-          )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
-        )
-      (new 'static 'continue-point
-        :name "hj2-stadium-start"
-        :level 'havenj2
-        :trans (static-vectorm 298.1412 -4.0000 -454.4468)
-        :camera-trans (static-vectorm 310.0839 1.1264 -451.0978)
-        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 -26410 0 19392))
-        :camera-rot (new 'static 'array int16 9 -8847 0 31548 -3860 32518 -1081 -31312 -4011 -8778)
-        :on-goto #f
-        :vis-nick 'havenj2
-        :vehicle-type #x1b
-        :want-count 1
-        :want (new 'static 'inline-array level-buffer-state-small 1
-          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
-          )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
-        )
-      (new 'static 'continue-point
-        :name "hj2-stadium-burning-bush"
-        :level 'havenj2
-        :trans (static-vectorm 339.7457 7.9999 -747.6557)
-        :camera-trans (static-vectorm 339.4550 12.7442 -736.7152)
-        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 -7 21905 -3 -24366))
-        :camera-rot (new 'static 'array int16 9 -32623 0 3047 -403 32475 -4338 -3021 -4358 -32334)
-        :flags (continue-flags no-auto)
-        :on-goto #f
-        :vis-nick 'havenj2
-        :vehicle-type #x1b
-        :want-count 1
-        :want (new 'static 'inline-array level-buffer-state-small 1
-          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
-          )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
-        )
-      (new 'static 'continue-point
-        :name "hj2-cable-pillar"
-        :level 'havenj2
-        :trans (static-vectorm 199.8674 14.0000 -173.3564)
-        :camera-trans (static-vectorm 191.8674 17.5000 -173.3564)
-        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 23170 0 23170))
-        :camera-rot (new 'static 'array int16 9 0 0 -32767 7947 31789 0 31789 -7947 0)
-        :on-goto #f
-        :vis-nick 'havenj2
-        :vehicle-type #x1b
-        :want-count 1
-        :want (new 'static 'inline-array level-buffer-state-small 1
-          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
-          )
-        :want-sound (new 'static 'array symbol 3 #f #f #f)
-        )
+
       )
-    :callback-list '((33 . havenj2-login) (34 . havenj2-logout) (35 . havenj2-activate) (36 . havenj2-deactivate))
+    :callback-list '((6 . *security-texture-anim-array*) (33 . havenj2-login) (34 . havenj2-logout) (35 . havenj2-activate) (36 . havenj2-deactivate))
     :borrow #f
     :bottom-height (meters -100)
     :fog-height (meters 80)
@@ -857,6 +241,1501 @@
   )
 
 (cons! *level-load-list* 'havenj2)
+
+;; Haven City's district ctysluma: the slums, by the hideout (custom_assets/jak3/levels/hj2-slma), Jak 2's ctysluma.
+;; memory: small-edge (Jak 2's where the level heap allows, see the
+;; level port's memory_modes).
+(define hj2-slma
+  (new 'static 'level-load-info
+    :name 'hj2-slma
+    :visname 'hj2-slma-vis
+    :nickname 'hsa
+    :dbname 'hj2-slma
+    :taskname 'default
+    :index #x148
+    :master-level #f
+    :level-flags (level-flags sky display-wait)
+    :packages '()
+    :run-packages '("common")
+    :memory-mode (level-memory-mode small-edge)
+    :music-bank #f
+    :extra-sound-bank #f
+    :mood-func 'update-mood-havenj2
+    :special-mood #f
+    :ocean #f
+    :ocean-alpha 1.0
+    :priority 100
+    :draw-priority 10.0
+    :part-engine-max 0
+    :base-task-mask (task-mask task0)
+    :bigmap-id (bigmap-id none)
+    :continues '(
+      (new 'static 'continue-point
+        :name "havenj2-start"
+        :level 'hj2-slma
+        :trans (static-vectorm 1062.2327 8.1445 221.9110)
+        :camera-trans (static-vectorm 1061.8359 13.2938 234.4017)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 -3 32606 0 -3208))
+        :camera-rot (new 'static 'array int16 9 -32751 0 -1006 121 32521 -3984 999 -3984 -32508)
+        :on-goto #f
+        :vis-nick 'hj2-slma
+        :vehicle-type #x1b
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-slma :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-indb :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      (new 'static 'continue-point
+        :name "hj2-ctysluma-alley"
+        :level 'hj2-slma
+        :trans (static-vectorm 1137.8684 8.1456 14.9806)
+        :camera-trans (static-vectorm 1131.8160 13.2955 6.4000)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 -8139 0 -31738))
+        :camera-rot (new 'static 'array int16 9 26787 0 -18867 3319 32253 4715 18572 -5767 26371)
+        :flags (continue-flags no-auto)
+        :on-goto #f
+        :vis-nick 'hj2-slma
+        :vehicle-type #x1b
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-slma :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-hide :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      (new 'static 'continue-point
+        :name "hj2-ctysluma-burning-bush"
+        :level 'hj2-slma
+        :trans (static-vectorm 834.9775 8.1439 240.2789)
+        :camera-trans (static-vectorm 846.1838 13.1718 244.7522)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 7 -16642 0 28225))
+        :camera-rot (new 'static 'array int16 9 -11819 0 30559 -3640 32531 -1406 -30339 -3903 -11737)
+        :flags (continue-flags no-auto)
+        :on-goto #f
+        :vis-nick 'hj2-slma
+        :vehicle-type #x1b
+        :want-count 2
+        :want (new 'static 'inline-array level-buffer-state-small 2
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-slma :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      )
+    :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
+    :borrow #f
+    :bottom-height (meters -100)
+    :fog-height (meters 80)
+    :max-rain 1.0
+    :mood-range (new 'static 'mood-range :max-cloud 1.0 :max-fog 1.0)
+    :fog-mult 1.0
+    )
+  )
+
+(cons! *level-load-list* 'hj2-slma)
+
+;; Haven City's district ctyslumb: the slums, by the fortress and the Dead Town airlock (custom_assets/jak3/levels/hj2-slmb), Jak 2's ctyslumb.
+;; memory: small-edge (Jak 2's where the level heap allows, see the
+;; level port's memory_modes).
+(define hj2-slmb
+  (new 'static 'level-load-info
+    :name 'hj2-slmb
+    :visname 'hj2-slmb-vis
+    :nickname 'hsb
+    :dbname 'hj2-slmb
+    :taskname 'default
+    :index #x149
+    :master-level #f
+    :level-flags (level-flags sky display-wait)
+    :packages '()
+    :run-packages '("common")
+    :memory-mode (level-memory-mode small-edge)
+    :music-bank #f
+    :extra-sound-bank #f
+    :mood-func 'update-mood-havenj2
+    :special-mood #f
+    :ocean #f
+    :ocean-alpha 1.0
+    :priority 100
+    :draw-priority 10.0
+    :part-engine-max 0
+    :base-task-mask (task-mask task0)
+    :bigmap-id (bigmap-id none)
+    :continues '(
+      (new 'static 'continue-point
+        :name "hj2-ctyslumb-start"
+        :level 'hj2-slmb
+        :trans (static-vectorm 587.9945 7.9922 -248.0183)
+        :camera-trans (static-vectorm 584.2896 12.6448 -242.0224)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 -59 24405 -72 -21862))
+        :camera-rot (new 'static 'array int16 9 -29503 0 -14254 4446 31129 -9208 13543 -10223 -28029)
+        :on-goto #f
+        :vis-nick 'hj2-slmb
+        :vehicle-type #x1b
+        :want-count 2
+        :want (new 'static 'inline-array level-buffer-state-small 2
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-slmb :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      (new 'static 'continue-point
+        :name "hj2-ctyslumb-fort"
+        :level 'hj2-slmb
+        :trans (static-vectorm 609.6243 7.9982 -26.2274)
+        :camera-trans (static-vectorm 604.5021 13.3253 -15.1040)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 30463 0 12065))
+        :camera-rot (new 'static 'array int16 9 -29539 0 -14178 1969 32446 -4106 14041 -4555 -29251)
+        :on-goto #f
+        :vis-nick 'hj2-slmb
+        :vehicle-type #x1b
+        :want-count 2
+        :want (new 'static 'inline-array level-buffer-state-small 2
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-slmb :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      (new 'static 'continue-point
+        :name "hj2-ctyslumb-burning-bush"
+        :level 'hj2-slmb
+        :trans (static-vectorm 706.9550 8.1251 -81.2453)
+        :camera-trans (static-vectorm 706.2045 13.2782 -93.7254)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 7 19490 -10 26338))
+        :camera-rot (new 'static 'array int16 9 32518 0 -4030 465 32544 3775 4001 -3804 32295)
+        :flags (continue-flags no-auto)
+        :on-goto #f
+        :vis-nick 'hj2-slmb
+        :vehicle-type #x1b
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-slma :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-slmb :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      (new 'static 'continue-point
+        :name "hj2-ctyslumb-burning-bush-2"
+        :level 'hj2-slmb
+        :trans (static-vectorm 426.5194 7.9997 -60.9220)
+        :camera-trans (static-vectorm 430.5606 13.1489 -49.0258)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 32741 0 -1252))
+        :camera-rot (new 'static 'array int16 9 -31024 0 10541 -1262 32528 -3716 -10466 -3925 -30801)
+        :flags (continue-flags no-auto)
+        :on-goto #f
+        :vis-nick 'hj2-slmb
+        :vehicle-type #x1b
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-genb :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-slmb :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      )
+    :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
+    :borrow #f
+    :bottom-height (meters -100)
+    :fog-height (meters 80)
+    :max-rain 1.0
+    :mood-range (new 'static 'mood-range :max-cloud 1.0 :max-fog 1.0)
+    :fog-mult 1.0
+    )
+  )
+
+(cons! *level-load-list* 'hj2-slmb)
+
+;; Haven City's district ctyslumc: the slums, by the pumping station airlock (custom_assets/jak3/levels/hj2-slmc), Jak 2's ctyslumc.
+;; memory: small-edge (Jak 2's where the level heap allows, see the
+;; level port's memory_modes).
+(define hj2-slmc
+  (new 'static 'level-load-info
+    :name 'hj2-slmc
+    :visname 'hj2-slmc-vis
+    :nickname 'hsc
+    :dbname 'hj2-slmc
+    :taskname 'default
+    :index #x14a
+    :master-level #f
+    :level-flags (level-flags sky display-wait)
+    :packages '()
+    :run-packages '("common")
+    :memory-mode (level-memory-mode small-edge)
+    :music-bank #f
+    :extra-sound-bank #f
+    :mood-func 'update-mood-havenj2
+    :special-mood #f
+    :ocean #f
+    :ocean-alpha 1.0
+    :priority 100
+    :draw-priority 10.0
+    :part-engine-max 0
+    :base-task-mask (task-mask task0)
+    :bigmap-id (bigmap-id none)
+    :continues '(
+      (new 'static 'continue-point
+        :name "hj2-ctyslumc-start"
+        :level 'hj2-slmc
+        :trans (static-vectorm 598.9013 7.9360 -553.9289)
+        :camera-trans (static-vectorm 602.7109 13.0790 -542.0228)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 -22799 0 23533))
+        :camera-rot (new 'static 'array int16 9 -30126 0 12881 -1507 32541 -3526 -12792 -3834 -29920)
+        :on-goto #f
+        :vis-nick 'hj2-slmc
+        :vehicle-type #x1b
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-slmc :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-slmb :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      (new 'static 'continue-point
+        :name "hj2-ctyslumc-slums"
+        :level 'hj2-slmc
+        :trans (static-vectorm 755.8471 9.3700 -715.6014)
+        :camera-trans (static-vectorm 758.0988 14.2974 -727.0823)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 -3758 0 32547))
+        :camera-rot (new 'static 'array int16 9 32158 0 6272 -747 32531 3834 -6229 -3906 31928)
+        :on-goto #f
+        :vis-nick 'hj2-slmc
+        :vehicle-type #x1b
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-slmc :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-atollx :display? #f)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      (new 'static 'continue-point
+        :name "hj2-ctyslumc-burning-bush"
+        :level 'hj2-slmc
+        :trans (static-vectorm 537.4900 7.9966 -580.5659)
+        :camera-trans (static-vectorm 544.6313 13.1558 -570.3065)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 28812 0 -15604))
+        :camera-rot (new 'static 'array int16 9 -26875 0 18743 -2300 32518 -3296 -18602 -4021 -26672)
+        :flags (continue-flags no-auto)
+        :on-goto #f
+        :vis-nick 'hj2-slmc
+        :vehicle-type #x1b
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-slmc :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-slmb :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      )
+    :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
+    :borrow #f
+    :bottom-height (meters -100)
+    :fog-height (meters 80)
+    :max-rain 1.0
+    :mood-range (new 'static 'mood-range :max-cloud 1.0 :max-fog 1.0)
+    :fog-mult 1.0
+    )
+  )
+
+(cons! *level-load-list* 'hj2-slmc)
+
+;; Haven City's district ctyport: the port (custom_assets/jak3/levels/hj2-port), Jak 2's ctyport.
+;; memory: small-edge (Jak 2's where the level heap allows, see the
+;; level port's memory_modes).
+(define hj2-port
+  (new 'static 'level-load-info
+    :name 'hj2-port
+    :visname 'hj2-port-vis
+    :nickname 'hpt
+    :dbname 'hj2-port
+    :taskname 'default
+    :index #x14b
+    :master-level #f
+    :level-flags (level-flags sky display-wait)
+    :packages '()
+    :run-packages '("common")
+    :memory-mode (level-memory-mode small-edge)
+    :music-bank #f
+    :extra-sound-bank #f
+    :mood-func 'update-mood-havenj2
+    :special-mood #f
+    :ocean #f
+    :ocean-alpha 1.0
+    :priority 100
+    :draw-priority 10.0
+    :part-engine-max 18
+    :base-task-mask (task-mask task0)
+    :bigmap-id (bigmap-id none)
+    :continues '(
+      (new 'static 'continue-point
+        :name "hj2-ctyport-start"
+        :level 'hj2-port
+        :trans (static-vectorm 193.0205 17.2856 1753.9814)
+        :camera-trans (static-vectorm 192.9799 22.4356 1766.4790)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 -32738 0 -1357))
+        :camera-rot (new 'static 'array int16 9 -32764 0 -183 20 32521 -3984 180 -3984 -32521)
+        :on-goto #f
+        :vis-nick 'hj2-port
+        :vehicle-type #x1b
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-port :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-pal :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      (new 'static 'continue-point
+        :name "hj2-ctyport-hiphog"
+        :level 'hj2-port
+        :trans (static-vectorm -57.9017 7.7235 1346.9315)
+        :camera-trans (static-vectorm -52.0969 12.8738 1355.7111)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 -31813 0 7831))
+        :camera-rot (new 'static 'array int16 9 -27328 0 18074 -3142 32266 -4751 -17799 -5698 -26912)
+        :on-goto #f
+        :vis-nick 'hj2-port
+        :vehicle-type #x1b
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-port :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-hiphog :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      (new 'static 'continue-point
+        :name "hj2-ctyport-gungame"
+        :level 'hj2-port
+        :trans (static-vectorm 424.8708 7.7320 1322.4294)
+        :camera-trans (static-vectorm 419.8672 12.8819 1333.8837)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 31794 0 7920))
+        :camera-rot (new 'static 'array int16 9 -30021 0 -13126 1589 32525 -3640 13028 -3971 -29798)
+        :flags (continue-flags no-auto)
+        :on-goto #f
+        :vis-nick 'hj2-port
+        :vehicle-type #x1b
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-port :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-gun :display? #f)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      (new 'static 'continue-point
+        :name "hj2-ctyport-warp"
+        :level 'hj2-port
+        :trans (static-vectorm 372.6321 7.6778 1799.3531)
+        :camera-trans (static-vectorm 368.9453 12.3704 1789.2371)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 -46 -31145 -16 10177))
+        :camera-rot (new 'static 'array int16 9 31178 0 -10076 1478 32410 4574 9968 -4807 30840)
+        :on-goto #f
+        :vis-nick 'hj2-port
+        :vehicle-type #x1b
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-port :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-pal :display? #f)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      (new 'static 'continue-point
+        :name "hj2-ctyport-under"
+        :level 'hj2-port
+        :trans (static-vectorm 10.8055 7.6977 1742.0078)
+        :camera-trans (static-vectorm 0.6041 12.7799 1740.8260)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 -10 27947 -49 17101))
+        :camera-rot (new 'static 'array int16 9 3441 0 -32584 5872 32230 619 32049 -5905 3385)
+        :on-goto #f
+        :vis-nick 'hj2-port
+        :vehicle-type #x1b
+        :want-count 2
+        :want (new 'static 'inline-array level-buffer-state-small 2
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-port :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      (new 'static 'continue-point
+        :name "hj2-ctyport-burning-bush"
+        :level 'hj2-port
+        :trans (static-vectorm -99.8731 7.7537 1361.7355)
+        :camera-trans (static-vectorm -92.3707 12.9036 1369.0938)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 32004 0 -7029))
+        :camera-rot (new 'static 'array int16 9 -22914 0 23422 -4116 32256 -4024 -23055 -5757 -22557)
+        :flags (continue-flags no-auto)
+        :on-goto #f
+        :vis-nick 'hj2-port
+        :vehicle-type #x1b
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-hiphog :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-port :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      (new 'static 'continue-point
+        :name "hj2-ctyport-burning-bush-3"
+        :level 'hj2-port
+        :trans (static-vectorm 627.1965 7.7250 1579.5106)
+        :camera-trans (static-vectorm 616.9392 12.7510 1585.9714)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 29087 0 15079))
+        :camera-rot (new 'static 'array int16 9 -17540 0 -27675 3368 32521 -2133 27469 -3988 -17409)
+        :flags (continue-flags no-auto)
+        :on-goto #f
+        :vis-nick 'hj2-port
+        :vehicle-type #x1b
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-inda :display? #f)
+          (new 'static 'level-buffer-state-small :name 'hj2-port :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      )
+    :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
+    :borrow #f
+    :bottom-height (meters -100)
+    :fog-height (meters 80)
+    :max-rain 1.0
+    :mood-range (new 'static 'mood-range :max-cloud 1.0 :max-fog 1.0)
+    :fog-mult 1.0
+    )
+  )
+
+(cons! *level-load-list* 'hj2-port)
+
+;; Haven City's district ctymarka: the market, by the port (custom_assets/jak3/levels/hj2-marka), Jak 2's ctymarka.
+;; memory: small-edge (Jak 2's where the level heap allows, see the
+;; level port's memory_modes).
+(define hj2-marka
+  (new 'static 'level-load-info
+    :name 'hj2-marka
+    :visname 'hj2-marka-vis
+    :nickname 'hma
+    :dbname 'hj2-marka
+    :taskname 'default
+    :index #x14c
+    :master-level #f
+    :level-flags (level-flags sky display-wait)
+    :packages '()
+    :run-packages '("common")
+    :memory-mode (level-memory-mode small-edge)
+    :music-bank #f
+    :extra-sound-bank #f
+    :mood-func 'update-mood-havenj2
+    :special-mood #f
+    :ocean #f
+    :ocean-alpha 1.0
+    :priority 100
+    :draw-priority 10.0
+    :part-engine-max 8
+    :base-task-mask (task-mask task0)
+    :bigmap-id (bigmap-id none)
+    :continues '(
+      (new 'static 'continue-point
+        :name "hj2-ctymarka-brutter"
+        :level 'hj2-marka
+        :trans (static-vectorm -107.1954 8.0000 477.7272)
+        :camera-trans (static-vectorm -96.7402 13.1499 476.6821)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 -5184 0 32354))
+        :camera-rot (new 'static 'array int16 9 5190 0 32351 -5705 32253 914 -31843 -5777 5108)
+        :on-goto #f
+        :vis-nick 'hj2-marka
+        :vehicle-type #x1b
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-marka :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-kiosk :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      (new 'static 'continue-point
+        :name "hj2-ctymarka-burning-bush"
+        :level 'hj2-marka
+        :trans (static-vectorm -178.3332 7.9994 843.3695)
+        :camera-trans (static-vectorm -177.5493 13.1494 830.8918)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 -33 -387 -29 32764))
+        :camera-rot (new 'static 'array int16 9 32701 0 2068 -249 32525 3958 -2051 -3965 32459)
+        :flags (continue-flags no-auto)
+        :on-goto #f
+        :vis-nick 'hj2-marka
+        :vehicle-type #x1b
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-marka :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-farmb :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      )
+    :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
+    :borrow #f
+    :bottom-height (meters -100)
+    :fog-height (meters 80)
+    :max-rain 1.0
+    :mood-range (new 'static 'mood-range :max-cloud 1.0 :max-fog 1.0)
+    :fog-mult 1.0
+    )
+  )
+
+(cons! *level-load-list* 'hj2-marka)
+
+;; Haven City's district ctymarkb: the market, by the gardens (custom_assets/jak3/levels/hj2-markb), Jak 2's ctymarkb.
+;; memory: small-edge (Jak 2's where the level heap allows, see the
+;; level port's memory_modes).
+(define hj2-markb
+  (new 'static 'level-load-info
+    :name 'hj2-markb
+    :visname 'hj2-markb-vis
+    :nickname 'hmb
+    :dbname 'hj2-markb
+    :taskname 'default
+    :index #x14d
+    :master-level #f
+    :level-flags (level-flags sky display-wait)
+    :packages '()
+    :run-packages '("common")
+    :memory-mode (level-memory-mode small-edge)
+    :music-bank #f
+    :extra-sound-bank #f
+    :mood-func 'update-mood-havenj2
+    :special-mood #f
+    :ocean #f
+    :ocean-alpha 1.0
+    :priority 100
+    :draw-priority 10.0
+    :part-engine-max 16
+    :base-task-mask (task-mask task0)
+    :bigmap-id (bigmap-id none)
+    :continues '(
+      (new 'static 'continue-point
+        :name "hj2-ctymarkb-tanker"
+        :level 'hj2-markb
+        :trans (static-vectorm 524.2893 8.4094 475.5867)
+        :camera-trans (static-vectorm 531.2816 13.5594 465.2251)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 7618 0 -31866))
+        :camera-rot (new 'static 'array int16 9 27138 0 18359 -2228 32521 3296 -18222 -3981 26938)
+        :on-goto #f
+        :vis-nick 'hj2-markb
+        :vehicle-type #x1b
+        :want-count 2
+        :want (new 'static 'inline-array level-buffer-state-small 2
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-markb :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      (new 'static 'continue-point
+        :name "hj2-ctymarkb-burning-bush"
+        :level 'hj2-markb
+        :trans (static-vectorm 727.0430 8.4094 527.4226)
+        :camera-trans (static-vectorm 723.8246 13.1935 516.7559)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 -4581 0 -32443))
+        :camera-rot (new 'static 'array int16 9 31420 0 -9289 1183 32498 3998 9214 -4171 31165)
+        :flags (continue-flags no-auto)
+        :on-goto #f
+        :vis-nick 'hj2-markb
+        :vehicle-type #x1b
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-markb :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-indb :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      (new 'static 'continue-point
+        :name "hj2-ctymarkb-burning-bush-2"
+        :level 'hj2-markb
+        :trans (static-vectorm 628.7208 8.4094 757.5799)
+        :camera-trans (static-vectorm 625.7500 13.4239 745.9588)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 2579 0 32662))
+        :camera-rot (new 'static 'array int16 9 31705 0 -8264 999 32525 3844 8202 -3971 31473)
+        :flags (continue-flags no-auto)
+        :on-goto #f
+        :vis-nick 'hj2-markb
+        :vehicle-type #x1b
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-markb :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-pal :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      )
+    :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
+    :borrow #f
+    :bottom-height (meters -100)
+    :fog-height (meters 80)
+    :max-rain 1.0
+    :mood-range (new 'static 'mood-range :max-cloud 1.0 :max-fog 1.0)
+    :fog-mult 1.0
+    )
+  )
+
+(cons! *level-load-list* 'hj2-markb)
+
+;; Haven City's district ctyinda: the industrial section, by Vin's power station (custom_assets/jak3/levels/hj2-inda), Jak 2's ctyinda.
+;; memory: small-edge (Jak 2's where the level heap allows, see the
+;; level port's memory_modes).
+(define hj2-inda
+  (new 'static 'level-load-info
+    :name 'hj2-inda
+    :visname 'hj2-inda-vis
+    :nickname 'hia
+    :dbname 'hj2-inda
+    :taskname 'default
+    :index #x14e
+    :master-level #f
+    :level-flags (level-flags sky display-wait)
+    :packages '()
+    :run-packages '("common")
+    :memory-mode (level-memory-mode small-edge)
+    :music-bank #f
+    :extra-sound-bank #f
+    :mood-func 'update-mood-havenj2
+    :special-mood #f
+    :ocean #f
+    :ocean-alpha 1.0
+    :priority 100
+    :draw-priority 10.0
+    :part-engine-max 0
+    :base-task-mask (task-mask task0)
+    :bigmap-id (bigmap-id none)
+    :continues '(
+      (new 'static 'continue-point
+        :name "hj2-ctyinda-start"
+        :level 'hj2-inda
+        :trans (static-vectorm 963.1586 26.9982 908.6486)
+        :camera-trans (static-vectorm 969.6926 31.6806 900.1172)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 1746 0 32718))
+        :camera-rot (new 'static 'array int16 9 26292 0 19552 -2585 32479 3477 -19378 -4332 26063)
+        :on-goto #f
+        :vis-nick 'hj2-inda
+        :vehicle-type #x1b
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-inda :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-indb :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      (new 'static 'continue-point
+        :name "hj2-ctyinda-vinroom"
+        :level 'hj2-inda
+        :trans (static-vectorm 1092.6700 24.8336 1093.5424)
+        :camera-trans (static-vectorm 1084.5714 29.6370 1085.8448)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 28255 0 -16590))
+        :camera-rot (new 'static 'array int16 9 23343 0 -22993 3404 32403 3457 22737 -4853 23088)
+        :on-goto #f
+        :vis-nick 'hj2-inda
+        :vehicle-type #x1b
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-inda :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-vin :display? #f)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      (new 'static 'continue-point
+        :name "hj2-ctyinda-consite"
+        :level 'hj2-inda
+        :trans (static-vectorm 777.3209 7.9936 867.1732)
+        :camera-trans (static-vectorm 787.7605 13.1436 865.9193)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 -22000 -3 24280))
+        :camera-rot (new 'static 'array int16 9 3903 0 32531 -5682 32262 682 -32033 -5721 3844)
+        :on-goto #f
+        :vis-nick 'hj2-inda
+        :vehicle-type #x1b
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-inda :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-consb :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      (new 'static 'continue-point
+        :name "hj2-ctyinda-burning-bush"
+        :level 'hj2-inda
+        :trans (static-vectorm 777.3657 8.3889 821.6479)
+        :camera-trans (static-vectorm 778.9871 13.5388 834.0406)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 -32764 0 -23))
+        :camera-rot (new 'static 'array int16 9 -32495 0 4204 -511 32521 -3955 -4175 -3988 -32253)
+        :flags (continue-flags no-auto)
+        :on-goto #f
+        :vis-nick 'hj2-inda
+        :vehicle-type #x1b
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-inda :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-consb :display? #f)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      )
+    :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
+    :borrow #f
+    :bottom-height (meters -100)
+    :fog-height (meters 80)
+    :max-rain 1.0
+    :mood-range (new 'static 'mood-range :max-cloud 1.0 :max-fog 1.0)
+    :fog-mult 1.0
+    )
+  )
+
+(cons! *level-load-list* 'hj2-inda)
+
+;; Haven City's district ctyindb: the industrial section, by the slums (custom_assets/jak3/levels/hj2-indb), Jak 2's ctyindb.
+;; memory: small-edge (Jak 2's where the level heap allows, see the
+;; level port's memory_modes).
+(define hj2-indb
+  (new 'static 'level-load-info
+    :name 'hj2-indb
+    :visname 'hj2-indb-vis
+    :nickname 'hib
+    :dbname 'hj2-indb
+    :taskname 'default
+    :index #x14f
+    :master-level #f
+    :level-flags (level-flags sky display-wait)
+    :packages '()
+    :run-packages '("common")
+    :memory-mode (level-memory-mode small-edge)
+    :music-bank #f
+    :extra-sound-bank #f
+    :mood-func 'update-mood-havenj2
+    :special-mood #f
+    :ocean #f
+    :ocean-alpha 1.0
+    :priority 100
+    :draw-priority 10.0
+    :part-engine-max 0
+    :base-task-mask (task-mask task0)
+    :bigmap-id (bigmap-id none)
+    :continues '(
+      (new 'static 'continue-point
+        :name "hj2-ctyindb-start"
+        :level 'hj2-indb
+        :trans (static-vectorm 971.4156 7.9984 546.1059)
+        :camera-trans (static-vectorm 963.5841 12.7481 553.6734)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 31106 0 10292))
+        :camera-rot (new 'static 'array int16 9 -22753 0 -23576 3123 32475 -3015 23369 -4342 -22554)
+        :on-goto #f
+        :vis-nick 'hj2-indb
+        :vehicle-type #x1b
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-indb :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-markb :display? #f)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      (new 'static 'continue-point
+        :name "hj2-ctyindb-burning-bush"
+        :level 'hj2-indb
+        :trans (static-vectorm 784.6859 7.9936 711.2930)
+        :camera-trans (static-vectorm 796.0364 12.8914 709.1367)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 -17530 0 27682))
+        :camera-rot (new 'static 'array int16 9 6049 0 32203 -3867 32528 724 -31967 -3935 6006)
+        :flags (continue-flags no-auto)
+        :on-goto #f
+        :vis-nick 'hj2-indb
+        :vehicle-type #x1b
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-indb :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-inda :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      )
+    :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
+    :borrow #f
+    :bottom-height (meters -100)
+    :fog-height (meters 80)
+    :max-rain 1.0
+    :mood-range (new 'static 'mood-range :max-cloud 1.0 :max-fog 1.0)
+    :fog-mult 1.0
+    )
+  )
+
+(cons! *level-load-list* 'hj2-indb)
+
+;; Haven City's district ctygena: the main town, by the palace (custom_assets/jak3/levels/hj2-gena), Jak 2's ctygena.
+;; memory: small-edge (Jak 2's where the level heap allows, see the
+;; level port's memory_modes).
+(define hj2-gena
+  (new 'static 'level-load-info
+    :name 'hj2-gena
+    :visname 'hj2-gena-vis
+    :nickname 'hna
+    :dbname 'hj2-gena
+    :taskname 'default
+    :index #x150
+    :master-level #f
+    :level-flags (level-flags sky display-wait)
+    :packages '()
+    :run-packages '("common")
+    :memory-mode (level-memory-mode small-edge)
+    :music-bank #f
+    :extra-sound-bank #f
+    :mood-func 'update-mood-havenj2
+    :special-mood #f
+    :ocean #f
+    :ocean-alpha 1.0
+    :priority 100
+    :draw-priority 10.0
+    :part-engine-max 2
+    :base-task-mask (task-mask task0)
+    :bigmap-id (bigmap-id none)
+    :continues '(
+      (new 'static 'continue-point
+        :name "hj2-ctygena-start"
+        :level 'hj2-gena
+        :trans (static-vectorm -234.5832 9.7087 -196.6679)
+        :camera-trans (static-vectorm -246.6077 14.7276 -197.0967)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 36 -23340 16 -22996))
+        :camera-rot (new 'static 'array int16 9 1189 0 -32744 3929 32528 141 32508 -3929 1183)
+        :on-goto #f
+        :vis-nick 'hj2-gena
+        :vehicle-type #x1b
+        :want-count 2
+        :want (new 'static 'inline-array level-buffer-state-small 2
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-gena :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      (new 'static 'continue-point
+        :name "hj2-ctygena-burning-bush"
+        :level 'hj2-gena
+        :trans (static-vectorm -62.6251 8.0000 -28.3599)
+        :camera-trans (static-vectorm -62.2564 13.1499 -40.8544)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 1527 0 -32731))
+        :camera-rot (new 'static 'array int16 9 32751 0 999 -121 32521 3984 -990 -3984 32508)
+        :flags (continue-flags no-auto)
+        :on-goto #f
+        :vis-nick 'hj2-gena
+        :vehicle-type #x1b
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-genb :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-gena :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      (new 'static 'continue-point
+        :name "hj2-ctygena-burning-bush-2"
+        :level 'hj2-gena
+        :trans (static-vectorm -378.2776 7.9964 -196.7095)
+        :camera-trans (static-vectorm -365.7996 13.1464 -197.4622)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 -20954 0 25188))
+        :camera-rot (new 'static 'array int16 9 1963 0 32708 -3955 32525 236 -32466 -3962 1950)
+        :flags (continue-flags no-auto)
+        :on-goto #f
+        :vis-nick 'hj2-gena
+        :vehicle-type #x1b
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-farma :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-gena :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      )
+    :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
+    :borrow #f
+    :bottom-height (meters -100)
+    :fog-height (meters 80)
+    :max-rain 1.0
+    :mood-range (new 'static 'mood-range :max-cloud 1.0 :max-fog 1.0)
+    :fog-mult 1.0
+    )
+  )
+
+(cons! *level-load-list* 'hj2-gena)
+
+;; Haven City's district ctygenb: the main town, by the cable pillar (custom_assets/jak3/levels/hj2-genb), Jak 2's ctygenb.
+;; memory: small-edge (Jak 2's where the level heap allows, see the
+;; level port's memory_modes).
+(define hj2-genb
+  (new 'static 'level-load-info
+    :name 'hj2-genb
+    :visname 'hj2-genb-vis
+    :nickname 'hnb
+    :dbname 'hj2-genb
+    :taskname 'default
+    :index #x151
+    :master-level #f
+    :level-flags (level-flags sky display-wait)
+    :packages '()
+    :run-packages '("common")
+    :memory-mode (level-memory-mode small-edge)
+    :music-bank #f
+    :extra-sound-bank #f
+    :mood-func 'update-mood-havenj2
+    :special-mood #f
+    :ocean #f
+    :ocean-alpha 1.0
+    :priority 100
+    :draw-priority 10.0
+    :part-engine-max 0
+    :base-task-mask (task-mask task0)
+    :bigmap-id (bigmap-id none)
+    :continues '(
+      (new 'static 'continue-point
+        :name "hj2-ctygenb-start"
+        :level 'hj2-genb
+        :trans (static-vectorm 167.6122 9.8320 -247.8454)
+        :camera-trans (static-vectorm 157.9809 14.4884 -250.5371)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 29 21446 23 -24772))
+        :camera-rot (new 'static 'array int16 9 10469 0 -31047 4948 32348 1668 30650 -5223 10335)
+        :on-goto #f
+        :vis-nick 'hj2-genb
+        :vehicle-type #x1b
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-genb :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-gena :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      (new 'static 'continue-point
+        :name "hj2-ctygenb-burning-bush"
+        :level 'hj2-genb
+        :trans (static-vectorm 167.4189 7.9994 -296.3857)
+        :camera-trans (static-vectorm 167.7209 13.1493 -283.8793)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 32600 0 3300))
+        :camera-rot (new 'static 'array int16 9 -32757 0 796 -95 32525 -3955 -793 -3955 -32515)
+        :flags (continue-flags no-auto)
+        :on-goto #f
+        :vis-nick 'hj2-genb
+        :vehicle-type #x1b
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-genb :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-gena :display? #f)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      (new 'static 'continue-point
+        :name "hj2-ctygenb-burning-bush-2"
+        :level 'hj2-genb
+        :trans (static-vectorm 266.7039 8.0000 -65.9144)
+        :camera-trans (static-vectorm 254.2050 13.1515 -66.0886)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 24542 0 21705))
+        :camera-rot (new 'static 'array int16 9 478 0 -32760 3988 32521 56 32518 -3988 475)
+        :flags (continue-flags no-auto)
+        :on-goto #f
+        :vis-nick 'hj2-genb
+        :vehicle-type #x1b
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-genb :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-slmb :display? #f)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      (new 'static 'continue-point
+        :name "hj2-cable-pillar"
+        :level 'hj2-genb
+        :trans (static-vectorm 199.8674 14.0000 -173.3564)
+        :camera-trans (static-vectorm 191.8674 17.5000 -173.3564)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 23170 0 23170))
+        :camera-rot (new 'static 'array int16 9 0 0 -32767 7947 31789 0 31789 -7947 0)
+        :on-goto #f
+        :vis-nick 'hj2-genb
+        :vehicle-type #x1b
+        :want-count 2
+        :want (new 'static 'inline-array level-buffer-state-small 2
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-genb :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      )
+    :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
+    :borrow #f
+    :bottom-height (meters -100)
+    :fog-height (meters 80)
+    :max-rain 1.0
+    :mood-range (new 'static 'mood-range :max-cloud 1.0 :max-fog 1.0)
+    :fog-mult 1.0
+    )
+  )
+
+(cons! *level-load-list* 'hj2-genb)
+
+;; Haven City's district ctygenc: the main town, by the stadium (custom_assets/jak3/levels/hj2-genc), Jak 2's ctygenc.
+;; memory: small-edge (Jak 2's where the level heap allows, see the
+;; level port's memory_modes).
+(define hj2-genc
+  (new 'static 'level-load-info
+    :name 'hj2-genc
+    :visname 'hj2-genc-vis
+    :nickname 'hnc
+    :dbname 'hj2-genc
+    :taskname 'default
+    :index #x152
+    :master-level #f
+    :level-flags (level-flags sky display-wait)
+    :packages '()
+    :run-packages '("common")
+    :memory-mode (level-memory-mode small-edge)
+    :music-bank #f
+    :extra-sound-bank #f
+    :mood-func 'update-mood-havenj2
+    :special-mood #f
+    :ocean #f
+    :ocean-alpha 1.0
+    :priority 100
+    :draw-priority 10.0
+    :part-engine-max 0
+    :base-task-mask (task-mask task0)
+    :bigmap-id (bigmap-id none)
+    :continues '(
+      (new 'static 'continue-point
+        :name "hj2-ctygenc-start"
+        :level 'hj2-genc
+        :trans (static-vectorm 190.8028 9.7006 322.8639)
+        :camera-trans (static-vectorm 190.1664 14.8532 335.3476)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 -31696 0 8303))
+        :camera-rot (new 'static 'array int16 9 -32728 0 -1543 187 32521 -3975 1533 -3978 -32485)
+        :on-goto #f
+        :vis-nick 'hj2-genc
+        :vehicle-type #x1b
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-genc :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-pal :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      (new 'static 'continue-point
+        :name "hj2-ctygenc-burning-bush"
+        :level 'hj2-genc
+        :trans (static-vectorm 215.7232 8.0005 8.7579)
+        :camera-trans (static-vectorm 215.8158 12.9942 20.6580)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 -32764 0 279))
+        :camera-rot (new 'static 'array int16 9 -32764 0 285 -33 32525 -3968 -282 -3968 -32521)
+        :flags (continue-flags no-auto)
+        :on-goto #f
+        :vis-nick 'hj2-genc
+        :vehicle-type #x1b
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-genc :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-pal :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      (new 'static 'continue-point
+        :name "hj2-ctygenc-burning-bush-2"
+        :level 'hj2-genc
+        :trans (static-vectorm 34.5640 8.0010 263.9435)
+        :camera-trans (static-vectorm 22.0581 13.1510 263.7356)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 -25116 0 -21043))
+        :camera-rot (new 'static 'array int16 9 547 0 -32760 3952 32525 66 32521 -3952 544)
+        :flags (continue-flags no-auto)
+        :on-goto #f
+        :vis-nick 'hj2-genc
+        :vehicle-type #x1b
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-genc :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-pal :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      )
+    :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
+    :borrow #f
+    :bottom-height (meters -100)
+    :fog-height (meters 80)
+    :max-rain 1.0
+    :mood-range (new 'static 'mood-range :max-cloud 1.0 :max-fog 1.0)
+    :fog-mult 1.0
+    )
+  )
+
+(cons! *level-load-list* 'hj2-genc)
+
+;; Haven City's district ctyfarma: the gardens, by the mountain airlock (custom_assets/jak3/levels/hj2-farma), Jak 2's ctyfarma.
+;; memory: small-edge (Jak 2's where the level heap allows, see the
+;; level port's memory_modes).
+(define hj2-farma
+  (new 'static 'level-load-info
+    :name 'hj2-farma
+    :visname 'hj2-farma-vis
+    :nickname 'hfa
+    :dbname 'hj2-farma
+    :taskname 'default
+    :index #x153
+    :master-level #f
+    :level-flags (level-flags sky display-wait)
+    :packages '()
+    :run-packages '("common")
+    :memory-mode (level-memory-mode small-edge)
+    :music-bank #f
+    :extra-sound-bank #f
+    :mood-func 'update-mood-havenj2
+    :special-mood #f
+    :ocean #f
+    :ocean-alpha 1.0
+    :priority 100
+    :draw-priority 10.0
+    :part-engine-max 9
+    :base-task-mask (task-mask task0)
+    :bigmap-id (bigmap-id none)
+    :continues '(
+      (new 'static 'continue-point
+        :name "hj2-ctyfarma-start"
+        :level 'hj2-farma
+        :trans (static-vectorm -328.6530 8.5787 209.5328)
+        :camera-trans (static-vectorm -316.1531 13.7317 209.6537)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 -15440 0 28900))
+        :camera-rot (new 'static 'array int16 9 -177 0 32764 -3958 32525 -20 -32525 -3958 -177)
+        :on-goto #f
+        :vis-nick 'hj2-farma
+        :vehicle-type #x1b
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-farma :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-gena :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      (new 'static 'continue-point
+        :name "hj2-ctyfarma-burning-bush"
+        :level 'hj2-farma
+        :trans (static-vectorm -57.7186 7.9990 95.1026)
+        :camera-trans (static-vectorm -62.9970 13.1644 106.4909)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 32121 0 6462))
+        :camera-rot (new 'static 'array int16 9 -29690 0 -13860 1684 32521 -3611 13756 -3984 -29467)
+        :flags (continue-flags no-auto)
+        :on-goto #f
+        :vis-nick 'hj2-farma
+        :vehicle-type #x1b
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-farma :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-gena :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      )
+    :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
+    :borrow #f
+    :bottom-height (meters -100)
+    :fog-height (meters 80)
+    :max-rain 1.0
+    :mood-range (new 'static 'mood-range :max-cloud 1.0 :max-fog 1.0)
+    :fog-mult 1.0
+    )
+  )
+
+(cons! *level-load-list* 'hj2-farma)
+
+;; Haven City's district ctyfarmb: the gardens, by the market (custom_assets/jak3/levels/hj2-farmb), Jak 2's ctyfarmb.
+;; memory: small-edge (Jak 2's where the level heap allows, see the
+;; level port's memory_modes).
+(define hj2-farmb
+  (new 'static 'level-load-info
+    :name 'hj2-farmb
+    :visname 'hj2-farmb-vis
+    :nickname 'hfb
+    :dbname 'hj2-farmb
+    :taskname 'default
+    :index #x154
+    :master-level #f
+    :level-flags (level-flags sky display-wait)
+    :packages '()
+    :run-packages '("common")
+    :memory-mode (level-memory-mode small-edge)
+    :music-bank #f
+    :extra-sound-bank #f
+    :mood-func 'update-mood-havenj2
+    :special-mood #f
+    :ocean #f
+    :ocean-alpha 1.0
+    :priority 100
+    :draw-priority 10.0
+    :part-engine-max 7
+    :base-task-mask (task-mask task0)
+    :bigmap-id (bigmap-id none)
+    :continues '(
+      (new 'static 'continue-point
+        :name "hj2-ctyfarmb-start"
+        :level 'hj2-farmb
+        :trans (static-vectorm -359.7955 7.9978 1146.2712)
+        :camera-trans (static-vectorm -355.9259 13.2403 1156.0312)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 -30893 0 10918))
+        :camera-rot (new 'static 'array int16 9 -30441 0 12121 -2251 32194 -5652 -11911 -6085 -29910)
+        :on-goto #f
+        :vis-nick 'hj2-farmb
+        :vehicle-type #x1b
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-farmb :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-port :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      (new 'static 'continue-point
+        :name "hj2-ctyfarmb-burning-bush"
+        :level 'hj2-farmb
+        :trans (static-vectorm -315.6613 7.9990 1076.1625)
+        :camera-trans (static-vectorm -326.6026 12.7336 1075.6562)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 -23255 0 -23081))
+        :camera-rot (new 'static 'array int16 9 1527 0 -32731 4207 32492 197 32459 -4214 1517)
+        :flags (continue-flags no-auto)
+        :on-goto #f
+        :vis-nick 'hj2-farmb
+        :vehicle-type #x1b
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-farmb :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-marka :display? #f)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      )
+    :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
+    :borrow #f
+    :bottom-height (meters -100)
+    :fog-height (meters 80)
+    :max-rain 1.0
+    :mood-range (new 'static 'mood-range :max-cloud 1.0 :max-fog 1.0)
+    :fog-mult 1.0
+    )
+  )
+
+(cons! *level-load-list* 'hj2-farmb)
+
+;; Haven City's district ctypal: the palace plaza (custom_assets/jak3/levels/hj2-pal), Jak 2's ctypal.
+;; memory: small-edge (Jak 2's where the level heap allows, see the
+;; level port's memory_modes).
+(define hj2-pal
+  (new 'static 'level-load-info
+    :name 'hj2-pal
+    :visname 'hj2-pal-vis
+    :nickname 'hpl
+    :dbname 'hj2-pal
+    :taskname 'default
+    :index #x155
+    :master-level #f
+    :level-flags (level-flags sky display-wait)
+    :packages '()
+    :run-packages '("common")
+    :memory-mode (level-memory-mode small-edge)
+    :music-bank #f
+    :extra-sound-bank #f
+    :mood-func 'update-mood-havenj2
+    :special-mood #f
+    :ocean #f
+    :ocean-alpha 1.0
+    :priority 100
+    :draw-priority 10.0
+    :part-engine-max 0
+    :base-task-mask (task-mask task0)
+    :bigmap-id (bigmap-id none)
+    :continues '(
+      (new 'static 'continue-point
+        :name "hj2-ctypal-shaft"
+        :level 'hj2-pal
+        :trans (static-vectorm 191.1746 7.9977 773.6696)
+        :camera-trans (static-vectorm 190.2588 13.1720 786.1343)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 32760 0 600))
+        :camera-rot (new 'static 'array int16 9 -32679 0 -2399 295 32511 -4050 2379 -4063 -32426)
+        :on-goto #f
+        :vis-nick 'hj2-pal
+        :vehicle-type #x1b
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-pal :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-pshaft :display? #f)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      (new 'static 'continue-point
+        :name "hj2-ctypal-tomb"
+        :level 'hj2-pal
+        :trans (static-vectorm 191.7924 8.0000 907.7653)
+        :camera-trans (static-vectorm 192.4380 13.1499 895.2814)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 -8274 0 31702))
+        :camera-rot (new 'static 'array int16 9 32718 0 1769 -213 32525 3962 -1756 -3968 32475)
+        :on-goto #f
+        :vis-nick 'hj2-pal
+        :vehicle-type #x1b
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-pal :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-port :display? #f)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      (new 'static 'continue-point
+        :name "hj2-ctypal-burning-bush"
+        :level 'hj2-pal
+        :trans (static-vectorm 92.1354 16.0026 447.9555)
+        :camera-trans (static-vectorm 90.9371 21.0678 435.8203)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 -1537 0 32728))
+        :camera-rot (new 'static 'array int16 9 32610 0 -3172 380 32528 3922 3149 -3942 32374)
+        :flags (continue-flags no-auto)
+        :on-goto #f
+        :vis-nick 'hj2-pal
+        :vehicle-type #x1b
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-genc :display? #f)
+          (new 'static 'level-buffer-state-small :name 'hj2-pal :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      (new 'static 'continue-point
+        :name "hj2-ctypal-burning-bush-2"
+        :level 'hj2-pal
+        :trans (static-vectorm 301.9563 7.9996 884.3287)
+        :camera-trans (static-vectorm 289.5202 13.1496 885.7111)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 24415 0 21849))
+        :camera-rot (new 'static 'array int16 9 -3611 0 -32567 3929 32525 -436 32328 -3952 -3585)
+        :flags (continue-flags no-auto)
+        :on-goto #f
+        :vis-nick 'hj2-pal
+        :vehicle-type #x1b
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-port :display? #f)
+          (new 'static 'level-buffer-state-small :name 'hj2-pal :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      )
+    :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
+    :borrow #f
+    :bottom-height (meters -100)
+    :fog-height (meters 80)
+    :max-rain 1.0
+    :mood-range (new 'static 'mood-range :max-cloud 1.0 :max-fog 1.0)
+    :fog-mult 1.0
+    )
+  )
+
+(cons! *level-load-list* 'hj2-pal)
+
+;; Haven City's district stadium: the stadium grounds (custom_assets/jak3/levels/hj2-stdm), Jak 2's stadium.
+;; memory: small-edge (Jak 2's where the level heap allows, see the
+;; level port's memory_modes).
+(define hj2-stdm
+  (new 'static 'level-load-info
+    :name 'hj2-stdm
+    :visname 'hj2-stdm-vis
+    :nickname 'hsd
+    :dbname 'hj2-stdm
+    :taskname 'default
+    :index #x156
+    :master-level #f
+    :level-flags (level-flags sky display-wait)
+    :packages '()
+    :run-packages '("common")
+    :memory-mode (level-memory-mode small-edge)
+    :music-bank #f
+    :extra-sound-bank #f
+    :mood-func 'update-mood-havenj2
+    :special-mood #f
+    :ocean #f
+    :ocean-alpha 1.0
+    :priority 100
+    :draw-priority 10.0
+    :part-engine-max 0
+    :base-task-mask (task-mask task0)
+    :bigmap-id (bigmap-id none)
+    :continues '(
+      (new 'static 'continue-point
+        :name "hj2-stadium-start"
+        :level 'hj2-stdm
+        :trans (static-vectorm 298.1412 -4.0000 -454.4468)
+        :camera-trans (static-vectorm 310.0839 1.1264 -451.0978)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 -26410 0 19392))
+        :camera-rot (new 'static 'array int16 9 -8847 0 31548 -3860 32518 -1081 -31312 -4011 -8778)
+        :on-goto #f
+        :vis-nick 'hj2-stdm
+        :vehicle-type #x1b
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-stdm :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-genb :display? #f)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      (new 'static 'continue-point
+        :name "hj2-stadium-burning-bush"
+        :level 'hj2-stdm
+        :trans (static-vectorm 339.7457 7.9999 -747.6557)
+        :camera-trans (static-vectorm 339.4550 12.7442 -736.7152)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 -7 21905 -3 -24366))
+        :camera-rot (new 'static 'array int16 9 -32623 0 3047 -403 32475 -4338 -3021 -4358 -32334)
+        :flags (continue-flags no-auto)
+        :on-goto #f
+        :vis-nick 'hj2-stdm
+        :vehicle-type #x1b
+        :want-count 2
+        :want (new 'static 'inline-array level-buffer-state-small 2
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-stdm :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      )
+    :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
+    :borrow #f
+    :bottom-height (meters -100)
+    :fog-height (meters 80)
+    :max-rain 1.0
+    :mood-range (new 'static 'mood-range :max-cloud 1.0 :max-fog 1.0)
+    :fog-mult 1.0
+    )
+  )
+
+(cons! *level-load-list* 'hj2-stdm)
 
 ;; The Hip Hog saloon (custom_assets/jak3/levels/hj2-hiphog), Jak 2's hiphog.
 ;; memory: small-edge (Jak 2's where the level heap allows, see the
@@ -895,10 +1774,11 @@
         :on-goto #f
         :vis-nick 'hj2-hiphog
         :vehicle-type #x1b
-        :want-count 2
-        :want (new 'static 'inline-array level-buffer-state-small 2
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'special)
           (new 'static 'level-buffer-state-small :name 'hj2-hiphog :display? 'display)
-          (new 'static 'level-buffer-state-small :name 'havenj2 :display? #f)
+          (new 'static 'level-buffer-state-small :name 'hj2-port :display? #f)
           )
         :want-sound (new 'static 'array symbol 3 #f #f #f)
         )
@@ -952,10 +1832,11 @@
         :on-goto #f
         :vis-nick 'hj2-gun
         :vehicle-type #x1b
-        :want-count 2
-        :want (new 'static 'inline-array level-buffer-state-small 2
-          (new 'static 'level-buffer-state-small :name 'hj2-gun :display? 'display)
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
           (new 'static 'level-buffer-state-small :name 'havenj2 :display? #f)
+          (new 'static 'level-buffer-state-small :name 'hj2-gun :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-port :display? #f)
           )
         :want-sound (new 'static 'array symbol 3 #f #f #f)
         )
@@ -1009,10 +1890,11 @@
         :on-goto #f
         :vis-nick 'hj2-vin
         :vehicle-type #x1b
-        :want-count 2
-        :want (new 'static 'inline-array level-buffer-state-small 2
-          (new 'static 'level-buffer-state-small :name 'hj2-vin :display? 'display)
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
           (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-vin :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-inda :display? 'display)
           )
         :want-sound (new 'static 'array symbol 3 #f #f #f)
         )
@@ -1027,10 +1909,11 @@
         :on-goto #f
         :vis-nick 'hj2-vin
         :vehicle-type #x1b
-        :want-count 2
-        :want (new 'static 'inline-array level-buffer-state-small 2
-          (new 'static 'level-buffer-state-small :name 'hj2-vin :display? 'display)
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
           (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-vin :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-inda :display? 'display)
           )
         :want-sound (new 'static 'array symbol 3 #f #f #f)
         )
@@ -1045,10 +1928,11 @@
         :on-goto #f
         :vis-nick 'hj2-vin
         :vehicle-type #x1b
-        :want-count 2
-        :want (new 'static 'inline-array level-buffer-state-small 2
-          (new 'static 'level-buffer-state-small :name 'hj2-vin :display? 'display)
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
           (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-vin :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-inda :display? 'display)
           )
         :want-sound (new 'static 'array symbol 3 #f #f #f)
         )
@@ -1063,10 +1947,11 @@
         :on-goto #f
         :vis-nick 'hj2-vin
         :vehicle-type #x1b
-        :want-count 2
-        :want (new 'static 'inline-array level-buffer-state-small 2
-          (new 'static 'level-buffer-state-small :name 'hj2-vin :display? 'display)
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
           (new 'static 'level-buffer-state-small :name 'havenj2 :display? #f)
+          (new 'static 'level-buffer-state-small :name 'hj2-vin :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-inda :display? #f)
           )
         :want-sound (new 'static 'array symbol 3 #f #f #f)
         )
@@ -1120,10 +2005,11 @@
         :on-goto #f
         :vis-nick 'hj2-hide
         :vehicle-type #x1b
-        :want-count 2
-        :want (new 'static 'inline-array level-buffer-state-small 2
-          (new 'static 'level-buffer-state-small :name 'hj2-hide :display? 'display)
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
           (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-hide :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-slma :display? 'display)
           )
         :want-sound (new 'static 'array symbol 3 #f #f #f)
         )
@@ -1138,10 +2024,11 @@
         :on-goto #f
         :vis-nick 'hj2-hide
         :vehicle-type #x1b
-        :want-count 2
-        :want (new 'static 'inline-array level-buffer-state-small 2
-          (new 'static 'level-buffer-state-small :name 'hj2-hide :display? 'display)
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
           (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-hide :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-slma :display? 'display)
           )
         :want-sound (new 'static 'array symbol 3 #f #f #f)
         )
@@ -1195,10 +2082,11 @@
         :on-goto #f
         :vis-nick 'hj2-oracle
         :vehicle-type #x1b
-        :want-count 2
-        :want (new 'static 'inline-array level-buffer-state-small 2
-          (new 'static 'level-buffer-state-small :name 'hj2-oracle :display? 'display)
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
           (new 'static 'level-buffer-state-small :name 'havenj2 :display? #f)
+          (new 'static 'level-buffer-state-small :name 'hj2-oracle :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-slmc :display? #f)
           )
         :want-sound (new 'static 'array symbol 3 #f #f #f)
         )
@@ -1253,9 +2141,10 @@
         :on-goto #f
         :vis-nick 'hj2-garage
         :vehicle-type #x1b
-        :want-count 2
-        :want (new 'static 'inline-array level-buffer-state-small 2
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
           (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-stdm :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-garage :display? 'display)
           )
         :want-sound (new 'static 'array symbol 3 #f #f #f)
@@ -1271,9 +2160,10 @@
         :on-goto #f
         :vis-nick 'hj2-garage
         :vehicle-type #x1b
-        :want-count 2
-        :want (new 'static 'inline-array level-buffer-state-small 2
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
           (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-stdm :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-garage :display? 'display)
           )
         :want-sound (new 'static 'array symbol 3 #f #f #f)
@@ -1329,10 +2219,11 @@
         :on-goto #f
         :vis-nick 'hj2-ruins
         :vehicle-type #x1b
-        :want-count 2
-        :want (new 'static 'inline-array level-buffer-state-small 2
-          (new 'static 'level-buffer-state-small :name 'hj2-ruins :display? 'display)
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
           (new 'static 'level-buffer-state-small :name 'havenj2 :display? #f)
+          (new 'static 'level-buffer-state-small :name 'hj2-ruins :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-slmb :display? #f)
           )
         :want-sound (new 'static 'array symbol 3 #f #f #f)
         )
@@ -1436,10 +2327,11 @@
         :on-goto #f
         :vis-nick 'hj2-consb
         :vehicle-type #x1b
-        :want-count 2
-        :want (new 'static 'inline-array level-buffer-state-small 2
-          (new 'static 'level-buffer-state-small :name 'hj2-consb :display? 'display)
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
           (new 'static 'level-buffer-state-small :name 'havenj2 :display? #f)
+          (new 'static 'level-buffer-state-small :name 'hj2-consb :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-inda :display? #f)
           )
         :want-sound (new 'static 'array symbol 3 #f #f #f)
         )
@@ -1569,10 +2461,11 @@
         :on-goto #f
         :vis-nick 'hj2-pshaft
         :vehicle-type #x1b
-        :want-count 2
-        :want (new 'static 'inline-array level-buffer-state-small 2
-          (new 'static 'level-buffer-state-small :name 'hj2-pshaft :display? 'display)
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
           (new 'static 'level-buffer-state-small :name 'havenj2 :display? #f)
+          (new 'static 'level-buffer-state-small :name 'hj2-pshaft :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-pal :display? #f)
           )
         :want-sound (new 'static 'array symbol 3 #f #f #f)
         )
@@ -1708,7 +2601,7 @@
     :ocean-alpha 1.0
     :priority 100
     :draw-priority 10.0
-    :part-engine-max 0
+    :part-engine-max 10
     :base-task-mask (task-mask task0)
     :bigmap-id (bigmap-id none)
     :continues '(
@@ -2142,9 +3035,10 @@
         :on-goto #f
         :vis-nick 'hj2-mount
         :vehicle-type #x1b
-        :want-count 1
-        :want (new 'static 'inline-array level-buffer-state-small 1
+        :want-count 2
+        :want (new 'static 'inline-array level-buffer-state-small 2
           (new 'static 'level-buffer-state-small :name 'hj2-mount :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-mincan :display? #f)
           )
         :want-sound (new 'static 'array symbol 3 #f #f #f)
         )
@@ -2262,7 +3156,7 @@
         :want-count 2
         :want (new 'static 'inline-array level-buffer-state-small 2
           (new 'static 'level-buffer-state-small :name 'hj2-forest :display? 'display)
-          (new 'static 'level-buffer-state-small :name 'hj2-mount :display? #f)
+          (new 'static 'level-buffer-state-small :name 'hj2-mount :display? 'special)
           )
         :want-sound (new 'static 'array symbol 3 #f #f #f)
         )
@@ -2393,10 +3287,11 @@
         :on-goto #f
         :vis-nick 'hj2-caspad
         :vehicle-type #x1b
-        :want-count 2
-        :want (new 'static 'inline-array level-buffer-state-small 2
-          (new 'static 'level-buffer-state-small :name 'hj2-caspad :display? 'display)
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
           (new 'static 'level-buffer-state-small :name 'havenj2 :display? #f)
+          (new 'static 'level-buffer-state-small :name 'hj2-caspad :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-port :display? #f)
           )
         :want-sound (new 'static 'array symbol 3 #f #f #f)
         )
@@ -2661,7 +3556,7 @@
         :vehicle-type #x1b
         :want-count 2
         :want (new 'static 'inline-array level-buffer-state-small 2
-          (new 'static 'level-buffer-state-small :name 'hj2-forta :display? #f)
+          (new 'static 'level-buffer-state-small :name 'hj2-forta :display? 'special)
           (new 'static 'level-buffer-state-small :name 'hj2-fortb :display? 'display)
           )
         :want-sound (new 'static 'array symbol 3 #f #f #f)
@@ -2849,10 +3744,11 @@
         :on-goto #f
         :vis-nick 'hj2-fexb
         :vehicle-type #x1b
-        :want-count 2
-        :want (new 'static 'inline-array level-buffer-state-small 2
-          (new 'static 'level-buffer-state-small :name 'hj2-fexb :display? 'display)
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
           (new 'static 'level-buffer-state-small :name 'havenj2 :display? #f)
+          (new 'static 'level-buffer-state-small :name 'hj2-fexb :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-slmb :display? #f)
           )
         :want-sound (new 'static 'array symbol 3 #f #f #f)
         )
@@ -2911,7 +3807,7 @@
     :ocean-alpha 1.0
     :priority 100
     :draw-priority 10.0
-    :part-engine-max 0
+    :part-engine-max 2
     :base-task-mask (task-mask task0)
     :bigmap-id (bigmap-id none)
     :continues '(
@@ -2925,9 +3821,10 @@
         :on-goto #f
         :vis-nick 'hj2-stadd
         :vehicle-type #x1b
-        :want-count 2
-        :want (new 'static 'inline-array level-buffer-state-small 2
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
           (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-stdm :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-stadd :display? 'display)
           )
         :want-sound (new 'static 'array symbol 3 #f #f #f)
@@ -2943,9 +3840,10 @@
         :on-goto #f
         :vis-nick 'hj2-stadd
         :vehicle-type #x1b
-        :want-count 2
-        :want (new 'static 'inline-array level-buffer-state-small 2
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
           (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-stdm :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-stadd :display? 'display)
           )
         :want-sound (new 'static 'array symbol 3 #f #f #f)
@@ -2961,9 +3859,10 @@
         :on-goto #f
         :vis-nick 'hj2-stadd
         :vehicle-type #x1b
-        :want-count 2
-        :want (new 'static 'inline-array level-buffer-state-small 2
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
           (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-stdm :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-stadd :display? 'display)
           )
         :want-sound (new 'static 'array symbol 3 #f #f #f)
@@ -2979,9 +3878,10 @@
         :on-goto #f
         :vis-nick 'hj2-stadd
         :vehicle-type #x1b
-        :want-count 2
-        :want (new 'static 'inline-array level-buffer-state-small 2
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
           (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-stdm :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-stadd :display? 'display)
           )
         :want-sound (new 'static 'array symbol 3 #f #f #f)
@@ -2996,9 +3896,10 @@
         :on-goto #f
         :vis-nick 'hj2-stadd
         :vehicle-type #x1b
-        :want-count 2
-        :want (new 'static 'inline-array level-buffer-state-small 2
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
           (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-stdm :display? 'display)
           (new 'static 'level-buffer-state-small :name 'hj2-stadd :display? 'display)
           )
         :want-sound (new 'static 'array symbol 3 #f #f #f)
@@ -3015,6 +3916,180 @@
   )
 
 (cons! *level-load-list* 'hj2-stadd)
+
+;; The bazaar's stall, in the market (custom_assets/jak3/levels/hj2-kiosk), Jak 2's kiosk.
+;; memory: small-edge (Jak 2's where the level heap allows, see the
+;; level port's memory_modes).
+(define hj2-kiosk
+  (new 'static 'level-load-info
+    :name 'hj2-kiosk
+    :visname 'hj2-kiosk-vis
+    :nickname 'hkh
+    :dbname 'hj2-kiosk
+    :taskname 'default
+    :index #x157
+    :master-level #f
+    :level-flags (level-flags sky)
+    :packages '()
+    :run-packages '("common")
+    :memory-mode (level-memory-mode small-edge)
+    :music-bank #f
+    :extra-sound-bank #f
+    :mood-func 'update-mood-havenj2
+    :special-mood #f
+    :ocean #f
+    :ocean-alpha 1.0
+    :priority 100
+    :draw-priority 10.0
+    :part-engine-max 0
+    :base-task-mask (task-mask task0)
+    :bigmap-id (bigmap-id none)
+    :continues '(
+      (new 'static 'continue-point
+        :name "hj2-kiosk-start"
+        :level 'hj2-kiosk
+        :trans (static-vectorm -107.1954 8.0000 477.7272)
+        :camera-trans (static-vectorm -96.7402 13.1499 476.6821)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 -5184 0 32354))
+        :camera-rot (new 'static 'array int16 9 5190 0 32351 -5705 32253 914 -31843 -5777 5108)
+        :on-goto #f
+        :vis-nick 'hj2-kiosk
+        :vehicle-type #x1b
+        :want-count 3
+        :want (new 'static 'inline-array level-buffer-state-small 3
+          (new 'static 'level-buffer-state-small :name 'havenj2 :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-kiosk :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-marka :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      )
+    :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
+    :borrow #f
+    :bottom-height (meters -100)
+    :fog-height (meters 80)
+    :max-rain 1.0
+    :mood-range (new 'static 'mood-range :max-cloud 1.0 :max-fog 1.0)
+    :fog-mult 1.0
+    )
+  )
+
+(cons! *level-load-list* 'hj2-kiosk)
+
+;; Onin's tent, in the market (custom_assets/jak3/levels/hj2-onin), Jak 2's onintent.
+;; memory: small-edge (Jak 2's where the level heap allows, see the
+;; level port's memory_modes).
+(define hj2-onin
+  (new 'static 'level-load-info
+    :name 'hj2-onin
+    :visname 'hj2-onin-vis
+    :nickname 'hki
+    :dbname 'hj2-onin
+    :taskname 'default
+    :index #x158
+    :master-level #f
+    :packages '()
+    :run-packages '("common")
+    :memory-mode (level-memory-mode small-edge)
+    :music-bank #f
+    :extra-sound-bank #f
+    :mood-func 'update-mood-hj2-onin
+    :special-mood #f
+    :ocean #f
+    :ocean-alpha 1.0
+    :priority 100
+    :draw-priority 10.0
+    :part-engine-max 0
+    :base-task-mask (task-mask task0)
+    :bigmap-id (bigmap-id none)
+    :continues '(
+
+      )
+    :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
+    :borrow #f
+    :bottom-height (meters -100)
+    :fog-height (meters 80)
+    :max-rain 0.0
+    :mood-range (new 'static 'mood-range)
+    :fog-mult 1.0
+    )
+  )
+
+(cons! *level-load-list* 'hj2-onin)
+
+;; The canyon behind the mountain's iris doors (custom_assets/jak3/levels/hj2-mincan), Jak 2's mincan.
+;; memory: small-edge (Jak 2's where the level heap allows, see the
+;; level port's memory_modes).
+(define hj2-mincan
+  (new 'static 'level-load-info
+    :name 'hj2-mincan
+    :visname 'hj2-mincan-vis
+    :nickname 'hkk
+    :dbname 'hj2-mincan
+    :taskname 'default
+    :index #x15a
+    :master-level #f
+    :level-flags (level-flags sky)
+    :packages '()
+    :run-packages '("common")
+    :memory-mode (level-memory-mode small-edge)
+    :music-bank #f
+    :extra-sound-bank #f
+    :mood-func 'update-mood-hj2-mount
+    :special-mood #f
+    :ocean #f
+    :ocean-alpha 1.0
+    :priority 100
+    :draw-priority 10.0
+    :part-engine-max 0
+    :base-task-mask (task-mask task0)
+    :bigmap-id (bigmap-id none)
+    :continues '(
+      (new 'static 'continue-point
+        :name "hj2-mincan-start"
+        :level 'hj2-mincan
+        :trans (static-vectorm -483.5994 28.4220 -15.3619)
+        :camera-trans (static-vectorm -488.6112 32.0399 -10.8559)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 -31479 -46 -9093))
+        :camera-rot (new 'static 'array int16 9 -21938 0 -24336 5580 31892 -5030 23687 -7517 -21351)
+        :on-goto #f
+        :vis-nick 'hj2-mincan
+        :vehicle-type #x1b
+        :want-count 2
+        :want (new 'static 'inline-array level-buffer-state-small 2
+          (new 'static 'level-buffer-state-small :name 'hj2-mount :display? 'display)
+          (new 'static 'level-buffer-state-small :name 'hj2-mincan :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      (new 'static 'continue-point
+        :name "hj2-mincan-city"
+        :level 'hj2-mincan
+        :trans (static-vectorm -521.1093 16.2938 -176.9844)
+        :camera-trans (static-vectorm -526.3399 21.4437 -186.0882)
+        :quat (new 'static 'vector4h :data (new 'static 'array int16 4 0 17829 0 27492))
+        :camera-rot (new 'static 'array int16 9 28321 0 -16475 2900 32253 4984 16216 -5767 27878)
+        :on-goto #f
+        :vis-nick 'hj2-mincan
+        :vehicle-type #x1b
+        :want-count 1
+        :want (new 'static 'inline-array level-buffer-state-small 1
+          (new 'static 'level-buffer-state-small :name 'hj2-mincan :display? 'display)
+          )
+        :want-sound (new 'static 'array symbol 3 #f #f #f)
+        )
+      )
+    :callback-list '((35 . hj2-place-activate) (36 . hj2-place-deactivate))
+    :borrow #f
+    :bottom-height (meters -100)
+    :fog-height (meters 80)
+    :max-rain 1.0
+    :mood-range (new 'static 'mood-range :max-cloud 1.0 :max-fog 1.0)
+    :fog-mult 1.0
+    )
+  )
+
+(cons! *level-load-list* 'hj2-mincan)
 
 ;; the Freedom HQ's arrival point from Jak 2's hideout (its time gate), in front of the HQ's
 ;; gate (GAME adds it to freehq's continues)

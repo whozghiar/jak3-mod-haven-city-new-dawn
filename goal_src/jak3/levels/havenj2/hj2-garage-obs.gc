@@ -1,0 +1,85 @@
+;;-*-Lisp-*-
+(in-package goal)
+
+;; name: hj2-garage-obs.gc
+;; name in dgo: hj2-garage-obs
+;; dgos: HJK
+
+;; og:jak2-haven-city Level code for hj2-garage, Keira's garage (Jak 2's gar-curtain,
+;; levels/stadium/stadium-obs.gc there): the rubber strip curtain, swaying in its idle animation,
+;; each of its 8 strips solid. Its model is Jak 2's, rebuilt by build-actor (hj2-gar-curtain.glb,
+;; made by the level port, scripts/level_port), with Jak 2's 8 collide meshes (boxes, each in the
+;; space of its strip's top joint).
+
+;; Jak 2's gar-curtain.
+(deftype hj2-gar-curtain (process-drawable)
+  ((root  collide-shape :override)
+   )
+  (:state-methods
+    idle
+    )
+  )
+
+
+(def-actor hj2-gar-curtain
+  :bounds (0 -3.5 0 9)
+  :origin-joint-index 3
+  )
+
+;; its idle animation in a loop, at half speed (Jak 2's); transform-post moves the strips' collision
+;; with their joints
+(defstate idle (hj2-gar-curtain)
+  :virtual #t
+  :code (behavior ()
+    (until #f
+      (ja-no-eval :group! (ja-group) :num! (seek! max 0.5) :frame-num 0.0)
+      (until (ja-done? 0)
+        (suspend)
+        (ja :num! (seek! max 0.5))
+        )
+      )
+    #f
+    )
+  :post transform-post
+  )
+
+;; the transform index of each collide mesh (mesh i on joint Rring1, Rring3, Rring5, Rring8, Lring1,
+;; Lring3, Lring5, Lring8: Jak 2's)
+(define *hj2-gar-curtain-joints* (new 'static 'boxed-array :type int32 4 10 16 25 28 34 40 49))
+
+(defmethod init-from-entity! ((this hj2-gar-curtain) (arg0 entity-actor))
+  "Jak 2's gar-curtain setup: a prim group of 8 mesh prims (obstacle and camera blocker, solid; each
+on its joint, *hj2-gar-curtain-joints*, its sphere 3.5m below the joint, 5m wide), placement,
+skeleton, and Jak 2's fixed facing: 30 degrees around y, whatever the entity's rotation.
+arg0: the entity. Returns nothing."
+  (let ((s4-0 (new 'process 'collide-shape this (collide-list-enum usually-hit-by-player))))
+    (let ((s3-0 (new 'process 'collide-shape-prim-group s4-0 (the-as uint 8) 0)))
+      (set! (-> s4-0 total-prims) (the-as uint 9))
+      (set! (-> s3-0 prim-core collide-as) (collide-spec obstacle camera-blocker))
+      (set! (-> s3-0 prim-core collide-with) (collide-spec jak player-list))
+      (set! (-> s3-0 prim-core action) (collide-action solid))
+      (set-vector! (-> s3-0 local-sphere) 0.0 -14336.0 0.0 36864.0)
+      (set! (-> s4-0 root-prim) s3-0)
+      )
+    (dotimes (i 8)
+      (let ((prim (new 'process 'collide-shape-prim-mesh s4-0 (the-as uint i) (the-as uint 0))))
+        (set! (-> prim prim-core collide-as) (collide-spec obstacle camera-blocker))
+        (set! (-> prim prim-core collide-with) (collide-spec jak player-list))
+        (set! (-> prim prim-core action) (collide-action solid))
+        (set! (-> prim transform-index) (-> *hj2-gar-curtain-joints* i))
+        (set-vector! (-> prim local-sphere) 0.0 -14336.0 0.0 20480.0)
+        )
+      )
+    (set! (-> s4-0 nav-radius) (* 0.75 (-> s4-0 root-prim local-sphere w)))
+    (let ((v1-20 (-> s4-0 root-prim)))
+      (set! (-> s4-0 backup-collide-as) (-> v1-20 prim-core collide-as))
+      (set! (-> s4-0 backup-collide-with) (-> v1-20 prim-core collide-with))
+      )
+    (set! (-> this root) s4-0)
+    )
+  (process-drawable-from-entity! this arg0)
+  (initialize-skeleton this *hj2-gar-curtain-sg* (the-as pair 0))
+  (quaternion-vector-angle! (-> this root quat) *y-vector* (degrees 30))
+  (go (method-of-object this idle))
+  (none)
+  )

@@ -65,3 +65,142 @@
   (ja-post)
   (go (method-of-object this idle))
   )
+
+
+;; Fallen pillars ////////////////////////////////////////////////////////////////////////////////
+
+;; Jak 2's ruins-pillar-collapse (levels/ruins/pillar-collapse.gc there): the 3 pillars the titan
+;; suit knocked down in Dead Town. At the end of the game their subtask is complete, so Jak 2 shows
+;; them fallen: frame 0 of the "<art-name>-end" animation (pillar-collapse.gc:205), solid and
+;; walkable (32 collide meshes on their pieces; the 33rd, the standing shaft, is off once fallen).
+;; One model (hj2-ruins-pillar.glb, rebuilt by the level port from ruins-pillar-collapse-lod0.glb)
+;; holds the 3 end poses; the actor's name picks its pose, as Jak 2's art-name lump does (the level
+;; port keeps Jak 2's names, not that string lump). No crush attack, no sound: they no longer fall.
+(deftype hj2-ruins-pillar (process-drawable)
+  ((root      collide-shape  :override)
+   (end-anim  art-joint-anim)
+   )
+  (:state-methods
+    idle
+    )
+  )
+
+
+;; the 3 end poses, in this order: Jak 2's ruins-pillar-collapse-1-end, -2-end and -3-end. Bounds:
+;; Jak 2's once fallen (pillar-collapse.gc:177-178)
+(def-actor hj2-ruins-pillar
+  :art (end1-ja end2-ja end3-ja)
+  :bounds (0 12 15 53)
+  )
+
+;; its 32 collide meshes (the joint hulls made by the generator, in this order): x the transform
+;; index of the piece each follows, w its sphere radius, Jak 2's (pillar-collapse.gc:252-285, but
+;; mesh 5, the standing shaft, which Jak 2 turns off in its fall state)
+(define *hj2-ruins-pillar-prims*
+  (new 'static 'inline-array vector 32
+    (new 'static 'vector :x 21.0 :w 18432.0)
+    (new 'static 'vector :x 22.0 :w 61440.0)
+    (new 'static 'vector :x 46.0 :w 8192.0)
+    (new 'static 'vector :x 47.0 :w 6144.0)
+    (new 'static 'vector :x 48.0 :w 6963.0)
+    (new 'static 'vector :x 49.0 :w 6963.0)
+    (new 'static 'vector :x 53.0 :w 6963.0)
+    (new 'static 'vector :x 54.0 :w 6144.0)
+    (new 'static 'vector :x 61.0 :w 8192.0)
+    (new 'static 'vector :x 62.0 :w 10240.0)
+    (new 'static 'vector :x 63.0 :w 6963.0)
+    (new 'static 'vector :x 64.0 :w 6963.0)
+    (new 'static 'vector :x 66.0 :w 9011.0)
+    (new 'static 'vector :x 67.0 :w 16384.0)
+    (new 'static 'vector :x 68.0 :w 8192.0)
+    (new 'static 'vector :x 69.0 :w 6144.0)
+    (new 'static 'vector :x 70.0 :w 6553.0)
+    (new 'static 'vector :x 71.0 :w 9420.0)
+    (new 'static 'vector :x 72.0 :w 5734.0)
+    (new 'static 'vector :x 73.0 :w 7782.0)
+    (new 'static 'vector :x 74.0 :w 5734.0)
+    (new 'static 'vector :x 75.0 :w 8192.0)
+    (new 'static 'vector :x 76.0 :w 5734.0)
+    (new 'static 'vector :x 77.0 :w 5734.0)
+    (new 'static 'vector :x 78.0 :w 10240.0)
+    (new 'static 'vector :x 79.0 :w 6144.0)
+    (new 'static 'vector :x 80.0 :w 6144.0)
+    (new 'static 'vector :x 81.0 :w 6144.0)
+    (new 'static 'vector :x 82.0 :w 6963.0)
+    (new 'static 'vector :x 83.0 :w 9830.0)
+    (new 'static 'vector :x 84.0 :w 8192.0)
+    (new 'static 'vector :x 65.0 :w 8192.0)
+    )
+  )
+
+;; lying in its end pose: one transform-post places the pieces and their collision, then it sleeps
+(defstate idle (hj2-ruins-pillar)
+  :virtual #t
+  :code (behavior ()
+    (ja-channel-set! 1)
+    (ja :group! (-> self end-anim) :num! min)
+    (transform-post)
+    (sleep-code)
+    )
+  )
+
+;; WARN: Return type mismatch object vs none.
+(defmethod init-from-entity! ((this hj2-ruins-pillar) (arg0 entity-actor))
+  "Jak 2's ruins-pillar-collapse setup, fallen.
+arg0: the entity (placement; its name picks the pose: ruins-pillar-collapse-7 is Jak 2's art-name
+ruins-pillar-collapse-1, -9 is -2 and -8 is -3).
+Side effects: sets the root (a collide-shape: a group of 32 mesh prims on the pieces, obstacle,
+solid, rideable, *hj2-ruins-pillar-prims*), the placement (turned 180 degrees for poses 2 and 3,
+like Jak 2), the skeleton and end-anim, then goes to idle. Returns nothing."
+  (let ((s5-0 (new 'process 'collide-shape this (collide-list-enum hit-by-player))))
+    (let ((s4-0 (new 'process 'collide-shape-prim-group s5-0 (the-as uint 32) 0)))
+      (set! (-> s5-0 total-prims) (the-as uint 33))
+      (set! (-> s4-0 prim-core collide-as) (collide-spec obstacle))
+      (set! (-> s4-0 prim-core collide-with) (collide-spec jak player-list))
+      (set! (-> s4-0 prim-core action) (collide-action solid rideable))
+      (set! (-> s4-0 transform-index) 0)
+      (set-vector! (-> s4-0 local-sphere) 0.0 (meters 12) (meters 15) (meters 53))
+      (set! (-> s5-0 root-prim) s4-0)
+      )
+    (dotimes (i 32)
+      (let ((spec (-> *hj2-ruins-pillar-prims* i))
+            (prim (new 'process 'collide-shape-prim-mesh s5-0 (the-as uint i) (the-as uint 0)))
+            )
+        (set! (-> prim prim-core collide-as) (collide-spec obstacle))
+        (set! (-> prim prim-core collide-with) (collide-spec jak player-list))
+        (set! (-> prim prim-core action) (collide-action solid rideable))
+        (set! (-> prim transform-index) (the int (-> spec x)))
+        (set-vector! (-> prim local-sphere) 0.0 0.0 0.0 (-> spec w))
+        )
+      )
+    (set! (-> s5-0 nav-radius) (* 0.75 (-> s5-0 root-prim local-sphere w)))
+    (let ((v1-20 (-> s5-0 root-prim)))
+      (set! (-> s5-0 backup-collide-as) (-> v1-20 prim-core collide-as))
+      (set! (-> s5-0 backup-collide-with) (-> v1-20 prim-core collide-with))
+      )
+    (set! (-> this root) s5-0)
+    )
+  (process-drawable-from-entity! this arg0)
+  (initialize-skeleton this *hj2-ruins-pillar-sg* (the-as pair 0))
+  (let ((pose (cond
+                ((string= (-> this name) "ruins-pillar-collapse-9")
+                 1
+                 )
+                ((string= (-> this name) "ruins-pillar-collapse-8")
+                 2
+                 )
+                (else
+                  0
+                  )
+                )
+              )
+        )
+    ;; Jak 2 turns pillars 2 and 3 around (pillar-collapse.gc:356, :366)
+    (if (nonzero? pose)
+        (set-yaw-angle-clear-roll-pitch! (-> this root) (+ 32768.0 (y-angle (-> this root))))
+        )
+    ;; art group: 0 skeleton, 1 mesh, then end1, end2, end3
+    (set! (-> this end-anim) (the-as art-joint-anim (-> this draw art-group data (+ pose 2))))
+    )
+  (go (method-of-object this idle))
+  )

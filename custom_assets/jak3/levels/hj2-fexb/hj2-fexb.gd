@@ -5,5 +5,6 @@
   "hj2-fort-gate-ag.go"
   "hj2-fort-pool-ag.go"
   "hj2-fexb-obs.o"
+  "hj2-fexb-part.o"
   "hj2-fexb.go"
   ))

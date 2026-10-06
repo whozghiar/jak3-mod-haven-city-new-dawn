@@ -1,14 +1,14 @@
 """Pools: the water of a level's water-anim actors (the source game's pools and fountains).
 
-For each level with a "water" block, writes <level>-water-regions.json: the "water" region tree the
-level .jsonc loads through "region_tree_files" (Jak 3's water is regions only): one sphere covering
-the level that takes its height from the ocean map, plus one volume per pool. The pool surfaces
-themselves are meshes: surfaces() gives them to the mesh step, which writes them into the level's
-background mesh.
+For each level with a "water" block, the regions of its "water" region tree (Jak 3's water is
+regions only, the levels step writes them in <level>-water-regions.json): one sphere covering the
+level that takes its height from the ocean map, if it has one, plus one volume per pool. The pool
+surfaces themselves are meshes: surfaces() gives them to the mesh step, which writes them into the
+level's background mesh.
 
 Manifest, on the level:
   "water": {
-    "ocean_region": {"center": [x, y, z], "radius": r},     meters
+    "ocean_region": {"center": [x, y, z], "radius": r},     meters, optional
     "below": 3.0, "above": 2.0,     meters of water volume below and above each pool surface
     "pools": [{"level": source level, "etype": the water-anim class,
                "looks": {"<look>": [ripped mesh, water flags of its region, or null]}}]
@@ -17,11 +17,9 @@ Inputs: the source game's actors, and the pool meshes ripped to decompiler_out/<
 """
 
 import functools
-import json
 
 from ..common import geometry as geo
 from ..common import glb
-from ..common.files import write_if_changed
 
 
 def load_mesh(port, level, name):
@@ -54,19 +52,21 @@ def _surfaces(port, level_name):
     level = port.level(level_name)
     cfg = level["water"]
     meter = port.source.METER
-    ocean = cfg["ocean_region"]
     meshes = {}
     surfaces = []
-    regions = [{
-        "id": 1,
-        "shape": "sphere",
-        "trans": ocean["center"],
-        "bsphere": ocean["center"] + [ocean["radius"]],
-        # height taken from the ocean map; no ocean at a point means no water there. The game always
-        # reads the flag list as the 3rd argument (water-info<-region), so "ocean" needs a
-        # placeholder before it: without it, Jak touches the water but can't swim and falls through.
-        "on-inside": "(water ocean 0.0 (swim wade))",
-    }]
+    regions = []
+    if "ocean_region" in cfg:
+        ocean = cfg["ocean_region"]
+        regions.append({
+            "shape": "sphere",
+            "trans": ocean["center"],
+            "bsphere": ocean["center"] + [ocean["radius"]],
+            # height taken from the ocean map; no ocean at a point means no water there. The game
+            # always reads the flag list as the 3rd argument (water-info<-region), so "ocean" needs
+            # a placeholder before it: without it, Jak touches the water but can't swim and falls
+            # through.
+            "on-inside": "(water ocean 0.0 (swim wade))",
+        })
     for pool in cfg["pools"]:
         src_level, etype, looks = pool["level"], pool["etype"], pool["looks"]
         actors = [a for a in port.story.level_actors(src_level) if a["etype"] == etype]
@@ -98,7 +98,6 @@ def _surfaces(port, level_name):
             faces, center, radius = geo.prism_faces(hull, height - cfg["below"],
                                                     height + cfg["above"])
             regions.append({
-                "id": len(regions) + 1,
                 "shape": "volume",
                 "bsphere": [round(c, 4) for c in center] + [round(radius + 0.5, 4)],
                 "on-inside": "(water height %.4f %s)" % (height, flags),
@@ -108,23 +107,7 @@ def _surfaces(port, level_name):
 
 
 def surfaces(port, level):
-    """The pool surfaces of a level in world space and their water regions: (surfaces, regions).
-    Each surface has pos/nrm/uv/col lists, tris (indices into them), image_uri and sampler."""
+    """The pool surfaces of a level in world space and their water regions (without ids):
+    (surfaces, regions). Each surface has pos/nrm/uv/col lists, tris (indices into them),
+    image_uri and sampler."""
     return _surfaces(port, level.name)
-
-
-def regions_path(level):
-    return f"{level.folder}/{level.name}-water-regions.json"
-
-
-def run(port):
-    for level in port.levels:
-        if "water" not in level:
-            continue
-        cfg = level["water"]
-        surf, regions = surfaces(port, level)
-        ocean = cfg["ocean_region"]
-        tree = {"water": {"bsphere": ocean["center"] + [ocean["radius"] + 50.0],
-                          "regions": regions}}
-        write_if_changed(regions_path(level), json.dumps(tree, indent=2))
-        print(f"  {level.name}: {len(surf)} pool surfaces, {len(regions)} water regions")

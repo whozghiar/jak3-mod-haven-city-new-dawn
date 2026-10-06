@@ -3,6 +3,7 @@
 ("HJT.DGO"
  (
   "warp-gate-ag.go"
+  "jak-pole+0-ag.go"
   "hj2-dig-sinking-plat-ag.go"
   "hj2-dig-tipping-rock-ag.go"
   "hj2-dig-spikey-step-ag.go"
@@ -13,7 +14,9 @@
   "hj2-dig-button-ag.go"
   "hj2-dig-totem-ag.go"
   "hj2-dig-sphere-door-ag.go"
+  "hj2-dig-stomp-block-ag.go"
   "rigid-body-plat.o"
   "hj2-dig-obs.o"
+  "hj2-dig-part.o"
   "hj2-dig.go"
   ))

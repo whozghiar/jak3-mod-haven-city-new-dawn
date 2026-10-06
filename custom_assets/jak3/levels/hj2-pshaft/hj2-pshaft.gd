@@ -2,7 +2,8 @@
 ;; DGO definition file for hj2-pshaft: the palace pillars: the palace lobby and the cable pillar.
 ("HJS.DGO"
  (
-  "com-airlock-inner-ag.go"
+  "hj2-airlock-inner-ag.go"
   "hj2-com-elevator-ag.go"
+  "hj2-pshaft-part.o"
   "hj2-pshaft.go"
   ))

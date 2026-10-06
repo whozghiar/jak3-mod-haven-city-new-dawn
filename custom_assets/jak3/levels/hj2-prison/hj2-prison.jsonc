@@ -19,7 +19,7 @@
   "art_groups": [],
   "actors": [
     // Jak 2's fort-entry-gate-20 (prison) [as hj2-fort-gate]
-    {"trans": [435.136, 8.8959, 58.2226], "etype": "hj2-fort-gate", "game_task": 0, "quat": [0.0, 0.3827, 0.0, 0.9239], "bsphere": [435.136, 8.8959, 58.2226, 13.8564], "lump": {"name": "fort-entry-gate-20", "distance": ["float", 81920.0], "idle-distance": ["float", 102400.0], "on-activate": ["pair", "(want-load 'hj2-prison 'hj2-fortb)"], "on-deactivate": ["pair", "(want-display 'hj2-fortb #f)"], "on-enter": ["pair", "(want-display 'hj2-fortb 'display)"], "on-notice": ["pair", "'(hj2-fortb)"], "next-actor": ["string", "fort-entry-gate-11"]}},
+    {"trans": [435.136, 8.8959, 58.2226], "etype": "hj2-fort-gate", "game_task": 0, "quat": [0.0, 0.3827, 0.0, 0.9239], "bsphere": [435.136, 8.8959, 58.2226, 13.8564], "lump": {"name": "fort-entry-gate-20", "distance": ["float", 81920.0], "idle-distance": ["float", 102400.0], "height": ["vector", [81920.0, 81920.0, 0.0, 0.0]], "on-activate": ["pair", "(want-load 'hj2-prison 'hj2-fortb)"], "on-deactivate": ["pair", "(want-display 'hj2-fortb #f)"], "on-enter": ["pair", "(want-display 'hj2-fortb 'display)"], "on-notice": ["pair", "'(hj2-fortb)"], "next-actor": ["string", "fort-entry-gate-11"]}},
     // Jak 2's prsn-cell-door-1 (prison)
     {"trans": [505.4708, 8.0, 84.4896], "etype": "hj2-prsn-cell-door", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [505.4708, 8.0, 84.4896, 6.9282], "lump": {"name": "prsn-cell-door-1"}},
     // Jak 2's prsn-cell-door-2 (prison)
@@ -47,6 +47,770 @@
     // Jak 2's prsn-vent-fan-6 (prison)
     {"trans": [457.9771, 7.4681, 67.0024], "etype": "hj2-prsn-vent-fan", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [457.9771, 7.4681, 67.0024, 6.9282], "lump": {"name": "prsn-vent-fan-6"}},
     // Jak 2's warp-gate-b-1 (prison)
-    {"trans": [465.0289, 8.4081, 54.0746], "etype": "hj2-warp-gate-b", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [465.0289, 8.4081, 54.0746, 6.9282], "lump": {"name": "warp-gate-b-1"}}
+    {"trans": [465.0289, 8.4081, 54.0746], "etype": "hj2-warp-gate-b", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [465.0289, 8.4081, 54.0746, 6.9282], "lump": {"name": "warp-gate-b-1"}},
+    // Jak 2's part-spawner-220 (prison): group-prison-light-ceiling
+    {"trans": [540.5, 25.2312, 199.2244], "etype": "part-spawner", "game_task": 0, "quat": [0.5, -0.5, 0.5, 0.5], "bsphere": [540.5, 25.2312, 199.2244, 6.9282], "lump": {"name": "part-spawner-220", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light-ceiling"}},
+    // Jak 2's part-spawner-219 (prison): group-prison-light-ceiling
+    {"trans": [530.1804, 25.2312, 199.2244], "etype": "part-spawner", "game_task": 0, "quat": [0.5, -0.5, 0.5, 0.5], "bsphere": [530.1804, 25.2312, 199.2244, 6.9282], "lump": {"name": "part-spawner-219", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light-ceiling"}},
+    // Jak 2's part-spawner-218 (prison): group-prison-light-ceiling
+    {"trans": [540.5, 25.2312, 188.9744], "etype": "part-spawner", "game_task": 0, "quat": [0.5, -0.5, 0.5, 0.5], "bsphere": [540.5, 25.2312, 188.9744, 6.9282], "lump": {"name": "part-spawner-218", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light-ceiling"}},
+    // Jak 2's part-spawner-217 (prison): group-prison-light-ceiling
+    {"trans": [530.2902, 25.2312, 188.9744], "etype": "part-spawner", "game_task": 0, "quat": [0.5, -0.5, 0.5, 0.5], "bsphere": [530.2902, 25.2312, 188.9744, 6.9282], "lump": {"name": "part-spawner-217", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light-ceiling"}},
+    // Jak 2's part-spawner-216 (prison): group-prison-light-ceiling
+    {"trans": [540.5, 25.2312, 177.9744], "etype": "part-spawner", "game_task": 0, "quat": [0.5, -0.5, 0.5, 0.5], "bsphere": [540.5, 25.2312, 177.9744, 6.9282], "lump": {"name": "part-spawner-216", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light-ceiling"}},
+    // Jak 2's part-spawner-215 (prison): group-prison-light-ceiling
+    {"trans": [540.5, 25.2312, 167.2244], "etype": "part-spawner", "game_task": 0, "quat": [0.5, -0.5, 0.5, 0.5], "bsphere": [540.5, 25.2312, 167.2244, 6.9282], "lump": {"name": "part-spawner-215", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light-ceiling"}},
+    // Jak 2's part-spawner-214 (prison): group-prison-light-ceiling
+    {"trans": [530.2902, 25.2312, 179.3746], "etype": "part-spawner", "game_task": 0, "quat": [0.5, -0.5, 0.5, 0.5], "bsphere": [530.2902, 25.2312, 179.3746, 6.9282], "lump": {"name": "part-spawner-214", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light-ceiling"}},
+    // Jak 2's part-spawner-213 (prison): group-prison-light-ceiling
+    {"trans": [531.3368, 25.2312, 166.1252], "etype": "part-spawner", "game_task": 0, "quat": [0.5, -0.5, 0.5, 0.5], "bsphere": [531.3368, 25.2312, 166.1252, 6.9282], "lump": {"name": "part-spawner-213", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light-ceiling"}},
+    // Jak 2's prison-part-102 (prison): group-prison-tall-vent-small
+    {"trans": [511.959, 21.8113, 113.0081], "etype": "part-spawner", "game_task": 0, "quat": [0.2693, -0.6538, 0.2693, 0.6538], "bsphere": [511.959, 21.8113, 113.0081, 6.9282], "lump": {"name": "prison-part-102", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-tall-vent-small"}},
+    // Jak 2's prison-part-275 (prison): group-prison-light-3d-backside
+    {"trans": [508.5377, 24.0555, 105.0427], "etype": "part-spawner", "game_task": 0, "quat": [0.1176, 0.6973, -0.1176, 0.6973], "bsphere": [508.5377, 24.0555, 105.0427, 6.9282], "lump": {"name": "prison-part-275", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light-3d-backside"}},
+    // Jak 2's prison-part-276 (prison): group-prison-light-3d-backside
+    {"trans": [508.5377, 36.4587, 105.0427], "etype": "part-spawner", "game_task": 0, "quat": [0.1176, 0.6973, -0.1176, 0.6973], "bsphere": [508.5377, 36.4587, 105.0427, 6.9282], "lump": {"name": "prison-part-276", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light-3d-backside"}},
+    // Jak 2's part-spawner-212 (prison): group-prison-light-ceiling
+    {"trans": [540.5, 25.2312, 156.2244], "etype": "part-spawner", "game_task": 0, "quat": [0.5, -0.5, 0.5, 0.5], "bsphere": [540.5, 25.2312, 156.2244, 6.9282], "lump": {"name": "part-spawner-212", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light-ceiling"}},
+    // Jak 2's part-spawner-211 (prison): group-prison-light-ceiling
+    {"trans": [530.2902, 25.2312, 156.2244], "etype": "part-spawner", "game_task": 0, "quat": [0.5, -0.5, 0.5, 0.5], "bsphere": [530.2902, 25.2312, 156.2244, 6.9282], "lump": {"name": "part-spawner-211", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light-ceiling"}},
+    // Jak 2's part-spawner-210 (prison): group-prison-light-ceiling
+    {"trans": [522.5, 25.2312, 156.2244], "etype": "part-spawner", "game_task": 0, "quat": [0.5, -0.5, 0.5, 0.5], "bsphere": [522.5, 25.2312, 156.2244, 6.9282], "lump": {"name": "part-spawner-210", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light-ceiling"}},
+    // Jak 2's part-spawner-208 (prison): group-prison-light-ceiling
+    {"trans": [513.2319, 25.2312, 152.7319], "etype": "part-spawner", "game_task": 0, "quat": [0.6533, -0.2706, 0.2706, 0.6533], "bsphere": [513.2319, 25.2312, 152.7319, 6.9282], "lump": {"name": "part-spawner-208", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light-ceiling"}},
+    // Jak 2's prison-part-364 (prison): group-prison-light-ceiling
+    {"trans": [496.7472, 21.0016, 125.3336], "etype": "part-spawner", "game_task": 0, "quat": [0.7071, 0.0, 0.0, 0.7071], "bsphere": [496.7472, 21.0016, 125.3336, 6.9282], "lump": {"name": "prison-part-364", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light-ceiling"}},
+    // Jak 2's prison-part-367 (prison): group-prison-light-ceiling
+    {"trans": [487.2089, 21.0016, 125.3336], "etype": "part-spawner", "game_task": 0, "quat": [0.7071, 0.0, 0.0, 0.7071], "bsphere": [487.2089, 21.0016, 125.3336, 6.9282], "lump": {"name": "prison-part-367", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light-ceiling"}},
+    // Jak 2's prison-part-277 (prison): group-prison-light-3d-backside
+    {"trans": [508.5377, 48.4666, 105.0427], "etype": "part-spawner", "game_task": 0, "quat": [0.1176, 0.6973, -0.1176, 0.6973], "bsphere": [508.5377, 48.4666, 105.0427, 6.9282], "lump": {"name": "prison-part-277", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light-3d-backside"}},
+    // Jak 2's part-spawner-209 (prison): group-prison-light-ceiling
+    {"trans": [506.9819, 25.2312, 146.2319], "etype": "part-spawner", "game_task": 0, "quat": [0.6533, -0.2706, 0.2706, 0.6533], "bsphere": [506.9819, 25.2312, 146.2319, 6.9282], "lump": {"name": "part-spawner-209", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light-ceiling"}},
+    // Jak 2's prison-part-365 (prison): group-prison-light-ceiling
+    {"trans": [506.1128, 21.0016, 125.3336], "etype": "part-spawner", "game_task": 0, "quat": [0.7071, 0.0, 0.0, 0.7071], "bsphere": [506.1128, 21.0016, 125.3336, 6.9282], "lump": {"name": "prison-part-365", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light-ceiling"}},
+    // Jak 2's prison-part-378 (prison): group-prison-console-small-door
+    {"trans": [500.745, 9.9196, 113.9539], "etype": "part-spawner", "game_task": 0, "quat": [-0.2247, -0.6705, -0.2247, 0.6705], "bsphere": [500.745, 9.9196, 113.9539, 6.9282], "lump": {"name": "prison-part-378", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-door"}},
+    // Jak 2's prison-part-299 (prison): group-prison-light
+    {"trans": [485.4824, 5.27, 103.0168], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4824, 5.27, 103.0168, 6.9282], "lump": {"name": "prison-part-299", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-355 (prison): group-prison-light
+    {"trans": [454.518, 5.2467, 111.0205], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.518, 5.2467, 111.0205, 6.9282], "lump": {"name": "prison-part-355", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-368 (prison): group-prison-light-ceiling
+    {"trans": [459.4571, 21.0016, 125.3336], "etype": "part-spawner", "game_task": 0, "quat": [0.7071, 0.0, 0.0, 0.7071], "bsphere": [459.4571, 21.0016, 125.3336, 6.9282], "lump": {"name": "prison-part-368", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light-ceiling"}},
+    // Jak 2's prison-part-369 (prison): group-prison-light-ceiling
+    {"trans": [468.8228, 21.0016, 125.3336], "etype": "part-spawner", "game_task": 0, "quat": [0.7071, 0.0, 0.0, 0.7071], "bsphere": [468.8228, 21.0016, 125.3336, 6.9282], "lump": {"name": "prison-part-369", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light-ceiling"}},
+    // Jak 2's prison-part-85 (prison): group-prison-tall-vent
+    {"trans": [447.9851, 16.0, 117.0148], "etype": "part-spawner", "game_task": 0, "quat": [0.1605, 0.8388, -0.3866, 0.3482], "bsphere": [447.9851, 16.0, 117.0148, 6.9282], "lump": {"name": "prison-part-85", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-tall-vent"}},
+    // Jak 2's prison-part-86 (prison): group-prison-tall-vent
+    {"trans": [444.0, 16.0, 106.9548], "etype": "part-spawner", "game_task": 0, "quat": [0.296, 0.6422, -0.296, 0.6422], "bsphere": [444.0, 16.0, 106.9548, 6.9282], "lump": {"name": "prison-part-86", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-tall-vent"}},
+    // Jak 2's prison-part-10 (prison): group-prison-console-small-03-a
+    {"trans": [467.2582, 5.9434, 103.3009], "etype": "part-spawner", "game_task": 0, "quat": [0.621, -0.3382, -0.621, -0.3382], "bsphere": [467.2582, 5.9434, 103.3009, 6.9282], "lump": {"name": "prison-part-10", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-03-a"}},
+    // Jak 2's prison-part-304 (prison): group-prison-light
+    {"trans": [485.4824, 5.27, 111.008], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4824, 5.27, 111.008, 6.9282], "lump": {"name": "prison-part-304", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-366 (prison): group-prison-light-ceiling
+    {"trans": [477.8432, 21.0016, 125.3336], "etype": "part-spawner", "game_task": 0, "quat": [0.7071, 0.0, 0.0, 0.7071], "bsphere": [477.8432, 21.0016, 125.3336, 6.9282], "lump": {"name": "prison-part-366", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light-ceiling"}},
+    // Jak 2's prison-part-298 (prison): group-prison-light
+    {"trans": [485.4824, -6.5772, 103.0168], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4824, -6.5772, 103.0168, 6.9282], "lump": {"name": "prison-part-298", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-303 (prison): group-prison-light
+    {"trans": [485.4824, -6.5772, 111.008], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4824, -6.5772, 111.008, 6.9282], "lump": {"name": "prison-part-303", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-356 (prison): group-prison-light
+    {"trans": [454.518, -6.6005, 111.0205], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.518, -6.6005, 111.0205, 6.9282], "lump": {"name": "prison-part-356", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-305 (prison): group-prison-light
+    {"trans": [477.9919, 5.2402, 118.6561], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, -0.0], "bsphere": [477.9919, 5.2402, 118.6561, 6.9282], "lump": {"name": "prison-part-305", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-310 (prison): group-prison-light
+    {"trans": [469.9908, 5.2402, 118.6561], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, -0.0], "bsphere": [469.9908, 5.2402, 118.6561, 6.9282], "lump": {"name": "prison-part-310", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-315 (prison): group-prison-light
+    {"trans": [462.0067, 5.2402, 118.6561], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, -0.0], "bsphere": [462.0067, 5.2402, 118.6561, 6.9282], "lump": {"name": "prison-part-315", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-306 (prison): group-prison-light
+    {"trans": [477.9919, -6.607, 118.6561], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, -0.0], "bsphere": [477.9919, -6.607, 118.6561, 6.9282], "lump": {"name": "prison-part-306", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-311 (prison): group-prison-light
+    {"trans": [469.9908, -6.607, 118.6561], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, -0.0], "bsphere": [469.9908, -6.607, 118.6561, 6.9282], "lump": {"name": "prison-part-311", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-297 (prison): group-prison-light
+    {"trans": [485.4824, -18.658, 103.0168], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4824, -18.658, 103.0168, 6.9282], "lump": {"name": "prison-part-297", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-302 (prison): group-prison-light
+    {"trans": [485.4824, -18.658, 111.008], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4824, -18.658, 111.008, 6.9282], "lump": {"name": "prison-part-302", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-307 (prison): group-prison-light
+    {"trans": [477.9919, -18.694, 118.6561], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, -0.0], "bsphere": [477.9919, -18.694, 118.6561, 6.9282], "lump": {"name": "prison-part-307", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-312 (prison): group-prison-light
+    {"trans": [469.9908, -18.694, 118.6561], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, -0.0], "bsphere": [469.9908, -18.694, 118.6561, 6.9282], "lump": {"name": "prison-part-312", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-317 (prison): group-prison-light
+    {"trans": [462.0067, -18.694, 118.6561], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, -0.0], "bsphere": [462.0067, -18.694, 118.6561, 6.9282], "lump": {"name": "prison-part-317", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-357 (prison): group-prison-light
+    {"trans": [454.518, -18.6987, 111.0205], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.518, -18.6987, 111.0205, 6.9282], "lump": {"name": "prison-part-357", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-296 (prison): group-prison-light
+    {"trans": [485.4824, -30.6095, 103.0168], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4824, -30.6095, 103.0168, 6.9282], "lump": {"name": "prison-part-296", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-316 (prison): group-prison-light
+    {"trans": [462.0067, -6.607, 118.6561], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, -0.0], "bsphere": [462.0067, -6.607, 118.6561, 6.9282], "lump": {"name": "prison-part-316", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-295 (prison): group-prison-light
+    {"trans": [485.4824, -42.5609, 103.0168], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4824, -42.5609, 103.0168, 6.9282], "lump": {"name": "prison-part-295", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-300 (prison): group-prison-light
+    {"trans": [485.4824, -42.5609, 111.008], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4824, -42.5609, 111.008, 6.9282], "lump": {"name": "prison-part-300", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-309 (prison): group-prison-light
+    {"trans": [477.9919, -42.5969, 118.6561], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, -0.0], "bsphere": [477.9919, -42.5969, 118.6561, 6.9282], "lump": {"name": "prison-part-309", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-112 (prison): group-prison-fade-to-black-lights-01
+    {"trans": [485.4944, -56.0024, 111.021], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4944, -56.0024, 111.021, 6.9282], "lump": {"name": "prison-part-112", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-01"}},
+    // Jak 2's prison-part-113 (prison): group-prison-fade-to-black-lights-01
+    {"trans": [477.9911, -56.0024, 118.6529], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, 0.0], "bsphere": [477.9911, -56.0024, 118.6529, 6.9282], "lump": {"name": "prison-part-113", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-01"}},
+    // Jak 2's prison-part-114 (prison): group-prison-fade-to-black-lights-01
+    {"trans": [469.9939, -56.0024, 118.6529], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, 0.0], "bsphere": [469.9939, -56.0024, 118.6529, 6.9282], "lump": {"name": "prison-part-114", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-01"}},
+    // Jak 2's prison-part-301 (prison): group-prison-light
+    {"trans": [485.4824, -30.6095, 111.008], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4824, -30.6095, 111.008, 6.9282], "lump": {"name": "prison-part-301", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-308 (prison): group-prison-light
+    {"trans": [477.9919, -30.6454, 118.6561], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, -0.0], "bsphere": [477.9919, -30.6454, 118.6561, 6.9282], "lump": {"name": "prison-part-308", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-359 (prison): group-prison-light
+    {"trans": [454.518, -42.6016, 111.0205], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.518, -42.6016, 111.0205, 6.9282], "lump": {"name": "prison-part-359", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-107 (prison): group-prison-fade-to-black-lights-01
+    {"trans": [454.5159, -56.0024, 111.021], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.5159, -56.0024, 111.021, 6.9282], "lump": {"name": "prison-part-107", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-01"}},
+    // Jak 2's prison-part-358 (prison): group-prison-light
+    {"trans": [454.518, -30.6501, 111.0205], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.518, -30.6501, 111.0205, 6.9282], "lump": {"name": "prison-part-358", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-314 (prison): group-prison-light
+    {"trans": [469.9908, -42.5969, 118.6561], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, -0.0], "bsphere": [469.9908, -42.5969, 118.6561, 6.9282], "lump": {"name": "prison-part-314", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-319 (prison): group-prison-light
+    {"trans": [462.0067, -42.5969, 118.6561], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, -0.0], "bsphere": [462.0067, -42.5969, 118.6561, 6.9282], "lump": {"name": "prison-part-319", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-115 (prison): group-prison-fade-to-black-lights-01
+    {"trans": [462.0089, -56.0024, 118.6529], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, 0.0], "bsphere": [462.0089, -56.0024, 118.6529, 6.9282], "lump": {"name": "prison-part-115", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-01"}},
+    // Jak 2's prison-part-313 (prison): group-prison-light
+    {"trans": [469.9908, -30.6454, 118.6561], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, -0.0], "bsphere": [469.9908, -30.6454, 118.6561, 6.9282], "lump": {"name": "prison-part-313", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-318 (prison): group-prison-light
+    {"trans": [462.0067, -30.6454, 118.6561], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, -0.0], "bsphere": [462.0067, -30.6454, 118.6561, 6.9282], "lump": {"name": "prison-part-318", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-101 (prison): group-prison-tall-vent-small
+    {"trans": [511.959, 21.8113, 81.0479], "etype": "part-spawner", "game_task": 0, "quat": [0.2693, -0.6538, 0.2693, 0.6538], "bsphere": [511.959, 21.8113, 81.0479, 6.9282], "lump": {"name": "prison-part-101", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-tall-vent-small"}},
+    // Jak 2's prison-part-269 (prison): group-prison-light-3d-backside
+    {"trans": [508.5377, 24.0555, 81.0772], "etype": "part-spawner", "game_task": 0, "quat": [0.1176, 0.6973, -0.1176, 0.6973], "bsphere": [508.5377, 24.0555, 81.0772, 6.9282], "lump": {"name": "prison-part-269", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light-3d-backside"}},
+    // Jak 2's prison-part-270 (prison): group-prison-light-3d-backside
+    {"trans": [508.5377, 36.4587, 81.0772], "etype": "part-spawner", "game_task": 0, "quat": [0.1176, 0.6973, -0.1176, 0.6973], "bsphere": [508.5377, 36.4587, 81.0772, 6.9282], "lump": {"name": "prison-part-270", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light-3d-backside"}},
+    // Jak 2's prison-part-271 (prison): group-prison-light-3d-backside
+    {"trans": [508.5377, 48.4666, 81.0772], "etype": "part-spawner", "game_task": 0, "quat": [0.1176, 0.6973, -0.1176, 0.6973], "bsphere": [508.5377, 48.4666, 81.0772, 6.9282], "lump": {"name": "prison-part-271", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light-3d-backside"}},
+    // Jak 2's prison-part-272 (prison): group-prison-light-3d-backside
+    {"trans": [508.5377, 24.0555, 93.0263], "etype": "part-spawner", "game_task": 0, "quat": [0.1176, 0.6973, -0.1176, 0.6973], "bsphere": [508.5377, 24.0555, 93.0263, 6.9282], "lump": {"name": "prison-part-272", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light-3d-backside"}},
+    // Jak 2's prison-part-273 (prison): group-prison-light-3d-backside
+    {"trans": [508.5377, 36.4587, 93.0263], "etype": "part-spawner", "game_task": 0, "quat": [0.1176, 0.6973, -0.1176, 0.6973], "bsphere": [508.5377, 36.4587, 93.0263, 6.9282], "lump": {"name": "prison-part-273", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light-3d-backside"}},
+    // Jak 2's prison-part-274 (prison): group-prison-light-3d-backside
+    {"trans": [508.5377, 48.4666, 93.0263], "etype": "part-spawner", "game_task": 0, "quat": [0.1176, 0.6973, -0.1176, 0.6973], "bsphere": [508.5377, 48.4666, 93.0263, 6.9282], "lump": {"name": "prison-part-274", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light-3d-backside"}},
+    // Jak 2's prison-part-363 (prison): group-prison-light-ceiling
+    {"trans": [509.4129, 14.7088, 81.9376], "etype": "part-spawner", "game_task": 0, "quat": [0.5, -0.5, 0.5, 0.5], "bsphere": [509.4129, 14.7088, 81.9376, 6.9282], "lump": {"name": "prison-part-363", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light-ceiling"}},
+    // Jak 2's prison-part-377 (prison): group-prison-console-small-door
+    {"trans": [500.745, 9.9196, 84.9628], "etype": "part-spawner", "game_task": 0, "quat": [-0.2247, -0.6705, -0.2247, 0.6705], "bsphere": [500.745, 9.9196, 84.9628, 6.9282], "lump": {"name": "prison-part-377", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-door"}},
+    // Jak 2's prison-part-93 (prison): group-prison-floor-vent
+    {"trans": [493.9896, 7.9823, 87.0], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [493.9896, 7.9823, 87.0, 6.9282], "lump": {"name": "prison-part-93", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-floor-vent"}},
+    // Jak 2's prison-part-94 (prison): group-prison-floor-vent
+    {"trans": [493.9896, 7.9823, 78.9987], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [493.9896, 7.9823, 78.9987, 6.9282], "lump": {"name": "prison-part-94", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-floor-vent"}},
+    // Jak 2's prison-part-92 (prison): group-prison-floor-vent
+    {"trans": [493.9896, 7.9823, 95.0037], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [493.9896, 7.9823, 95.0037, 6.9282], "lump": {"name": "prison-part-92", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-floor-vent"}},
+    // Jak 2's prison-part-289 (prison): group-prison-light
+    {"trans": [485.4824, 5.27, 87.011], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4824, 5.27, 87.011, 6.9282], "lump": {"name": "prison-part-289", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-280 (prison): group-prison-light
+    {"trans": [485.4824, 5.27, 78.9964], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4824, 5.27, 78.9964, 6.9282], "lump": {"name": "prison-part-280", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-278 (prison): group-prison-light-machine
+    {"trans": [472.0174, 26.011, 97.135], "etype": "part-spawner", "game_task": 0, "quat": [0.8159, 0.0, 0.0, 0.5782], "bsphere": [472.0174, 26.011, 97.135, 6.9282], "lump": {"name": "prison-part-278", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light-machine"}},
+    // Jak 2's prison-part-294 (prison): group-prison-light
+    {"trans": [485.4824, 5.27, 95.0256], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4824, 5.27, 95.0256, 6.9282], "lump": {"name": "prison-part-294", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-12 (prison): group-prison-console-small-02-a
+    {"trans": [467.7473, 6.2592, 100.4221], "etype": "part-spawner", "game_task": 0, "quat": [0.621, -0.3382, -0.621, -0.3382], "bsphere": [467.7473, 6.2592, 100.4221, 6.9282], "lump": {"name": "prison-part-12", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-02-a"}},
+    // Jak 2's prison-part-88 (prison): group-prison-tall-vent
+    {"trans": [441.0233, 16.0, 90.0234], "etype": "part-spawner", "game_task": 0, "quat": [0.1602, 0.8391, -0.3867, 0.3475], "bsphere": [441.0233, 16.0, 90.0234, 6.9282], "lump": {"name": "prison-part-88", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-tall-vent"}},
+    // Jak 2's prison-part-89 (prison): group-prison-tall-vent
+    {"trans": [434.9698, 16.0, 83.9698], "etype": "part-spawner", "game_task": 0, "quat": [0.1602, 0.8391, -0.3867, 0.3475], "bsphere": [434.9698, 16.0, 83.9698, 6.9282], "lump": {"name": "prison-part-89", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-tall-vent"}},
+    // Jak 2's prison-part-87 (prison): group-prison-tall-vent
+    {"trans": [444.0, 16.0, 98.9618], "etype": "part-spawner", "game_task": 0, "quat": [0.296, 0.6422, -0.296, 0.6422], "bsphere": [444.0, 16.0, 98.9618, 6.9282], "lump": {"name": "prison-part-87", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-tall-vent"}},
+    // Jak 2's prison-part-11 (prison): group-prison-console-small-01-a
+    {"trans": [467.5637, 6.1407, 99.5437], "etype": "part-spawner", "game_task": 0, "quat": [0.621, -0.3382, -0.621, -0.3382], "bsphere": [467.5637, 6.1407, 99.5437, 6.9282], "lump": {"name": "prison-part-11", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-01-a"}},
+    // Jak 2's prison-part-13 (prison): group-prison-console-small-03-a
+    {"trans": [467.4278, 6.0529, 100.4774], "etype": "part-spawner", "game_task": 0, "quat": [0.621, -0.3382, -0.621, -0.3382], "bsphere": [467.4278, 6.0529, 100.4774, 6.9282], "lump": {"name": "prison-part-13", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-03-a"}},
+    // Jak 2's prison-part-14 (prison): group-prison-console-small-01-b
+    {"trans": [467.2645, 5.9474, 102.4293], "etype": "part-spawner", "game_task": 0, "quat": [0.621, -0.3382, -0.621, -0.3382], "bsphere": [467.2645, 5.9474, 102.4293, 6.9282], "lump": {"name": "prison-part-14", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-01-b"}},
+    // Jak 2's prison-part-15 (prison): group-prison-console-small-03-b
+    {"trans": [466.6238, 5.5323, 102.6906], "etype": "part-spawner", "game_task": 0, "quat": [0.621, -0.3382, -0.621, -0.3382], "bsphere": [466.6238, 5.5323, 102.6906, 6.9282], "lump": {"name": "prison-part-15", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-03-b"}},
+    // Jak 2's prison-part-16 (prison): group-prison-console-small-03-c
+    {"trans": [466.6891, 5.5745, 100.6487], "etype": "part-spawner", "game_task": 0, "quat": [0.621, -0.3382, -0.621, -0.3382], "bsphere": [466.6891, 5.5745, 100.6487, 6.9282], "lump": {"name": "prison-part-16", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-03-c"}},
+    // Jak 2's prison-part-288 (prison): group-prison-light
+    {"trans": [485.4824, -6.5772, 87.011], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4824, -6.5772, 87.011, 6.9282], "lump": {"name": "prison-part-288", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-281 (prison): group-prison-light
+    {"trans": [485.4824, -6.5772, 78.9964], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4824, -6.5772, 78.9964, 6.9282], "lump": {"name": "prison-part-281", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-293 (prison): group-prison-light
+    {"trans": [485.4824, -6.5772, 95.0256], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4824, -6.5772, 95.0256, 6.9282], "lump": {"name": "prison-part-293", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-340 (prison): group-prison-light
+    {"trans": [454.518, 5.2467, 87.0007], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.518, 5.2467, 87.0007, 6.9282], "lump": {"name": "prison-part-340", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-345 (prison): group-prison-light
+    {"trans": [454.518, 5.2467, 94.9897], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.518, 5.2467, 94.9897, 6.9282], "lump": {"name": "prison-part-345", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-350 (prison): group-prison-light
+    {"trans": [454.518, 5.2467, 102.9963], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.518, 5.2467, 102.9963, 6.9282], "lump": {"name": "prison-part-350", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-341 (prison): group-prison-light
+    {"trans": [454.518, -6.6005, 87.0007], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.518, -6.6005, 87.0007, 6.9282], "lump": {"name": "prison-part-341", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-346 (prison): group-prison-light
+    {"trans": [454.518, -6.6005, 94.9897], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.518, -6.6005, 94.9897, 6.9282], "lump": {"name": "prison-part-346", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-287 (prison): group-prison-light
+    {"trans": [485.4824, -18.658, 87.011], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4824, -18.658, 87.011, 6.9282], "lump": {"name": "prison-part-287", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-342 (prison): group-prison-light
+    {"trans": [454.518, -18.6987, 87.0007], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.518, -18.6987, 87.0007, 6.9282], "lump": {"name": "prison-part-342", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-347 (prison): group-prison-light
+    {"trans": [454.518, -18.6987, 94.9897], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.518, -18.6987, 94.9897, 6.9282], "lump": {"name": "prison-part-347", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-282 (prison): group-prison-light
+    {"trans": [485.4824, -18.658, 78.9964], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4824, -18.658, 78.9964, 6.9282], "lump": {"name": "prison-part-282", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-292 (prison): group-prison-light
+    {"trans": [485.4824, -18.658, 95.0256], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4824, -18.658, 95.0256, 6.9282], "lump": {"name": "prison-part-292", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-352 (prison): group-prison-light
+    {"trans": [454.518, -18.6987, 102.9963], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.518, -18.6987, 102.9963, 6.9282], "lump": {"name": "prison-part-352", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-286 (prison): group-prison-light
+    {"trans": [485.4824, -30.6095, 87.011], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4824, -30.6095, 87.011, 6.9282], "lump": {"name": "prison-part-286", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-351 (prison): group-prison-light
+    {"trans": [454.518, -6.6005, 102.9963], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.518, -6.6005, 102.9963, 6.9282], "lump": {"name": "prison-part-351", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-285 (prison): group-prison-light
+    {"trans": [485.4824, -42.5609, 87.011], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4824, -42.5609, 87.011, 6.9282], "lump": {"name": "prison-part-285", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-109 (prison): group-prison-fade-to-black-lights-01
+    {"trans": [485.4944, -56.0024, 86.9984], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4944, -56.0024, 86.9984, 6.9282], "lump": {"name": "prison-part-109", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-01"}},
+    // Jak 2's prison-part-110 (prison): group-prison-fade-to-black-lights-01
+    {"trans": [485.4944, -56.0024, 94.9753], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4944, -56.0024, 94.9753, 6.9282], "lump": {"name": "prison-part-110", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-01"}},
+    // Jak 2's prison-part-290 (prison): group-prison-light
+    {"trans": [485.4824, -42.5609, 95.0256], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4824, -42.5609, 95.0256, 6.9282], "lump": {"name": "prison-part-290", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-111 (prison): group-prison-fade-to-black-lights-01
+    {"trans": [485.4944, -56.0024, 102.974], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4944, -56.0024, 102.974, 6.9282], "lump": {"name": "prison-part-111", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-01"}},
+    // Jak 2's prison-part-283 (prison): group-prison-light
+    {"trans": [485.4824, -30.6095, 78.9964], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4824, -30.6095, 78.9964, 6.9282], "lump": {"name": "prison-part-283", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-291 (prison): group-prison-light
+    {"trans": [485.4824, -30.6095, 95.0256], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4824, -30.6095, 95.0256, 6.9282], "lump": {"name": "prison-part-291", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-344 (prison): group-prison-light
+    {"trans": [454.518, -42.6016, 87.0007], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.518, -42.6016, 87.0007, 6.9282], "lump": {"name": "prison-part-344", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-349 (prison): group-prison-light
+    {"trans": [454.518, -42.6016, 94.9897], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.518, -42.6016, 94.9897, 6.9282], "lump": {"name": "prison-part-349", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-104 (prison): group-prison-fade-to-black-lights-01
+    {"trans": [454.5159, -56.0024, 86.9984], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.5159, -56.0024, 86.9984, 6.9282], "lump": {"name": "prison-part-104", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-01"}},
+    // Jak 2's prison-part-105 (prison): group-prison-fade-to-black-lights-01
+    {"trans": [454.5159, -56.0024, 94.9753], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.5159, -56.0024, 94.9753, 6.9282], "lump": {"name": "prison-part-105", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-01"}},
+    // Jak 2's prison-part-354 (prison): group-prison-light
+    {"trans": [454.518, -42.6016, 102.9963], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.518, -42.6016, 102.9963, 6.9282], "lump": {"name": "prison-part-354", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-106 (prison): group-prison-fade-to-black-lights-01
+    {"trans": [454.5159, -56.0024, 102.974], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.5159, -56.0024, 102.974, 6.9282], "lump": {"name": "prison-part-106", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-01"}},
+    // Jak 2's prison-part-343 (prison): group-prison-light
+    {"trans": [454.518, -30.6501, 87.0007], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.518, -30.6501, 87.0007, 6.9282], "lump": {"name": "prison-part-343", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-348 (prison): group-prison-light
+    {"trans": [454.518, -30.6501, 94.9897], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.518, -30.6501, 94.9897, 6.9282], "lump": {"name": "prison-part-348", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-353 (prison): group-prison-light
+    {"trans": [454.518, -30.6501, 102.9963], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.518, -30.6501, 102.9963, 6.9282], "lump": {"name": "prison-part-353", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-99 (prison): group-prison-tall-vent-small
+    {"trans": [506.0094, 21.8113, 51.0389], "etype": "part-spawner", "game_task": 0, "quat": [0.2747, -0.3723, 0.1164, 0.8788], "bsphere": [506.0094, 21.8113, 51.0389, 6.9282], "lump": {"name": "prison-part-99", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-tall-vent-small"}},
+    // Jak 2's prison-part-100 (prison): group-prison-tall-vent-small
+    {"trans": [511.959, 21.8113, 65.1608], "etype": "part-spawner", "game_task": 0, "quat": [0.2693, -0.6538, 0.2693, 0.6538], "bsphere": [511.959, 21.8113, 65.1608, 6.9282], "lump": {"name": "prison-part-100", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-tall-vent-small"}},
+    // Jak 2's prison-part-266 (prison): group-prison-light-3d-backside
+    {"trans": [508.5377, 24.0555, 69.0806], "etype": "part-spawner", "game_task": 0, "quat": [0.1176, 0.6973, -0.1176, 0.6973], "bsphere": [508.5377, 24.0555, 69.0806, 6.9282], "lump": {"name": "prison-part-266", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light-3d-backside"}},
+    // Jak 2's prison-part-267 (prison): group-prison-light-3d-backside
+    {"trans": [508.5377, 36.4587, 69.0806], "etype": "part-spawner", "game_task": 0, "quat": [0.1176, 0.6973, -0.1176, 0.6973], "bsphere": [508.5377, 36.4587, 69.0806, 6.9282], "lump": {"name": "prison-part-267", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light-3d-backside"}},
+    // Jak 2's prison-part-268 (prison): group-prison-light-3d-backside
+    {"trans": [508.5377, 48.4666, 69.0806], "etype": "part-spawner", "game_task": 0, "quat": [0.1176, 0.6973, -0.1176, 0.6973], "bsphere": [508.5377, 48.4666, 69.0806, 6.9282], "lump": {"name": "prison-part-268", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light-3d-backside"}},
+    // Jak 2's prison-part-361 (prison): group-prison-light-ceiling
+    {"trans": [509.4129, 14.7088, 67.0369], "etype": "part-spawner", "game_task": 0, "quat": [0.5, -0.5, 0.5, 0.5], "bsphere": [509.4129, 14.7088, 67.0369, 6.9282], "lump": {"name": "prison-part-361", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light-ceiling"}},
+    // Jak 2's prison-part-362 (prison): group-prison-light-ceiling
+    {"trans": [504.0573, 14.7088, 52.8038], "etype": "part-spawner", "game_task": 0, "quat": [0.6533, -0.2706, 0.2706, 0.6533], "bsphere": [504.0573, 14.7088, 52.8038, 6.9282], "lump": {"name": "prison-part-362", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light-ceiling"}},
+    // Jak 2's prison-part-263 (prison): group-prison-light-3d-backside
+    {"trans": [498.2454, 24.0197, 48.7094], "etype": "part-spawner", "game_task": 0, "quat": [0.0438, 0.9513, -0.1605, 0.2595], "bsphere": [498.2454, 24.0197, 48.7094, 6.9282], "lump": {"name": "prison-part-263", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light-3d-backside"}},
+    // Jak 2's prison-part-98 (prison): group-prison-tall-vent-small
+    {"trans": [489.8769, 21.757, 45.1054], "etype": "part-spawner", "game_task": 0, "quat": [0.417, 0.0, 0.0, 0.9089], "bsphere": [489.8769, 21.757, 45.1054, 6.9282], "lump": {"name": "prison-part-98", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-tall-vent-small"}},
+    // Jak 2's prison-part-370 (prison): group-prison-light-ceiling
+    {"trans": [486.5625, 14.7283, 47.9497], "etype": "part-spawner", "game_task": 0, "quat": [0.7071, 0.0, 0.0, 0.7071], "bsphere": [486.5625, 14.7283, 47.9497, 6.9282], "lump": {"name": "prison-part-370", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light-ceiling"}},
+    // Jak 2's prison-part-49 (prison): group-prison-console-small-03-c
+    {"trans": [474.9835, 18.4385, 37.6731], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [474.9835, 18.4385, 37.6731, 6.9282], "lump": {"name": "prison-part-49", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-03-c"}},
+    // Jak 2's prison-part-59 (prison): group-prison-console-small-03-b
+    {"trans": [474.3871, 17.2623, 37.6731], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [474.3871, 17.2623, 37.6731, 6.9282], "lump": {"name": "prison-part-59", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-03-b"}},
+    // Jak 2's prison-part-60 (prison): group-prison-console-small-03-a
+    {"trans": [475.485, 17.2623, 37.6731], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [475.485, 17.2623, 37.6731, 6.9282], "lump": {"name": "prison-part-60", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-03-a"}},
+    // Jak 2's prison-part-264 (prison): group-prison-light-3d-backside
+    {"trans": [498.2454, 36.4229, 48.7094], "etype": "part-spawner", "game_task": 0, "quat": [0.0438, 0.9513, -0.1605, 0.2595], "bsphere": [498.2454, 36.4229, 48.7094, 6.9282], "lump": {"name": "prison-part-264", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light-3d-backside"}},
+    // Jak 2's prison-part-265 (prison): group-prison-light-3d-backside
+    {"trans": [498.2454, 48.4308, 48.7094], "etype": "part-spawner", "game_task": 0, "quat": [0.0438, 0.9513, -0.1605, 0.2595], "bsphere": [498.2454, 48.4308, 48.7094, 6.9282], "lump": {"name": "prison-part-265", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light-3d-backside"}},
+    // Jak 2's prison-part-47 (prison): group-prison-console-small-03-a
+    {"trans": [466.952, 18.4385, 37.6731], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [466.952, 18.4385, 37.6731, 6.9282], "lump": {"name": "prison-part-47", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-03-a"}},
+    // Jak 2's prison-part-48 (prison): group-prison-console-small-03-b
+    {"trans": [469.0514, 18.4385, 37.6731], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [469.0514, 18.4385, 37.6731, 6.9282], "lump": {"name": "prison-part-48", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-03-b"}},
+    // Jak 2's prison-part-50 (prison): group-prison-console-small-02-c
+    {"trans": [471.3854, 19.1287, 37.6731], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [471.3854, 19.1287, 37.6731, 6.9282], "lump": {"name": "prison-part-50", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-02-c"}},
+    // Jak 2's prison-part-51 (prison): group-prison-console-small-03-a
+    {"trans": [471.338, 18.7052, 37.6731], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [471.338, 18.7052, 37.6731, 6.9282], "lump": {"name": "prison-part-51", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-03-a"}},
+    // Jak 2's prison-part-55 (prison): group-prison-console-small-03-a
+    {"trans": [466.4309, 17.5188, 37.6731], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [466.4309, 17.5188, 37.6731, 6.9282], "lump": {"name": "prison-part-55", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-03-a"}},
+    // Jak 2's prison-part-57 (prison): group-prison-console-small-03-c
+    {"trans": [473.6919, 17.5404, 37.6731], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [473.6919, 17.5404, 37.6731, 6.9282], "lump": {"name": "prison-part-57", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-03-c"}},
+    // Jak 2's prison-part-58 (prison): group-prison-console-small-01-b
+    {"trans": [469.6468, 17.3932, 37.6731], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [469.6468, 17.3932, 37.6731, 6.9282], "lump": {"name": "prison-part-58", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-01-b"}},
+    // Jak 2's prison-part-373 (prison): group-prison-light-ceiling
+    {"trans": [469.9323, 21.8532, 40.1334], "etype": "part-spawner", "game_task": 0, "quat": [0.7071, 0.0, 0.0, 0.7071], "bsphere": [469.9323, 21.8532, 40.1334, 6.9282], "lump": {"name": "prison-part-373", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light-ceiling"}},
+    // Jak 2's prison-part-45 (prison): group-prison-console-small-02-b
+    {"trans": [463.4534, 19.1287, 37.6731], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [463.4534, 19.1287, 37.6731, 6.9282], "lump": {"name": "prison-part-45", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-02-b"}},
+    // Jak 2's prison-part-46 (prison): group-prison-console-small-03-c
+    {"trans": [463.406, 18.7052, 37.6731], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [463.406, 18.7052, 37.6731, 6.9282], "lump": {"name": "prison-part-46", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-03-c"}},
+    // Jak 2's prison-part-52 (prison): group-prison-console-small-01-b
+    {"trans": [464.708, 19.0329, 37.6731], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [464.708, 19.0329, 37.6731, 6.9282], "lump": {"name": "prison-part-52", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-01-b"}},
+    // Jak 2's prison-part-53 (prison): group-prison-console-small-03-c
+    {"trans": [462.8253, 17.326, 37.6731], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [462.8253, 17.326, 37.6731, 6.9282], "lump": {"name": "prison-part-53", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-03-c"}},
+    // Jak 2's prison-part-56 (prison): group-prison-console-small-01-b
+    {"trans": [465.0974, 17.2014, 37.6731], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [465.0974, 17.2014, 37.6731, 6.9282], "lump": {"name": "prison-part-56", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-01-b"}},
+    // Jak 2's prison-part-62 (prison): group-prison-console-small-02-b
+    {"trans": [462.9431, 13.8109, 37.6731], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [462.9431, 13.8109, 37.6731, 6.9282], "lump": {"name": "prison-part-62", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-02-b"}},
+    // Jak 2's prison-part-63 (prison): group-prison-console-small-02-a
+    {"trans": [465.1097, 13.8109, 37.6731], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [465.1097, 13.8109, 37.6731, 6.9282], "lump": {"name": "prison-part-63", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-02-a"}},
+    // Jak 2's prison-part-372 (prison): group-prison-light-ceiling
+    {"trans": [461.9888, 21.8532, 40.1334], "etype": "part-spawner", "game_task": 0, "quat": [0.7071, 0.0, 0.0, 0.7071], "bsphere": [461.9888, 21.8532, 40.1334, 6.9282], "lump": {"name": "prison-part-372", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light-ceiling"}},
+    // Jak 2's prison-part-360 (prison): group-prison-light
+    {"trans": [436.7561, 19.1175, 59.9396], "etype": "part-spawner", "game_task": 0, "quat": [0.2707, 0.2707, 0.6533, 0.6533], "bsphere": [436.7561, 19.1175, 59.9396, 6.9282], "lump": {"name": "prison-part-360", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-91 (prison): group-prison-tall-vent
+    {"trans": [431.8996, 16.0, 69.0702], "etype": "part-spawner", "game_task": 0, "quat": [0.296, 0.6422, -0.296, 0.6422], "bsphere": [431.8996, 16.0, 69.0702, 6.9282], "lump": {"name": "prison-part-91", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-tall-vent"}},
+    // Jak 2's prison-part-17 (prison): group-prison-console-small-03-b
+    {"trans": [449.4319, 17.4964, 44.6621], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.3816, -0.0, 0.9243], "bsphere": [449.4319, 17.4964, 44.6621, 6.9282], "lump": {"name": "prison-part-17", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-03-b"}},
+    // Jak 2's prison-part-18 (prison): group-prison-console-small-03-a
+    {"trans": [449.4319, 17.2455, 44.6621], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.3816, -0.0, 0.9243], "bsphere": [449.4319, 17.2455, 44.6621, 6.9282], "lump": {"name": "prison-part-18", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-03-a"}},
+    // Jak 2's prison-part-19 (prison): group-prison-console-small-01-b
+    {"trans": [450.0661, 17.2455, 44.0307], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.3816, -0.0, 0.9243], "bsphere": [450.0661, 17.2455, 44.0307, 6.9282], "lump": {"name": "prison-part-19", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-01-b"}},
+    // Jak 2's prison-part-20 (prison): group-prison-console-small-01-b
+    {"trans": [450.0661, 15.1308, 44.0307], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.3816, -0.0, 0.9243], "bsphere": [450.0661, 15.1308, 44.0307, 6.9282], "lump": {"name": "prison-part-20", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-01-b"}},
+    // Jak 2's prison-part-90 (prison): group-prison-tall-vent
+    {"trans": [431.8996, 16.0, 77.0], "etype": "part-spawner", "game_task": 0, "quat": [0.296, 0.6422, -0.296, 0.6422], "bsphere": [431.8996, 16.0, 77.0, 6.9282], "lump": {"name": "prison-part-90", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-tall-vent"}},
+    // Jak 2's prison-part-21 (prison): group-prison-console-small-02-a
+    {"trans": [450.122, 16.4836, 43.9751], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.3816, -0.0, 0.9243], "bsphere": [450.122, 16.4836, 43.9751, 6.9282], "lump": {"name": "prison-part-21", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-02-a"}},
+    // Jak 2's prison-part-22 (prison): group-prison-console-small-03-c
+    {"trans": [451.4212, 17.4964, 42.6818], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.3816, -0.0, 0.9243], "bsphere": [451.4212, 17.4964, 42.6818, 6.9282], "lump": {"name": "prison-part-22", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-03-c"}},
+    // Jak 2's prison-part-23 (prison): group-prison-console-small-03-a
+    {"trans": [452.0324, 17.0616, 42.0734], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.3816, -0.0, 0.9243], "bsphere": [452.0324, 17.0616, 42.0734, 6.9282], "lump": {"name": "prison-part-23", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-03-a"}},
+    // Jak 2's prison-part-26 (prison): group-prison-console-small-02-a
+    {"trans": [452.2921, 19.0457, 41.8148], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.3816, -0.0, 0.9243], "bsphere": [452.2921, 19.0457, 41.8148, 6.9282], "lump": {"name": "prison-part-26", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-02-a"}},
+    // Jak 2's prison-part-28 (prison): group-prison-console-small-01-a
+    {"trans": [452.2163, 15.1172, 41.8903], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.3816, -0.0, 0.9243], "bsphere": [452.2163, 15.1172, 41.8903, 6.9282], "lump": {"name": "prison-part-28", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-01-a"}},
+    // Jak 2's prison-part-29 (prison): group-prison-console-small-03-a
+    {"trans": [452.215, 15.4508, 41.8916], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.3816, -0.0, 0.9243], "bsphere": [452.215, 15.4508, 41.8916, 6.9282], "lump": {"name": "prison-part-29", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-03-a"}},
+    // Jak 2's prison-part-31 (prison): group-prison-console-small-03-b
+    {"trans": [452.1065, 13.5924, 41.9996], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.3816, -0.0, 0.9243], "bsphere": [452.1065, 13.5924, 41.9996, 6.9282], "lump": {"name": "prison-part-31", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-03-b"}},
+    // Jak 2's prison-part-371 (prison): group-prison-light-ceiling
+    {"trans": [454.2256, 21.8532, 43.1722], "etype": "part-spawner", "game_task": 0, "quat": [0.6536, 0.2699, -0.2699, 0.6536], "bsphere": [454.2256, 21.8532, 43.1722, 6.9282], "lump": {"name": "prison-part-371", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light-ceiling"}},
+    // Jak 2's prison-part-25 (prison): group-prison-console-small-03-b
+    {"trans": [453.6898, 17.5569, 40.4235], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.3816, -0.0, 0.9243], "bsphere": [453.6898, 17.5569, 40.4235, 6.9282], "lump": {"name": "prison-part-25", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-03-b"}},
+    // Jak 2's prison-part-27 (prison): group-prison-console-small-01-a
+    {"trans": [452.8654, 19.004, 41.2441], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.3816, -0.0, 0.9243], "bsphere": [452.8654, 19.004, 41.2441, 6.9282], "lump": {"name": "prison-part-27", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-01-a"}},
+    // Jak 2's prison-part-37 (prison): group-prison-console-small-03-c
+    {"trans": [455.9763, 18.7732, 38.1474], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.3816, -0.0, 0.9243], "bsphere": [455.9763, 18.7732, 38.1474, 6.9282], "lump": {"name": "prison-part-37", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-03-c"}},
+    // Jak 2's prison-part-40 (prison): group-prison-console-small-03-a
+    {"trans": [459.0107, 18.4385, 37.6731], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [459.0107, 18.4385, 37.6731, 6.9282], "lump": {"name": "prison-part-40", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-03-a"}},
+    // Jak 2's prison-part-43 (prison): group-prison-console-small-01-b
+    {"trans": [457.9161, 17.3932, 37.6731], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [457.9161, 17.3932, 37.6731, 6.9282], "lump": {"name": "prison-part-43", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-01-b"}},
+    // Jak 2's prison-part-44 (prison): group-prison-console-small-03-b
+    {"trans": [461.11, 18.4385, 37.6731], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [461.11, 18.4385, 37.6731, 6.9282], "lump": {"name": "prison-part-44", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-03-b"}},
+    // Jak 2's prison-part-54 (prison): group-prison-console-small-01-a
+    {"trans": [461.723, 17.3932, 37.6731], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [461.723, 17.3932, 37.6731, 6.9282], "lump": {"name": "prison-part-54", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-01-a"}},
+    // Jak 2's prison-part-24 (prison): group-prison-console-small-03-c
+    {"trans": [453.2585, 17.0616, 40.8528], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.3816, -0.0, 0.9243], "bsphere": [453.2585, 17.0616, 40.8528, 6.9282], "lump": {"name": "prison-part-24", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-03-c"}},
+    // Jak 2's prison-part-33 (prison): group-prison-console-small-02-b
+    {"trans": [453.0576, 13.747, 41.0528], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.3816, -0.0, 0.9243], "bsphere": [453.0576, 13.747, 41.0528, 6.9282], "lump": {"name": "prison-part-33", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-02-b"}},
+    // Jak 2's prison-part-35 (prison): group-prison-console-small-01-a
+    {"trans": [455.9777, 16.4675, 38.146], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.3816, -0.0, 0.9243], "bsphere": [455.9777, 16.4675, 38.146, 6.9282], "lump": {"name": "prison-part-35", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-01-a"}},
+    // Jak 2's prison-part-36 (prison): group-prison-console-small-03-c
+    {"trans": [455.9763, 17.0425, 38.1474], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.3816, -0.0, 0.9243], "bsphere": [455.9763, 17.0425, 38.1474, 6.9282], "lump": {"name": "prison-part-36", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-03-c"}},
+    // Jak 2's prison-part-38 (prison): group-prison-console-small-02-c
+    {"trans": [455.9413, 13.747, 38.1822], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.3816, -0.0, 0.9243], "bsphere": [455.9413, 13.747, 38.1822, 6.9282], "lump": {"name": "prison-part-38", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-02-c"}},
+    // Jak 2's prison-part-41 (prison): group-prison-console-small-03-a
+    {"trans": [459.0185, 17.326, 37.6731], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [459.0185, 17.326, 37.6731, 6.9282], "lump": {"name": "prison-part-41", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-03-a"}},
+    // Jak 2's prison-part-42 (prison): group-prison-console-small-01-a
+    {"trans": [459.3735, 16.4114, 37.6731], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [459.3735, 16.4114, 37.6731, 6.9282], "lump": {"name": "prison-part-42", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-01-a"}},
+    // Jak 2's prison-part-61 (prison): group-prison-console-small-02-c
+    {"trans": [459.0581, 13.8109, 37.6731], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [459.0581, 13.8109, 37.6731, 6.9282], "lump": {"name": "prison-part-61", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-02-c"}},
+    // Jak 2's prison-part-374 (prison): group-prison-console-small-door
+    {"trans": [489.5737, 9.9028, 56.2703], "etype": "part-spawner", "game_task": 0, "quat": [-0.3178, 0.0, 0.0, 0.9482], "bsphere": [489.5737, 9.9028, 56.2703, 6.9282], "lump": {"name": "prison-part-374", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-door"}},
+    // Jak 2's prison-part-375 (prison): group-prison-console-small-door
+    {"trans": [499.1167, 9.9547, 62.0393], "etype": "part-spawner", "game_task": 0, "quat": [-0.3215, -0.3781, -0.1261, 0.8589], "bsphere": [499.1167, 9.9547, 62.0393, 6.9282], "lump": {"name": "prison-part-375", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-door"}},
+    // Jak 2's prison-part-376 (prison): group-prison-console-small-door
+    {"trans": [500.745, 9.9196, 73.1012], "etype": "part-spawner", "game_task": 0, "quat": [-0.2247, -0.6705, -0.2247, 0.6705], "bsphere": [500.745, 9.9196, 73.1012, 6.9282], "lump": {"name": "prison-part-376", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-door"}},
+    // Jak 2's prison-part-320 (prison): group-prison-light
+    {"trans": [477.9878, 5.2467, 75.3667], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [477.9878, 5.2467, 75.3667, 6.9282], "lump": {"name": "prison-part-320", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-325 (prison): group-prison-light
+    {"trans": [469.9826, 5.2467, 75.3667], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [469.9826, 5.2467, 75.3667, 6.9282], "lump": {"name": "prison-part-325", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-65 (prison): group-prison-console-small-03-a
+    {"trans": [463.16, 13.2349, 37.6731], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [463.16, 13.2349, 37.6731, 6.9282], "lump": {"name": "prison-part-65", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-03-a"}},
+    // Jak 2's prison-part-66 (prison): group-prison-console-small-03-b
+    {"trans": [464.8195, 13.2349, 37.6731], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [464.8195, 13.2349, 37.6731, 6.9282], "lump": {"name": "prison-part-66", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-03-b"}},
+    // Jak 2's prison-part-67 (prison): group-prison-console-small-03-c
+    {"trans": [471.0629, 13.2349, 37.6731], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [471.0629, 13.2349, 37.6731, 6.9282], "lump": {"name": "prison-part-67", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-03-c"}},
+    // Jak 2's prison-part-68 (prison): group-prison-console-small-03-a
+    {"trans": [475.0767, 13.2349, 37.6731], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [475.0767, 13.2349, 37.6731, 6.9282], "lump": {"name": "prison-part-68", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-03-a"}},
+    // Jak 2's prison-part-71 (prison): group-prison-console-small-02-c
+    {"trans": [467.1336, 9.4963, 38.0653], "etype": "part-spawner", "game_task": 0, "quat": [-0.5361, 0.0, 0.0, 0.8441], "bsphere": [467.1336, 9.4963, 38.0653, 6.9282], "lump": {"name": "prison-part-71", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-02-c"}},
+    // Jak 2's prison-part-72 (prison): group-prison-console-small-02-c
+    {"trans": [468.9261, 9.4963, 38.0653], "etype": "part-spawner", "game_task": 0, "quat": [-0.5361, 0.0, 0.0, 0.8441], "bsphere": [468.9261, 9.4963, 38.0653, 6.9282], "lump": {"name": "prison-part-72", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-02-c"}},
+    // Jak 2's prison-part-73 (prison): group-prison-console-small-02-b
+    {"trans": [472.8755, 9.4963, 38.0653], "etype": "part-spawner", "game_task": 0, "quat": [-0.5361, 0.0, 0.0, 0.8441], "bsphere": [472.8755, 9.4963, 38.0653, 6.9282], "lump": {"name": "prison-part-73", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-02-b"}},
+    // Jak 2's prison-part-74 (prison): group-prison-console-small-03-b
+    {"trans": [475.1179, 9.4565, 38.1684], "etype": "part-spawner", "game_task": 0, "quat": [-0.5361, 0.0, 0.0, 0.8441], "bsphere": [475.1179, 9.4565, 38.1684, 6.9282], "lump": {"name": "prison-part-74", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-03-b"}},
+    // Jak 2's prison-part-75 (prison): group-prison-console-small-03-a
+    {"trans": [471.0979, 9.4565, 38.1684], "etype": "part-spawner", "game_task": 0, "quat": [-0.5361, 0.0, 0.0, 0.8441], "bsphere": [471.0979, 9.4565, 38.1684, 6.9282], "lump": {"name": "prison-part-75", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-03-a"}},
+    // Jak 2's prison-part-76 (prison): group-prison-console-small-03-c
+    {"trans": [464.9457, 9.4565, 38.1684], "etype": "part-spawner", "game_task": 0, "quat": [-0.5361, 0.0, 0.0, 0.8441], "bsphere": [464.9457, 9.4565, 38.1684, 6.9282], "lump": {"name": "prison-part-76", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-03-c"}},
+    // Jak 2's prison-part-84 (prison): group-prison-console-small-02-b
+    {"trans": [454.7563, 9.5178, 40.0028], "etype": "part-spawner", "game_task": 0, "quat": [-0.5206, 0.3153, 0.2149, 0.7638], "bsphere": [454.7563, 9.5178, 40.0028, 6.9282], "lump": {"name": "prison-part-84", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-02-b"}},
+    // Jak 2's prison-part-39 (prison): group-prison-console-small-03-c
+    {"trans": [456.007, 13.0783, 38.1169], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.3816, -0.0, 0.9243], "bsphere": [456.007, 13.0783, 38.1169, 6.9282], "lump": {"name": "prison-part-39", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-03-c"}},
+    // Jak 2's prison-part-64 (prison): group-prison-console-small-03-b
+    {"trans": [459.2804, 13.2349, 37.6731], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [459.2804, 13.2349, 37.6731, 6.9282], "lump": {"name": "prison-part-64", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-03-b"}},
+    // Jak 2's prison-part-69 (prison): group-prison-console-small-02-a
+    {"trans": [459.3223, 9.4963, 38.0653], "etype": "part-spawner", "game_task": 0, "quat": [-0.5361, 0.0, 0.0, 0.8441], "bsphere": [459.3223, 9.4963, 38.0653, 6.9282], "lump": {"name": "prison-part-69", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-02-a"}},
+    // Jak 2's prison-part-70 (prison): group-prison-console-small-02-a
+    {"trans": [460.8928, 9.4963, 38.0653], "etype": "part-spawner", "game_task": 0, "quat": [-0.5361, 0.0, 0.0, 0.8441], "bsphere": [460.8928, 9.4963, 38.0653, 6.9282], "lump": {"name": "prison-part-70", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-02-a"}},
+    // Jak 2's prison-part-77 (prison): group-prison-console-small-03-b
+    {"trans": [463.0916, 9.4565, 38.1684], "etype": "part-spawner", "game_task": 0, "quat": [-0.5361, 0.0, 0.0, 0.8441], "bsphere": [463.0916, 9.4565, 38.1684, 6.9282], "lump": {"name": "prison-part-77", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-03-b"}},
+    // Jak 2's prison-part-78 (prison): group-prison-console-small-03-a
+    {"trans": [457.544, 9.4565, 38.1684], "etype": "part-spawner", "game_task": 0, "quat": [-0.5361, 0.0, 0.0, 0.8441], "bsphere": [457.544, 9.4565, 38.1684, 6.9282], "lump": {"name": "prison-part-78", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-03-a"}},
+    // Jak 2's prison-part-81 (prison): group-prison-console-small-03-c
+    {"trans": [456.015, 9.4683, 38.7652], "etype": "part-spawner", "game_task": 0, "quat": [-0.5206, 0.3153, 0.2149, 0.7638], "bsphere": [456.015, 9.4683, 38.7652, 6.9282], "lump": {"name": "prison-part-81", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-03-c"}},
+    // Jak 2's prison-part-279 (prison): group-prison-console-front-door
+    {"trans": [441.5781, 11.8282, 53.8853], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.3829, 0.0, 0.9238], "bsphere": [441.5781, 11.8282, 53.8853, 6.9282], "lump": {"name": "prison-part-279", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-front-door"}},
+    // Jak 2's prison-part-30 (prison): group-prison-console-small-03-a
+    {"trans": [452.1079, 13.2588, 41.9983], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.3816, -0.0, 0.9243], "bsphere": [452.1079, 13.2588, 41.9983, 6.9282], "lump": {"name": "prison-part-30", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-03-a"}},
+    // Jak 2's prison-part-32 (prison): group-prison-console-small-03-b
+    {"trans": [450.1096, 13.1369, 43.9874], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.3816, -0.0, 0.9243], "bsphere": [450.1096, 13.1369, 43.9874, 6.9282], "lump": {"name": "prison-part-32", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-03-b"}},
+    // Jak 2's prison-part-34 (prison): group-prison-console-small-03-c
+    {"trans": [453.0251, 13.2588, 41.0852], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.3816, -0.0, 0.9243], "bsphere": [453.0251, 13.2588, 41.0852, 6.9282], "lump": {"name": "prison-part-34", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-03-c"}},
+    // Jak 2's prison-part-79 (prison): group-prison-console-small-03-a
+    {"trans": [451.0055, 9.4687, 43.9129], "etype": "part-spawner", "game_task": 0, "quat": [-0.5206, 0.3153, 0.2149, 0.7638], "bsphere": [451.0055, 9.4687, 43.9129, 6.9282], "lump": {"name": "prison-part-79", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-03-a"}},
+    // Jak 2's prison-part-80 (prison): group-prison-console-small-03-b
+    {"trans": [453.6915, 9.4687, 41.2391], "etype": "part-spawner", "game_task": 0, "quat": [-0.5206, 0.3153, 0.2149, 0.7638], "bsphere": [453.6915, 9.4687, 41.2391, 6.9282], "lump": {"name": "prison-part-80", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-03-b"}},
+    // Jak 2's prison-part-82 (prison): group-prison-console-small-02-b
+    {"trans": [449.4758, 9.5178, 45.2594], "etype": "part-spawner", "game_task": 0, "quat": [-0.5206, 0.3153, 0.2149, 0.7638], "bsphere": [449.4758, 9.5178, 45.2594, 6.9282], "lump": {"name": "prison-part-82", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-02-b"}},
+    // Jak 2's prison-part-83 (prison): group-prison-console-small-02-c
+    {"trans": [452.1513, 9.5178, 42.596], "etype": "part-spawner", "game_task": 0, "quat": [-0.5206, 0.3153, 0.2149, 0.7638], "bsphere": [452.1513, 9.5178, 42.596, 6.9282], "lump": {"name": "prison-part-83", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-console-small-02-c"}},
+    // Jak 2's prison-part-321 (prison): group-prison-light
+    {"trans": [477.9878, -6.6005, 75.3667], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [477.9878, -6.6005, 75.3667, 6.9282], "lump": {"name": "prison-part-321", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-326 (prison): group-prison-light
+    {"trans": [469.9826, -6.6005, 75.3667], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [469.9826, -6.6005, 75.3667, 6.9282], "lump": {"name": "prison-part-326", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-95 (prison): group-prison-floor-vent
+    {"trans": [473.9885, 7.9823, 67.0024], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [473.9885, 7.9823, 67.0024, 6.9282], "lump": {"name": "prison-part-95", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-floor-vent"}},
+    // Jak 2's prison-part-322 (prison): group-prison-light
+    {"trans": [477.9878, -18.6742, 75.3667], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [477.9878, -18.6742, 75.3667, 6.9282], "lump": {"name": "prison-part-322", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-336 (prison): group-prison-light
+    {"trans": [454.518, -6.6005, 79.0116], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.518, -6.6005, 79.0116, 6.9282], "lump": {"name": "prison-part-336", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-335 (prison): group-prison-light
+    {"trans": [454.518, 5.2467, 79.0116], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.518, 5.2467, 79.0116, 6.9282], "lump": {"name": "prison-part-335", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-97 (prison): group-prison-floor-vent
+    {"trans": [457.9771, 7.9823, 67.0024], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [457.9771, 7.9823, 67.0024, 6.9282], "lump": {"name": "prison-part-97", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-floor-vent"}},
+    // Jak 2's prison-part-331 (prison): group-prison-light
+    {"trans": [461.9773, -6.6005, 75.3667], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [461.9773, -6.6005, 75.3667, 6.9282], "lump": {"name": "prison-part-331", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-330 (prison): group-prison-light
+    {"trans": [461.9773, 5.2467, 75.3667], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [461.9773, 5.2467, 75.3667, 6.9282], "lump": {"name": "prison-part-330", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-96 (prison): group-prison-floor-vent
+    {"trans": [465.99, 7.9823, 67.0024], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [465.99, 7.9823, 67.0024, 6.9282], "lump": {"name": "prison-part-96", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-floor-vent"}},
+    // Jak 2's prison-part-284 (prison): group-prison-light
+    {"trans": [485.4824, -42.5609, 78.9964], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4824, -42.5609, 78.9964, 6.9282], "lump": {"name": "prison-part-284", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-323 (prison): group-prison-light
+    {"trans": [477.9878, -30.6256, 75.3667], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [477.9878, -30.6256, 75.3667, 6.9282], "lump": {"name": "prison-part-323", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-328 (prison): group-prison-light
+    {"trans": [469.9826, -30.6256, 75.3667], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [469.9826, -30.6256, 75.3667, 6.9282], "lump": {"name": "prison-part-328", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-333 (prison): group-prison-light
+    {"trans": [461.9773, -30.6256, 75.3667], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [461.9773, -30.6256, 75.3667, 6.9282], "lump": {"name": "prison-part-333", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-338 (prison): group-prison-light
+    {"trans": [454.518, -30.6501, 79.0116], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.518, -30.6501, 79.0116, 6.9282], "lump": {"name": "prison-part-338", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-327 (prison): group-prison-light
+    {"trans": [469.9826, -18.6742, 75.3667], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [469.9826, -18.6742, 75.3667, 6.9282], "lump": {"name": "prison-part-327", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-332 (prison): group-prison-light
+    {"trans": [461.9773, -18.6742, 75.3667], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [461.9773, -18.6742, 75.3667, 6.9282], "lump": {"name": "prison-part-332", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-337 (prison): group-prison-light
+    {"trans": [454.518, -18.6987, 79.0116], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.518, -18.6987, 79.0116, 6.9282], "lump": {"name": "prison-part-337", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-103 (prison): group-prison-fade-to-black-lights-01
+    {"trans": [454.5159, -56.0024, 79.0116], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.5159, -56.0024, 79.0116, 6.9282], "lump": {"name": "prison-part-103", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-01"}},
+    // Jak 2's prison-part-108 (prison): group-prison-fade-to-black-lights-01
+    {"trans": [485.4944, -56.0024, 79.0116], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4944, -56.0024, 79.0116, 6.9282], "lump": {"name": "prison-part-108", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-01"}},
+    // Jak 2's prison-part-116 (prison): group-prison-fade-to-black-lights-01
+    {"trans": [477.9911, -56.0024, 75.3539], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [477.9911, -56.0024, 75.3539, 6.9282], "lump": {"name": "prison-part-116", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-01"}},
+    // Jak 2's prison-part-117 (prison): group-prison-fade-to-black-lights-01
+    {"trans": [469.9939, -56.0024, 75.3539], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [469.9939, -56.0024, 75.3539, 6.9282], "lump": {"name": "prison-part-117", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-01"}},
+    // Jak 2's prison-part-324 (prison): group-prison-light
+    {"trans": [477.9878, -42.5771, 75.3667], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [477.9878, -42.5771, 75.3667, 6.9282], "lump": {"name": "prison-part-324", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-329 (prison): group-prison-light
+    {"trans": [469.9826, -42.5771, 75.3667], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [469.9826, -42.5771, 75.3667, 6.9282], "lump": {"name": "prison-part-329", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-334 (prison): group-prison-light
+    {"trans": [461.9773, -42.5771, 75.3667], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [461.9773, -42.5771, 75.3667, 6.9282], "lump": {"name": "prison-part-334", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-339 (prison): group-prison-light
+    {"trans": [454.518, -42.6016, 79.0116], "etype": "part-spawner", "game_task": 0, "quat": [-0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.518, -42.6016, 79.0116, 6.9282], "lump": {"name": "prison-part-339", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-light"}},
+    // Jak 2's prison-part-129 (prison): group-prison-fade-to-black-lights-02
+    {"trans": [477.9911, -67.9736, 118.6529], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, 0.0], "bsphere": [477.9911, -67.9736, 118.6529, 6.9282], "lump": {"name": "prison-part-129", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-02"}},
+    // Jak 2's prison-part-130 (prison): group-prison-fade-to-black-lights-02
+    {"trans": [469.9939, -67.9736, 118.6529], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, 0.0], "bsphere": [469.9939, -67.9736, 118.6529, 6.9282], "lump": {"name": "prison-part-130", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-02"}},
+    // Jak 2's prison-part-131 (prison): group-prison-fade-to-black-lights-02
+    {"trans": [462.0089, -67.9736, 118.6529], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, 0.0], "bsphere": [462.0089, -67.9736, 118.6529, 6.9282], "lump": {"name": "prison-part-131", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-02"}},
+    // Jak 2's prison-part-145 (prison): group-prison-fade-to-black-lights-03
+    {"trans": [477.9911, -79.9736, 118.6529], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, 0.0], "bsphere": [477.9911, -79.9736, 118.6529, 6.9282], "lump": {"name": "prison-part-145", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-03"}},
+    // Jak 2's prison-part-146 (prison): group-prison-fade-to-black-lights-03
+    {"trans": [469.9939, -79.9736, 118.6529], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, 0.0], "bsphere": [469.9939, -79.9736, 118.6529, 6.9282], "lump": {"name": "prison-part-146", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-03"}},
+    // Jak 2's prison-part-147 (prison): group-prison-fade-to-black-lights-03
+    {"trans": [462.0089, -79.9736, 118.6529], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, 0.0], "bsphere": [462.0089, -79.9736, 118.6529, 6.9282], "lump": {"name": "prison-part-147", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-03"}},
+    // Jak 2's prison-part-123 (prison): group-prison-fade-to-black-lights-02
+    {"trans": [454.5159, -67.9736, 111.021], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.5159, -67.9736, 111.021, 6.9282], "lump": {"name": "prison-part-123", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-02"}},
+    // Jak 2's prison-part-128 (prison): group-prison-fade-to-black-lights-02
+    {"trans": [485.4944, -67.9736, 111.021], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4944, -67.9736, 111.021, 6.9282], "lump": {"name": "prison-part-128", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-02"}},
+    // Jak 2's prison-part-122 (prison): group-prison-fade-to-black-lights-02
+    {"trans": [454.5159, -67.9736, 102.974], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.5159, -67.9736, 102.974, 6.9282], "lump": {"name": "prison-part-122", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-02"}},
+    // Jak 2's prison-part-127 (prison): group-prison-fade-to-black-lights-02
+    {"trans": [485.4944, -67.9736, 102.974], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4944, -67.9736, 102.974, 6.9282], "lump": {"name": "prison-part-127", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-02"}},
+    // Jak 2's prison-part-138 (prison): group-prison-fade-to-black-lights-03
+    {"trans": [454.5159, -79.9736, 102.974], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.5159, -79.9736, 102.974, 6.9282], "lump": {"name": "prison-part-138", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-03"}},
+    // Jak 2's prison-part-143 (prison): group-prison-fade-to-black-lights-03
+    {"trans": [485.4944, -79.9736, 102.974], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4944, -79.9736, 102.974, 6.9282], "lump": {"name": "prison-part-143", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-03"}},
+    // Jak 2's prison-part-120 (prison): group-prison-fade-to-black-lights-02
+    {"trans": [454.5159, -67.9736, 86.9984], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.5159, -67.9736, 86.9984, 6.9282], "lump": {"name": "prison-part-120", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-02"}},
+    // Jak 2's prison-part-121 (prison): group-prison-fade-to-black-lights-02
+    {"trans": [454.5159, -67.9736, 94.9753], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.5159, -67.9736, 94.9753, 6.9282], "lump": {"name": "prison-part-121", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-02"}},
+    // Jak 2's prison-part-139 (prison): group-prison-fade-to-black-lights-03
+    {"trans": [454.5159, -79.9736, 111.021], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.5159, -79.9736, 111.021, 6.9282], "lump": {"name": "prison-part-139", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-03"}},
+    // Jak 2's prison-part-144 (prison): group-prison-fade-to-black-lights-03
+    {"trans": [485.4944, -79.9736, 111.021], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4944, -79.9736, 111.021, 6.9282], "lump": {"name": "prison-part-144", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-03"}},
+    // Jak 2's prison-part-124 (prison): group-prison-fade-to-black-lights-02
+    {"trans": [485.4944, -67.9736, 79.0116], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4944, -67.9736, 79.0116, 6.9282], "lump": {"name": "prison-part-124", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-02"}},
+    // Jak 2's prison-part-132 (prison): group-prison-fade-to-black-lights-02
+    {"trans": [477.9911, -67.9736, 75.3539], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [477.9911, -67.9736, 75.3539, 6.9282], "lump": {"name": "prison-part-132", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-02"}},
+    // Jak 2's prison-part-140 (prison): group-prison-fade-to-black-lights-03
+    {"trans": [485.4944, -79.9736, 79.0116], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4944, -79.9736, 79.0116, 6.9282], "lump": {"name": "prison-part-140", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-03"}},
+    // Jak 2's prison-part-148 (prison): group-prison-fade-to-black-lights-03
+    {"trans": [477.9911, -79.9736, 75.3539], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [477.9911, -79.9736, 75.3539, 6.9282], "lump": {"name": "prison-part-148", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-03"}},
+    // Jak 2's prison-part-125 (prison): group-prison-fade-to-black-lights-02
+    {"trans": [485.4944, -67.9736, 86.9984], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4944, -67.9736, 86.9984, 6.9282], "lump": {"name": "prison-part-125", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-02"}},
+    // Jak 2's prison-part-126 (prison): group-prison-fade-to-black-lights-02
+    {"trans": [485.4944, -67.9736, 94.9753], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4944, -67.9736, 94.9753, 6.9282], "lump": {"name": "prison-part-126", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-02"}},
+    // Jak 2's prison-part-141 (prison): group-prison-fade-to-black-lights-03
+    {"trans": [485.4944, -79.9736, 86.9984], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4944, -79.9736, 86.9984, 6.9282], "lump": {"name": "prison-part-141", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-03"}},
+    // Jak 2's prison-part-142 (prison): group-prison-fade-to-black-lights-03
+    {"trans": [485.4944, -79.9736, 94.9753], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4944, -79.9736, 94.9753, 6.9282], "lump": {"name": "prison-part-142", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-03"}},
+    // Jak 2's prison-part-119 (prison): group-prison-fade-to-black-lights-02
+    {"trans": [454.5159, -67.9736, 79.0116], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.5159, -67.9736, 79.0116, 6.9282], "lump": {"name": "prison-part-119", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-02"}},
+    // Jak 2's prison-part-135 (prison): group-prison-fade-to-black-lights-03
+    {"trans": [454.5159, -79.9736, 79.0116], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.5159, -79.9736, 79.0116, 6.9282], "lump": {"name": "prison-part-135", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-03"}},
+    // Jak 2's prison-part-136 (prison): group-prison-fade-to-black-lights-03
+    {"trans": [454.5159, -79.9736, 86.9984], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.5159, -79.9736, 86.9984, 6.9282], "lump": {"name": "prison-part-136", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-03"}},
+    // Jak 2's prison-part-137 (prison): group-prison-fade-to-black-lights-03
+    {"trans": [454.5159, -79.9736, 94.9753], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.5159, -79.9736, 94.9753, 6.9282], "lump": {"name": "prison-part-137", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-03"}},
+    // Jak 2's prison-part-133 (prison): group-prison-fade-to-black-lights-02
+    {"trans": [469.9939, -67.9736, 75.3539], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [469.9939, -67.9736, 75.3539, 6.9282], "lump": {"name": "prison-part-133", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-02"}},
+    // Jak 2's prison-part-134 (prison): group-prison-fade-to-black-lights-02
+    {"trans": [462.0089, -67.9736, 75.3539], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [462.0089, -67.9736, 75.3539, 6.9282], "lump": {"name": "prison-part-134", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-02"}},
+    // Jak 2's prison-part-118 (prison): group-prison-fade-to-black-lights-01
+    {"trans": [462.0089, -56.0024, 75.3539], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [462.0089, -56.0024, 75.3539, 6.9282], "lump": {"name": "prison-part-118", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-01"}},
+    // Jak 2's prison-part-149 (prison): group-prison-fade-to-black-lights-03
+    {"trans": [469.9939, -79.9736, 75.3539], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [469.9939, -79.9736, 75.3539, 6.9282], "lump": {"name": "prison-part-149", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-03"}},
+    // Jak 2's prison-part-161 (prison): group-prison-fade-to-black-lights-04
+    {"trans": [477.9911, -91.9736, 118.6529], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, 0.0], "bsphere": [477.9911, -91.9736, 118.6529, 6.9282], "lump": {"name": "prison-part-161", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-04"}},
+    // Jak 2's prison-part-162 (prison): group-prison-fade-to-black-lights-04
+    {"trans": [469.9939, -91.9736, 118.6529], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, 0.0], "bsphere": [469.9939, -91.9736, 118.6529, 6.9282], "lump": {"name": "prison-part-162", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-04"}},
+    // Jak 2's prison-part-163 (prison): group-prison-fade-to-black-lights-04
+    {"trans": [462.0089, -91.9736, 118.6529], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, 0.0], "bsphere": [462.0089, -91.9736, 118.6529, 6.9282], "lump": {"name": "prison-part-163", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-04"}},
+    // Jak 2's prison-part-177 (prison): group-prison-fade-to-black-lights-05
+    {"trans": [477.9911, -103.9736, 118.6529], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, 0.0], "bsphere": [477.9911, -103.9736, 118.6529, 6.9282], "lump": {"name": "prison-part-177", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-05"}},
+    // Jak 2's prison-part-178 (prison): group-prison-fade-to-black-lights-05
+    {"trans": [469.9939, -103.9736, 118.6529], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, 0.0], "bsphere": [469.9939, -103.9736, 118.6529, 6.9282], "lump": {"name": "prison-part-178", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-05"}},
+    // Jak 2's prison-part-179 (prison): group-prison-fade-to-black-lights-05
+    {"trans": [462.0089, -103.9736, 118.6529], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, 0.0], "bsphere": [462.0089, -103.9736, 118.6529, 6.9282], "lump": {"name": "prison-part-179", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-05"}},
+    // Jak 2's prison-part-155 (prison): group-prison-fade-to-black-lights-04
+    {"trans": [454.5159, -91.9736, 111.021], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.5159, -91.9736, 111.021, 6.9282], "lump": {"name": "prison-part-155", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-04"}},
+    // Jak 2's prison-part-160 (prison): group-prison-fade-to-black-lights-04
+    {"trans": [485.4944, -91.9736, 111.021], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4944, -91.9736, 111.021, 6.9282], "lump": {"name": "prison-part-160", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-04"}},
+    // Jak 2's prison-part-154 (prison): group-prison-fade-to-black-lights-04
+    {"trans": [454.5159, -91.9736, 102.974], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.5159, -91.9736, 102.974, 6.9282], "lump": {"name": "prison-part-154", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-04"}},
+    // Jak 2's prison-part-159 (prison): group-prison-fade-to-black-lights-04
+    {"trans": [485.4944, -91.9736, 102.974], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4944, -91.9736, 102.974, 6.9282], "lump": {"name": "prison-part-159", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-04"}},
+    // Jak 2's prison-part-170 (prison): group-prison-fade-to-black-lights-05
+    {"trans": [454.5159, -103.9736, 102.974], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.5159, -103.9736, 102.974, 6.9282], "lump": {"name": "prison-part-170", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-05"}},
+    // Jak 2's prison-part-175 (prison): group-prison-fade-to-black-lights-05
+    {"trans": [485.4944, -103.9736, 102.974], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4944, -103.9736, 102.974, 6.9282], "lump": {"name": "prison-part-175", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-05"}},
+    // Jak 2's prison-part-152 (prison): group-prison-fade-to-black-lights-04
+    {"trans": [454.5159, -91.9736, 86.9984], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.5159, -91.9736, 86.9984, 6.9282], "lump": {"name": "prison-part-152", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-04"}},
+    // Jak 2's prison-part-153 (prison): group-prison-fade-to-black-lights-04
+    {"trans": [454.5159, -91.9736, 94.9753], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.5159, -91.9736, 94.9753, 6.9282], "lump": {"name": "prison-part-153", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-04"}},
+    // Jak 2's prison-part-171 (prison): group-prison-fade-to-black-lights-05
+    {"trans": [454.5159, -103.9736, 111.021], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.5159, -103.9736, 111.021, 6.9282], "lump": {"name": "prison-part-171", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-05"}},
+    // Jak 2's prison-part-176 (prison): group-prison-fade-to-black-lights-05
+    {"trans": [485.4944, -103.9736, 111.021], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4944, -103.9736, 111.021, 6.9282], "lump": {"name": "prison-part-176", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-05"}},
+    // Jak 2's prison-part-156 (prison): group-prison-fade-to-black-lights-04
+    {"trans": [485.4944, -91.9736, 79.0116], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4944, -91.9736, 79.0116, 6.9282], "lump": {"name": "prison-part-156", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-04"}},
+    // Jak 2's prison-part-164 (prison): group-prison-fade-to-black-lights-04
+    {"trans": [477.9911, -91.9736, 75.3539], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [477.9911, -91.9736, 75.3539, 6.9282], "lump": {"name": "prison-part-164", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-04"}},
+    // Jak 2's prison-part-172 (prison): group-prison-fade-to-black-lights-05
+    {"trans": [485.4944, -103.9736, 79.0116], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4944, -103.9736, 79.0116, 6.9282], "lump": {"name": "prison-part-172", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-05"}},
+    // Jak 2's prison-part-180 (prison): group-prison-fade-to-black-lights-05
+    {"trans": [477.9911, -103.9736, 75.3539], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [477.9911, -103.9736, 75.3539, 6.9282], "lump": {"name": "prison-part-180", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-05"}},
+    // Jak 2's prison-part-157 (prison): group-prison-fade-to-black-lights-04
+    {"trans": [485.4944, -91.9736, 86.9984], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4944, -91.9736, 86.9984, 6.9282], "lump": {"name": "prison-part-157", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-04"}},
+    // Jak 2's prison-part-158 (prison): group-prison-fade-to-black-lights-04
+    {"trans": [485.4944, -91.9736, 94.9753], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4944, -91.9736, 94.9753, 6.9282], "lump": {"name": "prison-part-158", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-04"}},
+    // Jak 2's prison-part-173 (prison): group-prison-fade-to-black-lights-05
+    {"trans": [485.4944, -103.9736, 86.9984], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4944, -103.9736, 86.9984, 6.9282], "lump": {"name": "prison-part-173", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-05"}},
+    // Jak 2's prison-part-174 (prison): group-prison-fade-to-black-lights-05
+    {"trans": [485.4944, -103.9736, 94.9753], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4944, -103.9736, 94.9753, 6.9282], "lump": {"name": "prison-part-174", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-05"}},
+    // Jak 2's prison-part-151 (prison): group-prison-fade-to-black-lights-04
+    {"trans": [454.5159, -91.9736, 79.0116], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.5159, -91.9736, 79.0116, 6.9282], "lump": {"name": "prison-part-151", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-04"}},
+    // Jak 2's prison-part-167 (prison): group-prison-fade-to-black-lights-05
+    {"trans": [454.5159, -103.9736, 79.0116], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.5159, -103.9736, 79.0116, 6.9282], "lump": {"name": "prison-part-167", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-05"}},
+    // Jak 2's prison-part-168 (prison): group-prison-fade-to-black-lights-05
+    {"trans": [454.5159, -103.9736, 86.9984], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.5159, -103.9736, 86.9984, 6.9282], "lump": {"name": "prison-part-168", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-05"}},
+    // Jak 2's prison-part-169 (prison): group-prison-fade-to-black-lights-05
+    {"trans": [454.5159, -103.9736, 94.9753], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.5159, -103.9736, 94.9753, 6.9282], "lump": {"name": "prison-part-169", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-05"}},
+    // Jak 2's prison-part-165 (prison): group-prison-fade-to-black-lights-04
+    {"trans": [469.9939, -91.9736, 75.3539], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [469.9939, -91.9736, 75.3539, 6.9282], "lump": {"name": "prison-part-165", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-04"}},
+    // Jak 2's prison-part-166 (prison): group-prison-fade-to-black-lights-04
+    {"trans": [462.0089, -91.9736, 75.3539], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [462.0089, -91.9736, 75.3539, 6.9282], "lump": {"name": "prison-part-166", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-04"}},
+    // Jak 2's prison-part-181 (prison): group-prison-fade-to-black-lights-05
+    {"trans": [469.9939, -103.9736, 75.3539], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [469.9939, -103.9736, 75.3539, 6.9282], "lump": {"name": "prison-part-181", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-05"}},
+    // Jak 2's prison-part-150 (prison): group-prison-fade-to-black-lights-03
+    {"trans": [462.0089, -79.9736, 75.3539], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [462.0089, -79.9736, 75.3539, 6.9282], "lump": {"name": "prison-part-150", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-03"}},
+    // Jak 2's prison-part-193 (prison): group-prison-fade-to-black-lights-06
+    {"trans": [477.9911, -115.9736, 118.6529], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, 0.0], "bsphere": [477.9911, -115.9736, 118.6529, 6.9282], "lump": {"name": "prison-part-193", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-06"}},
+    // Jak 2's prison-part-194 (prison): group-prison-fade-to-black-lights-06
+    {"trans": [469.9939, -115.9736, 118.6529], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, 0.0], "bsphere": [469.9939, -115.9736, 118.6529, 6.9282], "lump": {"name": "prison-part-194", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-06"}},
+    // Jak 2's prison-part-195 (prison): group-prison-fade-to-black-lights-06
+    {"trans": [462.0089, -115.9736, 118.6529], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, 0.0], "bsphere": [462.0089, -115.9736, 118.6529, 6.9282], "lump": {"name": "prison-part-195", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-06"}},
+    // Jak 2's prison-part-209 (prison): group-prison-fade-to-black-lights-07
+    {"trans": [477.9911, -127.9736, 118.6529], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, 0.0], "bsphere": [477.9911, -127.9736, 118.6529, 6.9282], "lump": {"name": "prison-part-209", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-07"}},
+    // Jak 2's prison-part-210 (prison): group-prison-fade-to-black-lights-07
+    {"trans": [469.9939, -127.9736, 118.6529], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, 0.0], "bsphere": [469.9939, -127.9736, 118.6529, 6.9282], "lump": {"name": "prison-part-210", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-07"}},
+    // Jak 2's prison-part-211 (prison): group-prison-fade-to-black-lights-07
+    {"trans": [462.0089, -127.9736, 118.6529], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, 0.0], "bsphere": [462.0089, -127.9736, 118.6529, 6.9282], "lump": {"name": "prison-part-211", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-07"}},
+    // Jak 2's prison-part-187 (prison): group-prison-fade-to-black-lights-06
+    {"trans": [454.5159, -115.9736, 111.021], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.5159, -115.9736, 111.021, 6.9282], "lump": {"name": "prison-part-187", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-06"}},
+    // Jak 2's prison-part-192 (prison): group-prison-fade-to-black-lights-06
+    {"trans": [485.4944, -115.9736, 111.021], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4944, -115.9736, 111.021, 6.9282], "lump": {"name": "prison-part-192", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-06"}},
+    // Jak 2's prison-part-186 (prison): group-prison-fade-to-black-lights-06
+    {"trans": [454.5159, -115.9736, 102.974], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.5159, -115.9736, 102.974, 6.9282], "lump": {"name": "prison-part-186", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-06"}},
+    // Jak 2's prison-part-191 (prison): group-prison-fade-to-black-lights-06
+    {"trans": [485.4944, -115.9736, 102.974], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4944, -115.9736, 102.974, 6.9282], "lump": {"name": "prison-part-191", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-06"}},
+    // Jak 2's prison-part-202 (prison): group-prison-fade-to-black-lights-07
+    {"trans": [454.5159, -127.9736, 102.974], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.5159, -127.9736, 102.974, 6.9282], "lump": {"name": "prison-part-202", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-07"}},
+    // Jak 2's prison-part-207 (prison): group-prison-fade-to-black-lights-07
+    {"trans": [485.4944, -127.9736, 102.974], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4944, -127.9736, 102.974, 6.9282], "lump": {"name": "prison-part-207", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-07"}},
+    // Jak 2's prison-part-184 (prison): group-prison-fade-to-black-lights-06
+    {"trans": [454.5159, -115.9736, 86.9984], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.5159, -115.9736, 86.9984, 6.9282], "lump": {"name": "prison-part-184", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-06"}},
+    // Jak 2's prison-part-185 (prison): group-prison-fade-to-black-lights-06
+    {"trans": [454.5159, -115.9736, 94.9753], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.5159, -115.9736, 94.9753, 6.9282], "lump": {"name": "prison-part-185", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-06"}},
+    // Jak 2's prison-part-203 (prison): group-prison-fade-to-black-lights-07
+    {"trans": [454.5159, -127.9736, 111.021], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.5159, -127.9736, 111.021, 6.9282], "lump": {"name": "prison-part-203", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-07"}},
+    // Jak 2's prison-part-208 (prison): group-prison-fade-to-black-lights-07
+    {"trans": [485.4944, -127.9736, 111.021], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4944, -127.9736, 111.021, 6.9282], "lump": {"name": "prison-part-208", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-07"}},
+    // Jak 2's prison-part-188 (prison): group-prison-fade-to-black-lights-06
+    {"trans": [485.4944, -115.9736, 79.0116], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4944, -115.9736, 79.0116, 6.9282], "lump": {"name": "prison-part-188", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-06"}},
+    // Jak 2's prison-part-196 (prison): group-prison-fade-to-black-lights-06
+    {"trans": [477.9911, -115.9736, 75.3539], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [477.9911, -115.9736, 75.3539, 6.9282], "lump": {"name": "prison-part-196", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-06"}},
+    // Jak 2's prison-part-204 (prison): group-prison-fade-to-black-lights-07
+    {"trans": [485.4944, -127.9736, 79.0116], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4944, -127.9736, 79.0116, 6.9282], "lump": {"name": "prison-part-204", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-07"}},
+    // Jak 2's prison-part-212 (prison): group-prison-fade-to-black-lights-07
+    {"trans": [477.9911, -127.9736, 75.3539], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [477.9911, -127.9736, 75.3539, 6.9282], "lump": {"name": "prison-part-212", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-07"}},
+    // Jak 2's prison-part-189 (prison): group-prison-fade-to-black-lights-06
+    {"trans": [485.4944, -115.9736, 86.9984], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4944, -115.9736, 86.9984, 6.9282], "lump": {"name": "prison-part-189", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-06"}},
+    // Jak 2's prison-part-190 (prison): group-prison-fade-to-black-lights-06
+    {"trans": [485.4944, -115.9736, 94.9753], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4944, -115.9736, 94.9753, 6.9282], "lump": {"name": "prison-part-190", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-06"}},
+    // Jak 2's prison-part-205 (prison): group-prison-fade-to-black-lights-07
+    {"trans": [485.4944, -127.9736, 86.9984], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4944, -127.9736, 86.9984, 6.9282], "lump": {"name": "prison-part-205", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-07"}},
+    // Jak 2's prison-part-206 (prison): group-prison-fade-to-black-lights-07
+    {"trans": [485.4944, -127.9736, 94.9753], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4944, -127.9736, 94.9753, 6.9282], "lump": {"name": "prison-part-206", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-07"}},
+    // Jak 2's prison-part-183 (prison): group-prison-fade-to-black-lights-06
+    {"trans": [454.5159, -115.9736, 79.0116], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.5159, -115.9736, 79.0116, 6.9282], "lump": {"name": "prison-part-183", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-06"}},
+    // Jak 2's prison-part-199 (prison): group-prison-fade-to-black-lights-07
+    {"trans": [454.5159, -127.9736, 79.0116], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.5159, -127.9736, 79.0116, 6.9282], "lump": {"name": "prison-part-199", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-07"}},
+    // Jak 2's prison-part-200 (prison): group-prison-fade-to-black-lights-07
+    {"trans": [454.5159, -127.9736, 86.9984], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.5159, -127.9736, 86.9984, 6.9282], "lump": {"name": "prison-part-200", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-07"}},
+    // Jak 2's prison-part-201 (prison): group-prison-fade-to-black-lights-07
+    {"trans": [454.5159, -127.9736, 94.9753], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.5159, -127.9736, 94.9753, 6.9282], "lump": {"name": "prison-part-201", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-07"}},
+    // Jak 2's prison-part-197 (prison): group-prison-fade-to-black-lights-06
+    {"trans": [469.9939, -115.9736, 75.3539], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [469.9939, -115.9736, 75.3539, 6.9282], "lump": {"name": "prison-part-197", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-06"}},
+    // Jak 2's prison-part-198 (prison): group-prison-fade-to-black-lights-06
+    {"trans": [462.0089, -115.9736, 75.3539], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [462.0089, -115.9736, 75.3539, 6.9282], "lump": {"name": "prison-part-198", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-06"}},
+    // Jak 2's prison-part-182 (prison): group-prison-fade-to-black-lights-05
+    {"trans": [462.0089, -103.9736, 75.3539], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [462.0089, -103.9736, 75.3539, 6.9282], "lump": {"name": "prison-part-182", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-05"}},
+    // Jak 2's prison-part-213 (prison): group-prison-fade-to-black-lights-07
+    {"trans": [469.9939, -127.9736, 75.3539], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [469.9939, -127.9736, 75.3539, 6.9282], "lump": {"name": "prison-part-213", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-07"}},
+    // Jak 2's prison-part-225 (prison): group-prison-fade-to-black-lights-08
+    {"trans": [477.9911, -139.9736, 118.6529], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, 0.0], "bsphere": [477.9911, -139.9736, 118.6529, 6.9282], "lump": {"name": "prison-part-225", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-08"}},
+    // Jak 2's prison-part-226 (prison): group-prison-fade-to-black-lights-08
+    {"trans": [469.9939, -139.9736, 118.6529], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, 0.0], "bsphere": [469.9939, -139.9736, 118.6529, 6.9282], "lump": {"name": "prison-part-226", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-08"}},
+    // Jak 2's prison-part-227 (prison): group-prison-fade-to-black-lights-08
+    {"trans": [462.0089, -139.9736, 118.6529], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, 0.0], "bsphere": [462.0089, -139.9736, 118.6529, 6.9282], "lump": {"name": "prison-part-227", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-08"}},
+    // Jak 2's prison-part-241 (prison): group-prison-fade-to-black-lights-09
+    {"trans": [477.9911, -151.9736, 118.6529], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, 0.0], "bsphere": [477.9911, -151.9736, 118.6529, 6.9282], "lump": {"name": "prison-part-241", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-09"}},
+    // Jak 2's prison-part-242 (prison): group-prison-fade-to-black-lights-09
+    {"trans": [469.9939, -151.9736, 118.6529], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, 0.0], "bsphere": [469.9939, -151.9736, 118.6529, 6.9282], "lump": {"name": "prison-part-242", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-09"}},
+    // Jak 2's prison-part-243 (prison): group-prison-fade-to-black-lights-09
+    {"trans": [462.0089, -151.9736, 118.6529], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, 0.0], "bsphere": [462.0089, -151.9736, 118.6529, 6.9282], "lump": {"name": "prison-part-243", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-09"}},
+    // Jak 2's prison-part-219 (prison): group-prison-fade-to-black-lights-08
+    {"trans": [454.5159, -139.9736, 111.021], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.5159, -139.9736, 111.021, 6.9282], "lump": {"name": "prison-part-219", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-08"}},
+    // Jak 2's prison-part-224 (prison): group-prison-fade-to-black-lights-08
+    {"trans": [485.4944, -139.9736, 111.021], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4944, -139.9736, 111.021, 6.9282], "lump": {"name": "prison-part-224", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-08"}},
+    // Jak 2's prison-part-218 (prison): group-prison-fade-to-black-lights-08
+    {"trans": [454.5159, -139.9736, 102.974], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.5159, -139.9736, 102.974, 6.9282], "lump": {"name": "prison-part-218", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-08"}},
+    // Jak 2's prison-part-223 (prison): group-prison-fade-to-black-lights-08
+    {"trans": [485.4944, -139.9736, 102.974], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4944, -139.9736, 102.974, 6.9282], "lump": {"name": "prison-part-223", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-08"}},
+    // Jak 2's prison-part-234 (prison): group-prison-fade-to-black-lights-09
+    {"trans": [454.5159, -151.9736, 102.974], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.5159, -151.9736, 102.974, 6.9282], "lump": {"name": "prison-part-234", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-09"}},
+    // Jak 2's prison-part-239 (prison): group-prison-fade-to-black-lights-09
+    {"trans": [485.4944, -151.9736, 102.974], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4944, -151.9736, 102.974, 6.9282], "lump": {"name": "prison-part-239", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-09"}},
+    // Jak 2's prison-part-216 (prison): group-prison-fade-to-black-lights-08
+    {"trans": [454.5159, -139.9736, 86.9984], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.5159, -139.9736, 86.9984, 6.9282], "lump": {"name": "prison-part-216", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-08"}},
+    // Jak 2's prison-part-217 (prison): group-prison-fade-to-black-lights-08
+    {"trans": [454.5159, -139.9736, 94.9753], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.5159, -139.9736, 94.9753, 6.9282], "lump": {"name": "prison-part-217", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-08"}},
+    // Jak 2's prison-part-235 (prison): group-prison-fade-to-black-lights-09
+    {"trans": [454.5159, -151.9736, 111.021], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.5159, -151.9736, 111.021, 6.9282], "lump": {"name": "prison-part-235", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-09"}},
+    // Jak 2's prison-part-240 (prison): group-prison-fade-to-black-lights-09
+    {"trans": [485.4944, -151.9736, 111.021], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4944, -151.9736, 111.021, 6.9282], "lump": {"name": "prison-part-240", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-09"}},
+    // Jak 2's prison-part-220 (prison): group-prison-fade-to-black-lights-08
+    {"trans": [485.4944, -139.9736, 79.0116], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4944, -139.9736, 79.0116, 6.9282], "lump": {"name": "prison-part-220", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-08"}},
+    // Jak 2's prison-part-228 (prison): group-prison-fade-to-black-lights-08
+    {"trans": [477.9911, -139.9736, 75.3539], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [477.9911, -139.9736, 75.3539, 6.9282], "lump": {"name": "prison-part-228", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-08"}},
+    // Jak 2's prison-part-236 (prison): group-prison-fade-to-black-lights-09
+    {"trans": [485.4944, -151.9736, 79.0116], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4944, -151.9736, 79.0116, 6.9282], "lump": {"name": "prison-part-236", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-09"}},
+    // Jak 2's prison-part-244 (prison): group-prison-fade-to-black-lights-09
+    {"trans": [477.9911, -151.9736, 75.3539], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [477.9911, -151.9736, 75.3539, 6.9282], "lump": {"name": "prison-part-244", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-09"}},
+    // Jak 2's prison-part-221 (prison): group-prison-fade-to-black-lights-08
+    {"trans": [485.4944, -139.9736, 86.9984], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4944, -139.9736, 86.9984, 6.9282], "lump": {"name": "prison-part-221", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-08"}},
+    // Jak 2's prison-part-222 (prison): group-prison-fade-to-black-lights-08
+    {"trans": [485.4944, -139.9736, 94.9753], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4944, -139.9736, 94.9753, 6.9282], "lump": {"name": "prison-part-222", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-08"}},
+    // Jak 2's prison-part-237 (prison): group-prison-fade-to-black-lights-09
+    {"trans": [485.4944, -151.9736, 86.9984], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4944, -151.9736, 86.9984, 6.9282], "lump": {"name": "prison-part-237", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-09"}},
+    // Jak 2's prison-part-238 (prison): group-prison-fade-to-black-lights-09
+    {"trans": [485.4944, -151.9736, 94.9753], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4944, -151.9736, 94.9753, 6.9282], "lump": {"name": "prison-part-238", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-09"}},
+    // Jak 2's prison-part-215 (prison): group-prison-fade-to-black-lights-08
+    {"trans": [454.5159, -139.9736, 79.0116], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.5159, -139.9736, 79.0116, 6.9282], "lump": {"name": "prison-part-215", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-08"}},
+    // Jak 2's prison-part-231 (prison): group-prison-fade-to-black-lights-09
+    {"trans": [454.5159, -151.9736, 79.0116], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.5159, -151.9736, 79.0116, 6.9282], "lump": {"name": "prison-part-231", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-09"}},
+    // Jak 2's prison-part-232 (prison): group-prison-fade-to-black-lights-09
+    {"trans": [454.5159, -151.9736, 86.9984], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.5159, -151.9736, 86.9984, 6.9282], "lump": {"name": "prison-part-232", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-09"}},
+    // Jak 2's prison-part-233 (prison): group-prison-fade-to-black-lights-09
+    {"trans": [454.5159, -151.9736, 94.9753], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.5159, -151.9736, 94.9753, 6.9282], "lump": {"name": "prison-part-233", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-09"}},
+    // Jak 2's prison-part-229 (prison): group-prison-fade-to-black-lights-08
+    {"trans": [469.9939, -139.9736, 75.3539], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [469.9939, -139.9736, 75.3539, 6.9282], "lump": {"name": "prison-part-229", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-08"}},
+    // Jak 2's prison-part-230 (prison): group-prison-fade-to-black-lights-08
+    {"trans": [462.0089, -139.9736, 75.3539], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [462.0089, -139.9736, 75.3539, 6.9282], "lump": {"name": "prison-part-230", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-08"}},
+    // Jak 2's prison-part-245 (prison): group-prison-fade-to-black-lights-09
+    {"trans": [469.9939, -151.9736, 75.3539], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [469.9939, -151.9736, 75.3539, 6.9282], "lump": {"name": "prison-part-245", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-09"}},
+    // Jak 2's prison-part-214 (prison): group-prison-fade-to-black-lights-07
+    {"trans": [462.0089, -127.9736, 75.3539], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [462.0089, -127.9736, 75.3539, 6.9282], "lump": {"name": "prison-part-214", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-07"}},
+    // Jak 2's prison-part-250 (prison): group-prison-fade-to-black-lights-10
+    {"trans": [454.5159, -163.9736, 102.974], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.5159, -163.9736, 102.974, 6.9282], "lump": {"name": "prison-part-250", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-10"}},
+    // Jak 2's prison-part-251 (prison): group-prison-fade-to-black-lights-10
+    {"trans": [454.5159, -163.9736, 111.021], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.5159, -163.9736, 111.021, 6.9282], "lump": {"name": "prison-part-251", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-10"}},
+    // Jak 2's prison-part-255 (prison): group-prison-fade-to-black-lights-10
+    {"trans": [485.4944, -163.9736, 102.974], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4944, -163.9736, 102.974, 6.9282], "lump": {"name": "prison-part-255", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-10"}},
+    // Jak 2's prison-part-256 (prison): group-prison-fade-to-black-lights-10
+    {"trans": [485.4944, -163.9736, 111.021], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4944, -163.9736, 111.021, 6.9282], "lump": {"name": "prison-part-256", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-10"}},
+    // Jak 2's prison-part-257 (prison): group-prison-fade-to-black-lights-10
+    {"trans": [477.9911, -163.9736, 118.6529], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, 0.0], "bsphere": [477.9911, -163.9736, 118.6529, 6.9282], "lump": {"name": "prison-part-257", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-10"}},
+    // Jak 2's prison-part-258 (prison): group-prison-fade-to-black-lights-10
+    {"trans": [469.9939, -163.9736, 118.6529], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, 0.0], "bsphere": [469.9939, -163.9736, 118.6529, 6.9282], "lump": {"name": "prison-part-258", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-10"}},
+    // Jak 2's prison-part-259 (prison): group-prison-fade-to-black-lights-10
+    {"trans": [462.0089, -163.9736, 118.6529], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, 0.0], "bsphere": [462.0089, -163.9736, 118.6529, 6.9282], "lump": {"name": "prison-part-259", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-10"}},
+    // Jak 2's prison-part-248 (prison): group-prison-fade-to-black-lights-10
+    {"trans": [454.5159, -163.9736, 86.9984], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.5159, -163.9736, 86.9984, 6.9282], "lump": {"name": "prison-part-248", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-10"}},
+    // Jak 2's prison-part-247 (prison): group-prison-fade-to-black-lights-10
+    {"trans": [454.5159, -163.9736, 79.0116], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.5159, -163.9736, 79.0116, 6.9282], "lump": {"name": "prison-part-247", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-10"}},
+    // Jak 2's prison-part-252 (prison): group-prison-fade-to-black-lights-10
+    {"trans": [485.4944, -163.9736, 79.0116], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4944, -163.9736, 79.0116, 6.9282], "lump": {"name": "prison-part-252", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-10"}},
+    // Jak 2's prison-part-260 (prison): group-prison-fade-to-black-lights-10
+    {"trans": [477.9911, -163.9736, 75.3539], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [477.9911, -163.9736, 75.3539, 6.9282], "lump": {"name": "prison-part-260", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-10"}},
+    // Jak 2's prison-part-261 (prison): group-prison-fade-to-black-lights-10
+    {"trans": [469.9939, -163.9736, 75.3539], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [469.9939, -163.9736, 75.3539, 6.9282], "lump": {"name": "prison-part-261", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-10"}},
+    // Jak 2's prison-part-262 (prison): group-prison-fade-to-black-lights-10
+    {"trans": [462.0089, -163.9736, 75.3539], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [462.0089, -163.9736, 75.3539, 6.9282], "lump": {"name": "prison-part-262", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-10"}},
+    // Jak 2's prison-part-249 (prison): group-prison-fade-to-black-lights-10
+    {"trans": [454.5159, -163.9736, 94.9753], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [454.5159, -163.9736, 94.9753, 6.9282], "lump": {"name": "prison-part-249", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-10"}},
+    // Jak 2's prison-part-253 (prison): group-prison-fade-to-black-lights-10
+    {"trans": [485.4944, -163.9736, 86.9984], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4944, -163.9736, 86.9984, 6.9282], "lump": {"name": "prison-part-253", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-10"}},
+    // Jak 2's prison-part-254 (prison): group-prison-fade-to-black-lights-10
+    {"trans": [485.4944, -163.9736, 94.9753], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [485.4944, -163.9736, 94.9753, 6.9282], "lump": {"name": "prison-part-254", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-10"}},
+    // Jak 2's prison-part-246 (prison): group-prison-fade-to-black-lights-09
+    {"trans": [462.0089, -151.9736, 75.3539], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [462.0089, -151.9736, 75.3539, 6.9282], "lump": {"name": "prison-part-246", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-prison-fade-to-black-lights-09"}}
   ]
 }

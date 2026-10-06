@@ -270,12 +270,26 @@ end closest to Jak, and rising into place."
   (none)
   )
 
-;; Jak 2's mtn-iris-door, shut: Jak 2 opens it once the items are placed in the canyon, after Mar's
-;; tomb is found (canyon-insert-items-door). Kept shut like the palace plaza is kept before the
-;; tomb (see END_HIDDEN_PROTOTYPES in the level port's games/jak2.py); the canyon behind it
-;; isn't ported.
+;; Jak 2's mtn-iris-door (levels/mountain/mountain-obs2.gc there), open: Jak 2 opens it once the
+;; items are placed in the canyon (canyon-insert-items-door, closed at the end of the game), its
+;; idle animation at its last frame and without collision, the way to the canyon (hj2-mincan).
 (deftype hj2-iris-door (hj2-mtn-prop)
   ()
+  )
+
+
+;; open: the last frame of its animation, no collision (Jak 2's open state)
+(defstate idle (hj2-iris-door)
+  :virtual #t
+  :code (behavior ()
+    (let ((prim (-> self root root-prim)))
+      (set! (-> prim prim-core collide-as) (collide-spec))
+      (set! (-> prim prim-core collide-with) (collide-spec))
+      )
+    (ja :num-func num-func-identity :frame-num max)
+    (transform-post)
+    (sleep-code)
+    )
   )
 
 
@@ -285,13 +299,12 @@ end closest to Jak, and rising into place."
 
 ;; WARN: Return type mismatch object vs none.
 (defmethod init-from-entity! ((this hj2-iris-door) (arg0 entity-actor))
-  "Jak 2's mtn-iris-door setup: a solid prop, shut."
+  "Jak 2's mtn-iris-door setup: placement and skeleton, then idle (open)."
   (hj2-mtn-prop-init! this arg0 *hj2-iris-door-sg* (new 'static 'vector :w (meters 9.5)))
   (go (method-of-object this idle))
   )
 
-;; Jak 2's mtn-plat-elevator, parked at the mountain top: it only goes down to the far iris door,
-;; which stays shut.
+;; Jak 2's mtn-plat-elevator, parked at the mountain top: it only goes down to the far iris door.
 (deftype hj2-mtn-elevator (hj2-mtn-prop)
   ()
   )
@@ -603,45 +616,470 @@ cycle)."
     )
   )
 
-;; Windmills ///////////////////////////////////////////////////////////////////////////////////////
+;; Jak 2's pal-windmill: hj2-pal-windmill is in GAME (hj2-common-obs.gc), the palace cable places
+;; some too.
 
-;; Jak 2's pal-windmill (levels/palace/cable/palcab-obs.gc there): the windmills of the backdrop,
-;; their blades turning in their animation.
-(deftype hj2-pal-windmill (process-drawable)
+
+;; The temple at the end of the game //////////////////////////////////////////////////////////////
+;; Jak 2's mountain temple puzzles (levels/mountain/mountain-obs.gc and mountain-scenes.gc there) as
+;; the end of the game leaves them: buttons pressed, platforms ejected, the dice laid flat over the
+;; dark eco, the lens room without its beam. hj2-mtnx (mtnext) is only ever loaded with hj2-mount,
+;; so its classes live here (HJM). Not ported: the gear device (its collapsed pose isn't complete in
+;; the rips: Jak 2's mtn-gear-device-collapse-idle covers 30 of its 37 pieces), the rocks the
+;; buttons blow up and the rhino's walls (broken for good: their "-end" poses aren't in the rips),
+;; Jak 2's sounds.
+
+;; A still prop holding the LAST frame of its animation: Jak 2's pressed buttons (basebutton's
+;; pressed pose, mtn-button's pressed state). Solid and rideable like hj2-mtn-prop.
+(deftype hj2-mtn-end-prop (hj2-mtn-prop)
   ()
+  )
+
+
+;; holds the last frame of its animation: one transform-post places the pose and the collision,
+;; then it sleeps
+(defstate idle (hj2-mtn-end-prop)
+  :virtual #t
+  :code (behavior ()
+    (ja :num-func num-func-identity :frame-num max)
+    (transform-post)
+    (sleep-code)
+    )
+  )
+
+;; Jak 2's mtn-button (mountain-obs.gc:2645): the 3 floor buttons that blow up the rocks over the
+;; ejecting platforms. Their subtask is complete at the end of the game: pressed (the end of
+;; mtn-button-press, its model's idle here: the button down, the lid open). Collision: the hull of
+;; the button (its joint has no offset from the main joint), the lid's open petals have none.
+(deftype hj2-mtn-button (hj2-mtn-end-prop)
+  ()
+  )
+
+
+(def-actor hj2-mtn-button
+  :bounds (0 0.2 0 1.8)
+  )
+
+;; WARN: Return type mismatch object vs none.
+(defmethod init-from-entity! ((this hj2-mtn-button) (arg0 entity-actor))
+  "Jak 2's mtn-button setup, pressed: a solid prop (hj2-mtn-prop-init!), then idle.
+arg0: the entity. Returns nothing."
+  (hj2-mtn-prop-init! this arg0 *hj2-mtn-button-sg* (new 'static 'vector :y (meters 0.2) :w (meters 1.8)))
+  (go (method-of-object this idle))
+  )
+
+;; Jak 2's mtn-dice-button (mountain-obs.gc:60, a basebutton): the button by the dice, pressed once
+;; the dice puzzle is solved (the last frame of its idle animation, the button 15cm down).
+(deftype hj2-mtn-dice-button (hj2-mtn-end-prop)
+  ()
+  )
+
+
+(def-actor hj2-mtn-dice-button
+  :bounds (0 0.26 0 1.2)
+  )
+
+;; WARN: Return type mismatch object vs none.
+(defmethod init-from-entity! ((this hj2-mtn-dice-button) (arg0 entity-actor))
+  "Jak 2's mtn-dice-button setup, pressed: a solid prop (hj2-mtn-prop-init!), then idle.
+arg0: the entity. Returns nothing."
+  (hj2-mtn-prop-init! this arg0 *hj2-mtn-dice-button-sg* (new 'static 'vector :y (meters 0.26) :w (meters 1.2)))
+  (go (method-of-object this idle))
+  )
+
+;; Jak 2's mtn-plat-eject (mountain-obs.gc:1583): the 5 steps pushed out of the temple walls once
+;; their button is pressed. Ejected for good at the end of the game: Jak 2 then puts them at their
+;; entity's place (10m out of the wall), still. Solid on the hull of the model.
+(deftype hj2-mtn-plat-eject (hj2-mtn-prop)
+  ()
+  )
+
+
+(def-actor hj2-mtn-plat-eject
+  :bounds (0 -1 5 5.5)
+  )
+
+;; WARN: Return type mismatch object vs none.
+(defmethod init-from-entity! ((this hj2-mtn-plat-eject) (arg0 entity-actor))
+  "Jak 2's mtn-plat-eject setup, ejected: a solid prop (hj2-mtn-prop-init!), then idle.
+arg0: the entity. Returns nothing."
+  (hj2-mtn-prop-init! this arg0 *hj2-mtn-plat-eject-sg* (new 'static 'vector :y (meters -1) :z (meters 5) :w (meters 5.5)))
+  (go (method-of-object this idle))
+  )
+
+;; Jak 2's mtn-lens (mountain-scenes.gc:2895, in mtnext): the lens hanging in the lens room, still.
+;; Jak 2 gives it no collision; here a box (still prop), 22m over the floor, out of Jak's reach.
+(deftype hj2-mtn-lens (hj2-mtn-prop)
+  ()
+  )
+
+
+(def-actor hj2-mtn-lens
+  :bounds (0 0 0 0.9)
+  )
+
+;; WARN: Return type mismatch object vs none.
+(defmethod init-from-entity! ((this hj2-mtn-lens) (arg0 entity-actor))
+  "Jak 2's mtn-lens setup: a still prop (hj2-mtn-prop-init!), then idle. arg0: the entity.
+Returns nothing."
+  (hj2-mtn-prop-init! this arg0 *hj2-mtn-lens-sg* (new 'static 'vector :w (meters 0.9)))
+  (go (method-of-object this idle))
+  )
+
+;; Jak 2's mtn-lens-base (mountain-scenes.gc:2929, in mountain): the shutter over the lens. Jak 2's
+;; init tests the mountain-lens task but does nothing with it: it always shows its idle pose, kept
+;; here. No collision in Jak 2; here a box (still prop), out of Jak's reach above the lens room.
+(deftype hj2-mtn-lens-base (hj2-mtn-prop)
+  ()
+  )
+
+
+(def-actor hj2-mtn-lens-base
+  :bounds (0 -2.75 0 7.1)
+  )
+
+;; WARN: Return type mismatch object vs none.
+(defmethod init-from-entity! ((this hj2-mtn-lens-base) (arg0 entity-actor))
+  "Jak 2's mtn-lens-base setup: a still prop (hj2-mtn-prop-init!), then idle. arg0: the entity.
+Returns nothing."
+  (hj2-mtn-prop-init! this arg0 *hj2-mtn-lens-base-sg* (new 'static 'vector :y (meters -2.75) :w (meters 7.1)))
+  (go (method-of-object this idle))
+  )
+
+;; Jak 2's mtn-lens-floor (mountain-scenes.gc:2965, in mountain): the round floor of the lens room.
+;; The mountain-lens task is complete at the end of the game: idle-no-beam, its light shaft
+;; (group-mtn-lens-light-shaft) off. Solid on the hull of the model, like Jak 2's.
+(deftype hj2-mtn-lens-floor (hj2-mtn-prop)
+  ()
+  )
+
+
+(def-actor hj2-mtn-lens-floor
+  :bounds (0 -0.25 0 6.2)
+  )
+
+;; WARN: Return type mismatch object vs none.
+(defmethod init-from-entity! ((this hj2-mtn-lens-floor) (arg0 entity-actor))
+  "Jak 2's mtn-lens-floor setup, without its beam: a solid prop (hj2-mtn-prop-init!), then idle.
+arg0: the entity. Returns nothing."
+  (hj2-mtn-prop-init! this arg0 *hj2-mtn-lens-floor-sg* (new 'static 'vector :y (meters -0.25) :w (meters 6.2)))
+  (go (method-of-object this idle))
+  )
+
+;; Dice ////////////////////////////////////////////////////////////////////////////////////////////
+
+;; Jak 2's mtn-dice (mountain-obs.gc:276): 5 dice Jak rolls over the dark eco pool. Each is 6 faces
+;; (joints sidea..sidef, transform indices 4 to 9); once the dice puzzle is solved
+;; (mountain-shard-dice) Jak 2 lays them flat, a walkway of 30 tiles over the pool, each face at the
+;; world matrix of *mtn-dice-done-info* (its init, :1353) that its joint callback copies into the
+;; face's bone, 2m higher with the pool under it (dice-joint-callback). Here the same, still: the
+;; pool's ripple tilt is left out. The model keeps primitive 10 only, the faces' top skin: Jak 2
+;; shows the other primitives (their underside) only to a camera below a face (setup-masks by side).
+(deftype hj2-mtn-dice (process-drawable)
+  ((root         collide-shape  :override)
+   (face-matrix  matrix         6 :inline)
+   )
   (:state-methods
     idle
     )
   )
 
 
-(def-actor hj2-pal-windmill
-  :bounds (0 0 0 62)
+;; its faces spread up to 15m from its origin once laid flat
+(def-actor hj2-mtn-dice
+  :bounds (0 0 0 20)
   )
 
-;; plays its animation (the blades turning) in a loop
-(defstate idle (hj2-pal-windmill)
+;; Jak 2's *mtn-dice-done-info*: for each die (extra-id 1 to 5), its 6 faces' world matrices, 12
+;; floats each: the x, y and z axes (rows), then the position (game units)
+(define *hj2-mtn-dice-faces*
+  (new 'static 'array float 360
+    0.0 1.0 0.0 0.0 0.0 1.0 0.9999 0.0 0.0 -2584575.8 376831.97 172032.0   ;; die 1, face 0
+    0.0 0.9999 0.0 0.0 0.0 -0.9999 -0.9999 0.0 0.0 -2617343.2 376831.5 204800.06
+    0.0 0.9999 0.0 0.0 0.0 0.9999 0.9999 0.0 0.0 -2600959.5 376831.66 204800.03
+    0.0 0.9999 0.0 0.0 0.0 0.9999 1.0 0.0 0.0 -2600959.8 376831.75 172032.06
+    0.0 1.0 0.0 -1.0 0.0 0.0 0.0 0.0 1.0 -2584575.8 376832.0 155648.0
+    0.0 0.9999 0.0 0.0 0.0 0.9999 0.9999 0.0 0.0 -2600959.5 376831.72 188416.03
+    0.0 1.0 0.0 0.0 0.0 1.0 0.9999 0.0 0.0 -2600959.8 376831.97 -73728.0   ;; die 2, face 0
+    0.0 1.0 0.0 0.0 0.0 0.9999 0.9999 0.0 0.0 -2568191.5 376832.0 -73727.945
+    0.0 1.0 0.0 0.0 0.0 -1.0 -1.0 0.0 0.0 -2584575.8 376832.0 -73727.96
+    0.0 0.9999 0.0 0.0 0.0 0.9999 1.0 0.0 0.0 -2551807.2 376832.0 -73727.9
+    0.0 1.0 0.0 -1.0 0.0 0.0 0.0 0.0 1.0 -2600959.8 376832.0 -90112.0
+    0.0 0.9999 0.0 0.0 0.0 0.9999 0.9999 0.0 0.0 -2551807.2 376832.25 -57343.875
+    0.0 1.0 0.0 0.0 0.0 1.0 0.9999 0.0 0.0 -2551807.8 376832.0 -24576.0   ;; die 3, face 0
+    0.0 0.9999 0.0 -0.9999 0.0 0.0 0.0 0.0 0.9999 -2519039.2 376832.0 -8191.963
+    0.0 1.0 0.0 0.0 0.0 -1.0 -1.0 0.0 0.0 -2535423.5 376832.0 -24575.994
+    0.0 0.9999 0.0 -0.9999 0.0 0.0 0.0 0.0 0.9999 -2519039.2 376831.97 8192.031
+    0.0 1.0 0.0 -1.0 0.0 0.0 0.0 0.0 1.0 -2551807.8 376832.0 -40960.0
+    0.0 0.9999 0.0 0.0 0.0 -0.9999 -0.9999 0.0 0.0 -2535423.5 376831.97 -8191.9688
+    0.0 1.0 0.0 0.0 0.0 1.0 0.9999 0.0 0.0 -2519039.8 376832.0 40960.0   ;; die 4, face 0
+    0.0 1.0 0.0 0.0 0.0 0.9999 0.9999 0.0 0.0 -2551807.5 376832.0 40960.047
+    0.0 0.9999 0.0 -0.9999 0.0 0.0 0.0 0.0 0.9999 -2568191.2 376831.75 57344.03
+    0.0 0.9999 0.0 0.0 0.0 0.9999 1.0 0.0 0.0 -2535423.5 376832.0 40960.004
+    0.0 1.0 0.0 -1.0 0.0 0.0 0.0 0.0 1.0 -2519039.8 376832.0 24576.0
+    0.0 0.9999 0.0 -0.9999 0.0 0.0 0.0 0.0 1.0 -2551807.5 376831.97 57344.03
+    0.0 1.0 0.0 0.0 0.0 1.0 0.9999 0.0 0.0 -2568191.8 376831.97 90112.0   ;; die 5, face 0
+    0.0 0.9999 0.0 0.9999 0.0 0.0 0.0 0.0 -0.9999 -2584575.8 376831.72 122880.0
+    0.0 0.9999 0.0 -0.9999 0.0 0.0 0.0 0.0 0.9999 -2584575.5 376831.72 139264.03
+    0.0 0.9999 0.0 0.9999 0.0 0.0 0.0 0.0 -0.9999 -2584575.8 376831.75 106496.0
+    0.0 1.0 0.0 -1.0 0.0 0.0 0.0 0.0 1.0 -2568191.8 376832.0 73728.0
+    0.0 1.0 0.0 0.9999 0.0 0.0 0.0 0.0 -1.0 -2568191.8 376831.94 106496.0
+    )
+  )
+
+(defun hj2-mtn-dice-joint-callback ((arg0 draw-control) (arg1 cspace-array) (arg2 joint-control))
+  "The dice's postbind function (Jak 2's dice-joint-callback, still): puts each face's bone (cspace
+4 to 9) at its world matrix (face-matrix).
+arg0: the die's draw-control (its process is the die). arg1: its bones. arg2: unused.
+Side effects: overwrites the 6 face bone transforms. Returns nothing."
+  (let ((dice (the-as hj2-mtn-dice (-> arg0 process))))
+    (dotimes (i 6)
+      (matrix-copy! (-> arg1 data (+ i 4) bone transform) (-> dice face-matrix i))
+      )
+    )
+  (none)
+  )
+
+;; laid flat: one transform-post computes the bones (the callback places the faces) and the
+;; collision, then it sleeps
+(defstate idle (hj2-mtn-dice)
   :virtual #t
   :code (behavior ()
-    (until #f
-      (ja-no-eval :group! (ja-group) :num! (seek!) :frame-num 0.0)
-      (until (ja-done? 0)
-        (suspend)
-        (ja :num! (seek!))
-        )
-      )
-    #f
+    (ja :num-func num-func-identity :frame-num 0.0)
+    (transform-post)
+    (sleep-code)
     )
-  :post ja-post
   )
 
 ;; WARN: Return type mismatch object vs none.
-(defmethod init-from-entity! ((this hj2-pal-windmill) (arg0 entity-actor))
-  "Jak 2's pal-windmill setup: placement and skeleton."
-  (logior! (-> this mask) (process-mask ambient))
+(defmethod init-from-entity! ((this hj2-mtn-dice) (arg0 entity-actor))
+  "Jak 2's mtn-dice setup, solved.
+arg0: the entity; its extra-id lump (1 to 5) picks the die's 6 faces in *hj2-mtn-dice-faces*.
+Side effects: sets the root (a collide-shape: a group of 6 prims, the hull of a face (collide mesh
+0) on each face's joint, obstacle, solid, rideable), the placement, the skeleton with
+hj2-mtn-dice-joint-callback, and face-matrix (Jak 2's done matrices, 2m up like Jak 2 draws them
+over its pool), then goes to idle. Returns nothing."
+  (let ((s5-0 (new 'process 'collide-shape this (collide-list-enum hit-by-player))))
+    (let ((s4-0 (new 'process 'collide-shape-prim-group s5-0 (the-as uint 6) 0)))
+      (set! (-> s5-0 total-prims) (the-as uint 7))
+      (set! (-> s4-0 prim-core collide-as) (collide-spec obstacle))
+      (set! (-> s4-0 prim-core collide-with) (collide-spec jak player-list))
+      (set! (-> s4-0 prim-core action) (collide-action solid rideable))
+      (set-vector! (-> s4-0 local-sphere) 0.0 0.0 0.0 (meters 20))
+      (set! (-> s5-0 root-prim) s4-0)
+      )
+    (dotimes (i 6)
+      (let ((prim (new 'process 'collide-shape-prim-mesh s5-0 (the-as uint 0) (the-as uint i))))
+        (set! (-> prim prim-core collide-as) (collide-spec obstacle))
+        (set! (-> prim prim-core collide-with) (collide-spec jak player-list))
+        (set! (-> prim prim-core action) (collide-action solid rideable))
+        (set! (-> prim transform-index) (+ i 4))
+        (set-vector! (-> prim local-sphere) 0.0 0.0 0.0 11878.4)
+        )
+      )
+    (set! (-> s5-0 nav-radius) (* 0.75 (-> s5-0 root-prim local-sphere w)))
+    (let ((v1-17 (-> s5-0 root-prim)))
+      (set! (-> s5-0 backup-collide-as) (-> v1-17 prim-core collide-as))
+      (set! (-> s5-0 backup-collide-with) (-> v1-17 prim-core collide-with))
+      )
+    (set! (-> this root) s5-0)
+    )
+  (process-drawable-from-entity! this arg0)
+  (initialize-skeleton this *hj2-mtn-dice-sg* (the-as pair 0))
+  (set! (-> this skel postbind-function) hj2-mtn-dice-joint-callback)
+  (let* ((id (max 1 (min 5 (res-lump-value arg0 'extra-id int :time -1000000000.0))))
+         (first-face (* 6 (+ id -1)))
+         )
+    (dotimes (i 6)
+      (let ((m (-> this face-matrix i))
+            (base (* 12 (+ first-face i)))
+            )
+        (set-vector!
+          (-> m rvec)
+          (-> *hj2-mtn-dice-faces* base)
+          (-> *hj2-mtn-dice-faces* (+ base 1))
+          (-> *hj2-mtn-dice-faces* (+ base 2))
+          0.0
+          )
+        (set-vector!
+          (-> m uvec)
+          (-> *hj2-mtn-dice-faces* (+ base 3))
+          (-> *hj2-mtn-dice-faces* (+ base 4))
+          (-> *hj2-mtn-dice-faces* (+ base 5))
+          0.0
+          )
+        (set-vector!
+          (-> m fvec)
+          (-> *hj2-mtn-dice-faces* (+ base 6))
+          (-> *hj2-mtn-dice-faces* (+ base 7))
+          (-> *hj2-mtn-dice-faces* (+ base 8))
+          0.0
+          )
+        (set-vector!
+          (-> m trans)
+          (-> *hj2-mtn-dice-faces* (+ base 9))
+          (+ (-> *hj2-mtn-dice-faces* (+ base 10)) (meters 2))
+          (-> *hj2-mtn-dice-faces* (+ base 11))
+          1.0
+          )
+        )
+      )
+    )
+  (go (method-of-object this idle))
+  )
+
+;; Dark eco //////////////////////////////////////////////////////////////////////////////////////
+
+;; Jak 2's dark-eco-pool (engine/common_objs/dark-eco-pool.gc there, a water-anim) under the dice:
+;; touching it kills (its attack-event 'dark-eco-pool). Its surface is drawn by the level's mesh
+;; (the level port's "water" block, a surface without a water region); this process is the hazard
+;; alone: Jak 3's water regions only send their 'water event to a water-anim, so Jak dies here when
+;; his feet go under the pool's height (its placement) inside Jak 2's volume of it (its vol lump: 6
+;; planes per box, outside where dot(p, n) > w, game units). No sound (no eco-pool in Jak 3's
+;; banks), no ripples.
+(deftype hj2-dark-eco-pool (process-drawable)
+  ((boxes      (inline-array vector))
+   (box-count  int32)
+   (kill-id    uint32)
+   )
+  (:state-methods
+    idle
+    )
+  )
+
+
+(defun hj2-dark-eco-pool-touch? ((this hj2-dark-eco-pool) (pos vector))
+  "Is pos (game units) in the pool: under its surface (the root's height) and inside one of its
+boxes (6 planes each)? Returns #t or #f. No side effects."
+  (let ((inside #f))
+    (when (< (-> pos y) (-> this root trans y))
+      (dotimes (b (-> this box-count))
+        (let ((in-box #t))
+          (dotimes (k 6)
+            (let ((plane (-> this boxes (+ (* 6 b) k))))
+              (if (< (-> plane w) (vector-dot pos plane))
+                  (set! in-box #f)
+                  )
+              )
+            )
+          (if in-box
+              (set! inside #t)
+              )
+          )
+        )
+      )
+    inside
+    )
+  )
+
+;; every frame: Jak in the pool dies (Jak 3's water-anim attack, mode dark-eco-pool)
+(defstate idle (hj2-dark-eco-pool)
+  :virtual #t
+  :trans (behavior ()
+    (if (and *target* (hj2-dark-eco-pool-touch? self (-> *target* control trans)))
+        (send-event
+          *target*
+          'attack-invinc
+          #f
+          (static-attack-info
+            :mask (vehicle-impulse-factor)
+            ((id (-> self kill-id)) (damage 2.0) (vehicle-damage-factor 1.0) (vehicle-impulse-factor 1.0) (mode 'dark-eco-pool))
+            )
+          )
+        )
+    )
+  :code sleep-code
+  )
+
+;; WARN: Return type mismatch object vs none.
+(defmethod init-from-entity! ((this hj2-dark-eco-pool) (arg0 entity-actor))
+  "Jak 2's dark-eco-pool setup, the hazard only.
+arg0: the entity (its placement: the surface height; its vol lump: the pool's boxes).
+Side effects: sets the root (a trsqv), the placement, boxes and box-count (none without the lump:
+then it never kills) and its attack id, then goes to idle. Returns nothing."
   (set! (-> this root) (new 'process 'trsqv))
   (process-drawable-from-entity! this arg0)
-  (logclear! (-> this mask) (process-mask actor-pause))
-  (initialize-skeleton this *hj2-pal-windmill-sg* (the-as pair 0))
+  (let* ((tag (new 'static 'res-tag))
+         (data (res-lump-data arg0 'vol (inline-array vector) :tag-ptr (& tag)))
+         )
+    (set! (-> this boxes) data)
+    (set! (-> this box-count) (if data
+                                  (/ (the-as int (-> tag elt-count)) 6)
+                                  0
+                                  )
+          )
+    )
+  (set! (-> this kill-id) (new-attack-id))
   (go (method-of-object this idle))
+  )
+
+;; Return platform //////////////////////////////////////////////////////////////////////////////////
+
+;; Jak 2's mtn-plat-return (mountain-obs.gc:2394) in mtnext: the trans-plat's model and ride (Jak 2's
+;; trans-plat is a mtn-plat-return), but it starts at the top of its path at once (no rising, no
+;; nearest end), doesn't grab Jak (its flags are 0 in Jak 2), and once at the bottom goes back up
+;; by itself a second after Jak gets off. Only mtn-plat-return-5 is placed (named_actors): the
+;; other, -6, is born only while Jak 2 shows mtnext as a backdrop (kill-mask special), on the same
+;; way down. The states it doesn't redefine are hj2-trans-plat's; those it redefines keep the
+;; handlers they don't set from hj2-trans-plat's (a virtual state inherits its parent's).
+(deftype hj2-mtn-plat-return (hj2-trans-plat)
+  ()
+  )
+
+
+;; no rise: at the top of its path (path-pos 0), waiting
+(defstate rising (hj2-mtn-plat-return)
+  :virtual #t
+  :code (behavior ()
+    (set! (-> self path-pos) 0.0)
+    (go-virtual waiting)
+    )
+  )
+
+;; waits at an end; after half a second with Jak on it, runs to the other end (Jak not grabbed)
+(defstate waiting (hj2-mtn-plat-return)
+  :virtual #t
+  :trans (behavior ()
+    ;; 'ridden comes from plat-trans (rider-trans)
+    (set! (-> self ridden?) #f)
+    (plat-trans)
+    (if (not (-> self ridden?))
+        (set-time! (-> self ride-timer))
+        )
+    (when (and (-> self ridden?) (time-elapsed? (-> self ride-timer) (seconds 0.5)))
+      (set! (-> self dest-pos) (if (= (-> self path-pos) 0.0)
+                                   1.0
+                                   0.0
+                                   )
+            )
+      (go-virtual running)
+      )
+    )
+  )
+
+;; rides like the trans-plat, but has no grab to release
+(defstate running (hj2-mtn-plat-return)
+  :virtual #t
+  :exit (behavior ()
+    (none)
+    )
+  )
+
+;; at an end: a second after Jak got off, back up from the bottom, or waiting at the top
+(defstate waiting-for-no-player (hj2-mtn-plat-return)
+  :virtual #t
+  :trans (behavior ()
+    (plat-trans)
+    (when (time-elapsed? (-> self ride-timer) (seconds 1))
+      (cond
+        ((= (-> self path-pos) 1.0)
+         (set! (-> self dest-pos) 0.0)
+         (go-virtual running)
+         )
+        (else
+          (go-virtual waiting)
+          )
+        )
+      )
+    )
   )

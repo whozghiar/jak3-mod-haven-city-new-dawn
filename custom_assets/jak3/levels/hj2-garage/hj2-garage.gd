@@ -2,5 +2,7 @@
 ;; DGO definition file for hj2-garage: Keira's garage, behind the stadium grounds.
 ("HJK.DGO"
  (
+  "hj2-gar-curtain-ag.go"
+  "hj2-garage-obs.o"
   "hj2-garage.go"
   ))

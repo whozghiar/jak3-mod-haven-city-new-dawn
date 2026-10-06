@@ -2,8 +2,8 @@
 ;; DGO definition file for hj2-mount: the mountain, from the gardens airlock to the way to Haven Forest.
 ("HJM.DGO"
  (
-  "com-airlock-outer-ag.go"
   "warp-gate-ag.go"
+  "hj2-airlock-outer-ag.go"
   "hj2-trans-plat-ag.go"
   "hj2-iris-door-ag.go"
   "hj2-mtn-elevator-ag.go"
@@ -12,7 +12,10 @@
   "hj2-mtn-plat-shoot-ag.go"
   "hj2-mtn-plat-buried-ag.go"
   "hj2-pal-windmill-ag.go"
+  "hj2-mtn-lens-base-ag.go"
+  "hj2-mtn-lens-floor-ag.go"
   "hj2-mount-ocean.o"
   "hj2-mount-obs.o"
+  "hj2-mount-part.o"
   "hj2-mount.go"
   ))

@@ -2,6 +2,10 @@
 ;; DGO definition file for hj2-vin: Vin's power station room.
 ("HJV.DGO"
  (
-  "vin-door-ctyinda-ag.go"
+  "warp-gate-ag.go"
+  "hj2-vin-door-ag.go"
+  "hj2-vin-turbine-ag.go"
+  "hj2-vin-obs.o"
+  "hj2-vin-part.o"
   "hj2-vin.go"
   ))

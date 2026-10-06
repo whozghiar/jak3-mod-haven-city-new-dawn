@@ -6,6 +6,8 @@
   "iso_name": "HJ2RUINS",
   "nickname": "hjr",
   "import_fr3": {"game": "jak2", "levels": ["ruins", "sagehut"], "tfrag": true, "tie": true, "shrub": true, "collision": true, "hide_prototypes": ["ruin-balcony-01-tower.mb", "ruin-balcony-02-tower.mb", "ruin-bar-01-tower.mb", "ruin-bar-02-tower.mb", "ruin-bar-03-tower.mb", "ruin-bridge-01-tower.mb", "ruin-lamp-post-01-tower.mb", "ruin-lamp-post-03-tower.mb", "ruin-lamp-post-04-tower.mb", "ruin-lampbase-02-tower.mb", "ruin-lamplite-01-tower.mb", "ruin-pillar-broken-01-tower.mb", "ruin-pillar-broken-03-tower.mb", "ruin-top-tower.mb", "ruin-tower-window-01.mb", "ruin-window-01-tower.mb", "ruins-city-corner-roof-tower.mb", "ruins-city-roof-01-tower.mb", "ruins-cracked-roof-tower.mb", "ruins-pipe-2m-end-tower.mb", "ruins-pipe-elbow-tower.mb", "ruins-pipe-mid-tower.mb", "ruins-pipe-ring-tower.mb", "ruins-support-01-tower.mb", "ruins-support-02-tower.mb", "swingpole-geo.mb", "ruin-top-brick-01.mb", "ruin-brick-side-01.mb"]},
+  // Jak 2's static props that aren't actors here, and its pools' surfaces, as one mesh (the mesh step)
+  "gltf_file": "custom_assets/jak3/levels/hj2-ruins/hj2-ruins-mesh.glb",
   // Jak 2's load regions of this level (translated), and its water volumes
   "region_tree_files": ["custom_assets/jak3/levels/hj2-ruins/hj2-ruins-regions.json", "custom_assets/jak3/levels/hj2-ruins/hj2-ruins-water-regions.json"],
   // the sprite textures of its particles, as texture page 1627 (hj2-ruins-part.gc)
@@ -18,11 +20,11 @@
     {"trans": [945.7707, 42.506, -496.3707], "quat": [0.0, 1.0, 0.0, 0.0], "lump": {"campoints-flags-off": ["int32", 0], "campoints-flags-on": ["int32", 0], "flags-off": ["int32", 0], "flags-on": ["int32", 0], "focalpull-flags-off": ["int32", 0], "focalpull-flags-on": ["int32", 0], "fov": ["float", 7261.2802734375], "fov-offset": ["float", 4421.9140625], "id": ["int32", 1], "interpTime": ["float", 1.5], "name": "camera-270", "rot-offset": ["vector", [-0.07010000199079514, -0.8704000115394592, -0.1298999935388565, 0.46950000524520874]], "spline-follow-dist-offset": ["float", 0.0], "trans-offset": ["vector", [-33692.875, 18238.259765625, -126313.6796875, 1.0]], "translation_info": ["vector", [3436544.0, 0.0, -1400832.0, 1.0]]}}
   ],
   // models of its custom actors, built by build-actor
-  "custom_models": ["hj2-ruins-beam"],
-  "art_groups": ["com-airlock-outer-ag"],
+  "custom_models": ["hj2-airlock-outer", "hj2-ruins-beam", "hj2-ruins-pillar"],
+  "art_groups": ["jak-pole+0-ag"],
   "actors": [
-    // Jak 2's com-airlock-outer-2 (ruins)
-    {"trans": [822.1983, 0.0654, -339.277], "etype": "com-airlock-outer", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [822.1983, 0.0654, -339.277, 13.8564], "lump": {"name": "com-airlock-outer-2", "distance": ["float", 81920.0], "on-activate": ["pair", "(want-load 'hj2-ruins 'havenj2)"], "on-deactivate": ["pair", "(want-display 'havenj2 #f)"], "on-enter": ["pair", "(want-display 'havenj2 'display)"], "on-notice": ["pair", "'(havenj2)"]}},
+    // Jak 2's com-airlock-outer-2 (ruins) [as hj2-airlock-outer]
+    {"trans": [822.1983, 0.0654, -339.277], "etype": "hj2-airlock-outer", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [822.1983, 0.0654, -339.277, 13.8564], "lump": {"name": "com-airlock-outer-2", "distance": ["float", 81920.0], "height": ["vector", [81920.0, 81920.0, 0.0, 0.0]], "on-activate": ["pair", "(want-load 'havenj2 'hj2-ruins 'hj2-slmb)"], "on-deactivate": ["pair", "(want-display 'hj2-slmb #f)"], "on-enter": ["pair", "(want-display 'hj2-slmb 'display)"], "on-notice": ["pair", "'(hj2-slmb)"]}},
     // Jak 2's beam-1 (ruins)
     {"trans": [880.8583, 0.7061, -334.6779], "etype": "hj2-ruins-beam", "game_task": 0, "quat": [0.0, 0.9963, 0.0, -0.0858], "bsphere": [880.8583, 0.7061, -334.6779, 6.9282], "lump": {"name": "beam-1"}},
     // Jak 2's beam-10 (ruins)
@@ -47,6 +49,12 @@
     {"trans": [880.7275, 23.9428, -567.086], "etype": "hj2-ruins-beam", "game_task": 0, "quat": [0.0, 0.3195, 0.0, 0.9476], "bsphere": [880.7275, 23.9428, -567.086, 6.9282], "lump": {"name": "beam-8"}},
     // Jak 2's beam-9 (ruins)
     {"trans": [914.1572, 23.9473, -554.9486], "etype": "hj2-ruins-beam", "game_task": 0, "quat": [0.0, -0.4023, 0.0, 0.9155], "bsphere": [914.1572, 23.9473, -554.9486, 6.9282], "lump": {"name": "beam-9"}},
+    // Jak 2's ruins-pillar-collapse-7 (ruins)
+    {"trans": [923.9576, 36.0, -500.1126], "etype": "hj2-ruins-pillar", "game_task": 0, "quat": [0.0, 0.9239, 0.0, 0.3827], "bsphere": [923.9576, 36.0, -500.1126, 6.9282], "lump": {"name": "ruins-pillar-collapse-7"}},
+    // Jak 2's ruins-pillar-collapse-8 (ruins)
+    {"trans": [1017.3745, 36.0, -514.6685], "etype": "hj2-ruins-pillar", "game_task": 0, "quat": [0.0, -0.3827, 0.0, 0.9239], "bsphere": [1017.3745, 36.0, -514.6685, 6.9282], "lump": {"name": "ruins-pillar-collapse-8"}},
+    // Jak 2's ruins-pillar-collapse-9 (ruins)
+    {"trans": [966.0775, 36.0, -501.6661], "etype": "hj2-ruins-pillar", "game_task": 0, "quat": [0.0, 0.3827, 0.0, 0.9239], "bsphere": [966.0775, 36.0, -501.6661, 6.9282], "lump": {"name": "ruins-pillar-collapse-9"}},
     // Jak 2's swingpole-16 (ruins)
     {"trans": [1101.4596, 51.0548, -215.7893], "etype": "swingpole", "game_task": 0, "quat": [0.691, 0.107, -0.149, 0.6991], "bsphere": [1101.4596, 51.0548, -215.7893, 12.1244], "lump": {"name": "swingpole-16"}},
     // Jak 2's swingpole-17 (ruins)

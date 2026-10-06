@@ -6,8 +6,12 @@
   "iso_name": "HJ2MOUNT",
   "nickname": "hjm",
   "import_fr3": {"game": "jak2", "levels": ["mountain"], "tfrag": true, "tie": true, "shrub": true, "collision": true, "collision_bounds": [-1050, -60, -200, -330, 340, 620]},
+  // Jak 2's static props that aren't actors here, and its pools' surfaces, as one mesh (the mesh step)
+  "gltf_file": "custom_assets/jak3/levels/hj2-mount/hj2-mount-mesh.glb",
   // Jak 2's load regions of this level (translated), and its water volumes
-  "region_tree_files": ["custom_assets/jak3/levels/hj2-mount/hj2-mount-regions.json"],
+  "region_tree_files": ["custom_assets/jak3/levels/hj2-mount/hj2-mount-regions.json", "custom_assets/jak3/levels/hj2-mount/hj2-mount-water-regions.json"],
+  // the sprite textures of its particles, as texture page 1558 (hj2-mount-part.gc)
+  "sprite_textures": {"page": 1558, "game": "jak2", "textures": [["mountain", "mountain-sprite", "waterfall-drops"], ["GAME", "effects", "water-ring"], ["mountain", "mountain-sprite", "rainbow"]]},
   "base_id": 23000,
   "base_region_id": 23000,
   // Jak 2's fixed cameras of this level (elevator rides, camera regions)
@@ -25,11 +29,11 @@
     {"trans": [-688.8633, 122.5684, 47.8652], "quat": [0.0, 1.0, 0.0, 0.0], "lump": {"campoints-flags-off": ["int32", 0], "campoints-flags-on": ["int32", 0], "flags-off": ["int32", 0], "flags-on": ["int32", 0], "focalpull-flags-off": ["int32", 0], "focalpull-flags-on": ["int32", 0], "fov": ["float", 7261.2802734375], "fov-offset": ["float", 4697.91162109375], "id": ["int32", 10], "interpTime": ["float", 1.5], "name": "camera-259", "rot-offset": ["vector", [-0.1770000010728836, 0.17339999973773956, 0.031700000166893005, 0.9682000279426575]], "spline-follow-dist-offset": ["float", 0.0], "trans-offset": ["vector", [33297.61328125, 16557.669921875, 56594.43359375, 1.0]], "translation_info": ["vector", [-2381029.5, 327680.0, 966328.3125, 1.0]]}}
   ],
   // models of its custom actors, built by build-actor
-  "custom_models": ["hj2-trans-plat", "hj2-iris-door", "hj2-mtn-elevator", "hj2-mtn-plat-updown", "hj2-mtn-plat-long", "hj2-mtn-plat-shoot", "hj2-mtn-plat-buried", "hj2-pal-windmill"],
-  "art_groups": ["com-airlock-outer-ag", "warp-gate-ag"],
+  "custom_models": ["hj2-airlock-outer", "hj2-trans-plat", "hj2-iris-door", "hj2-mtn-elevator", "hj2-mtn-plat-updown", "hj2-mtn-plat-long", "hj2-mtn-plat-shoot", "hj2-mtn-plat-buried", "hj2-pal-windmill", "hj2-mtn-lens-base", "hj2-mtn-lens-floor"],
+  "art_groups": ["warp-gate-ag"],
   "actors": [
-    // Jak 2's com-airlock-outer-4 (mountain)
-    {"trans": [-450.306, 30.0317, 208.6427], "etype": "com-airlock-outer", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [-450.306, 30.0317, 208.6427, 29.4449], "lump": {"name": "com-airlock-outer-4", "on-activate": ["pair", "(want-load 'hj2-mount 'havenj2)"], "on-deactivate": ["pair", "(want-display 'havenj2 #f)"], "on-enter": ["pair", "(want-display 'havenj2 'display)"], "on-notice": ["pair", "'(havenj2)"], "next-actor": ["string", "com-airlock-inner-38"]}},
+    // Jak 2's com-airlock-outer-4 (mountain) [as hj2-airlock-outer]
+    {"trans": [-450.306, 30.0317, 208.6427], "etype": "hj2-airlock-outer", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [-450.306, 30.0317, 208.6427, 29.4449], "lump": {"name": "com-airlock-outer-4", "height": ["vector", [81920.0, 81920.0, 0.0, 0.0]], "on-activate": ["pair", "(want-load 'havenj2 'hj2-mount 'hj2-farma)"], "on-deactivate": ["pair", "(want-display 'hj2-farma #f)"], "on-enter": ["pair", "(want-display 'hj2-farma 'display)"], "on-notice": ["pair", "'(hj2-farma)"], "next-actor": ["string", "com-airlock-inner-38"]}},
     // Jak 2's warp-gate-10 (mountain)
     {"trans": [-471.4251, 28.8613, 180.5155], "etype": "warp-gate", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [-471.4251, 28.8613, 180.5155, 13.0155], "lump": {"name": "warp-gate-10", "on-notice": ["pair", "'(\"hj2-mountain-warp-top\" #f #f)"]}},
     // Jak 2's warp-gate-11 (mountain)
@@ -116,6 +120,10 @@
     {"trans": [-931.593, 72.2829, 216.3255], "etype": "crate", "game_task": 0, "quat": [-0.0054, -0.0803, -0.0516, 0.9954], "bsphere": [-931.593, 72.2829, 216.3255, 1.7321], "lump": {"name": "crate-615", "eco-info": ["int32", 20, 2]}},
     // Jak 2's crate-616 (mountain)
     {"trans": [-931.2199, 112.3347, 281.6126], "etype": "crate", "game_task": 0, "quat": [-0.105, -0.0747, -0.0594, 0.9899], "bsphere": [-931.2199, 112.3347, 281.6126, 1.7321], "lump": {"name": "crate-616", "eco-info": ["int32", 20, 2]}},
+    // Jak 2's mtn-lens-base-2 (mountain)
+    {"trans": [-756.2936, 163.5764, 290.9566], "etype": "hj2-mtn-lens-base", "game_task": 0, "quat": [0.0, -0.2526, 0.0, 0.9676], "bsphere": [-756.2936, 163.5764, 290.9566, 74.4782], "lump": {"name": "mtn-lens-base-2"}},
+    // Jak 2's mtn-lens-floor-2 (mountain)
+    {"trans": [-756.2961, 133.0912, 290.9599], "etype": "hj2-mtn-lens-floor", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [-756.2961, 133.0912, 290.9599, 74.4782], "lump": {"name": "mtn-lens-floor-2"}},
     // Jak 2's mtn-plat-buried-7 (mountain)
     {"trans": [-898.9405, 135.0, 336.9045], "etype": "hj2-mtn-plat-buried", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [-898.9405, 135.0, 336.9045, 6.9282], "lump": {"name": "mtn-plat-buried-7"}},
     // Jak 2's mtn-plat-gap-1 (mountain)
@@ -157,6 +165,438 @@
     // Jak 2's pal-windmill-18 (mountain)
     {"trans": [476.6956, 377.8405, -1568.3634], "etype": "hj2-pal-windmill", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [476.6956, 377.8405, -1568.3634, 6.9282], "lump": {"name": "pal-windmill-18"}},
     // Jak 2's pal-windmill-19 (mountain)
-    {"trans": [424.2619, 327.8959, -1826.3232], "etype": "hj2-pal-windmill", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [424.2619, 327.8959, -1826.3232, 6.9282], "lump": {"name": "pal-windmill-19"}}
+    {"trans": [424.2619, 327.8959, -1826.3232], "etype": "hj2-pal-windmill", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [424.2619, 327.8959, -1826.3232, 6.9282], "lump": {"name": "pal-windmill-19"}},
+    // Jak 2's mountain-part-609 (mountain): group-mountain-cable-lights
+    {"trans": [595.5985, 346.5769, 135.849], "etype": "part-spawner", "game_task": 0, "quat": [-0.0035, 0.3393, -0.0161, 0.9406], "bsphere": [595.5985, 346.5769, 135.849, 6.9282], "lump": {"name": "mountain-part-609", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-610 (mountain): group-mountain-cable-lights
+    {"trans": [638.1168, 356.803, 100.6524], "etype": "part-spawner", "game_task": 0, "quat": [-0.0035, 0.3393, -0.0161, 0.9406], "bsphere": [638.1168, 356.803, 100.6524, 6.9282], "lump": {"name": "mountain-part-610", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-612 (mountain): group-mountain-cable-lights
+    {"trans": [599.0156, 387.3035, 1016.9532], "etype": "part-spawner", "game_task": 0, "quat": [-0.0548, 0.9001, -0.0443, 0.4299], "bsphere": [599.0156, 387.3035, 1016.9532, 6.9282], "lump": {"name": "mountain-part-612", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-611 (mountain): group-mountain-cable-lights
+    {"trans": [718.7572, 389.9214, 33.9768], "etype": "part-spawner", "game_task": 0, "quat": [0.0214, 0.3386, 0.0528, 0.9392], "bsphere": [718.7572, 389.9214, 33.9768, 6.9282], "lump": {"name": "mountain-part-611", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-605 (mountain): group-mountain-cable-lights
+    {"trans": [381.2316, 345.8806, 313.5923], "etype": "part-spawner", "game_task": 0, "quat": [-0.0035, 0.3393, -0.0161, 0.9406], "bsphere": [381.2316, 345.8806, 313.5923, 6.9282], "lump": {"name": "mountain-part-605", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-614 (mountain): group-mountain-cable-lights
+    {"trans": [531.7246, 349.2104, 935.2676], "etype": "part-spawner", "game_task": 0, "quat": [-0.0548, 0.9001, -0.0443, 0.4299], "bsphere": [531.7246, 349.2104, 935.2676, 6.9282], "lump": {"name": "mountain-part-614", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-615 (mountain): group-mountain-cable-lights
+    {"trans": [497.3865, 335.6646, 893.2771], "etype": "part-spawner", "game_task": 0, "quat": [-0.0548, 0.9001, -0.0443, 0.4299], "bsphere": [497.3865, 335.6646, 893.2771, 6.9282], "lump": {"name": "mountain-part-615", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-616 (mountain): group-mountain-cable-lights
+    {"trans": [427.7487, 320.4208, 807.4832], "etype": "part-spawner", "game_task": 0, "quat": [-0.0548, 0.9001, -0.0443, 0.4299], "bsphere": [427.7487, 320.4208, 807.4832, 6.9282], "lump": {"name": "mountain-part-616", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-617 (mountain): group-mountain-cable-lights
+    {"trans": [392.4718, 318.351, 763.7275], "etype": "part-spawner", "game_task": 0, "quat": [-0.0548, 0.9001, -0.0443, 0.4299], "bsphere": [392.4718, 318.351, 763.7275, 6.9282], "lump": {"name": "mountain-part-617", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-618 (mountain): group-mountain-cable-lights
+    {"trans": [357.3911, 320.846, 719.978], "etype": "part-spawner", "game_task": 0, "quat": [-0.0548, 0.9001, -0.0443, 0.4299], "bsphere": [357.3911, 320.846, 719.978, 6.9282], "lump": {"name": "mountain-part-618", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-613 (mountain): group-mountain-cable-lights
+    {"trans": [565.601, 366.4233, 976.493], "etype": "part-spawner", "game_task": 0, "quat": [-0.0548, 0.9001, -0.0443, 0.4299], "bsphere": [565.601, 366.4233, 976.493, 6.9282], "lump": {"name": "mountain-part-613", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-607 (mountain): group-mountain-cable-lights
+    {"trans": [509.6364, 334.4318, 207.057], "etype": "part-spawner", "game_task": 0, "quat": [-0.0035, 0.3393, -0.0161, 0.9406], "bsphere": [509.6364, 334.4318, 207.057, 6.9282], "lump": {"name": "mountain-part-607", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-608 (mountain): group-mountain-cable-lights
+    {"trans": [552.8436, 338.2399, 171.2526], "etype": "part-spawner", "game_task": 0, "quat": [-0.0035, 0.3393, -0.0161, 0.9406], "bsphere": [552.8436, 338.2399, 171.2526, 6.9282], "lump": {"name": "mountain-part-608", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-606 (mountain): group-mountain-cable-lights
+    {"trans": [423.8252, 338.0645, 278.2302], "etype": "part-spawner", "game_task": 0, "quat": [-0.0035, 0.3393, -0.0161, 0.9406], "bsphere": [423.8252, 338.0645, 278.2302, 6.9282], "lump": {"name": "mountain-part-606", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-623 (mountain): group-mountain-cable-lights
+    {"trans": [115.5834, 327.9518, 697.1155], "etype": "part-spawner", "game_task": 0, "quat": [-0.0703, -0.7758, 0.0522, 0.6248], "bsphere": [115.5834, 327.9518, 697.1155, 6.9282], "lump": {"name": "mountain-part-623", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-624 (mountain): group-mountain-cable-lights
+    {"trans": [105.5646, 322.4886, 742.7445], "etype": "part-spawner", "game_task": 0, "quat": [-0.0703, -0.7758, 0.0522, 0.6248], "bsphere": [105.5646, 322.4886, 742.7445, 6.9282], "lump": {"name": "mountain-part-624", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-625 (mountain): group-mountain-cable-lights
+    {"trans": [95.6454, 320.7775, 788.0364], "etype": "part-spawner", "game_task": 0, "quat": [-0.0703, -0.7758, 0.0522, 0.6248], "bsphere": [95.6454, 320.7775, 788.0364, 6.9282], "lump": {"name": "mountain-part-625", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-626 (mountain): group-mountain-cable-lights
+    {"trans": [66.6486, 338.7879, 921.1685], "etype": "part-spawner", "game_task": 0, "quat": [-0.0703, -0.7758, 0.0522, 0.6248], "bsphere": [66.6486, 338.7879, 921.1685, 6.9282], "lump": {"name": "mountain-part-626", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-627 (mountain): group-mountain-cable-lights
+    {"trans": [57.274, 352.3468, 964.4546], "etype": "part-spawner", "game_task": 0, "quat": [-0.0703, -0.7758, 0.0522, 0.6248], "bsphere": [57.274, 352.3468, 964.4546, 6.9282], "lump": {"name": "mountain-part-627", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-628 (mountain): group-mountain-cable-lights
+    {"trans": [48.2258, 370.236, 1006.386], "etype": "part-spawner", "game_task": 0, "quat": [-0.0703, -0.7758, 0.0522, 0.6248], "bsphere": [48.2258, 370.236, 1006.386, 6.9282], "lump": {"name": "mountain-part-628", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-630 (mountain): group-mountain-cable-lights
+    {"trans": [85.2165, 324.2621, 835.8235], "etype": "part-spawner", "game_task": 0, "quat": [-0.0703, -0.7758, 0.0522, 0.6248], "bsphere": [85.2165, 324.2621, 835.8235, 6.9282], "lump": {"name": "mountain-part-630", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-603 (mountain): group-mountain-cable-lights
+    {"trans": [297.2252, 372.7374, 383.4017], "etype": "part-spawner", "game_task": 0, "quat": [-0.0035, 0.3393, -0.0161, 0.9406], "bsphere": [297.2252, 372.7374, 383.4017, 6.9282], "lump": {"name": "mountain-part-603", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-620 (mountain): group-mountain-cable-lights
+    {"trans": [255.6067, 347.2539, 592.0431], "etype": "part-spawner", "game_task": 0, "quat": [0.0112, 0.9017, -0.0127, 0.432], "bsphere": [255.6067, 347.2539, 592.0431, 6.9282], "lump": {"name": "mountain-part-620", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-621 (mountain): group-mountain-cable-lights
+    {"trans": [135.3293, 349.4866, 607.528], "etype": "part-spawner", "game_task": 0, "quat": [-0.0703, -0.7758, 0.0522, 0.6248], "bsphere": [135.3293, 349.4866, 607.528, 6.9282], "lump": {"name": "mountain-part-621", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-622 (mountain): group-mountain-cable-lights
+    {"trans": [125.4438, 337.3819, 652.337], "etype": "part-spawner", "game_task": 0, "quat": [-0.0703, -0.7758, 0.0522, 0.6248], "bsphere": [125.4438, 337.3819, 652.337, 6.9282], "lump": {"name": "mountain-part-622", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-604 (mountain): group-mountain-cable-lights
+    {"trans": [339.0316, 357.4383, 348.6495], "etype": "part-spawner", "game_task": 0, "quat": [-0.0035, 0.3393, -0.0161, 0.9406], "bsphere": [339.0316, 357.4383, 348.6495, 6.9282], "lump": {"name": "mountain-part-604", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-619 (mountain): group-mountain-cable-lights
+    {"trans": [322.4312, 325.2516, 676.2792], "etype": "part-spawner", "game_task": 0, "quat": [-0.0548, 0.9001, -0.0443, 0.4299], "bsphere": [322.4312, 325.2516, 676.2792, 6.9282], "lump": {"name": "mountain-part-619", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-649 (mountain): group-mountain-cable-lights
+    {"trans": [183.6052, 372.7374, 319.4215], "etype": "part-spawner", "game_task": 0, "quat": [-0.0099, 0.7017, -0.0131, 0.7123], "bsphere": [183.6052, 372.7374, 319.4215, 6.9282], "lump": {"name": "mountain-part-649", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-650 (mountain): group-mountain-cable-lights
+    {"trans": [184.3508, 357.4383, 265.0622], "etype": "part-spawner", "game_task": 0, "quat": [-0.0099, 0.7017, -0.0131, 0.7123], "bsphere": [184.3508, 357.4383, 265.0622, 6.9282], "lump": {"name": "mountain-part-650", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-652 (mountain): group-mountain-cable-lights
+    {"trans": [185.9135, 338.0645, 154.8514], "etype": "part-spawner", "game_task": 0, "quat": [-0.0099, 0.7017, -0.0131, 0.7123], "bsphere": [185.9135, 338.0645, 154.8514, 6.9282], "lump": {"name": "mountain-part-652", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-653 (mountain): group-mountain-cable-lights
+    {"trans": [187.5645, 334.4318, 43.3774], "etype": "part-spawner", "game_task": 0, "quat": [-0.0099, 0.7017, -0.0131, 0.7123], "bsphere": [187.5645, 334.4318, 43.3774, 6.9282], "lump": {"name": "mountain-part-653", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-654 (mountain): group-mountain-cable-lights
+    {"trans": [188.4203, 338.2399, -12.7304], "etype": "part-spawner", "game_task": 0, "quat": [-0.0099, 0.7017, -0.0131, 0.7123], "bsphere": [188.4203, 338.2399, -12.7304, 6.9282], "lump": {"name": "mountain-part-654", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-655 (mountain): group-mountain-cable-lights
+    {"trans": [189.287, 346.5769, -68.2339], "etype": "part-spawner", "game_task": 0, "quat": [-0.0099, 0.7017, -0.0131, 0.7123], "bsphere": [189.287, 346.5769, -68.2339, 6.9282], "lump": {"name": "mountain-part-655", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-656 (mountain): group-mountain-cable-lights
+    {"trans": [190.1572, 356.803, -123.4232], "etype": "part-spawner", "game_task": 0, "quat": [-0.0099, 0.7017, -0.0131, 0.7123], "bsphere": [190.1572, 356.803, -123.4232, 6.9282], "lump": {"name": "mountain-part-656", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-657 (mountain): group-mountain-cable-lights
+    {"trans": [191.8674, 389.9214, -228.0442], "etype": "part-spawner", "game_task": 0, "quat": [0.0415, 0.7006, 0.039, 0.7113], "bsphere": [191.8674, 389.9214, -228.0442, 6.9282], "lump": {"name": "mountain-part-657", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-651 (mountain): group-mountain-cable-lights
+    {"trans": [185.1202, 345.8806, 210.2055], "etype": "part-spawner", "game_task": 0, "quat": [-0.0099, 0.7017, -0.0131, 0.7123], "bsphere": [185.1202, 345.8806, 210.2055, 6.9282], "lump": {"name": "mountain-part-651", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-631 (mountain): group-mountain-cable-lights
+    {"trans": [-449.01, 392.2844, 703.2312], "etype": "part-spawner", "game_task": 0, "quat": [-0.016, 0.1688, -0.0635, 0.9835], "bsphere": [-449.01, 392.2844, 703.2312, 6.9282], "lump": {"name": "mountain-part-631", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-632 (mountain): group-mountain-cable-lights
+    {"trans": [-403.341, 372.2874, 687.2599], "etype": "part-spawner", "game_task": 0, "quat": [-0.016, 0.1688, -0.0635, 0.9835], "bsphere": [-403.341, 372.2874, 687.2599, 6.9282], "lump": {"name": "mountain-part-632", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-633 (mountain): group-mountain-cable-lights
+    {"trans": [-356.8992, 355.9686, 670.9758], "etype": "part-spawner", "game_task": 0, "quat": [-0.016, 0.1688, -0.0635, 0.9835], "bsphere": [-356.8992, 355.9686, 670.9758, 6.9282], "lump": {"name": "mountain-part-633", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-634 (mountain): group-mountain-cable-lights
+    {"trans": [-309.6844, 343.3283, 654.3785], "etype": "part-spawner", "game_task": 0, "quat": [-0.016, 0.1688, -0.0635, 0.9835], "bsphere": [-309.6844, 343.3283, 654.3785, 6.9282], "lump": {"name": "mountain-part-634", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-635 (mountain): group-mountain-cable-lights
+    {"trans": [-213.4943, 329.9177, 620.4339], "etype": "part-spawner", "game_task": 0, "quat": [-0.016, 0.1688, -0.0635, 0.9835], "bsphere": [-213.4943, 329.9177, 620.4339, 6.9282], "lump": {"name": "mountain-part-635", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-636 (mountain): group-mountain-cable-lights
+    {"trans": [-164.5638, 328.775, 603.1064], "etype": "part-spawner", "game_task": 0, "quat": [-0.016, 0.1688, -0.0635, 0.9835], "bsphere": [-164.5638, 328.775, 603.1064, 6.9282], "lump": {"name": "mountain-part-636", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-629 (mountain): group-mountain-cable-lights
+    {"trans": [39.3243, 389.9206, 1047.7036], "etype": "part-spawner", "game_task": 0, "quat": [-0.0703, -0.7758, 0.0522, 0.6248], "bsphere": [39.3243, 389.9206, 1047.7036, 6.9282], "lump": {"name": "mountain-part-629", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-638 (mountain): group-mountain-cable-lights
+    {"trans": [-67.0201, 337.5137, 568.4465], "etype": "part-spawner", "game_task": 0, "quat": [-0.016, 0.1688, -0.0635, 0.9835], "bsphere": [-67.0201, 337.5137, 568.4465, 6.9282], "lump": {"name": "mountain-part-638", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-639 (mountain): group-mountain-cable-lights
+    {"trans": [26.5975, 361.2657, 535.0182], "etype": "part-spawner", "game_task": 0, "quat": [-0.0046, 0.1695, 0.009, 0.9855], "bsphere": [26.5975, 361.2657, 535.0182, 6.9282], "lump": {"name": "mountain-part-639", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-637 (mountain): group-mountain-cable-lights
+    {"trans": [-115.7423, 332.1909, 585.769], "etype": "part-spawner", "game_task": 0, "quat": [-0.016, 0.1688, -0.0635, 0.9835], "bsphere": [-115.7423, 332.1909, 585.769, 6.9282], "lump": {"name": "mountain-part-637", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-641 (mountain): group-mountain-cable-lights
+    {"trans": [-15.0476, 341.1535, 354.171], "etype": "part-spawner", "game_task": 0, "quat": [-0.0009, 0.9278, -0.0009, 0.3732], "bsphere": [-15.0476, 341.1535, 354.171, 6.9282], "lump": {"name": "mountain-part-641", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-642 (mountain): group-mountain-cable-lights
+    {"trans": [-57.5062, 331.2507, 313.4388], "etype": "part-spawner", "game_task": 0, "quat": [-0.0009, 0.9278, -0.0009, 0.3732], "bsphere": [-57.5062, 331.2507, 313.4388, 6.9282], "lump": {"name": "mountain-part-642", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-643 (mountain): group-mountain-cable-lights
+    {"trans": [-100.2576, 325.1027, 272.4207], "etype": "part-spawner", "game_task": 0, "quat": [-0.0009, 0.9278, -0.0009, 0.3732], "bsphere": [-100.2576, 325.1027, 272.4207, 6.9282], "lump": {"name": "mountain-part-643", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-640 (mountain): group-mountain-cable-lights
+    {"trans": [27.1183, 354.8111, 394.6172], "etype": "part-spawner", "game_task": 0, "quat": [-0.0009, 0.9278, -0.0009, 0.3732], "bsphere": [27.1183, 354.8111, 394.6172, 6.9282], "lump": {"name": "mountain-part-640", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-421 (mountain): group-mountain-small-light
+    {"trans": [-629.8057, 93.9396, 241.4356], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.965, 0.0, -0.2624], "bsphere": [-629.8057, 93.9396, 241.4356, 12.1244], "lump": {"name": "mountain-part-421", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-422 (mountain): group-mountain-small-light
+    {"trans": [-628.6083, 93.9396, 249.8947], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.965, 0.0, -0.2624], "bsphere": [-628.6083, 93.9396, 249.8947, 12.1244], "lump": {"name": "mountain-part-422", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-463 (mountain): group-mountain-small-light
+    {"trans": [-637.0626, 93.9396, 251.1028], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.965, 0.0, -0.2624], "bsphere": [-637.0626, 93.9396, 251.1028, 12.1244], "lump": {"name": "mountain-part-463", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-464 (mountain): group-mountain-small-light
+    {"trans": [-638.2623, 93.9396, 242.7962], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.965, 0.0, -0.2624], "bsphere": [-638.2623, 93.9396, 242.7962, 12.1244], "lump": {"name": "mountain-part-464", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-570 (mountain): group-mountain-waterfall-13
+    {"trans": [-658.1274, 67.4329, 280.5125], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0248, 0.0, 0.9997], "bsphere": [-658.1274, 67.4329, 280.5125, 6.9282], "lump": {"name": "mountain-part-570", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-waterfall-13"}},
+    // Jak 2's mountain-part-658 (mountain): group-mountain-bottom-oval-light
+    {"trans": [-534.7805, 48.9249, 67.5477], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [-534.7805, 48.9249, 67.5477, 6.9282], "lump": {"name": "mountain-part-658", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-bottom-oval-light"}},
+    // Jak 2's mountain-part-644 (mountain): group-mountain-cable-lights
+    {"trans": [-186.0615, 324.8241, 190.0793], "etype": "part-spawner", "game_task": 0, "quat": [-0.0009, 0.9278, -0.0009, 0.3732], "bsphere": [-186.0615, 324.8241, 190.0793, 6.9282], "lump": {"name": "mountain-part-644", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-645 (mountain): group-mountain-cable-lights
+    {"trans": [-229.1137, 330.3179, 148.7569], "etype": "part-spawner", "game_task": 0, "quat": [-0.0009, 0.9278, -0.0009, 0.3732], "bsphere": [-229.1137, 330.3179, 148.7569, 6.9282], "lump": {"name": "mountain-part-645", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-646 (mountain): group-mountain-cable-lights
+    {"trans": [-271.5927, 340.3204, 107.9786], "etype": "part-spawner", "game_task": 0, "quat": [-0.0009, 0.9278, -0.0009, 0.3732], "bsphere": [-271.5927, 340.3204, 107.9786, 6.9282], "lump": {"name": "mountain-part-646", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-647 (mountain): group-mountain-cable-lights
+    {"trans": [-313.7847, 352.2018, 67.4732], "etype": "part-spawner", "game_task": 0, "quat": [-0.0009, 0.9278, -0.0009, 0.3732], "bsphere": [-313.7847, 352.2018, 67.4732, 6.9282], "lump": {"name": "mountain-part-647", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-492 (mountain): group-mountain-energy-rays
+    {"trans": [-618.1473, 164.9224, 188.5335], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [-618.1473, 164.9224, 188.5335, 12.1244], "lump": {"name": "mountain-part-492", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-energy-rays"}},
+    // Jak 2's mountain-part-659 (mountain): group-mountain-bottom-oval-light
+    {"trans": [-571.6842, 59.8231, 115.9162], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [-571.6842, 59.8231, 115.9162, 6.9282], "lump": {"name": "mountain-part-659", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-bottom-oval-light"}},
+    // Jak 2's mountain-part-588 (mountain): group-mountain-stadium-lights
+    {"trans": [-176.968, 213.5433, -592.264], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [-176.968, 213.5433, -592.264, 6.9282], "lump": {"name": "mountain-part-588", "vis-dist": ["float", 40960000.0], "art-name": "group-hj2-mountain-stadium-lights"}},
+    // Jak 2's mountain-part-589 (mountain): group-mountain-stadium-lights
+    {"trans": [-292.9678, 213.5433, -605.6786], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [-292.9678, 213.5433, -605.6786, 6.9282], "lump": {"name": "mountain-part-589", "vis-dist": ["float", 40960000.0], "art-name": "group-hj2-mountain-stadium-lights"}},
+    // Jak 2's mountain-part-648 (mountain): group-mountain-cable-lights
+    {"trans": [-393.4379, 388.452, -9.0144], "etype": "part-spawner", "game_task": 0, "quat": [0.0664, 0.9253, 0.0282, 0.3725], "bsphere": [-393.4379, 388.452, -9.0144, 6.9282], "lump": {"name": "mountain-part-648", "vis-dist": ["float", 12288000.0], "art-name": "group-hj2-mountain-cable-lights"}},
+    // Jak 2's mountain-part-590 (mountain): group-mountain-stadium-lights
+    {"trans": [-326.5646, 213.5433, -655.0549], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [-326.5646, 213.5433, -655.0549, 6.9282], "lump": {"name": "mountain-part-590", "vis-dist": ["float", 40960000.0], "art-name": "group-hj2-mountain-stadium-lights"}},
+    // Jak 2's mountain-part-591 (mountain): group-mountain-stadium-lights
+    {"trans": [-295.5768, 213.5433, -702.2558], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [-295.5768, 213.5433, -702.2558, 6.9282], "lump": {"name": "mountain-part-591", "vis-dist": ["float", 40960000.0], "art-name": "group-hj2-mountain-stadium-lights"}},
+    // Jak 2's mountain-part-592 (mountain): group-mountain-stadium-lights
+    {"trans": [-181.7323, 213.5433, -723.7421], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [-181.7323, 213.5433, -723.7421, 6.9282], "lump": {"name": "mountain-part-592", "vis-dist": ["float", 40960000.0], "art-name": "group-hj2-mountain-stadium-lights"}},
+    // Jak 2's mountain-part-593 (mountain): group-mountain-stadium-lights
+    {"trans": [-77.6934, 213.5433, -708.2251], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [-77.6934, 213.5433, -708.2251, 6.9282], "lump": {"name": "mountain-part-593", "vis-dist": ["float", 40960000.0], "art-name": "group-hj2-mountain-stadium-lights"}},
+    // Jak 2's mountain-part-594 (mountain): group-mountain-stadium-lights
+    {"trans": [-43.3336, 213.5433, -659.0437], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [-43.3336, 213.5433, -659.0437, 6.9282], "lump": {"name": "mountain-part-594", "vis-dist": ["float", 40960000.0], "art-name": "group-hj2-mountain-stadium-lights"}},
+    // Jak 2's mountain-part-587 (mountain): group-mountain-stadium-lights
+    {"trans": [-75.3644, 213.5433, -612.3698], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [-75.3644, 213.5433, -612.3698, 6.9282], "lump": {"name": "mountain-part-587", "vis-dist": ["float", 40960000.0], "art-name": "group-hj2-mountain-stadium-lights"}},
+    // Jak 2's mountain-part-428 (mountain): group-mountain-overdoor-light
+    {"trans": [-702.6946, 70.607, 415.1173], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.6172, 0.0, 0.7868], "bsphere": [-702.6946, 70.607, 415.1173, 12.1244], "lump": {"name": "mountain-part-428", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-overdoor-light"}},
+    // Jak 2's mountain-part-437 (mountain): group-mountain-small-light
+    {"trans": [-741.0172, 139.2165, 317.4688], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.2588, 0.0, 0.9659], "bsphere": [-741.0172, 139.2165, 317.4688, 12.1244], "lump": {"name": "mountain-part-437", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-439 (mountain): group-mountain-big-oval-light
+    {"trans": [-741.3992, 154.8318, 316.8072], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.2588, 0.0, 0.9659], "bsphere": [-741.3992, 154.8318, 316.8072, 12.1244], "lump": {"name": "mountain-part-439", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-big-oval-light"}},
+    // Jak 2's mountain-part-501 (mountain): group-mountain-small-light
+    {"trans": [-720.2288, 118.3778, 320.3097], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.3375, 0.0, 0.9413], "bsphere": [-720.2288, 118.3778, 320.3097, 12.1244], "lump": {"name": "mountain-part-501", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-502 (mountain): group-mountain-small-light
+    {"trans": [-713.9082, 118.3778, 315.6357], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.3375, 0.0, 0.9413], "bsphere": [-713.9082, 118.3778, 315.6357, 12.1244], "lump": {"name": "mountain-part-502", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-562 (mountain): group-mountain-overdoor-light
+    {"trans": [-701.2586, 70.607, 421.0077], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.6172, 0.0, 0.7868], "bsphere": [-701.2586, 70.607, 421.0077, 12.0956], "lump": {"name": "mountain-part-562", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-overdoor-light"}},
+    // Jak 2's mountain-part-440 (mountain): group-mountain-small-light
+    {"trans": [-725.7502, 139.2165, 291.0256], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [-725.7502, 139.2165, 291.0256, 12.1244], "lump": {"name": "mountain-part-440", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-441 (mountain): group-mountain-small-light
+    {"trans": [-736.3666, 139.2165, 291.0256], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [-736.3666, 139.2165, 291.0256, 12.1244], "lump": {"name": "mountain-part-441", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-442 (mountain): group-mountain-big-oval-light
+    {"trans": [-726.5142, 154.8318, 291.0256], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7071, 0.0, 0.7071], "bsphere": [-726.5142, 154.8318, 291.0256, 12.1244], "lump": {"name": "mountain-part-442", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-big-oval-light"}},
+    // Jak 2's mountain-part-569 (mountain): group-mountain-waterfall-13
+    {"trans": [-660.05, 77.7374, 286.2387], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.2044, 0.0, 0.9789], "bsphere": [-660.05, 77.7374, 286.2387, 6.9282], "lump": {"name": "mountain-part-569", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-waterfall-13"}},
+    // Jak 2's mountain-part-572 (mountain): group-mountain-waterfall-10
+    {"trans": [-665.176, 88.741, 290.4199], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.1007, 0.0, 0.9949], "bsphere": [-665.176, 88.741, 290.4199, 6.9282], "lump": {"name": "mountain-part-572", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-waterfall-10"}},
+    // Jak 2's mountain-part-574 (mountain): group-mountain-waterfall-8
+    {"trans": [-682.3434, 102.8545, 275.9311], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.2354, 0.0, 0.9719], "bsphere": [-682.3434, 102.8545, 275.9311, 6.9282], "lump": {"name": "mountain-part-574", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-waterfall-8"}},
+    // Jak 2's mountain-part-578 (mountain): group-mountain-waterfall-6
+    {"trans": [-683.8867, 113.566, 272.0425], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0845, 0.0, 0.9964], "bsphere": [-683.8867, 113.566, 272.0425, 6.9282], "lump": {"name": "mountain-part-578", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-waterfall-6"}},
+    // Jak 2's mountain-part-575 (mountain): group-mountain-waterfall-7
+    {"trans": [-682.2604, 102.4103, 279.4194], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.3476, 0.0, 0.9377], "bsphere": [-682.2604, 102.4103, 279.4194, 6.9282], "lump": {"name": "mountain-part-575", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-waterfall-7"}},
+    // Jak 2's mountain-part-576 (mountain): group-mountain-waterfall-4
+    {"trans": [-685.3645, 114.12, 277.6372], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0458, 0.0, 0.9989], "bsphere": [-685.3645, 114.12, 277.6372, 6.9282], "lump": {"name": "mountain-part-576", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-waterfall-4"}},
+    // Jak 2's mountain-part-577 (mountain): group-mountain-waterfall-5
+    {"trans": [-685.407, 114.9687, 285.2689], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.1586, 0.0, 0.9873], "bsphere": [-685.407, 114.9687, 285.2689, 6.9282], "lump": {"name": "mountain-part-577", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-waterfall-5"}},
+    // Jak 2's mountain-part-571 (mountain): group-mountain-waterfall-9
+    {"trans": [-664.8452, 88.7454, 284.6361], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.074, 0.0, 0.9973], "bsphere": [-664.8452, 88.7454, 284.6361, 6.9282], "lump": {"name": "mountain-part-571", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-waterfall-9"}},
+    // Jak 2's mountain-part-573 (mountain): group-mountain-waterfall-11
+    {"trans": [-663.399, 88.4161, 278.9618], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.0443, 0.0, 0.999], "bsphere": [-663.399, 88.4161, 278.9618, 6.9282], "lump": {"name": "mountain-part-573", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-waterfall-11"}},
+    // Jak 2's mountain-part-581 (mountain): group-mountain-waterfall-1
+    {"trans": [-716.51, 130.4108, 272.1154], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0312, 0.0, 0.9995], "bsphere": [-716.51, 130.4108, 272.1154, 6.9282], "lump": {"name": "mountain-part-581", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-waterfall-1"}},
+    // Jak 2's mountain-part-582 (mountain): group-mountain-waterfall-2
+    {"trans": [-715.9636, 129.4695, 276.1243], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.1282, 0.0, 0.9917], "bsphere": [-715.9636, 129.4695, 276.1243, 6.9282], "lump": {"name": "mountain-part-582", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-waterfall-2"}},
+    // Jak 2's mountain-part-583 (mountain): group-mountain-waterfall-3
+    {"trans": [-715.9898, 121.8116, 281.7706], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.1235, 0.0, 0.9923], "bsphere": [-715.9898, 121.8116, 281.7706, 6.9282], "lump": {"name": "mountain-part-583", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-waterfall-3"}},
+    // Jak 2's mountain-part-443 (mountain): group-mountain-small-light
+    {"trans": [-741.0172, 139.2165, 264.5824], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9659, 0.0, 0.2588], "bsphere": [-741.0172, 139.2165, 264.5824, 12.1244], "lump": {"name": "mountain-part-443", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-445 (mountain): group-mountain-big-oval-light
+    {"trans": [-741.3992, 154.8318, 265.2441], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9659, 0.0, 0.2588], "bsphere": [-741.3992, 154.8318, 265.2441, 12.1244], "lump": {"name": "mountain-part-445", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-big-oval-light"}},
+    // Jak 2's mountain-part-153 (mountain): group-mountain-waterfall-12
+    {"trans": [-661.7329, 88.094, 274.6071], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.1952, 0.0, 0.9808], "bsphere": [-661.7329, 88.094, 274.6071, 12.1244], "lump": {"name": "mountain-part-153", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-waterfall-12"}},
+    // Jak 2's mountain-part-466 (mountain): group-mountain-small-light
+    {"trans": [-675.7007, 154.5468, 226.1652], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.965, 0.0, -0.2624], "bsphere": [-675.7007, 154.5468, 226.1652, 12.1244], "lump": {"name": "mountain-part-466", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-469 (mountain): group-mountain-small-light
+    {"trans": [-700.3591, 140.9416, 198.4727], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9344, 0.0, 0.3563], "bsphere": [-700.3591, 140.9416, 198.4727, 12.0956], "lump": {"name": "mountain-part-469", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-423 (mountain): group-mountain-small-light
+    {"trans": [-667.2442, 154.5468, 224.8046], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.965, 0.0, -0.2624], "bsphere": [-667.2442, 154.5468, 224.8046, 12.1244], "lump": {"name": "mountain-part-423", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-465 (mountain): group-mountain-small-light
+    {"trans": [-674.501, 154.5468, 234.4718], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.965, 0.0, -0.2624], "bsphere": [-674.501, 154.5468, 234.4718, 12.1244], "lump": {"name": "mountain-part-465", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-424 (mountain): group-mountain-small-light
+    {"trans": [-666.0468, 154.5468, 233.2637], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.965, 0.0, -0.2624], "bsphere": [-666.0468, 154.5468, 233.2637, 12.1244], "lump": {"name": "mountain-part-424", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-429 (mountain): group-mountain-tiny-top-oval-light
+    {"trans": [-702.8014, 183.884, 161.475], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.0563, 0.0, 0.9984], "bsphere": [-702.8014, 183.884, 161.475, 12.1244], "lump": {"name": "mountain-part-429", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-tiny-top-oval-light"}},
+    // Jak 2's mountain-part-430 (mountain): group-mountain-tiny-top-oval-light
+    {"trans": [-711.3041, 183.884, 131.3994], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.33, 0.0, 0.944], "bsphere": [-711.3041, 183.884, 131.3994, 12.1244], "lump": {"name": "mountain-part-430", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-tiny-top-oval-light"}},
+    // Jak 2's mountain-part-489 (mountain): group-mountain-small-light
+    {"trans": [-693.8712, 140.9416, 157.2928], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9462, 0.0, 0.3237], "bsphere": [-693.8712, 140.9416, 157.2928, 12.1244], "lump": {"name": "mountain-part-489", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-490 (mountain): group-mountain-small-light
+    {"trans": [-701.4651, 140.9416, 161.6687], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9462, 0.0, 0.3237], "bsphere": [-701.4651, 140.9416, 161.6687, 12.1244], "lump": {"name": "mountain-part-490", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-491 (mountain): group-mountain-small-light
+    {"trans": [-698.1661, 140.9416, 149.7198], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9462, 0.0, 0.3237], "bsphere": [-698.1661, 140.9416, 149.7198, 12.0956], "lump": {"name": "mountain-part-491", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-436 (mountain): group-mountain-tiny-top-oval-light
+    {"trans": [-718.0557, 183.884, 188.7541], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.4341, 0.0, 0.9009], "bsphere": [-718.0557, 183.884, 188.7541, 12.1244], "lump": {"name": "mountain-part-436", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-tiny-top-oval-light"}},
+    // Jak 2's mountain-part-468 (mountain): group-mountain-small-light
+    {"trans": [-692.4804, 140.9416, 194.633], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9344, 0.0, 0.3563], "bsphere": [-692.4804, 140.9416, 194.633, 12.0956], "lump": {"name": "mountain-part-468", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-470 (mountain): group-mountain-small-light
+    {"trans": [-696.2408, 140.9416, 186.7808], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9344, 0.0, 0.3563], "bsphere": [-696.2408, 140.9416, 186.7808, 12.1244], "lump": {"name": "mountain-part-470", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-425 (mountain): group-mountain-small-light
+    {"trans": [-701.0187, 106.0, 172.668], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, 0.0], "bsphere": [-701.0187, 106.0, 172.668, 12.0956], "lump": {"name": "mountain-part-425", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-426 (mountain): group-mountain-overdoor-light
+    {"trans": [-729.437, 106.0, 125.1771], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [-729.437, 106.0, 125.1771, 12.0669], "lump": {"name": "mountain-part-426", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-overdoor-light"}},
+    // Jak 2's mountain-part-457 (mountain): group-mountain-small-light
+    {"trans": [-709.7324, 101.8901, 124.7817], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.8466, 0.0, 0.5323], "bsphere": [-709.7324, 101.8901, 124.7817, 12.1244], "lump": {"name": "mountain-part-457", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-493 (mountain): group-mountain-overdoor-light
+    {"trans": [-706.54, 106.0, 172.668], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 1.0, 0.0, 0.0], "bsphere": [-706.54, 106.0, 172.668, 12.1244], "lump": {"name": "mountain-part-493", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-overdoor-light"}},
+    // Jak 2's mountain-part-467 (mountain): group-mountain-small-light
+    {"trans": [-696.0587, 101.8901, 186.1837], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9344, 0.0, 0.3563], "bsphere": [-696.0587, 101.8901, 186.1837, 12.1244], "lump": {"name": "mountain-part-467", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-431 (mountain): group-mountain-tiny-top-oval-light
+    {"trans": [-738.5833, 183.884, 116.145], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.6662, 0.0, 0.7458], "bsphere": [-738.5833, 183.884, 116.145, 12.0956], "lump": {"name": "mountain-part-431", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-tiny-top-oval-light"}},
+    // Jak 2's mountain-part-459 (mountain): group-mountain-small-light
+    {"trans": [-708.9922, 140.9416, 111.7972], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.8466, 0.0, 0.5323], "bsphere": [-708.9922, 140.9416, 111.7972, 12.1244], "lump": {"name": "mountain-part-459", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-460 (mountain): group-mountain-small-light
+    {"trans": [-703.1223, 140.9416, 118.3058], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.8466, 0.0, 0.5323], "bsphere": [-703.1223, 140.9416, 118.3058, 12.1244], "lump": {"name": "mountain-part-460", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-461 (mountain): group-mountain-small-light
+    {"trans": [-709.6857, 140.9416, 124.2068], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.8466, 0.0, 0.5323], "bsphere": [-709.6857, 140.9416, 124.2068, 12.0956], "lump": {"name": "mountain-part-461", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-462 (mountain): group-mountain-small-light
+    {"trans": [-715.4973, 140.9416, 117.5836], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.8466, 0.0, 0.5323], "bsphere": [-715.4973, 140.9416, 117.5836, 12.1244], "lump": {"name": "mountain-part-462", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-474 (mountain): group-mountain-small-light
+    {"trans": [-741.866, 140.9416, 118.3058], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.8466, 0.0, 0.5323], "bsphere": [-741.866, 140.9416, 118.3058, 12.1244], "lump": {"name": "mountain-part-474", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-494 (mountain): group-mountain-overdoor-light
+    {"trans": [-729.437, 106.0, 120.2978], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [-729.437, 106.0, 120.2978, 12.1244], "lump": {"name": "mountain-part-494", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-overdoor-light"}},
+    // Jak 2's mountain-part-506 (mountain): group-mountain-med-light
+    {"trans": [-689.2891, 98.9756, 80.2494], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0762, 0.0, 0.9971], "bsphere": [-689.2891, 98.9756, 80.2494, 12.1244], "lump": {"name": "mountain-part-506", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-med-light"}},
+    // Jak 2's mountain-part-455 (mountain): group-mountain-small-light
+    {"trans": [-708.9637, 101.8901, 111.3871], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.8466, 0.0, 0.5323], "bsphere": [-708.9637, 101.8901, 111.3871, 12.1244], "lump": {"name": "mountain-part-455", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-456 (mountain): group-mountain-small-light
+    {"trans": [-702.5615, 101.8901, 118.3483], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.8466, 0.0, 0.5323], "bsphere": [-702.5615, 101.8901, 118.3483, 12.1244], "lump": {"name": "mountain-part-456", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-458 (mountain): group-mountain-small-light
+    {"trans": [-716.1214, 101.8901, 117.5737], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.8466, 0.0, 0.5323], "bsphere": [-716.1214, 101.8901, 117.5737, 12.1244], "lump": {"name": "mountain-part-458", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-472 (mountain): group-mountain-small-light
+    {"trans": [-741.3052, 101.8901, 118.3483], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.8466, 0.0, 0.5323], "bsphere": [-741.3052, 101.8901, 118.3483, 12.1244], "lump": {"name": "mountain-part-472", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-525 (mountain): group-mountain-small-light
+    {"trans": [-731.6825, 125.0201, 32.918], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0544, 0.0, 0.9985], "bsphere": [-731.6825, 125.0201, 32.918, 12.1244], "lump": {"name": "mountain-part-525", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-527 (mountain): group-mountain-small-light
+    {"trans": [-722.6472, 125.0201, 35.7233], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0544, 0.0, 0.9985], "bsphere": [-722.6472, 125.0201, 35.7233, 12.1244], "lump": {"name": "mountain-part-527", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-528 (mountain): group-mountain-small-light
+    {"trans": [-731.3193, 164.0717, 32.7255], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0544, 0.0, 0.9985], "bsphere": [-731.3193, 164.0717, 32.7255, 12.1244], "lump": {"name": "mountain-part-528", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-530 (mountain): group-mountain-small-light
+    {"trans": [-720.4189, 164.0717, 26.7539], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0544, 0.0, 0.9985], "bsphere": [-720.4189, 164.0717, 26.7539, 12.1244], "lump": {"name": "mountain-part-530", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-531 (mountain): group-mountain-small-light
+    {"trans": [-722.9688, 164.0717, 35.1883], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0544, 0.0, 0.9985], "bsphere": [-722.9688, 164.0717, 35.1883, 12.1244], "lump": {"name": "mountain-part-531", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-540 (mountain): group-mountain-overdoor-light
+    {"trans": [-692.713, 136.4009, 33.1556], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0544, 0.0, 0.9985], "bsphere": [-692.713, 136.4009, 33.1556, 12.1244], "lump": {"name": "mountain-part-540", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-overdoor-light"}},
+    // Jak 2's mountain-part-541 (mountain): group-mountain-overdoor-light
+    {"trans": [-692.713, 136.4009, 27.2465], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0544, 0.0, 0.9985], "bsphere": [-692.713, 136.4009, 27.2465, 12.1244], "lump": {"name": "mountain-part-541", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-overdoor-light"}},
+    // Jak 2's mountain-part-504 (mountain): group-mountain-med-light
+    {"trans": [-710.4495, 98.9756, 45.9313], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.8866, 0.0, -0.4625], "bsphere": [-710.4495, 98.9756, 45.9313, 12.1244], "lump": {"name": "mountain-part-504", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-med-light"}},
+    // Jak 2's mountain-part-503 (mountain): group-mountain-med-light
+    {"trans": [-711.1153, 98.9756, 69.6982], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.4838, 0.0, 0.8752], "bsphere": [-711.1153, 98.9756, 69.6982, 12.1244], "lump": {"name": "mountain-part-503", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-med-light"}},
+    // Jak 2's mountain-part-505 (mountain): group-mountain-med-light
+    {"trans": [-672.3442, 98.9756, 59.3263], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.7035, 0.0, 0.7107], "bsphere": [-672.3442, 98.9756, 59.3263, 12.1244], "lump": {"name": "mountain-part-505", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-med-light"}},
+    // Jak 2's mountain-part-202 (mountain): group-mountain-huge-green-oval-light
+    {"trans": [-710.3581, 277.2983, -7.3535], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [-710.3581, 277.2983, -7.3535, 12.1244], "lump": {"name": "mountain-part-202", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-huge-green-oval-light"}},
+    // Jak 2's mountain-part-507 (mountain): group-mountain-huge-green-oval-light
+    {"trans": [-692.3365, 277.2983, -25.5662], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [-692.3365, 277.2983, -25.5662, 12.1244], "lump": {"name": "mountain-part-507", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-huge-green-oval-light"}},
+    // Jak 2's mountain-part-508 (mountain): group-mountain-huge-green-oval-light
+    {"trans": [-674.1152, 277.2983, -7.3535], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [-674.1152, 277.2983, -7.3535, 12.1244], "lump": {"name": "mountain-part-508", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-huge-green-oval-light"}},
+    // Jak 2's mountain-part-509 (mountain): group-mountain-huge-green-oval-light
+    {"trans": [-692.3365, 277.2983, 10.7604], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [-692.3365, 277.2983, 10.7604, 12.0956], "lump": {"name": "mountain-part-509", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-huge-green-oval-light"}},
+    // Jak 2's mountain-part-517 (mountain): group-mountain-small-light
+    {"trans": [-676.1763, 218.3998, -27.6557], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.8395, 0.0, 0.5434], "bsphere": [-676.1763, 218.3998, -27.6557, 12.1244], "lump": {"name": "mountain-part-517", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-519 (mountain): group-mountain-small-light
+    {"trans": [-676.5224, 218.3998, -15.5495], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.8395, 0.0, 0.5434], "bsphere": [-676.5224, 218.3998, -15.5495, 12.1244], "lump": {"name": "mountain-part-519", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-520 (mountain): group-mountain-small-light
+    {"trans": [-682.386, 218.3998, -21.8661], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.8395, 0.0, 0.5434], "bsphere": [-682.386, 218.3998, -21.8661, 12.1244], "lump": {"name": "mountain-part-520", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-521 (mountain): group-mountain-small-light
+    {"trans": [-713.8091, 218.3998, -23.2344], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.3228, 0.0, 0.9465], "bsphere": [-713.8091, 218.3998, -23.2344, 12.1244], "lump": {"name": "mountain-part-521", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-542 (mountain): group-mountain-energy-rays
+    {"trans": [-713.6666, 189.5366, 14.059], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0544, 0.0, 0.9985], "bsphere": [-713.6666, 189.5366, 14.059, 12.0956], "lump": {"name": "mountain-part-542", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-energy-rays"}},
+    // Jak 2's mountain-part-543 (mountain): group-mountain-energy-rays
+    {"trans": [-671.105, 189.5366, 13.4607], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0544, 0.0, 0.9985], "bsphere": [-671.105, 189.5366, 13.4607, 12.1244], "lump": {"name": "mountain-part-543", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-energy-rays"}},
+    // Jak 2's mountain-part-535 (mountain): group-mountain-small-light
+    {"trans": [-729.9119, 164.0717, -5.1179], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.4212, 0.0, 0.9069], "bsphere": [-729.9119, 164.0717, -5.1179, 12.1244], "lump": {"name": "mountain-part-535", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-536 (mountain): group-mountain-small-light
+    {"trans": [-721.5717, 164.0717, -7.8119], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.4212, 0.0, 0.9069], "bsphere": [-721.5717, 164.0717, -7.8119, 12.1244], "lump": {"name": "mountain-part-536", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-522 (mountain): group-mountain-small-light
+    {"trans": [-706.4561, 218.3998, -27.6511], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.3228, 0.0, 0.9465], "bsphere": [-706.4561, 218.3998, -27.6511, 12.1244], "lump": {"name": "mountain-part-522", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-523 (mountain): group-mountain-small-light
+    {"trans": [-702.1179, 218.3998, -20.0728], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.3228, 0.0, 0.9465], "bsphere": [-702.1179, 218.3998, -20.0728, 12.1244], "lump": {"name": "mountain-part-523", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-524 (mountain): group-mountain-small-light
+    {"trans": [-709.6284, 218.3998, -15.8451], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.3228, 0.0, 0.9465], "bsphere": [-709.6284, 218.3998, -15.8451, 12.1244], "lump": {"name": "mountain-part-524", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-518 (mountain): group-mountain-small-light
+    {"trans": [-670.1657, 218.3998, -21.5363], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.8395, 0.0, 0.5434], "bsphere": [-670.1657, 218.3998, -21.5363, 12.1244], "lump": {"name": "mountain-part-518", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-534 (mountain): group-mountain-small-light
+    {"trans": [-727.557, 125.0201, 3.7505], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.4212, 0.0, 0.9069], "bsphere": [-727.557, 125.0201, 3.7505, 12.1244], "lump": {"name": "mountain-part-534", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-526 (mountain): group-mountain-small-light
+    {"trans": [-729.158, 125.0201, 23.8036], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0544, 0.0, 0.9985], "bsphere": [-729.158, 125.0201, 23.8036, 12.1244], "lump": {"name": "mountain-part-526", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-538 (mountain): group-mountain-small-light
+    {"trans": [-727.2927, 164.0717, 3.185], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.4212, 0.0, 0.9069], "bsphere": [-727.2927, 164.0717, 3.185, 12.1244], "lump": {"name": "mountain-part-538", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-529 (mountain): group-mountain-small-light
+    {"trans": [-728.8976, 164.0717, 24.3021], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0544, 0.0, 0.9985], "bsphere": [-728.8976, 164.0717, 24.3021, 12.1244], "lump": {"name": "mountain-part-529", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-510 (mountain): group-mountain-small-light
+    {"trans": [-688.4268, 108.9385, -24.986], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [-688.4268, 108.9385, -24.986, 12.1244], "lump": {"name": "mountain-part-510", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-511 (mountain): group-mountain-small-light
+    {"trans": [-696.1954, 108.9385, -25.0538], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [-696.1954, 108.9385, -25.0538, 12.1244], "lump": {"name": "mountain-part-511", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-532 (mountain): group-mountain-small-light
+    {"trans": [-730.2745, 125.0201, -5.3116], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.4212, 0.0, 0.9069], "bsphere": [-730.2745, 125.0201, -5.3116, 12.1244], "lump": {"name": "mountain-part-532", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-533 (mountain): group-mountain-small-light
+    {"trans": [-721.3035, 125.0201, -8.3062], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.4212, 0.0, 0.9069], "bsphere": [-721.3035, 125.0201, -8.3062, 12.1244], "lump": {"name": "mountain-part-533", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-537 (mountain): group-mountain-small-light
+    {"trans": [-718.8718, 164.0717, 0.5911], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.4212, 0.0, 0.9069], "bsphere": [-718.8718, 164.0717, 0.5911, 12.1244], "lump": {"name": "mountain-part-537", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-447 (mountain): group-mountain-small-light
+    {"trans": [-766.243, 139.2165, 273.7765], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9659, 0.0, -0.2588], "bsphere": [-766.243, 139.2165, 273.7765, 12.1244], "lump": {"name": "mountain-part-447", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-450 (mountain): group-mountain-small-light
+    {"trans": [-776.2017, 139.2165, 291.0256], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [-776.2017, 139.2165, 291.0256, 12.1244], "lump": {"name": "mountain-part-450", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-452 (mountain): group-mountain-small-light
+    {"trans": [-771.5511, 139.2165, 317.4688], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.2588, 0.0, 0.9659], "bsphere": [-771.5511, 139.2165, 317.4688, 12.1244], "lump": {"name": "mountain-part-452", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-453 (mountain): group-mountain-small-light
+    {"trans": [-766.243, 139.2165, 308.2747], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.2588, 0.0, 0.9659], "bsphere": [-766.243, 139.2165, 308.2747, 12.1244], "lump": {"name": "mountain-part-453", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-454 (mountain): group-mountain-big-oval-light
+    {"trans": [-771.1692, 154.8318, 316.8072], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.2588, 0.0, 0.9659], "bsphere": [-771.1692, 154.8318, 316.8072, 12.1244], "lump": {"name": "mountain-part-454", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-big-oval-light"}},
+    // Jak 2's mountain-part-438 (mountain): group-mountain-small-light
+    {"trans": [-746.3254, 139.2165, 308.2747], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.2588, 0.0, 0.9659], "bsphere": [-746.3254, 139.2165, 308.2747, 12.1244], "lump": {"name": "mountain-part-438", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-444 (mountain): group-mountain-small-light
+    {"trans": [-746.3254, 139.2165, 273.7765], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9659, 0.0, 0.2588], "bsphere": [-746.3254, 139.2165, 273.7765, 12.1244], "lump": {"name": "mountain-part-444", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-482 (mountain): group-mountain-small-light
+    {"trans": [-762.9569, 96.9637, 203.0509], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.0463, 0.0, 0.9989], "bsphere": [-762.9569, 96.9637, 203.0509, 12.1244], "lump": {"name": "mountain-part-482", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-484 (mountain): group-mountain-small-light
+    {"trans": [-762.5625, 136.0152, 202.9349], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.0463, 0.0, 0.9989], "bsphere": [-762.5625, 136.0152, 202.9349, 12.1244], "lump": {"name": "mountain-part-484", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-487 (mountain): group-mountain-small-light
+    {"trans": [-754.8737, 136.0152, 207.0189], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.0463, 0.0, 0.9989], "bsphere": [-754.8737, 136.0152, 207.0189, 12.1244], "lump": {"name": "mountain-part-487", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-446 (mountain): group-mountain-small-light
+    {"trans": [-771.5511, 139.2165, 264.5824], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9659, 0.0, -0.2588], "bsphere": [-771.5511, 139.2165, 264.5824, 12.1244], "lump": {"name": "mountain-part-446", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-448 (mountain): group-mountain-big-oval-light
+    {"trans": [-771.1692, 154.8318, 265.2441], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9659, 0.0, -0.2588], "bsphere": [-771.1692, 154.8318, 265.2441, 12.1244], "lump": {"name": "mountain-part-448", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-big-oval-light"}},
+    // Jak 2's mountain-part-417 (mountain): group-mountain-small-light
+    {"trans": [-782.7812, 134.7789, 165.0078], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.328, 0.0, 0.9447], "bsphere": [-782.7812, 134.7789, 165.0078, 12.1244], "lump": {"name": "mountain-part-417", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-418 (mountain): group-mountain-small-light
+    {"trans": [-780.4655, 134.7789, 173.5094], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.328, 0.0, 0.9447], "bsphere": [-780.4655, 134.7789, 173.5094, 12.1244], "lump": {"name": "mountain-part-418", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-434 (mountain): group-mountain-tiny-top-oval-light
+    {"trans": [-775.4105, 183.884, 182.0025], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.944, 0.0, -0.33], "bsphere": [-775.4105, 183.884, 182.0025, 12.1244], "lump": {"name": "mountain-part-434", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-tiny-top-oval-light"}},
+    // Jak 2's mountain-part-435 (mountain): group-mountain-tiny-top-oval-light
+    {"trans": [-748.1314, 183.884, 197.2569], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7458, 0.0, 0.6662], "bsphere": [-748.1314, 183.884, 197.2569, 12.1244], "lump": {"name": "mountain-part-435", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-tiny-top-oval-light"}},
+    // Jak 2's mountain-part-485 (mountain): group-mountain-small-light
+    {"trans": [-758.5043, 136.0152, 195.1665], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.0463, 0.0, 0.9989], "bsphere": [-758.5043, 136.0152, 195.1665, 12.0956], "lump": {"name": "mountain-part-485", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-486 (mountain): group-mountain-small-light
+    {"trans": [-750.6877, 136.0152, 199.2653], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.0463, 0.0, 0.9989], "bsphere": [-750.6877, 136.0152, 199.2653, 12.1244], "lump": {"name": "mountain-part-486", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-427 (mountain): group-mountain-overdoor-light
+    {"trans": [-769.5073, 106.0, 183.6082], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.3808, 0.0, 0.9247], "bsphere": [-769.5073, 106.0, 183.6082, 12.1244], "lump": {"name": "mountain-part-427", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-overdoor-light"}},
+    // Jak 2's mountain-part-495 (mountain): group-mountain-overdoor-light
+    {"trans": [-779.7831, 106.0, 149.8697], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7758, 0.0, 0.6309], "bsphere": [-779.7831, 106.0, 149.8697, 12.0956], "lump": {"name": "mountain-part-495", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-overdoor-light"}},
+    // Jak 2's mountain-part-500 (mountain): group-mountain-bottom-oval-light
+    {"trans": [-756.6831, 90.7879, 201.1398], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.8466, 0.0, 0.5323], "bsphere": [-756.6831, 90.7879, 201.1398, 12.1244], "lump": {"name": "mountain-part-500", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-bottom-oval-light"}},
+    // Jak 2's mountain-part-496 (mountain): group-mountain-overdoor-light
+    {"trans": [-774.5908, 106.0, 150.9232], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7758, 0.0, 0.6309], "bsphere": [-774.5908, 106.0, 150.9232, 12.1244], "lump": {"name": "mountain-part-496", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-overdoor-light"}},
+    // Jak 2's mountain-part-497 (mountain): group-mountain-overdoor-light
+    {"trans": [-766.1245, 106.0, 180.1409], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.3808, 0.0, 0.9247], "bsphere": [-766.1245, 106.0, 180.1409, 12.1244], "lump": {"name": "mountain-part-497", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-overdoor-light"}},
+    // Jak 2's mountain-part-483 (mountain): group-mountain-small-light
+    {"trans": [-758.6597, 96.9637, 194.626], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.0463, 0.0, 0.9989], "bsphere": [-758.6597, 96.9637, 194.626, 12.0956], "lump": {"name": "mountain-part-483", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-449 (mountain): group-mountain-small-light
+    {"trans": [-786.8182, 139.2165, 291.0256], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [-786.8182, 139.2165, 291.0256, 12.1244], "lump": {"name": "mountain-part-449", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-451 (mountain): group-mountain-big-oval-light
+    {"trans": [-786.0541, 154.8318, 291.0256], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [-786.0541, 154.8318, 291.0256, 12.1244], "lump": {"name": "mountain-part-451", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-big-oval-light"}},
+    // Jak 2's mountain-part-488 (mountain): group-mountain-small-light
+    {"trans": [-789.0554, 95.7274, 176.2105], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.328, 0.0, 0.9447], "bsphere": [-789.0554, 95.7274, 176.2105, 12.1244], "lump": {"name": "mountain-part-488", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-550 (mountain): group-mountain-big-oval-light
+    {"trans": [-839.2718, 115.4338, 159.9541], "etype": "part-spawner", "game_task": 0, "quat": [0.393, -0.0, 0.9196, 0.0], "bsphere": [-839.2718, 115.4338, 159.9541, 12.1244], "lump": {"name": "mountain-part-550", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-big-oval-light"}},
+    // Jak 2's mountain-part-433 (mountain): group-mountain-tiny-top-oval-light
+    {"trans": [-783.9132, 183.884, 151.9268], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9984, 0.0, 0.0563], "bsphere": [-783.9132, 183.884, 151.9268, 12.1244], "lump": {"name": "mountain-part-433", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-tiny-top-oval-light"}},
+    // Jak 2's mountain-part-414 (mountain): group-mountain-small-light
+    {"trans": [-791.7537, 95.7274, 167.146], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.328, 0.0, 0.9447], "bsphere": [-791.7537, 95.7274, 167.146, 12.1244], "lump": {"name": "mountain-part-414", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-415 (mountain): group-mountain-small-light
+    {"trans": [-788.8499, 134.7789, 175.8545], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.328, 0.0, 0.9447], "bsphere": [-788.8499, 134.7789, 175.8545, 12.1244], "lump": {"name": "mountain-part-415", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-416 (mountain): group-mountain-small-light
+    {"trans": [-791.2684, 134.7789, 167.4302], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.328, 0.0, 0.9447], "bsphere": [-791.2684, 134.7789, 167.4302, 12.1244], "lump": {"name": "mountain-part-416", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-499 (mountain): group-mountain-bottom-oval-light
+    {"trans": [-785.8302, 89.6351, 170.4999], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.8466, 0.0, 0.5323], "bsphere": [-785.8302, 89.6351, 170.4999, 12.1244], "lump": {"name": "mountain-part-499", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-bottom-oval-light"}},
+    // Jak 2's mountain-part-544 (mountain): group-mountain-energy-rays
+    {"trans": [-843.8514, 117.7617, 251.034], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.246, 0.0, 0.9693], "bsphere": [-843.8514, 117.7617, 251.034, 12.1244], "lump": {"name": "mountain-part-544", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-energy-rays"}},
+    // Jak 2's mountain-part-546 (mountain): group-mountain-big-oval-light
+    {"trans": [-867.7529, 184.2882, 185.5557], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9957, 0.0, 0.0923], "bsphere": [-867.7529, 184.2882, 185.5557, 12.1244], "lump": {"name": "mountain-part-546", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-big-oval-light"}},
+    // Jak 2's mountain-part-548 (mountain): group-mountain-big-oval-light
+    {"trans": [-886.0056, 115.4338, 160.9967], "etype": "part-spawner", "game_task": 0, "quat": [-0.3724, 0.0, 0.9281, 0.0], "bsphere": [-886.0056, 115.4338, 160.9967, 12.0956], "lump": {"name": "mountain-part-548", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-big-oval-light"}},
+    // Jak 2's mountain-part-565 (mountain): group-mountain-big-green-oval-light
+    {"trans": [-863.0496, 218.6929, 167.9938], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [-863.0496, 218.6929, 167.9938, 12.0956], "lump": {"name": "mountain-part-565", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-big-green-oval-light"}},
+    // Jak 2's mountain-part-547 (mountain): group-mountain-big-oval-light
+    {"trans": [-903.6573, 184.2882, 212.0587], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7628, 0.0, 0.6467], "bsphere": [-903.6573, 184.2882, 212.0587, 12.1244], "lump": {"name": "mountain-part-547", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-big-oval-light"}},
+    // Jak 2's mountain-part-552 (mountain): group-mountain-energy-rays
+    {"trans": [-872.789, 224.0764, 216.3482], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.444, 0.0, 0.896], "bsphere": [-872.789, 224.0764, 216.3482, 12.1244], "lump": {"name": "mountain-part-552", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-energy-rays"}},
+    // Jak 2's mountain-part-545 (mountain): group-mountain-big-oval-light
+    {"trans": [-841.7181, 184.2882, 220.1894], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.6533, 0.0, 0.7571], "bsphere": [-841.7181, 184.2882, 220.1894, 12.1244], "lump": {"name": "mountain-part-545", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-big-oval-light"}},
+    // Jak 2's mountain-part-419 (mountain): group-mountain-small-light
+    {"trans": [-776.3171, 95.666, 134.4886], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.0054, 0.0, 1.0], "bsphere": [-776.3171, 95.666, 134.4886, 12.0956], "lump": {"name": "mountain-part-419", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-432 (mountain): group-mountain-tiny-top-oval-light
+    {"trans": [-768.6589, 183.884, 124.6478], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9009, 0.0, 0.4341], "bsphere": [-768.6589, 183.884, 124.6478, 12.1244], "lump": {"name": "mountain-part-432", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-tiny-top-oval-light"}},
+    // Jak 2's mountain-part-477 (mountain): group-mountain-small-light
+    {"trans": [-784.9533, 95.666, 130.6256], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.0054, 0.0, 1.0], "bsphere": [-784.9533, 95.666, 130.6256, 12.0956], "lump": {"name": "mountain-part-477", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-478 (mountain): group-mountain-small-light
+    {"trans": [-784.5698, 134.7175, 130.4777], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.0054, 0.0, 1.0], "bsphere": [-784.5698, 134.7175, 130.4777, 12.0956], "lump": {"name": "mountain-part-478", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-480 (mountain): group-mountain-small-light
+    {"trans": [-773.0349, 134.7175, 125.8491], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.0054, 0.0, 1.0], "bsphere": [-773.0349, 134.7175, 125.8491, 12.1244], "lump": {"name": "mountain-part-480", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-481 (mountain): group-mountain-small-light
+    {"trans": [-776.5726, 134.7175, 133.9191], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.0054, 0.0, 1.0], "bsphere": [-776.5726, 134.7175, 133.9191, 12.0956], "lump": {"name": "mountain-part-481", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-564 (mountain): group-mountain-big-green-oval-light
+    {"trans": [-832.0522, 218.6929, 137.0661], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [-832.0522, 218.6929, 137.0661, 12.0956], "lump": {"name": "mountain-part-564", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-big-green-oval-light"}},
+    // Jak 2's mountain-part-566 (mountain): group-mountain-big-green-oval-light
+    {"trans": [-894.4794, 218.6929, 137.2348], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [-894.4794, 218.6929, 137.2348, 12.0956], "lump": {"name": "mountain-part-566", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-big-green-oval-light"}},
+    // Jak 2's mountain-part-498 (mountain): group-mountain-bottom-oval-light
+    {"trans": [-778.8569, 89.5518, 128.2077], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.8466, 0.0, 0.5323], "bsphere": [-778.8569, 89.5518, 128.2077, 12.0956], "lump": {"name": "mountain-part-498", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-bottom-oval-light"}},
+    // Jak 2's mountain-part-563 (mountain): group-mountain-big-green-oval-light
+    {"trans": [-863.3393, 218.6929, 104.9563], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0, 0.0, 1.0], "bsphere": [-863.3393, 218.6929, 104.9563, 12.1244], "lump": {"name": "mountain-part-563", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-big-green-oval-light"}},
+    // Jak 2's mountain-part-479 (mountain): group-mountain-small-light
+    {"trans": [-781.1606, 134.7175, 122.4034], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.0054, 0.0, 1.0], "bsphere": [-781.1606, 134.7175, 122.4034, 12.0956], "lump": {"name": "mountain-part-479", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-549 (mountain): group-mountain-big-oval-light
+    {"trans": [-840.3144, 115.4338, 113.2202], "etype": "part-spawner", "game_task": 0, "quat": [0.9281, 0.0, 0.3724, -0.0], "bsphere": [-840.3144, 115.4338, 113.2202, 12.1244], "lump": {"name": "mountain-part-549", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-big-oval-light"}},
+    // Jak 2's mountain-part-551 (mountain): group-mountain-big-oval-light
+    {"trans": [-887.1805, 115.4338, 114.4019], "etype": "part-spawner", "game_task": 0, "quat": [0.9184, 0.0, -0.3956, 0.0], "bsphere": [-887.1805, 115.4338, 114.4019, 12.1244], "lump": {"name": "mountain-part-551", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-big-oval-light"}},
+    // Jak 2's mountain-part-471 (mountain): group-mountain-small-light
+    {"trans": [-747.7074, 101.8901, 111.3871], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.8466, 0.0, 0.5323], "bsphere": [-747.7074, 101.8901, 111.3871, 12.1244], "lump": {"name": "mountain-part-471", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-473 (mountain): group-mountain-small-light
+    {"trans": [-747.7359, 140.9416, 111.7972], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.8466, 0.0, 0.5323], "bsphere": [-747.7359, 140.9416, 111.7972, 12.1244], "lump": {"name": "mountain-part-473", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}},
+    // Jak 2's mountain-part-476 (mountain): group-mountain-small-light
+    {"trans": [-754.241, 140.9416, 117.5836], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.8466, 0.0, 0.5323], "bsphere": [-754.241, 140.9416, 117.5836, 12.1244], "lump": {"name": "mountain-part-476", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-mountain-small-light"}}
   ]
 }

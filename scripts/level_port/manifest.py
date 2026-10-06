@@ -15,6 +15,10 @@ class Level:
     """One level of the port (a target game custom level), made of one or more source levels."""
 
     def __init__(self, data, port):
+        # a level with a "template" takes the keys of the manifest's level_templates[template] it
+        # doesn't set itself (the districts of a city share most of theirs)
+        if "template" in data:
+            data = {**port.data["level_templates"][data["template"]], **data}
         self.data = data
         self.port = port
         self.name = data["name"]
@@ -23,8 +27,6 @@ class Level:
         self.sources = list(data["sources"])
         self.what = data.get("what", self.name)
         self.folder = f"{port.levels_dir}/{self.name}"
-        # "section": its .jsonc is written by hand but for the GENERATED section, "full": generated
-        self.jsonc = data.get("jsonc", "full")
 
     def get(self, key, default=None):
         return self.data.get(key, default)
@@ -64,6 +66,9 @@ class Port:
         self.by_name = {lv.name: lv for lv in self.levels}
         # source level -> our level
         self.level_map = {src: lv.name for lv in self.levels for src in lv.sources}
+        # our level -> its hub: the level loaded first with it, and unloaded last, which holds what
+        # it shares with its neighbors (a city's districts and its city-wide level: code, traffic)
+        self.hubs = {lv.name: lv["hub"] for lv in self.levels if "hub" in lv}
 
     def get(self, key, default=None):
         return self.data.get(key, default)

@@ -6,15 +6,361 @@
   "iso_name": "HJ2ORACL",
   "nickname": "hjo",
   "import_fr3": {"game": "jak2", "levels": ["oracle"], "tfrag": true, "tie": true, "shrub": true, "collision": true},
+  // the sprite textures of its particles, as texture page 1534 (hj2-oracle-part.gc)
+  "sprite_textures": {"page": 1534, "game": "jak2", "textures": [["GAME", "effects", "yellow-gun-part"], ["oracle", "oracle-sprite", "flare"]]},
   "base_id": 21900,
   "base_region_id": 21900,
   // Jak 2's fixed cameras of this level (elevator rides, camera regions)
   "cameras": [
 
   ],
-  "art_groups": ["cty-door-ag"],
+  // models of its custom actors, built by build-actor
+  "custom_models": ["hj2-oracle-door", "hj2-oracle-wall-banner", "hj2-oracle-roof-banner", "hj2-oracle-roof-banner-b"],
+  "art_groups": [],
   "actors": [
-    // Jak 2's oracle-door-1 (oracle) [as cty-door]
-    {"trans": [705.8101, 6.0011, -473.5739], "etype": "cty-door", "game_task": 0, "quat": [0.0, 0.043, 0.0, 0.9991], "bsphere": [705.8101, 6.0011, -473.5739, 6.9282], "lump": {"name": "oracle-door-1", "distance": ["float", 40960.0], "idle-distance": ["float", 49152.0], "height": ["float", 12288.0, 12288.0], "on-cross": ["pair", "(want-vis 'havenj2)"], "on-deactivate": ["pair", "(want-display 'havenj2 #f)"], "on-enter": ["pair", "(want-display 'havenj2 'display)"], "on-notice": ["pair", "'(havenj2)"], "next-actor": ["string", "oracle-door-3"]}}
+    // Jak 2's oracle-door-1 (oracle) [as hj2-oracle-door]
+    {"trans": [705.8101, 6.0011, -473.5739], "etype": "hj2-oracle-door", "game_task": 0, "quat": [0.0, 0.043, 0.0, 0.9991], "bsphere": [705.8101, 6.0011, -473.5739, 6.9282], "lump": {"name": "oracle-door-1", "distance": ["float", 40960.0], "idle-distance": ["float", 49152.0], "height": ["float", 12288.0, 12288.0], "on-cross": ["pair", "(want-vis 'hj2-slmc)"], "on-deactivate": ["pair", "(begin (want-display 'hj2-slmc #f) (want-display 'havenj2 #f))"], "on-enter": ["pair", "(begin (want-display 'hj2-slmc 'display) (want-display 'havenj2 'display))"], "on-notice": ["pair", "'(hj2-slmc havenj2)"], "next-actor": ["string", "oracle-door-3"]}},
+    // Jak 2's oracle-roof-banner-1 (oracle)
+    {"trans": [703.1119, 18.3193, -445.9402], "etype": "hj2-oracle-roof-banner", "game_task": 0, "quat": [0.0, 0.7369, 0.0, 0.676], "bsphere": [703.1119, 18.3193, -445.9402, 6.9282], "lump": {"name": "oracle-roof-banner-1"}},
+    // Jak 2's oracle-roof-banner-2 (oracle)
+    {"trans": [702.4667, 18.3193, -453.4212], "etype": "hj2-oracle-roof-banner", "game_task": 0, "quat": [0.0, 0.7369, 0.0, 0.676], "bsphere": [702.4667, 18.3193, -453.4212, 6.9282], "lump": {"name": "oracle-roof-banner-2"}},
+    // Jak 2's oracle-roof-banner-3 (oracle)
+    {"trans": [701.8452, 18.3193, -460.6284], "etype": "hj2-oracle-roof-banner", "game_task": 0, "quat": [0.0, 0.7369, 0.0, 0.676], "bsphere": [701.8452, 18.3193, -460.6284, 6.9282], "lump": {"name": "oracle-roof-banner-3"}},
+    // Jak 2's oracle-roof-banner-4 (oracle)
+    {"trans": [701.2109, 18.3193, -467.9831], "etype": "hj2-oracle-roof-banner", "game_task": 0, "quat": [0.0, 0.7369, 0.0, 0.676], "bsphere": [701.2109, 18.3193, -467.9831, 6.9282], "lump": {"name": "oracle-roof-banner-4"}},
+    // Jak 2's oracle-roof-banner-b-1 (oracle)
+    {"trans": [713.0372, 18.3193, -446.8445], "etype": "hj2-oracle-roof-banner-b", "game_task": 0, "quat": [0.0, -0.676, 0.0, 0.7369], "bsphere": [713.0372, 18.3193, -446.8445, 6.9282], "lump": {"name": "oracle-roof-banner-b-1"}},
+    // Jak 2's oracle-roof-banner-b-2 (oracle)
+    {"trans": [712.392, 18.3193, -454.3255], "etype": "hj2-oracle-roof-banner-b", "game_task": 0, "quat": [0.0, -0.676, 0.0, 0.7369], "bsphere": [712.392, 18.3193, -454.3255, 6.9282], "lump": {"name": "oracle-roof-banner-b-2"}},
+    // Jak 2's oracle-roof-banner-b-3 (oracle)
+    {"trans": [711.7704, 18.3193, -461.5327], "etype": "hj2-oracle-roof-banner-b", "game_task": 0, "quat": [0.0, -0.676, 0.0, 0.7369], "bsphere": [711.7704, 18.3193, -461.5327, 6.9282], "lump": {"name": "oracle-roof-banner-b-3"}},
+    // Jak 2's oracle-roof-banner-b-4 (oracle)
+    {"trans": [711.1362, 18.3193, -468.8874], "etype": "hj2-oracle-roof-banner-b", "game_task": 0, "quat": [0.0, -0.676, 0.0, 0.7369], "bsphere": [711.1362, 18.3193, -468.8874, 6.9282], "lump": {"name": "oracle-roof-banner-b-4"}},
+    // Jak 2's oracle-wall-banner-1 (oracle)
+    {"trans": [713.3259, 10.5574, -472.9462], "etype": "hj2-oracle-wall-banner", "game_task": 0, "quat": [0.0, -0.676, 0.0, 0.7369], "bsphere": [713.3259, 10.5574, -472.9462, 6.9282], "lump": {"name": "oracle-wall-banner-1"}},
+    // Jak 2's oracle-wall-banner-10 (oracle)
+    {"trans": [700.505, 10.5574, -449.4495], "etype": "hj2-oracle-wall-banner", "game_task": 0, "quat": [0.0, -0.676, 0.0, 0.7369], "bsphere": [700.505, 10.5574, -449.4495, 6.9282], "lump": {"name": "oracle-wall-banner-10"}},
+    // Jak 2's oracle-wall-banner-11 (oracle)
+    {"trans": [701.1461, 10.5574, -442.0156], "etype": "hj2-oracle-wall-banner", "game_task": 0, "quat": [0.0, -0.676, 0.0, 0.7369], "bsphere": [701.1461, 10.5574, -442.0156, 6.9282], "lump": {"name": "oracle-wall-banner-11"}},
+    // Jak 2's oracle-wall-banner-12 (oracle)
+    {"trans": [701.7874, 10.5574, -434.58], "etype": "hj2-oracle-wall-banner", "game_task": 0, "quat": [0.0, -0.676, 0.0, 0.7369], "bsphere": [701.7874, 10.5574, -434.58, 6.9282], "lump": {"name": "oracle-wall-banner-12"}},
+    // Jak 2's oracle-wall-banner-2 (oracle)
+    {"trans": [713.976, 10.5574, -465.408], "etype": "hj2-oracle-wall-banner", "game_task": 0, "quat": [0.0, -0.676, 0.0, 0.7369], "bsphere": [713.976, 10.5574, -465.408, 6.9282], "lump": {"name": "oracle-wall-banner-2"}},
+    // Jak 2's oracle-wall-banner-3 (oracle)
+    {"trans": [714.6058, 10.5574, -458.1049], "etype": "hj2-oracle-wall-banner", "game_task": 0, "quat": [0.0, -0.676, 0.0, 0.7369], "bsphere": [714.6058, 10.5574, -458.1049, 6.9282], "lump": {"name": "oracle-wall-banner-3"}},
+    // Jak 2's oracle-wall-banner-4 (oracle)
+    {"trans": [715.2431, 10.5574, -450.7157], "etype": "hj2-oracle-wall-banner", "game_task": 0, "quat": [0.0, -0.676, 0.0, 0.7369], "bsphere": [715.2431, 10.5574, -450.7157, 6.9282], "lump": {"name": "oracle-wall-banner-4"}},
+    // Jak 2's oracle-wall-banner-5 (oracle)
+    {"trans": [715.8842, 10.5574, -443.2818], "etype": "hj2-oracle-wall-banner", "game_task": 0, "quat": [0.0, -0.676, 0.0, 0.7369], "bsphere": [715.8842, 10.5574, -443.2818, 6.9282], "lump": {"name": "oracle-wall-banner-5"}},
+    // Jak 2's oracle-wall-banner-6 (oracle)
+    {"trans": [716.5255, 10.5574, -435.8463], "etype": "hj2-oracle-wall-banner", "game_task": 0, "quat": [0.0, -0.676, 0.0, 0.7369], "bsphere": [716.5255, 10.5574, -435.8463, 6.9282], "lump": {"name": "oracle-wall-banner-6"}},
+    // Jak 2's oracle-wall-banner-7 (oracle)
+    {"trans": [698.5879, 10.5574, -471.6799], "etype": "hj2-oracle-wall-banner", "game_task": 0, "quat": [0.0, -0.676, 0.0, 0.7369], "bsphere": [698.5879, 10.5574, -471.6799, 6.9282], "lump": {"name": "oracle-wall-banner-7"}},
+    // Jak 2's oracle-wall-banner-8 (oracle)
+    {"trans": [699.238, 10.5574, -464.1418], "etype": "hj2-oracle-wall-banner", "game_task": 0, "quat": [0.0, -0.676, 0.0, 0.7369], "bsphere": [699.238, 10.5574, -464.1418, 6.9282], "lump": {"name": "oracle-wall-banner-8"}},
+    // Jak 2's oracle-wall-banner-9 (oracle)
+    {"trans": [699.8678, 10.5574, -456.8387], "etype": "hj2-oracle-wall-banner", "game_task": 0, "quat": [0.0, -0.676, 0.0, 0.7369], "bsphere": [699.8678, 10.5574, -456.8387, 6.9282], "lump": {"name": "oracle-wall-banner-9"}},
+    // Jak 2's oracle-part-5 (oracle): group-oracle-candle
+    {"trans": [716.0399, 12.7574, -437.205], "etype": "part-spawner", "game_task": 0, "quat": [0.0304, 0.7065, 0.7065, -0.0304], "bsphere": [716.0399, 12.7574, -437.205, 6.9282], "lump": {"name": "oracle-part-5", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-73 (oracle): group-oracle-candle-smoke
+    {"trans": [716.5249, 12.7574, -437.9003], "etype": "part-spawner", "game_task": 0, "quat": [0.1499, 0.691, 0.691, -0.1499], "bsphere": [716.5249, 12.7574, -437.9003, 6.9282], "lump": {"name": "oracle-part-73", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle-smoke"}},
+    // Jak 2's oracle-part-74 (oracle): group-oracle-candle
+    {"trans": [715.9727, 12.7574, -438.3604], "etype": "part-spawner", "game_task": 0, "quat": [0.1499, 0.691, 0.691, -0.1499], "bsphere": [715.9727, 12.7574, -438.3604, 6.9282], "lump": {"name": "oracle-part-74", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-75 (oracle): group-oracle-candle
+    {"trans": [715.9774, 12.7574, -439.1837], "etype": "part-spawner", "game_task": 0, "quat": [-0.1501, 0.691, 0.691, 0.1501], "bsphere": [715.9774, 12.7574, -439.1837, 6.9282], "lump": {"name": "oracle-part-75", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-76 (oracle): group-oracle-candle
+    {"trans": [715.9714, 12.7574, -436.4433], "etype": "part-spawner", "game_task": 0, "quat": [-0.1501, 0.691, 0.691, 0.1501], "bsphere": [715.9714, 12.7574, -436.4433, 6.9282], "lump": {"name": "oracle-part-76", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-131 (oracle): group-oracle-candle
+    {"trans": [714.9776, 12.7574, -435.5687], "etype": "part-spawner", "game_task": 0, "quat": [-0.1501, 0.691, 0.691, 0.1501], "bsphere": [714.9776, 12.7574, -435.5687, 6.9282], "lump": {"name": "oracle-part-131", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-132 (oracle): group-oracle-candle
+    {"trans": [714.3078, 12.7574, -435.4065], "etype": "part-spawner", "game_task": 0, "quat": [0.1086, 0.6987, 0.6987, -0.1086], "bsphere": [714.3078, 12.7574, -435.4065, 6.9282], "lump": {"name": "oracle-part-132", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-4 (oracle): group-oracle-candle
+    {"trans": [715.6299, 12.7574, -441.9586], "etype": "part-spawner", "game_task": 0, "quat": [0.0304, 0.7065, 0.7065, -0.0304], "bsphere": [715.6299, 12.7574, -441.9586, 6.9282], "lump": {"name": "oracle-part-4", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-79 (oracle): group-oracle-candle
+    {"trans": [715.6146, 12.7574, -440.2324], "etype": "part-spawner", "game_task": 0, "quat": [0.133, 0.6945, 0.6945, -0.133], "bsphere": [715.6146, 12.7574, -440.2324, 6.9282], "lump": {"name": "oracle-part-79", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-85 (oracle): group-oracle-candle-smoke
+    {"trans": [716.0419, 12.7574, -440.8495], "etype": "part-spawner", "game_task": 0, "quat": [-0.2824, 0.6483, 0.6483, 0.2824], "bsphere": [716.0419, 12.7574, -440.8495, 6.9282], "lump": {"name": "oracle-part-85", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle-smoke"}},
+    // Jak 2's oracle-part-86 (oracle): group-oracle-candle-out
+    {"trans": [716.3936, 12.7574, -439.9667], "etype": "part-spawner", "game_task": 0, "quat": [0.0126, 0.707, 0.707, -0.0126], "bsphere": [716.3936, 12.7574, -439.9667, 6.9282], "lump": {"name": "oracle-part-86", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle-out"}},
+    // Jak 2's oracle-part-25 (oracle): group-oracle-candle
+    {"trans": [715.3201, 8.0854, -442.6734], "etype": "part-spawner", "game_task": 0, "quat": [0.1178, 0.6972, 0.6972, -0.1178], "bsphere": [715.3201, 8.0854, -442.6734, 6.9282], "lump": {"name": "oracle-part-25", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-26 (oracle): group-oracle-candle-out
+    {"trans": [714.6927, 8.0854, -442.3236], "etype": "part-spawner", "game_task": 0, "quat": [-0.4049, 0.5797, 0.5797, 0.4049], "bsphere": [714.6927, 8.0854, -442.3236, 6.9282], "lump": {"name": "oracle-part-26", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle-out"}},
+    // Jak 2's oracle-part-143 (oracle): group-oracle-candle
+    {"trans": [714.7133, 8.0854, -442.9356], "etype": "part-spawner", "game_task": 0, "quat": [-0.0374, 0.7061, 0.7061, 0.0374], "bsphere": [714.7133, 8.0854, -442.9356, 6.9282], "lump": {"name": "oracle-part-143", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-54 (oracle): group-oracle-candle
+    {"trans": [712.5865, 6.574, -441.6998], "etype": "part-spawner", "game_task": 0, "quat": [0.1015, 0.6998, 0.6998, -0.1015], "bsphere": [712.5865, 6.574, -441.6998, 6.9282], "lump": {"name": "oracle-part-54", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-55 (oracle): group-oracle-candle-smoke
+    {"trans": [711.6302, 6.574, -441.7029], "etype": "part-spawner", "game_task": 0, "quat": [-0.019, 0.7069, 0.7069, 0.019], "bsphere": [711.6302, 6.574, -441.7029, 6.9282], "lump": {"name": "oracle-part-55", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle-smoke"}},
+    // Jak 2's oracle-part-56 (oracle): group-oracle-candle
+    {"trans": [710.9843, 6.574, -442.0257], "etype": "part-spawner", "game_task": 0, "quat": [0.1938, 0.68, 0.68, -0.1938], "bsphere": [710.9843, 6.574, -442.0257, 6.9282], "lump": {"name": "oracle-part-56", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-102 (oracle): group-oracle-candle
+    {"trans": [707.0173, 6.5677, -441.8481], "etype": "part-spawner", "game_task": 0, "quat": [0.1938, 0.68, 0.68, -0.1938], "bsphere": [707.0173, 6.5677, -441.8481, 6.9282], "lump": {"name": "oracle-part-102", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-133 (oracle): group-oracle-candle
+    {"trans": [713.6735, 12.7574, -435.5253], "etype": "part-spawner", "game_task": 0, "quat": [0.0463, 0.7056, 0.7056, -0.0463], "bsphere": [713.6735, 12.7574, -435.5253, 6.9282], "lump": {"name": "oracle-part-133", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-134 (oracle): group-oracle-candle
+    {"trans": [713.0142, 12.7574, -435.4271], "etype": "part-spawner", "game_task": 0, "quat": [-0.1501, 0.691, 0.691, 0.1501], "bsphere": [713.0142, 12.7574, -435.4271, 6.9282], "lump": {"name": "oracle-part-134", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-135 (oracle): group-oracle-candle-out
+    {"trans": [712.3444, 12.7574, -435.265], "etype": "part-spawner", "game_task": 0, "quat": [0.1086, 0.6987, 0.6987, -0.1086], "bsphere": [712.3444, 12.7574, -435.265, 6.9282], "lump": {"name": "oracle-part-135", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle-out"}},
+    // Jak 2's oracle-part-136 (oracle): group-oracle-candle
+    {"trans": [711.7101, 12.7574, -435.3837], "etype": "part-spawner", "game_task": 0, "quat": [0.0463, 0.7056, 0.7056, -0.0463], "bsphere": [711.7101, 12.7574, -435.3837, 6.9282], "lump": {"name": "oracle-part-136", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-51 (oracle): group-oracle-candle
+    {"trans": [712.7167, 6.574, -442.3414], "etype": "part-spawner", "game_task": 0, "quat": [0.1015, 0.6998, 0.6998, -0.1015], "bsphere": [712.7167, 6.574, -442.3414, 6.9282], "lump": {"name": "oracle-part-51", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-52 (oracle): group-oracle-candle
+    {"trans": [712.7188, 6.574, -443.3088], "etype": "part-spawner", "game_task": 0, "quat": [-0.045, 0.7057, 0.7057, 0.045], "bsphere": [712.7188, 6.574, -443.3088, 6.9282], "lump": {"name": "oracle-part-52", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-53 (oracle): group-oracle-candle-out
+    {"trans": [712.0776, 6.574, -442.3387], "etype": "part-spawner", "game_task": 0, "quat": [0.1938, 0.68, 0.68, -0.1938], "bsphere": [712.0776, 6.574, -442.3387, 6.9282], "lump": {"name": "oracle-part-53", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle-out"}},
+    // Jak 2's oracle-part-89 (oracle): group-oracle-candle-out
+    {"trans": [711.7443, 5.7305, -443.3088], "etype": "part-spawner", "game_task": 0, "quat": [-0.045, 0.7057, 0.7057, 0.045], "bsphere": [711.7443, 5.7305, -443.3088, 6.9282], "lump": {"name": "oracle-part-89", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle-out"}},
+    // Jak 2's oracle-part-90 (oracle): group-oracle-candle
+    {"trans": [711.019, 5.7305, -443.0285], "etype": "part-spawner", "game_task": 0, "quat": [0.1716, 0.686, 0.686, -0.1716], "bsphere": [711.019, 5.7305, -443.0285, 6.9282], "lump": {"name": "oracle-part-90", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-96 (oracle): group-oracle-candle
+    {"trans": [707.3973, 5.7092, -442.5748], "etype": "part-spawner", "game_task": 0, "quat": [0.129, 0.6952, 0.6952, -0.129], "bsphere": [707.3973, 5.7092, -442.5748, 6.9282], "lump": {"name": "oracle-part-96", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-144 (oracle): group-oracle-candle-smoke
+    {"trans": [714.0089, 8.0854, -442.8242], "etype": "part-spawner", "game_task": 0, "quat": [-0.5718, 0.416, 0.416, 0.5718], "bsphere": [714.0089, 8.0854, -442.8242, 6.9282], "lump": {"name": "oracle-part-144", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle-smoke"}},
+    // Jak 2's oracle-part-145 (oracle): group-oracle-candle
+    {"trans": [713.7672, 8.0854, -442.2969], "etype": "part-spawner", "game_task": 0, "quat": [-0.5718, 0.416, 0.416, 0.5718], "bsphere": [713.7672, 8.0854, -442.2969, 6.9282], "lump": {"name": "oracle-part-145", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-2 (oracle): group-oracle-overhead-light
+    {"trans": [708.0298, 18.1087, -447.9997], "etype": "part-spawner", "game_task": 0, "quat": [0.0304, 0.7065, 0.7065, -0.0304], "bsphere": [708.0298, 18.1087, -447.9997, 6.9282], "lump": {"name": "oracle-part-2", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-overhead-light"}},
+    // Jak 2's oracle-part-48 (oracle): group-oracle-glows
+    {"trans": [708.3052, 12.1901, -444.7692], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9991, 0.0, -0.043], "bsphere": [708.3052, 12.1901, -444.7692, 6.9282], "lump": {"name": "oracle-part-48", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-glows"}},
+    // Jak 2's oracle-part-3 (oracle): group-oracle-candle-smoke
+    {"trans": [715.4064, 12.7574, -444.5502], "etype": "part-spawner", "game_task": 0, "quat": [0.0304, 0.7065, 0.7065, -0.0304], "bsphere": [715.4064, 12.7574, -444.5502, 6.9282], "lump": {"name": "oracle-part-3", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle-smoke"}},
+    // Jak 2's oracle-part-21 (oracle): group-oracle-candle
+    {"trans": [714.9902, 12.7574, -449.3767], "etype": "part-spawner", "game_task": 0, "quat": [0.0304, 0.7065, 0.7065, -0.0304], "bsphere": [714.9902, 12.7574, -449.3767, 6.9282], "lump": {"name": "oracle-part-21", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-87 (oracle): group-oracle-candle
+    {"trans": [715.9006, 12.7574, -445.0753], "etype": "part-spawner", "game_task": 0, "quat": [0.2357, 0.6667, 0.6667, -0.2357], "bsphere": [715.9006, 12.7574, -445.0753, 6.9282], "lump": {"name": "oracle-part-87", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-88 (oracle): group-oracle-candle-out
+    {"trans": [715.2924, 12.7574, -445.9627], "etype": "part-spawner", "game_task": 0, "quat": [-0.1511, 0.6908, 0.6908, 0.1511], "bsphere": [715.2924, 12.7574, -445.9627, 6.9282], "lump": {"name": "oracle-part-88", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle-out"}},
+    // Jak 2's oracle-part-23 (oracle): group-oracle-candle-smoke
+    {"trans": [715.2583, 7.2158, -443.531], "etype": "part-spawner", "game_task": 0, "quat": [0.4681, 0.53, 0.53, -0.4681], "bsphere": [715.2583, 7.2158, -443.531, 6.9282], "lump": {"name": "oracle-part-23", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle-smoke"}},
+    // Jak 2's oracle-part-24 (oracle): group-oracle-candle
+    {"trans": [713.5598, 7.2158, -443.5738], "etype": "part-spawner", "game_task": 0, "quat": [0.0304, 0.7065, 0.7065, -0.0304], "bsphere": [713.5598, 7.2158, -443.5738, 6.9282], "lump": {"name": "oracle-part-24", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-146 (oracle): group-oracle-candle
+    {"trans": [714.1556, 7.2158, -443.531], "etype": "part-spawner", "game_task": 0, "quat": [0.0967, 0.7005, 0.7005, -0.0967], "bsphere": [714.1556, 7.2158, -443.531, 6.9282], "lump": {"name": "oracle-part-146", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-147 (oracle): group-oracle-candle
+    {"trans": [714.7113, 7.2158, -443.7479], "etype": "part-spawner", "game_task": 0, "quat": [-0.0193, 0.7068, 0.7068, 0.0193], "bsphere": [714.7113, 7.2158, -443.7479, 6.9282], "lump": {"name": "oracle-part-147", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-14 (oracle): group-oracle-candle-out
+    {"trans": [716.3002, 6.574, -448.0834], "etype": "part-spawner", "game_task": 0, "quat": [0.0304, 0.7065, 0.7065, -0.0304], "bsphere": [716.3002, 6.574, -448.0834, 6.9282], "lump": {"name": "oracle-part-14", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle-out"}},
+    // Jak 2's oracle-part-15 (oracle): group-oracle-candle
+    {"trans": [715.4313, 6.574, -444.8681], "etype": "part-spawner", "game_task": 0, "quat": [-0.1877, 0.6818, 0.6818, 0.1877], "bsphere": [715.4313, 6.574, -444.8681, 6.9282], "lump": {"name": "oracle-part-15", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-49 (oracle): group-oracle-candle-out
+    {"trans": [714.6833, 6.574, -444.293], "etype": "part-spawner", "game_task": 0, "quat": [0.1015, 0.6998, 0.6998, -0.1015], "bsphere": [714.6833, 6.574, -444.293, 6.9282], "lump": {"name": "oracle-part-49", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle-out"}},
+    // Jak 2's oracle-part-50 (oracle): group-oracle-candle
+    {"trans": [713.7922, 6.574, -444.3902], "etype": "part-spawner", "game_task": 0, "quat": [0.1015, 0.6998, 0.6998, -0.1015], "bsphere": [713.7922, 6.574, -444.3902, 6.9282], "lump": {"name": "oracle-part-50", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-57 (oracle): group-oracle-candle
+    {"trans": [717.0306, 6.574, -445.116], "etype": "part-spawner", "game_task": 0, "quat": [0.1015, 0.6998, 0.6998, -0.1015], "bsphere": [717.0306, 6.574, -445.116, 6.9282], "lump": {"name": "oracle-part-57", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-58 (oracle): group-oracle-candle-smoke
+    {"trans": [716.1395, 6.574, -445.2132], "etype": "part-spawner", "game_task": 0, "quat": [0.1015, 0.6998, 0.6998, -0.1015], "bsphere": [716.1395, 6.574, -445.2132, 6.9282], "lump": {"name": "oracle-part-58", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle-smoke"}},
+    // Jak 2's oracle-part-61 (oracle): group-oracle-candle
+    {"trans": [714.5918, 6.574, -445.1736], "etype": "part-spawner", "game_task": 0, "quat": [-0.1592, 0.689, 0.689, 0.1592], "bsphere": [714.5918, 6.574, -445.1736, 6.9282], "lump": {"name": "oracle-part-61", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-77 (oracle): group-oracle-candle
+    {"trans": [713.0613, 6.574, -444.3946], "etype": "part-spawner", "game_task": 0, "quat": [-0.0726, 0.7034, 0.7034, 0.0726], "bsphere": [713.0613, 6.574, -444.3946, 6.9282], "lump": {"name": "oracle-part-77", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-78 (oracle): group-oracle-candle-smoke
+    {"trans": [713.8441, 6.574, -445.1118], "etype": "part-spawner", "game_task": 0, "quat": [-0.0726, 0.7034, 0.7034, 0.0726], "bsphere": [713.8441, 6.574, -445.1118, 6.9282], "lump": {"name": "oracle-part-78", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle-smoke"}},
+    // Jak 2's oracle-part-91 (oracle): group-oracle-candle
+    {"trans": [711.019, 5.7305, -444.251], "etype": "part-spawner", "game_task": 0, "quat": [0.1716, 0.686, 0.686, -0.1716], "bsphere": [711.019, 5.7305, -444.251, 6.9282], "lump": {"name": "oracle-part-91", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-59 (oracle): group-oracle-candle
+    {"trans": [717.7785, 6.574, -445.6911], "etype": "part-spawner", "game_task": 0, "quat": [-0.1877, 0.6818, 0.6818, 0.1877], "bsphere": [717.7785, 6.574, -445.6911, 6.9282], "lump": {"name": "oracle-part-59", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-60 (oracle): group-oracle-candle-out
+    {"trans": [715.3232, 6.574, -445.6015], "etype": "part-spawner", "game_task": 0, "quat": [0.1015, 0.6998, 0.6998, -0.1015], "bsphere": [715.3232, 6.574, -445.6015, 6.9282], "lump": {"name": "oracle-part-60", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle-out"}},
+    // Jak 2's oracle-part-62 (oracle): group-oracle-candle
+    {"trans": [716.0712, 6.574, -446.1766], "etype": "part-spawner", "game_task": 0, "quat": [-0.1877, 0.6818, 0.6818, 0.1877], "bsphere": [716.0712, 6.574, -446.1766, 6.9282], "lump": {"name": "oracle-part-62", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-69 (oracle): group-oracle-candle-smoke
+    {"trans": [714.7554, 6.574, -446.1397], "etype": "part-spawner", "game_task": 0, "quat": [0.1015, 0.6998, 0.6998, -0.1015], "bsphere": [714.7554, 6.574, -446.1397, 6.9282], "lump": {"name": "oracle-part-69", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle-smoke"}},
+    // Jak 2's oracle-part-70 (oracle): group-oracle-candle-out
+    {"trans": [713.8643, 6.574, -446.2369], "etype": "part-spawner", "game_task": 0, "quat": [0.1015, 0.6998, 0.6998, -0.1015], "bsphere": [713.8643, 6.574, -446.2369, 6.9282], "lump": {"name": "oracle-part-70", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle-out"}},
+    // Jak 2's oracle-part-71 (oracle): group-oracle-candle
+    {"trans": [713.048, 6.574, -446.6252], "etype": "part-spawner", "game_task": 0, "quat": [0.1015, 0.6998, 0.6998, -0.1015], "bsphere": [713.048, 6.574, -446.6252, 6.9282], "lump": {"name": "oracle-part-71", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-72 (oracle): group-oracle-candle-out
+    {"trans": [713.796, 6.574, -447.2003], "etype": "part-spawner", "game_task": 0, "quat": [-0.1877, 0.6818, 0.6818, 0.1877], "bsphere": [713.796, 6.574, -447.2003, 6.9282], "lump": {"name": "oracle-part-72", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle-out"}},
+    // Jak 2's oracle-part-116 (oracle): group-oracle-candle
+    {"trans": [714.6417, 6.574, -451.2989], "etype": "part-spawner", "game_task": 0, "quat": [-0.1877, 0.6818, 0.6818, 0.1877], "bsphere": [714.6417, 6.574, -451.2989, 6.9282], "lump": {"name": "oracle-part-116", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-9 (oracle): group-oracle-candle
+    {"trans": [701.9666, 12.7574, -435.9913], "etype": "part-spawner", "game_task": 0, "quat": [0.0304, 0.7065, 0.7065, -0.0304], "bsphere": [701.9666, 12.7574, -435.9913, 6.9282], "lump": {"name": "oracle-part-9", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-137 (oracle): group-oracle-candle
+    {"trans": [704.7364, 12.7574, -434.5817], "etype": "part-spawner", "game_task": 0, "quat": [-0.1501, 0.691, 0.691, 0.1501], "bsphere": [704.7364, 12.7574, -434.5817, 6.9282], "lump": {"name": "oracle-part-137", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-138 (oracle): group-oracle-candle
+    {"trans": [704.0666, 12.7574, -434.4195], "etype": "part-spawner", "game_task": 0, "quat": [0.1086, 0.6987, 0.6987, -0.1086], "bsphere": [704.0666, 12.7574, -434.4195, 6.9282], "lump": {"name": "oracle-part-138", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-139 (oracle): group-oracle-candle-out
+    {"trans": [703.4323, 12.7574, -434.5383], "etype": "part-spawner", "game_task": 0, "quat": [0.0463, 0.7056, 0.7056, -0.0463], "bsphere": [703.4323, 12.7574, -434.5383, 6.9282], "lump": {"name": "oracle-part-139", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle-out"}},
+    // Jak 2's oracle-part-140 (oracle): group-oracle-candle-smoke
+    {"trans": [705.3957, 12.7574, -434.6799], "etype": "part-spawner", "game_task": 0, "quat": [0.0463, 0.7056, 0.7056, -0.0463], "bsphere": [705.3957, 12.7574, -434.6799, 6.9282], "lump": {"name": "oracle-part-140", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle-smoke"}},
+    // Jak 2's oracle-part-141 (oracle): group-oracle-candle
+    {"trans": [706.03, 12.7574, -434.5611], "etype": "part-spawner", "game_task": 0, "quat": [0.1086, 0.6987, 0.6987, -0.1086], "bsphere": [706.03, 12.7574, -434.5611, 6.9282], "lump": {"name": "oracle-part-141", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-142 (oracle): group-oracle-candle
+    {"trans": [706.6998, 12.7574, -434.7233], "etype": "part-spawner", "game_task": 0, "quat": [-0.1501, 0.691, 0.691, 0.1501], "bsphere": [706.6998, 12.7574, -434.7233, 6.9282], "lump": {"name": "oracle-part-142", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-8 (oracle): group-oracle-candle
+    {"trans": [701.5567, 12.7574, -440.7449], "etype": "part-spawner", "game_task": 0, "quat": [0.0304, 0.7065, 0.7065, -0.0304], "bsphere": [701.5567, 12.7574, -440.7449, 6.9282], "lump": {"name": "oracle-part-8", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-120 (oracle): group-oracle-candle-smoke
+    {"trans": [701.9666, 12.7574, -437.5715], "etype": "part-spawner", "game_task": 0, "quat": [0.0304, 0.7065, 0.7065, -0.0304], "bsphere": [701.9666, 12.7574, -437.5715, 6.9282], "lump": {"name": "oracle-part-120", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle-smoke"}},
+    // Jak 2's oracle-part-121 (oracle): group-oracle-candle-out
+    {"trans": [701.9666, 12.7574, -438.5962], "etype": "part-spawner", "game_task": 0, "quat": [0.0304, 0.7065, 0.7065, -0.0304], "bsphere": [701.9666, 12.7574, -438.5962, 6.9282], "lump": {"name": "oracle-part-121", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle-out"}},
+    // Jak 2's oracle-part-122 (oracle): group-oracle-candle
+    {"trans": [701.5833, 12.7574, -439.3791], "etype": "part-spawner", "game_task": 0, "quat": [-0.0991, 0.7001, 0.7001, 0.0991], "bsphere": [701.5833, 12.7574, -439.3791, 6.9282], "lump": {"name": "oracle-part-122", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-123 (oracle): group-oracle-candle
+    {"trans": [701.1094, 12.7574, -439.8391], "etype": "part-spawner", "game_task": 0, "quat": [-0.2061, 0.6764, 0.6764, 0.2061], "bsphere": [701.1094, 12.7574, -439.8391, 6.9282], "lump": {"name": "oracle-part-123", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-124 (oracle): group-oracle-candle
+    {"trans": [701.2778, 12.7574, -438.3367], "etype": "part-spawner", "game_task": 0, "quat": [-0.0675, 0.7039, 0.7039, 0.0675], "bsphere": [701.2778, 12.7574, -438.3367, 6.9282], "lump": {"name": "oracle-part-124", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-125 (oracle): group-oracle-candle
+    {"trans": [701.1033, 12.7574, -437.2908], "etype": "part-spawner", "game_task": 0, "quat": [0.2767, 0.6507, 0.6507, -0.2767], "bsphere": [701.1033, 12.7574, -437.2908, 6.9282], "lump": {"name": "oracle-part-125", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-127 (oracle): group-oracle-candle
+    {"trans": [701.5833, 12.7574, -436.7914], "etype": "part-spawner", "game_task": 0, "quat": [-0.0991, 0.7001, 0.7001, 0.0991], "bsphere": [701.5833, 12.7574, -436.7914, 6.9282], "lump": {"name": "oracle-part-127", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-126 (oracle): group-oracle-candle-out
+    {"trans": [701.5115, 12.7574, -441.8098], "etype": "part-spawner", "game_task": 0, "quat": [0.2414, 0.6646, 0.6646, -0.2414], "bsphere": [701.5115, 12.7574, -441.8098, 6.9282], "lump": {"name": "oracle-part-126", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle-out"}},
+    // Jak 2's oracle-part-29 (oracle): group-oracle-candle
+    {"trans": [703.3798, 8.0854, -441.6872], "etype": "part-spawner", "game_task": 0, "quat": [0.1745, 0.6852, 0.6852, -0.1745], "bsphere": [703.3798, 8.0854, -441.6872, 6.9282], "lump": {"name": "oracle-part-29", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-30 (oracle): group-oracle-candle-out
+    {"trans": [702.6019, 8.0854, -442.2599], "etype": "part-spawner", "game_task": 0, "quat": [-0.478, 0.521, 0.521, 0.478], "bsphere": [702.6019, 8.0854, -442.2599, 6.9282], "lump": {"name": "oracle-part-30", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle-out"}},
+    // Jak 2's oracle-part-148 (oracle): group-oracle-candle
+    {"trans": [703.1783, 8.0854, -442.2699], "etype": "part-spawner", "game_task": 0, "quat": [-0.0258, 0.7066, 0.7066, 0.0258], "bsphere": [703.1783, 8.0854, -442.2699, 6.9282], "lump": {"name": "oracle-part-148", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-149 (oracle): group-oracle-candle-out
+    {"trans": [701.7764, 8.0854, -442.1294], "etype": "part-spawner", "game_task": 0, "quat": [-0.5981, 0.3771, 0.3771, 0.5981], "bsphere": [701.7764, 8.0854, -442.1294, 6.9282], "lump": {"name": "oracle-part-149", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle-out"}},
+    // Jak 2's oracle-part-150 (oracle): group-oracle-candle
+    {"trans": [702.2369, 8.0854, -441.7097], "etype": "part-spawner", "game_task": 0, "quat": [-0.5981, 0.3771, 0.3771, 0.5981], "bsphere": [702.2369, 8.0854, -441.7097, 6.9282], "lump": {"name": "oracle-part-150", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-93 (oracle): group-oracle-candle
+    {"trans": [705.2009, 5.7305, -442.5168], "etype": "part-spawner", "game_task": 0, "quat": [-0.1686, 0.6867, 0.6867, 0.1686], "bsphere": [705.2009, 5.7305, -442.5168, 6.9282], "lump": {"name": "oracle-part-93", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-95 (oracle): group-oracle-candle-smoke
+    {"trans": [706.6613, 5.7305, -442.5816], "etype": "part-spawner", "game_task": 0, "quat": [-0.1686, 0.6867, 0.6867, 0.1686], "bsphere": [706.6613, 5.7305, -442.5816, 6.9282], "lump": {"name": "oracle-part-95", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle-smoke"}},
+    // Jak 2's oracle-part-97 (oracle): group-oracle-candle
+    {"trans": [706.302, 6.5677, -441.6943], "etype": "part-spawner", "game_task": 0, "quat": [0.1015, 0.6998, 0.6998, -0.1015], "bsphere": [706.302, 6.5677, -441.6943, 6.9282], "lump": {"name": "oracle-part-97", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-98 (oracle): group-oracle-candle
+    {"trans": [705.663, 6.5677, -441.6916], "etype": "part-spawner", "game_task": 0, "quat": [0.1938, 0.68, 0.68, -0.1938], "bsphere": [705.663, 6.5677, -441.6916, 6.9282], "lump": {"name": "oracle-part-98", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-99 (oracle): group-oracle-candle-out
+    {"trans": [706.1719, 6.5677, -441.0526], "etype": "part-spawner", "game_task": 0, "quat": [0.1015, 0.6998, 0.6998, -0.1015], "bsphere": [706.1719, 6.5677, -441.0526, 6.9282], "lump": {"name": "oracle-part-99", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle-out"}},
+    // Jak 2's oracle-part-100 (oracle): group-oracle-candle
+    {"trans": [705.2156, 6.5677, -441.0558], "etype": "part-spawner", "game_task": 0, "quat": [-0.019, 0.7069, 0.7069, 0.019], "bsphere": [705.2156, 6.5677, -441.0558, 6.9282], "lump": {"name": "oracle-part-100", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-101 (oracle): group-oracle-candle
+    {"trans": [704.5696, 6.5677, -441.3786], "etype": "part-spawner", "game_task": 0, "quat": [0.1938, 0.68, 0.68, -0.1938], "bsphere": [704.5696, 6.5677, -441.3786, 6.9282], "lump": {"name": "oracle-part-101", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-28 (oracle): group-oracle-candle
+    {"trans": [701.6767, 7.2158, -442.7292], "etype": "part-spawner", "game_task": 0, "quat": [0.0304, 0.7065, 0.7065, -0.0304], "bsphere": [701.6767, 7.2158, -442.7292, 6.9282], "lump": {"name": "oracle-part-28", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-151 (oracle): group-oracle-candle
+    {"trans": [702.6279, 7.2158, -442.7269], "etype": "part-spawner", "game_task": 0, "quat": [0.1165, 0.6974, 0.6974, -0.1165], "bsphere": [702.6279, 7.2158, -442.7269, 6.9282], "lump": {"name": "oracle-part-151", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-7 (oracle): group-oracle-candle-out
+    {"trans": [701.3332, 12.7574, -443.3365], "etype": "part-spawner", "game_task": 0, "quat": [0.0304, 0.7065, 0.7065, -0.0304], "bsphere": [701.3332, 12.7574, -443.3365, 6.9282], "lump": {"name": "oracle-part-7", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle-out"}},
+    // Jak 2's oracle-part-10 (oracle): group-oracle-candle
+    {"trans": [700.9169, 12.7574, -448.163], "etype": "part-spawner", "game_task": 0, "quat": [0.0304, 0.7065, 0.7065, -0.0304], "bsphere": [700.9169, 12.7574, -448.163, 6.9282], "lump": {"name": "oracle-part-10", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-11 (oracle): group-oracle-candle-out
+    {"trans": [700.6934, 12.7574, -450.7546], "etype": "part-spawner", "game_task": 0, "quat": [0.0304, 0.7065, 0.7065, -0.0304], "bsphere": [700.6934, 12.7574, -450.7546, 6.9282], "lump": {"name": "oracle-part-11", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle-out"}},
+    // Jak 2's oracle-part-128 (oracle): group-oracle-candle
+    {"trans": [700.6765, 12.7574, -444.1495], "etype": "part-spawner", "game_task": 0, "quat": [-0.0991, 0.7001, 0.7001, 0.0991], "bsphere": [700.6765, 12.7574, -444.1495, 6.9282], "lump": {"name": "oracle-part-128", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-129 (oracle): group-oracle-candle
+    {"trans": [701.3571, 12.7574, -444.144], "etype": "part-spawner", "game_task": 0, "quat": [0.1275, 0.6955, 0.6955, -0.1275], "bsphere": [701.3571, 12.7574, -444.144, 6.9282], "lump": {"name": "oracle-part-129", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-130 (oracle): group-oracle-candle
+    {"trans": [700.876, 12.7574, -445.3997], "etype": "part-spawner", "game_task": 0, "quat": [0.1275, 0.6955, 0.6955, -0.1275], "bsphere": [700.876, 12.7574, -445.3997, 6.9282], "lump": {"name": "oracle-part-130", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-27 (oracle): group-oracle-candle
+    {"trans": [703.3135, 7.2158, -442.8091], "etype": "part-spawner", "game_task": 0, "quat": [-0.521, -0.478, -0.478, 0.521], "bsphere": [703.3135, 7.2158, -442.8091, 6.9282], "lump": {"name": "oracle-part-27", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-113 (oracle): group-oracle-candle
+    {"trans": [699.9622, 6.574, -451.7568], "etype": "part-spawner", "game_task": 0, "quat": [-0.1592, 0.689, 0.689, 0.1592], "bsphere": [699.9622, 6.574, -451.7568, 6.9282], "lump": {"name": "oracle-part-113", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-114 (oracle): group-oracle-candle-out
+    {"trans": [699.1626, 6.574, -450.9734], "etype": "part-spawner", "game_task": 0, "quat": [0.1015, 0.6998, 0.6998, -0.1015], "bsphere": [699.1626, 6.574, -450.9734, 6.9282], "lump": {"name": "oracle-part-114", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle-out"}},
+    // Jak 2's oracle-part-115 (oracle): group-oracle-candle
+    {"trans": [700.0536, 6.574, -450.8763], "etype": "part-spawner", "game_task": 0, "quat": [0.1015, 0.6998, 0.6998, -0.1015], "bsphere": [700.0536, 6.574, -450.8763, 6.9282], "lump": {"name": "oracle-part-115", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-105 (oracle): group-oracle-candle
+    {"trans": [698.1848, 6.574, -445.6213], "etype": "part-spawner", "game_task": 0, "quat": [0.1015, 0.6998, 0.6998, -0.1015], "bsphere": [698.1848, 6.574, -445.6213, 6.9282], "lump": {"name": "oracle-part-105", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-106 (oracle): group-oracle-candle
+    {"trans": [698.9328, 6.574, -446.1964], "etype": "part-spawner", "game_task": 0, "quat": [-0.1877, 0.6818, 0.6818, 0.1877], "bsphere": [698.9328, 6.574, -446.1964, 6.9282], "lump": {"name": "oracle-part-106", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-107 (oracle): group-oracle-candle-out
+    {"trans": [698.981, 6.574, -444.1078], "etype": "part-spawner", "game_task": 0, "quat": [-0.0726, 0.7034, 0.7034, 0.0726], "bsphere": [698.981, 6.574, -444.1078, 6.9282], "lump": {"name": "oracle-part-107", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle-out"}},
+    // Jak 2's oracle-part-110 (oracle): group-oracle-candle-out
+    {"trans": [698.9291, 6.574, -443.3863], "etype": "part-spawner", "game_task": 0, "quat": [0.1015, 0.6998, 0.6998, -0.1015], "bsphere": [698.9291, 6.574, -443.3863, 6.9282], "lump": {"name": "oracle-part-110", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle-out"}},
+    // Jak 2's oracle-part-16 (oracle): group-oracle-candle
+    {"trans": [701.147, 6.574, -444.7383], "etype": "part-spawner", "game_task": 0, "quat": [0.0304, 0.7065, 0.7065, -0.0304], "bsphere": [701.147, 6.574, -444.7383, 6.9282], "lump": {"name": "oracle-part-16", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-63 (oracle): group-oracle-candle-out
+    {"trans": [703.8243, 6.5699, -444.1339], "etype": "part-spawner", "game_task": 0, "quat": [-0.1877, 0.6818, 0.6818, 0.1877], "bsphere": [703.8243, 6.5699, -444.1339, 6.9282], "lump": {"name": "oracle-part-63", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle-out"}},
+    // Jak 2's oracle-part-64 (oracle): group-oracle-candle
+    {"trans": [701.3689, 6.5699, -444.0443], "etype": "part-spawner", "game_task": 0, "quat": [0.1015, 0.6998, 0.6998, -0.1015], "bsphere": [701.3689, 6.5699, -444.0443, 6.9282], "lump": {"name": "oracle-part-64", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-66 (oracle): group-oracle-candle-smoke
+    {"trans": [702.1169, 6.5699, -444.6194], "etype": "part-spawner", "game_task": 0, "quat": [-0.1877, 0.6818, 0.6818, 0.1877], "bsphere": [702.1169, 6.5699, -444.6194, 6.9282], "lump": {"name": "oracle-part-66", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle-smoke"}},
+    // Jak 2's oracle-part-67 (oracle): group-oracle-candle
+    {"trans": [702.1852, 6.5699, -443.656], "etype": "part-spawner", "game_task": 0, "quat": [0.1015, 0.6998, 0.6998, -0.1015], "bsphere": [702.1852, 6.5699, -443.656, 6.9282], "lump": {"name": "oracle-part-67", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-68 (oracle): group-oracle-candle-smoke
+    {"trans": [703.0763, 6.5699, -443.5588], "etype": "part-spawner", "game_task": 0, "quat": [0.1015, 0.6998, 0.6998, -0.1015], "bsphere": [703.0763, 6.5699, -443.5588, 6.9282], "lump": {"name": "oracle-part-68", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle-smoke"}},
+    // Jak 2's oracle-part-92 (oracle): group-oracle-candle
+    {"trans": [705.9298, 5.7305, -442.7926], "etype": "part-spawner", "game_task": 0, "quat": [-0.3693, 0.603, 0.603, 0.3693], "bsphere": [705.9298, 5.7305, -442.7926, 6.9282], "lump": {"name": "oracle-part-92", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-94 (oracle): group-oracle-candle
+    {"trans": [705.2009, 5.778, -443.7393], "etype": "part-spawner", "game_task": 0, "quat": [-0.1686, 0.6867, 0.6867, 0.1686], "bsphere": [705.2009, 5.778, -443.7393, 6.9282], "lump": {"name": "oracle-part-94", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-17 (oracle): group-oracle-candle-smoke
+    {"trans": [699.8367, 6.574, -446.6636], "etype": "part-spawner", "game_task": 0, "quat": [0.0304, 0.7065, 0.7065, -0.0304], "bsphere": [699.8367, 6.574, -446.6636, 6.9282], "lump": {"name": "oracle-part-17", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle-smoke"}},
+    // Jak 2's oracle-part-65 (oracle): group-oracle-candle
+    {"trans": [700.6375, 6.5699, -443.6164], "etype": "part-spawner", "game_task": 0, "quat": [-0.1592, 0.689, 0.689, 0.1592], "bsphere": [700.6375, 6.5699, -443.6164, 6.9282], "lump": {"name": "oracle-part-65", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-103 (oracle): group-oracle-candle
+    {"trans": [699.8922, 6.574, -445.1358], "etype": "part-spawner", "game_task": 0, "quat": [0.1015, 0.6998, 0.6998, -0.1015], "bsphere": [699.8922, 6.574, -445.1358, 6.9282], "lump": {"name": "oracle-part-103", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-104 (oracle): group-oracle-candle
+    {"trans": [699.0012, 6.574, -445.233], "etype": "part-spawner", "game_task": 0, "quat": [0.1015, 0.6998, 0.6998, -0.1015], "bsphere": [699.0012, 6.574, -445.233, 6.9282], "lump": {"name": "oracle-part-104", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-108 (oracle): group-oracle-candle-smoke
+    {"trans": [700.46, 6.574, -444.5976], "etype": "part-spawner", "game_task": 0, "quat": [0.1015, 0.6998, 0.6998, -0.1015], "bsphere": [700.46, 6.574, -444.5976, 6.9282], "lump": {"name": "oracle-part-108", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle-smoke"}},
+    // Jak 2's oracle-part-109 (oracle): group-oracle-candle
+    {"trans": [699.7286, 6.574, -444.1696], "etype": "part-spawner", "game_task": 0, "quat": [-0.1592, 0.689, 0.689, 0.1592], "bsphere": [699.7286, 6.574, -444.1696, 6.9282], "lump": {"name": "oracle-part-109", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-111 (oracle): group-oracle-candle
+    {"trans": [699.8202, 6.574, -443.2891], "etype": "part-spawner", "game_task": 0, "quat": [0.1015, 0.6998, 0.6998, -0.1015], "bsphere": [699.8202, 6.574, -443.2891, 6.9282], "lump": {"name": "oracle-part-111", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-119 (oracle): group-oracle-candle
+    {"trans": [700.5993, 6.574, -447.8464], "etype": "part-spawner", "game_task": 0, "quat": [0.1015, 0.6998, 0.6998, -0.1015], "bsphere": [700.5993, 6.574, -447.8464, 6.9282], "lump": {"name": "oracle-part-119", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-13 (oracle): group-oracle-candle
+    {"trans": [715.8257, 6.574, -453.5854], "etype": "part-spawner", "game_task": 0, "quat": [0.0304, 0.7065, 0.7065, -0.0304], "bsphere": [715.8257, 6.574, -453.5854, 6.9282], "lump": {"name": "oracle-part-13", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-22 (oracle): group-oracle-candle
+    {"trans": [714.7667, 12.7574, -451.9683], "etype": "part-spawner", "game_task": 0, "quat": [0.0304, 0.7065, 0.7065, -0.0304], "bsphere": [714.7667, 12.7574, -451.9683, 6.9282], "lump": {"name": "oracle-part-22", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-80 (oracle): group-oracle-candle
+    {"trans": [716.9954, 6.574, -452.2824], "etype": "part-spawner", "game_task": 0, "quat": [-0.0121, 0.707, 0.707, 0.0121], "bsphere": [716.9954, 6.574, -452.2824, 6.9282], "lump": {"name": "oracle-part-80", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-81 (oracle): group-oracle-candle
+    {"trans": [716.9287, 6.574, -453.2438], "etype": "part-spawner", "game_task": 0, "quat": [-0.2947, 0.6428, 0.6428, 0.2947], "bsphere": [716.9287, 6.574, -453.2438, 6.9282], "lump": {"name": "oracle-part-81", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-82 (oracle): group-oracle-candle
+    {"trans": [715.2787, 6.574, -452.0212], "etype": "part-spawner", "game_task": 0, "quat": [-0.0121, 0.707, 0.707, 0.0121], "bsphere": [715.2787, 6.574, -452.0212, 6.9282], "lump": {"name": "oracle-part-82", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-83 (oracle): group-oracle-candle-out
+    {"trans": [715.9132, 6.574, -452.7363], "etype": "part-spawner", "game_task": 0, "quat": [-0.2947, 0.6428, 0.6428, 0.2947], "bsphere": [715.9132, 6.574, -452.7363, 6.9282], "lump": {"name": "oracle-part-83", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle-out"}},
+    // Jak 2's oracle-part-84 (oracle): group-oracle-candle-out
+    {"trans": [715.2851, 6.574, -454.5612], "etype": "part-spawner", "game_task": 0, "quat": [-0.2704, 0.6534, 0.6534, 0.2704], "bsphere": [715.2851, 6.574, -454.5612, 6.9282], "lump": {"name": "oracle-part-84", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle-out"}},
+    // Jak 2's oracle-part-32 (oracle): group-oracle-candle-smoke
+    {"trans": [713.7215, 12.7574, -464.088], "etype": "part-spawner", "game_task": 0, "quat": [0.0304, 0.7065, 0.7065, -0.0304], "bsphere": [713.7215, 12.7574, -464.088, 6.9282], "lump": {"name": "oracle-part-32", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle-smoke"}},
+    // Jak 2's oracle-part-44 (oracle): group-oracle-candle-smoke
+    {"trans": [715.0264, 6.574, -462.8533], "etype": "part-spawner", "game_task": 0, "quat": [0.0304, 0.7065, 0.7065, -0.0304], "bsphere": [715.0264, 6.574, -462.8533, 6.9282], "lump": {"name": "oracle-part-44", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle-smoke"}},
+    // Jak 2's oracle-part-45 (oracle): group-oracle-candle
+    {"trans": [715.1924, 6.574, -460.9279], "etype": "part-spawner", "game_task": 0, "quat": [0.0304, 0.7065, 0.7065, -0.0304], "bsphere": [715.1924, 6.574, -460.9279, 6.9282], "lump": {"name": "oracle-part-45", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-12 (oracle): group-oracle-candle
+    {"trans": [715.6597, 6.574, -455.5108], "etype": "part-spawner", "game_task": 0, "quat": [0.0304, 0.7065, 0.7065, -0.0304], "bsphere": [715.6597, 6.574, -455.5108, 6.9282], "lump": {"name": "oracle-part-12", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-20 (oracle): group-oracle-candle-out
+    {"trans": [714.3573, 12.7574, -456.7155], "etype": "part-spawner", "game_task": 0, "quat": [0.0304, 0.7065, 0.7065, -0.0304], "bsphere": [714.3573, 12.7574, -456.7155, 6.9282], "lump": {"name": "oracle-part-20", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle-out"}},
+    // Jak 2's oracle-part-33 (oracle): group-oracle-candle
+    {"trans": [714.1309, 12.7574, -459.3408], "etype": "part-spawner", "game_task": 0, "quat": [0.0304, 0.7065, 0.7065, -0.0304], "bsphere": [714.1309, 12.7574, -459.3408, 6.9282], "lump": {"name": "oracle-part-33", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-6 (oracle): group-oracle-candle
+    {"trans": [700.2841, 12.7574, -455.5018], "etype": "part-spawner", "game_task": 0, "quat": [0.0304, 0.7065, 0.7065, -0.0304], "bsphere": [700.2841, 12.7574, -455.5018, 6.9282], "lump": {"name": "oracle-part-6", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-37 (oracle): group-oracle-candle
+    {"trans": [700.058, 12.7574, -458.1221], "etype": "part-spawner", "game_task": 0, "quat": [0.0304, 0.7065, 0.7065, -0.0304], "bsphere": [700.058, 12.7574, -458.1221, 6.9282], "lump": {"name": "oracle-part-37", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-112 (oracle): group-oracle-candle-out
+    {"trans": [700.6935, 6.574, -452.1847], "etype": "part-spawner", "game_task": 0, "quat": [0.1015, 0.6998, 0.6998, -0.1015], "bsphere": [700.6935, 6.574, -452.1847, 6.9282], "lump": {"name": "oracle-part-112", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle-out"}},
+    // Jak 2's oracle-part-1 (oracle): group-oracle-overhead-light
+    {"trans": [707.1922, 18.1087, -457.713], "etype": "part-spawner", "game_task": 0, "quat": [0.0304, 0.7065, 0.7065, -0.0304], "bsphere": [707.1922, 18.1087, -457.713, 6.9282], "lump": {"name": "oracle-part-1", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-overhead-light"}},
+    // Jak 2's oracle-part-36 (oracle): group-oracle-candle
+    {"trans": [699.6487, 12.7574, -462.8694], "etype": "part-spawner", "game_task": 0, "quat": [0.0304, 0.7065, 0.7065, -0.0304], "bsphere": [699.6487, 12.7574, -462.8694, 6.9282], "lump": {"name": "oracle-part-36", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-41 (oracle): group-oracle-candle
+    {"trans": [698.5692, 6.574, -460.7727], "etype": "part-spawner", "game_task": 0, "quat": [0.0304, 0.7065, 0.7065, -0.0304], "bsphere": [698.5692, 6.574, -460.7727, 6.9282], "lump": {"name": "oracle-part-41", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-18 (oracle): group-oracle-candle
+    {"trans": [699.3621, 6.574, -452.1656], "etype": "part-spawner", "game_task": 0, "quat": [0.0304, 0.7065, 0.7065, -0.0304], "bsphere": [699.3621, 6.574, -452.1656, 6.9282], "lump": {"name": "oracle-part-18", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-19 (oracle): group-oracle-candle-out
+    {"trans": [699.1961, 6.574, -454.091], "etype": "part-spawner", "game_task": 0, "quat": [0.0304, 0.7065, 0.7065, -0.0304], "bsphere": [699.1961, 6.574, -454.091, 6.9282], "lump": {"name": "oracle-part-19", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle-out"}},
+    // Jak 2's oracle-part-40 (oracle): group-oracle-candle
+    {"trans": [698.7352, 6.574, -459.3811], "etype": "part-spawner", "game_task": 0, "quat": [0.0304, 0.7065, 0.7065, -0.0304], "bsphere": [698.7352, 6.574, -459.3811, 6.9282], "lump": {"name": "oracle-part-40", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-117 (oracle): group-oracle-candle
+    {"trans": [699.4421, 6.574, -458.6319], "etype": "part-spawner", "game_task": 0, "quat": [0.1015, 0.6998, 0.6998, -0.1015], "bsphere": [699.4421, 6.574, -458.6319, 6.9282], "lump": {"name": "oracle-part-117", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-118 (oracle): group-oracle-candle-smoke
+    {"trans": [698.7108, 6.574, -458.204], "etype": "part-spawner", "game_task": 0, "quat": [-0.1592, 0.689, 0.689, 0.1592], "bsphere": [698.7108, 6.574, -458.204, 6.9282], "lump": {"name": "oracle-part-118", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle-smoke"}},
+    // Jak 2's oracle-part-31 (oracle): group-oracle-overhead-light
+    {"trans": [706.3134, 18.1087, -467.904], "etype": "part-spawner", "game_task": 0, "quat": [0.0304, 0.7065, 0.7065, -0.0304], "bsphere": [706.3134, 18.1087, -467.904, 6.9282], "lump": {"name": "oracle-part-31", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-overhead-light"}},
+    // Jak 2's oracle-part-34 (oracle): group-oracle-candle
+    {"trans": [713.0804, 12.7574, -471.5211], "etype": "part-spawner", "game_task": 0, "quat": [0.0304, 0.7065, 0.7065, -0.0304], "bsphere": [713.0804, 12.7574, -471.5211, 6.9282], "lump": {"name": "oracle-part-34", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-35 (oracle): group-oracle-candle-out
+    {"trans": [713.4899, 12.7574, -466.7738], "etype": "part-spawner", "game_task": 0, "quat": [0.0304, 0.7065, 0.7065, -0.0304], "bsphere": [713.4899, 12.7574, -466.7738, 6.9282], "lump": {"name": "oracle-part-35", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle-out"}},
+    // Jak 2's oracle-part-46 (oracle): group-oracle-candle-out
+    {"trans": [714.3792, 6.574, -470.358], "etype": "part-spawner", "game_task": 0, "quat": [0.0304, 0.7065, 0.7065, -0.0304], "bsphere": [714.3792, 6.574, -470.358, 6.9282], "lump": {"name": "oracle-part-46", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle-out"}},
+    // Jak 2's oracle-part-47 (oracle): group-oracle-candle
+    {"trans": [714.5453, 6.574, -468.4326], "etype": "part-spawner", "game_task": 0, "quat": [0.0304, 0.7065, 0.7065, -0.0304], "bsphere": [714.5453, 6.574, -468.4326, 6.9282], "lump": {"name": "oracle-part-47", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-38 (oracle): group-oracle-candle
+    {"trans": [699.0056, 12.7574, -470.326], "etype": "part-spawner", "game_task": 0, "quat": [0.0304, 0.7065, 0.7065, -0.0304], "bsphere": [699.0056, 12.7574, -470.326, 6.9282], "lump": {"name": "oracle-part-38", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}},
+    // Jak 2's oracle-part-39 (oracle): group-oracle-candle-out
+    {"trans": [699.415, 12.7574, -465.5788], "etype": "part-spawner", "game_task": 0, "quat": [0.0304, 0.7065, 0.7065, -0.0304], "bsphere": [699.415, 12.7574, -465.5788, 6.9282], "lump": {"name": "oracle-part-39", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle-out"}},
+    // Jak 2's oracle-part-42 (oracle): group-oracle-candle-out
+    {"trans": [698.0857, 6.574, -466.9668], "etype": "part-spawner", "game_task": 0, "quat": [0.0304, 0.7065, 0.7065, -0.0304], "bsphere": [698.0857, 6.574, -466.9668, 6.9282], "lump": {"name": "oracle-part-42", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle-out"}},
+    // Jak 2's oracle-part-43 (oracle): group-oracle-candle
+    {"trans": [697.9197, 6.574, -468.8922], "etype": "part-spawner", "game_task": 0, "quat": [0.0304, 0.7065, 0.7065, -0.0304], "bsphere": [697.9197, 6.574, -468.8922, 6.9282], "lump": {"name": "oracle-part-43", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-oracle-candle"}}
   ]
 }

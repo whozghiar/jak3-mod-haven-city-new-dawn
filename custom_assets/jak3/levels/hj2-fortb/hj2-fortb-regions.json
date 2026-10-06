@@ -98,7 +98,7 @@
           ]
         },
         "on-enter": "(want-display 'hj2-forta 'display)",
-        "on-exit": "(want-display 'hj2-forta #f)"
+        "on-exit": "(want-display 'hj2-forta 'special)"
       }
     ]
   }

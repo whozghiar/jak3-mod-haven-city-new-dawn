@@ -109,6 +109,18 @@ def truth(form):
     return None
 
 
+def with_hubs(levels, hubs):
+    """A list of levels loaded together, with the hub of each level that has one (hubs: level ->
+    its hub) added if missing and moved first: a hub holds code its levels' actors use, so it must
+    load before them and unload after them (the loader unloads the last loaded level first)."""
+    first = []
+    for lev in levels:
+        hub = hubs.get(lev)
+        if hub and hub not in first:
+            first.append(hub)
+    return first + [lev for lev in levels if lev not in first]
+
+
 def no_effect(form):
     """A statement that does nothing (a constant)."""
     return not isinstance(form, list) or is_quoted(form)
@@ -120,8 +132,7 @@ class Translator:
     pair:        the game pair's tables (convert/<source>_<target>.py)
     level_map:   source level -> our level, for the levels that are ported
     all_levels:  every source level name (to recognize the ones that aren't ported)
-    shown:       our levels always shown while Jak is in them (a level merging many source levels,
-                 like a whole city: its scripts showing or hiding its parts are dropped)
+    hubs:        our level -> its hub, loaded first with it (see with_hubs)
     owner:       our level holding the script (where Jak is when it runs)
     story:       function(task name) -> True when that task is closed in the chosen story state
     continues:   source continue name -> ours
@@ -131,12 +142,12 @@ class Translator:
     source:      the source level holding the script
     """
 
-    def __init__(self, pair, level_map, all_levels, shown, owner, story, continues, renames=None,
+    def __init__(self, pair, level_map, all_levels, hubs, owner, story, continues, renames=None,
                  drop_events=(), cameras=(), source=None):
         self.pair = pair
         self.level_map = level_map
         self.all_levels = set(all_levels) | set(level_map)
-        self.shown = set(shown)
+        self.hubs = hubs
         self.owner = owner
         self.source = source
         self.story = story
@@ -353,7 +364,7 @@ class Translator:
     # calls #######################################################################################
 
     def f_want_load(self, args, value):
-        levels = self.level_list(args)
+        levels = with_hubs(self.level_list(args), self.hubs)
         if not levels:
             return DROP
         return [Sym("want-load")] + [[QUOTE, Sym(lv)] for lv in levels]
@@ -363,18 +374,23 @@ class Translator:
         if not lev:
             return DROP
         source = str(args[0][1] if is_quoted(args[0]) else args[0])
-        if lev == self.owner and (lev in self.shown or source != self.source):
+        if lev == self.owner and source != self.source:
             # the source game showed and hid levels around this spot while the one holding it
-            # stayed: they're one level here (a city's districts, the levels merged into a place),
-            # always shown while Jak is in it
+            # stayed: they're one level here (the levels merged into a place), always shown while
+            # Jak is in it
             return DROP
         mode = args[1] if len(args) > 1 else [QUOTE, Sym("display")]
-        shown = is_quoted(mode) and mode[1] == Sym("display")
-        return [Sym("want-display"), [QUOTE, Sym(lev)], [QUOTE, Sym("display")] if shown else FALSE]
+        # 'display, 'special (drawn as a backdrop and running, like the mountain seen from Haven
+        # Forest, whose platform Jak rides there), else hidden
+        if is_quoted(mode) and mode[1] in (Sym("display"), Sym("special")):
+            return [Sym("want-display"), [QUOTE, Sym(lev)], [QUOTE, mode[1]]]
+        return [Sym("want-display"), [QUOTE, Sym(lev)], FALSE]
 
     def f_want_vis(self, args, value):
         lev = self.level(args[0])
-        if not lev:
+        if not lev or lev in self.hubs.values():
+            # a hub is never the level Jak is in (it's not-physical, like Jak 3's ctywide): the
+            # engine would take any other active level for his current level instead
             return DROP
         return [Sym("want-vis"), [QUOTE, Sym(lev)]]
 
@@ -437,3 +453,13 @@ class Translator:
         if (ev, dump(rest[0]) if rest else None) in self.drop_events:
             return lost
         return [Sym("send-event"), Str(name)] + list(args[1:])
+
+
+if __name__ == "__main__":
+    # with_hubs self-check: Jak 2's Dead Town airlock loads the ruins with the slums district only;
+    # the district's hub comes first
+    hubs = {"hj2-slmb": "havenj2", "hj2-slma": "havenj2"}
+    assert with_hubs(["hj2-slmb", "hj2-ruins"], hubs) == ["havenj2", "hj2-slmb", "hj2-ruins"]
+    assert with_hubs(["hj2-slma", "havenj2", "hj2-slmb"], hubs) == ["havenj2", "hj2-slma", "hj2-slmb"]
+    assert with_hubs(["hj2-ruins"], hubs) == ["hj2-ruins"]
+    print("ok")

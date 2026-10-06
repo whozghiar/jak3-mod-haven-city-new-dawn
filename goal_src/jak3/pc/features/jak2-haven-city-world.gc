@@ -16,6 +16,214 @@
 ;; every level name of this mod, defined in jak2-haven-city-levels.gc
 (define-extern *havenj2-levels* pair)
 
+(define-extern *havenj2-hubs* pair)
+
+(defun hj2-hub-of ((name symbol))
+  "The hub of one of the city's districts (*havenj2-hubs*: havenj2, Jak 2's ctywide), else the level
+itself (name): the city's districts and their hub make one group (respawn points, sprite page)."
+  (let ((entry (assoc name *havenj2-hubs*)))
+    (if entry
+        (the-as symbol (cdr entry))
+        name
+        )
+    )
+  )
+
+;; District loading ///////////////////////////////////////////////////////////////////////////////
+
+;; Jak 2 loads its city with region scripts: a face Jak crosses loads the next district (want-load),
+;; a face the camera crosses shows or hides one (want-display), and a request to show a level that
+;; isn't wanted is lost (load-state want-display-level: "can't display X because it isn't loaded").
+;; Jak 2's own data has spots where the loading face can be walked around (from the industrial
+;; section to the port, from the port to the gardens...): the district is then never shown, and Jak
+;; walks into the void. Here, a city district asked to be shown while it isn't wanted takes the place
+;; of a wanted district of the same hub that isn't shown (out of sight, so nothing disappears), then
+;; it loads and shows. When both of the hub's districts are shown, nothing changes, like in Jak 2.
+
+(define *hj2-want-names* (new 'static 'boxed-array :type symbol :length 10 :allocated-length 10))
+
+(defun hj2-swap-in-district ((this load-state) (name symbol))
+  "Make name (a city district, see hj2-hub-of) wanted in place of a district of its hub that is
+wanted but not shown, while the hub is wanted. #t if it did."
+  (let ((hub (hj2-hub-of name))
+        (hidden -1)
+        (hub-wanted? #f)
+        )
+    (when (!= hub name)
+      (dotimes (i 10)
+        (let ((want (-> this want i name)))
+          (cond
+            ((= want name)
+             (return #f)
+             )
+            ((= want hub)
+             (set! hub-wanted? #t)
+             )
+            ((and want (= (hj2-hub-of want) hub) (not (-> this want i display?)))
+             (set! hidden i)
+             )
+            )
+          )
+        )
+      (when (and hub-wanted? (>= hidden 0))
+        (dotimes (i 10)
+          (set! (-> *hj2-want-names* i) (if (= i hidden)
+                                            name
+                                            (-> this want i name)
+                                            )
+                )
+          )
+        (format 0 "hj2: ~A wanted in place of ~A, to show it~%" name (-> this want hidden name))
+        (want-levels this (-> *hj2-want-names* data))
+        (return #t)
+        )
+      )
+    )
+  #f
+  )
+
+(define *hj2-want-display-level* (method-of-type load-state want-display-level))
+
+(defmethod want-display-level ((this load-state) (arg0 symbol) (arg1 symbol))
+  "Jak 3's want-display-level (load-state.gc), after a city district asked to be shown while it isn't
+wanted is swapped in (hj2-swap-in-district). Only this mod's districts are concerned."
+  (if arg1
+      (hj2-swap-in-district this arg0)
+      )
+  ((the-as (function load-state symbol symbol int) *hj2-want-display-level*) this arg0 arg1)
+  )
+
+;; The PC renderer uploads a level's geometry over many frames, and level-update only names it to
+;; the renderer once it is loaded: a district loaded late (a face walked around) showed black for
+;; a while. This mod's levels are named to it as soon as they start loading (level.gc,
+;; *pc-renderer-early-level?*), so the upload overlaps the load.
+(defun hj2-mod-level? ((name symbol))
+  "Is name one of this mod's levels (*havenj2-levels*)?"
+  (if (member name *havenj2-levels*)
+      #t
+      #f
+      )
+  )
+
+(set! *pc-renderer-early-level?* hj2-mod-level?)
+
+;; Jak 2's data also has streets no loading face covers at all (from the port towards the palace):
+;; nothing asks for the district there and Jak walks into the void. The district guard: while Jak
+;; is in the city (his level is the hub or one of its districts), the district holding the street
+;; square under him (*havenj2-district-cells*, generated from Jak 2's traffic cells) must be shown.
+;; If it isn't for a moment, it is shown, loaded first if needed: in place of a hidden district
+;; (hj2-swap-in-district), else with the hub and the district Jak was in. display-wait (the
+;; districts' level flag) holds Jak still while it loads.
+
+(define-extern *havenj2-district-names* (array symbol))
+
+(define-extern *havenj2-district-grid* vector)
+
+(define-extern *havenj2-district-cells* (array uint8))
+
+;; when the district under Jak was first seen not shown (0: it is shown)
+(define *hj2-district-guard-time* (the-as time-frame 0))
+
+(defun hj2-district-at ((pos vector))
+  "The city district holding the street square under pos (x and z, game units): a level name of
+*havenj2-district-names*, #f outside the city's streets."
+  (let* ((grid *havenj2-district-grid*)
+         (nx (the int (-> grid w)))
+         (ix (the int (floor (/ (- (-> pos x) (-> grid x)) (-> grid z)))))
+         (iz (the int (floor (/ (- (-> pos z) (-> grid y)) (-> grid z)))))
+         )
+    (when (and (>= ix 0) (< ix nx) (>= iz 0))
+      (let ((i (+ ix (* iz nx))))
+        (when (< i (-> *havenj2-district-cells* length))
+          (let ((d (-> *havenj2-district-cells* i)))
+            (if (nonzero? d)
+                (return (-> *havenj2-district-names* (+ d -1)))
+                )
+            )
+          )
+        )
+      )
+    (the-as symbol #f)
+    )
+  )
+
+(defun hj2-wanted? ((this load-state) (name symbol))
+  "Is the level name in the load-state's want list?"
+  (dotimes (i 10)
+    (if (= (-> this want i name) name)
+        (return #t)
+        )
+    )
+  #f
+  )
+
+(defun hj2-district-guard ()
+  "Called every frame while Jak is in this mod's levels (havenj2-continues-code): shows the district
+holding the street under Jak when it hasn't been shown for 0.3s (see above). Returns nothing."
+  (let ((lev (-> *target* current-level)))
+    (if (not (and lev
+                  (-> *level* border?)
+                  (not (movie?))
+                  (= (hj2-hub-of (-> lev name)) 'havenj2)
+                  (level-get *level* 'havenj2)
+                  )
+             )
+        (return #f)
+        )
+    (let* ((d (hj2-district-at (target-pos 0)))
+           (shown (if d
+                      (level-get *level* d)
+                      (the-as level #f)
+                      )
+                  )
+           )
+      (cond
+        ((or (not d) (and shown (= (-> shown status) 'active)))
+         (set! *hj2-district-guard-time* 0)
+         )
+        ((zero? *hj2-district-guard-time*)
+         (set-time! *hj2-district-guard-time*)
+         )
+        ((time-elapsed? *hj2-district-guard-time* (seconds 0.3))
+         (set! *hj2-district-guard-time* 0)
+         ;; in place of a hidden district of the hub (the want-display-level wrapper), else with the
+         ;; hub and the district Jak was in (his current level, when it is a district)
+         (want-display-level *load-state* d 'display)
+         (when (not (hj2-wanted? *load-state* d))
+           (format 0 "hj2: district guard loads ~A (Jak in ~A)~%" d (-> lev name))
+           (dotimes (i 10)
+             (set! (-> *hj2-want-names* i) (the-as symbol #f))
+             )
+           (set! (-> *hj2-want-names* 0) 'havenj2)
+           (set! (-> *hj2-want-names* 1) d)
+           (if (and (!= (-> lev name) 'havenj2) (!= (-> lev name) d))
+               (set! (-> *hj2-want-names* 2) (-> lev name))
+               )
+           (want-levels *load-state* (-> *hj2-want-names* data))
+           (want-display-level *load-state* d 'display)
+           )
+         )
+        )
+      ;; ahead: the district Jak will be in 1.5s from now (his velocity: on foot or in a vehicle),
+      ;; loaded early in place of a hidden district of the hub (never one on screen), so it is
+      ;; ready when he gets there
+      (let ((ahead (hj2-district-at (vector+float*! (new 'stack-no-clear 'vector)
+                                                    (target-pos 0)
+                                                    (-> *target* control transv)
+                                                    1.5
+                                                    )
+                                    )
+                   )
+            )
+        (if (and ahead (!= ahead d) (not (hj2-wanted? *load-state* ahead)))
+            (hj2-swap-in-district *load-state* ahead)
+            )
+        )
+      )
+    )
+  (none)
+  )
+
 ;; Fog ////////////////////////////////////////////////////////////////////////////////////////////
 
 (defun hj2-mood-no-fog ((ctx mood-context))
@@ -80,6 +288,14 @@ their daytime values, without the flickering."
 (defbehavior update-mood-hj2-hiphog time-of-day-proc ((arg0 mood-context) (arg1 float) (arg2 int))
   "Mood of hj2-hiphog, the Hip Hog saloon (Jak 2's update-mood-hiphog): palette 1 on."
   (hj2-mood-interior arg0 (new 'static 'array float 8 0.0 1.0 0.0 0.0 0.0 0.0 0.0 0.0))
+  0
+  (none)
+  )
+
+(defbehavior update-mood-hj2-onin time-of-day-proc ((arg0 mood-context) (arg1 float) (arg2 int))
+  "Mood of hj2-onin, Onin's tent (Jak 2's update-mood-onintent): palettes 0 and 1 on, the flames'
+palettes (2 to 7) at their mean level."
+  (hj2-mood-interior arg0 (new 'static 'array float 8 1.0 1.0 0.75 0.75 0.75 0.75 0.333 0.75))
   0
   (none)
   )
@@ -205,7 +421,14 @@ weights."
   (copy-mood-exterior arg0)
   (when (hj2-mood-lights-on? arg2)
     (update-mood-light arg0 5 0 1.0 0.0 arg1 0.0 2.0)
-    (set! (-> arg0 times 6 w) 0.0)
+    ;; palette 6: the flash of the turrets' shots (Jak 2's update-mood-palcab), set by
+    ;; hj2-pcab-turret-flash! (hj2-pcab-obs.gc) in word 2 of the mood state, fading
+    (let ((flash (the-as (pointer float) (&-> arg0 state 2))))
+      (set! (-> arg0 times 6 w) (-> flash 0))
+      (if (not (paused?))
+          (set! (-> flash 0) (fmax 0.0 (+ -0.2 (-> flash 0))))
+          )
+      )
     (update-mood-electricity arg0 7 12 0.8 1.0)
     )
   0
@@ -772,6 +995,9 @@ shimmering on palette 6, palette 7 on."
 ;; (hj2-sprite-page-new, hj2-sprite-page-register). While the level is active, that page is its
 ;; sprite page (level texture-page 7): Jak 3 lays it out and uploads it with the other levels'
 ;; sprite pages before drawing sprites, and particles find its textures by id (texture-page-dir).
+;; The city's districts have no page of their own: their particles are the hub's (havenj2-part.gc),
+;; so a district uses its hub's page, which stays in texture-page-dir while the hub is loaded (Jak
+;; 2's airlocks hide the hub while the district next to them stays shown).
 
 (define *hj2-sprite-page-levels* (new 'static 'boxed-array :type symbol #f #f #f #f #f #f #f #f))
 
@@ -868,10 +1094,25 @@ each texture takes one block (64 words) whatever its size."
   (the-as texture-page #f)
   )
 
-(defun hj2-sprite-page-on ((lev level))
-  "A level of this mod is active: its sprite page (if any) becomes its sprite texture page and the
-texture page of its id."
+(defun hj2-sprite-page-used ((lev level))
+  "The sprite page a level of this mod draws its particles with: its own, else its hub's (a city
+district), else #f."
   (let ((page (hj2-sprite-page-of lev)))
+    (when (not page)
+      (let ((hub (level-get *level* (hj2-hub-of (-> lev name)))))
+        (if (and hub (!= hub lev))
+            (set! page (hj2-sprite-page-of hub))
+            )
+        )
+      )
+    page
+    )
+  )
+
+(defun hj2-sprite-page-on ((lev level))
+  "A level of this mod is active: its sprite page (if any, its hub's for a city district) becomes its
+sprite texture page and the texture page of its id."
+  (let ((page (hj2-sprite-page-used lev)))
     (when page
       (let ((entry (-> *texture-page-dir* entries (-> page id))))
         (set! (-> entry length) (-> page length))
@@ -886,15 +1127,32 @@ texture page of its id."
   (none)
   )
 
+(defun hj2-sprite-page-in-use? ((page texture-page) (except level))
+  "Is page the sprite page of an active level other than except?"
+  (dotimes (i (-> *level* length))
+    (let ((lev (-> *level* level i)))
+      (if (and (!= lev except) (= (-> lev status) 'active) (= (-> lev texture-page 7) page))
+          (return #t)
+          )
+      )
+    )
+  #f
+  )
+
 (defun hj2-sprite-page-off ((lev level))
-  "A level of this mod is deactivated: its sprite page is put away. The registration is kept: a
-deactivated level stays in memory (the city is only hidden while Jak is in the Hip Hog, the palace
-lobby...) and is activated again without being reloaded. When it is reloaded, its code registers
-the new page before it is activated."
-  (let ((page (hj2-sprite-page-of lev)))
+  "A level of this mod is deactivated (or the hub is unloaded, havenj2-logout): it stops using its
+sprite page, and the page leaves texture-page-dir if it is the level's own, or if it is its hub's and
+no active level uses it anymore (the hub may be hidden, even never shown, while a district is: Jak
+2's airlocks of Dead Town and the mountain; it must not stay there once the hub can be unloaded).
+The registration is kept: a deactivated level stays in memory (the city is only hidden while Jak is
+in the Hip Hog, the palace lobby...) and is activated again without being reloaded. When it is
+reloaded, its code registers the new page before it is activated."
+  (let ((page (hj2-sprite-page-used lev)))
     (when page
       (let ((entry (-> *texture-page-dir* entries (-> page id))))
-        (when (= (-> entry page) page)
+        (when (and (= (-> entry page) page)
+                   (or (= page (hj2-sprite-page-of lev)) (not (hj2-sprite-page-in-use? page lev)))
+                   )
           (set! (-> entry page) #f)
           (set! (-> entry link) #f)
           (set! (-> entry length) 0)
@@ -910,7 +1168,7 @@ the new page before it is activated."
   )
 
 ;; Jak 3's market and farm props (market-object, fruit-stand, the farm crops: their code is in
-;; havenj2) break into sprite pieces, and the fruit stands throw fruit, with textures from their
+;; havenj2, the city's hub; they stand in its districts) break into sprite pieces, and the fruit stands throw fruit, with textures from their
 ;; Jak 3 level's sprite page. Jak 3's level callbacks market-activate and farm-activate point the
 ;; particles to them; here the textures are in havenj2's own page (the last ones of it, see
 ;; target_textures in the port), found by name.
@@ -1485,73 +1743,32 @@ freehq's fr3 by the decompiler's extra_art_groups_by_dgo): without it, no gate."
 
 ;; Respawn points /////////////////////////////////////////////////////////////////////////////////
 
-;; Jak 3 picks the closest continue of a level only when the player enters it (level-group update),
-;; and never one flagged no-auto: Jak 2's city districts, each its own level, got a respawn point next
-;; to the player that way, but havenj2 is one level, and some places have only no-auto continues (the
-;; palace roof). While Jak is in this mod's levels, a process moves the current continue to the
-;; closest of Jak 2's continues of the level he is in (every one, the no-auto mission starts too), or
-;; of any active level of the mod when that one has none: dying or saving respawns Jak near where he
-;; was. Continues with the warp-gate flag are arrivals through a gate, never picked.
+;; Jak 2 and Jak 3 pick the respawn point the same way (level-group update, level.gc): when Jak's
+;; current level (the load-state's vis-nick) isn't the current continue's level, the current
+;; continue becomes the closest continue of that level, but the no-auto ones (mission starts), and
+;; then stays until he enters another level; scripts can also set it (want-continue). Jak 2 makes
+;; vis-nick the level the camera is inside (its bsp's inside test). Custom levels have no bsp nodes:
+;; the engine sees the camera inside every active one, so vis-nick stays on the district Jak
+;; arrived in. In the city, vis-nick is set here to the district holding the street under Jak
+;; (hj2-district-at), so the engine picks the continue like Jak 2; in the places, Jak 2's own door
+;; and region scripts set it (on-cross want-vis), like in Jak 2.
 
 (define *havenj2-continues* (the-as handle #f))
 
-(defun hj2-closest-continue ((pos vector) (only level))
-  "The continue point closest to pos among the continues of only (an active level of this mod), or
-of every active level of this mod when only is #f. #f if there is none."
-  (let ((best (the-as continue-point #f))
-        (best-dist 0.0)
-        )
-    (dotimes (i (-> *level* length))
-      (let ((lev (-> *level* level i)))
-        (when (and (= (-> lev status) 'active)
-                   (member (-> lev name) *havenj2-levels*)
-                   (or (not only) (= lev only))
-                   )
-          (let ((conts (-> lev info continues)))
-            (while (not (null? conts))
-              (let ((cont (the-as continue-point (car conts))))
-                (when (not (logtest? (-> cont flags) (continue-flags change-continue warp-gate)))
-                  (let ((dist (vector-vector-distance pos (-> cont trans))))
-                    (when (or (not best) (< dist best-dist))
-                      (set! best cont)
-                      (set! best-dist dist)
-                      )
-                    )
-                  )
-                )
-              (set! conts (cdr conts))
-              )
-            )
-          )
-        )
-      )
-    best
-    )
-  )
-
-(defun havenj2-update-continue ()
-  "Move the current continue to the closest one of the level Jak is in, while the current continue is
-one of this mod's."
-  (let ((cont (-> *game-info* current-continue)))
-    (when (and *target*
-               cont
-               (member (-> cont level) *havenj2-levels*)
-               (not (logtest? (-> cont flags) (continue-flags change-continue)))
-               (-> *setting-control* user-current allow-continue)
-               )
-      (let* ((lev (-> *target* current-level))
-             (only (if (and lev (member (-> lev name) *havenj2-levels*) (not (null? (-> lev info continues))))
-                       lev
-                       (the-as level #f)
-                       )
-                   )
-             (best (hj2-closest-continue (target-pos 0) only))
+(defun hj2-update-vis-nick ()
+  "Make the city district holding the street under Jak (when it is active) the load-state's vis-nick,
+while Jak's level is the hub or one of its districts. Returns nothing."
+  (let ((lev (-> *target* current-level)))
+    (when (and lev (= (hj2-hub-of (-> lev name)) 'havenj2))
+      (let* ((d (hj2-district-at (target-pos 0)))
+             (dl (if d
+                     (level-get *level* d)
+                     (the-as level #f)
+                     )
+                 )
              )
-        (if (and (not best) only)
-            (set! best (hj2-closest-continue (target-pos 0) (the-as level #f)))
-            )
-        (if (and best (!= best cont))
-            (set-continue! *game-info* (the-as basic best) #f)
+        (if (and dl (= (-> dl status) 'active) (!= (-> *load-state* vis-nick) d))
+            (want-vis-level *load-state* d)
             )
         )
       )
@@ -1586,10 +1803,14 @@ map is still displayed (the mountain seen from Haven Forest)."
   )
 
 (defbehavior havenj2-continues-code process ()
-  "The respawn point process's code: moves the current continue every frame
-(havenj2-update-continue), and puts the water of the level Jak is in first (hj2-update-ocean-order)."
+  "The city process's code, every frame: Jak's current level in the city (hj2-update-vis-nick, the
+respawn point follows it like in Jak 2), the water of the level Jak is in first
+(hj2-update-ocean-order), and the city district under Jak shown (hj2-district-guard)."
   (loop
-    (havenj2-update-continue)
+    (when *target*
+      (hj2-update-vis-nick)
+      (hj2-district-guard)
+      )
     (hj2-update-ocean-order)
     (suspend)
     )
@@ -1694,6 +1915,9 @@ named under the slot's title."
 ;; Jak 3's citizens, guards and vehicles in havenj2 (Mods menu: City traffic)
 (define *mod-jak2-haven-city-traffic* #t)
 
+;; Jak 2's Freedom League Hellcats in havenj2's traffic (Mods menu: Hellcats), off by default
+(define *mod-jak2-haven-city-hellcats* #f)
+
 ;; in havenj2's own code (levels/havenj2/havenj2-traffic.gc): only called while havenj2 is active
 (define-extern havenj2-traffic-start (function level symbol none))
 (define-extern havenj2-traffic-stop (function level none))
@@ -1711,8 +1935,8 @@ named under the slot's title."
 
 (defun havenj2-activate ((lev level) (mode symbol))
   "havenj2's activation callback (slot 35): the clock (see *mod-jak2-haven-city-hour*), the
-weather, its sprite textures (and its props' particles), the traffic, and the respawn point follows
-Jak."
+weather, its sprite textures (and its districts' props' particles), the traffic, and the respawn
+point follows Jak."
   (hj2-apply-time-of-day)
   (hj2-apply-weather)
   (hj2-sprite-page-on lev)
@@ -1724,20 +1948,25 @@ Jak."
 
 (defun havenj2-deactivate ((lev level))
   "havenj2's deactivation callback (slot 36): the traffic stops, the clock runs again and the
-respawn point stops following Jak if he left this mod's levels."
+respawn point stops following Jak if he left this mod's levels. Its sprite page stays (the districts
+use it) until it is unloaded (havenj2-logout)."
   (havenj2-traffic-stop lev)
   (hj2-release-time-of-day lev)
-  (hj2-sprite-page-off lev)
   (hj2-continues-stop lev)
   (none)
   )
 
 (defun hj2-place-activate ((lev level) (mode symbol))
-  "Activation callback (slot 35) of the places reached from the city: the same clock and weather as
-the city (Jak 2 unloads the city while Jak is in some of them), and the respawn point follows Jak."
+  "Activation callback (slot 35) of the places reached from the city and of the city's districts:
+the same clock and weather as the city (Jak 2 unloads the city while Jak is in some of them), the
+sprite page (a district's is its hub's, with the textures of the hub's props' particles: the hub
+may be hidden, see hj2-sprite-page-off), and the respawn point follows Jak."
   (hj2-apply-time-of-day)
   (hj2-apply-weather)
   (hj2-sprite-page-on lev)
+  (if (!= (hj2-hub-of (-> lev name)) (-> lev name))
+      (hj2-prop-textures-on)
+      )
   (hj2-continues-start)
   (none)
   )

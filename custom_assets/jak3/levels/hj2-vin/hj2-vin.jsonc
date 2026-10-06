@@ -6,15 +6,347 @@
   "iso_name": "HJ2VIN",
   "nickname": "hjv",
   "import_fr3": {"game": "jak2", "levels": ["vinroom"], "tfrag": true, "tie": true, "shrub": true, "collision": true},
+  // the sprite textures of its particles, as texture page 1524 (hj2-vin-part.gc)
+  "sprite_textures": {"page": 1524, "game": "jak2", "textures": [["vinroom", "vinroom-sprite", "vinroom-tv-linetext-01"], ["vinroom", "vinroom-sprite", "vinroom-tv-linetext-02"], ["vinroom", "vinroom-sprite", "vinroom-tv-linetext-03"], ["vinroom", "vinroom-sprite", "vinroom-tv-linetext-04"], ["vinroom", "vinroom-sprite", "vinroom-tv-linetext-05"], ["vinroom", "vinroom-sprite", "vinroom-tv-linetext-06"], ["vinroom", "vinroom-sprite", "vinroom-tv-linetext-07"], ["vinroom", "vinroom-sprite", "vinroom-tv-linetext-08"], ["vinroom", "vinroom-sprite", "screen-00"], ["vinroom", "vinroom-sprite", "screen-01"], ["vinroom", "vinroom-sprite", "screen-02"], ["vinroom", "vinroom-sprite", "screen-03"], ["vinroom", "vinroom-sprite", "screen-04"], ["vinroom", "vinroom-sprite", "screen-05"], ["vinroom", "vinroom-sprite", "screen-06"], ["vinroom", "vinroom-sprite", "screen-07"], ["vinroom", "vinroom-sprite", "screen-08"], ["vinroom", "vinroom-sprite", "screen-09"], ["vinroom", "vinroom-sprite", "screen-10"], ["vinroom", "vinroom-sprite", "screen-11"], ["vinroom", "vinroom-sprite", "screen-12"], ["vinroom", "vinroom-sprite", "screen-13"], ["vinroom", "vinroom-sprite", "screen-14"], ["vinroom", "vinroom-sprite", "screen-15"], ["vinroom", "vinroom-sprite", "vinroom-tv-circle"], ["vinroom", "vinroom-sprite", "vinroom-tv-morgan"], ["vinroom", "vinroom-sprite", "vinroom-small-monitor-08"], ["vinroom", "vinroom-sprite", "vinroom-small-monitor-05"], ["vinroom", "vinroom-sprite", "vinroom-small-monitor-06"], ["vinroom", "vinroom-sprite", "vinroom-small-monitor-07"], ["GAME", "effects", "harddot"], ["vinroom", "vinroom-sprite", "vinroom-tv-beam"], ["vinroom", "vinroom-sprite", "vinroom-tv-radar"], ["vinroom", "vinroom-sprite", "vinroom-tv-radar-dots"], ["vinroom", "vinroom-sprite", "vinroom-small-monitor-01"], ["vinroom", "vinroom-sprite", "vinroom-small-monitor-02"], ["vinroom", "vinroom-sprite", "vinroom-small-monitor-03"], ["vinroom", "vinroom-sprite", "vinroom-small-monitor-04"], ["vinroom", "vinroom-sprite", "tinydot"], ["vinroom", "vinroom-sprite", "vinroom-tv-text-m"], ["vinroom", "vinroom-sprite", "vinroom-tv-text-o"], ["vinroom", "vinroom-sprite", "vinroom-tv-text-r"], ["vinroom", "vinroom-sprite", "vinroom-tv-text-g"], ["vinroom", "vinroom-sprite", "vinroom-tv-text-a"], ["vinroom", "vinroom-sprite", "vinroom-tv-text-n"]]},
   "base_id": 21700,
   "base_region_id": 21700,
   // Jak 2's fixed cameras of this level (elevator rides, camera regions)
   "cameras": [
 
   ],
-  "art_groups": ["vin-door-ctyinda-ag"],
+  // models of its custom actors, built by build-actor
+  "custom_models": ["hj2-vin-door", "hj2-vin-turbine"],
+  "art_groups": ["warp-gate-ag"],
   "actors": [
-    // Jak 2's vin-door-5 (vinroom) [as vin-door-ctyinda]
-    {"trans": [1101.1591, 25.5067, 1101.3215], "etype": "vin-door-ctyinda", "game_task": 0, "quat": [0.0, 0.3814, 0.0, 0.9244], "bsphere": [1101.1591, 25.5067, 1101.3215, 6.9283], "lump": {"name": "vin-door-5", "distance": ["float", 20480.0], "idle-distance": ["float", 40960.0], "on-activate": ["pair", "(want-load 'hj2-vin 'havenj2)"], "on-cross": ["pair", "(want-vis 'havenj2)"], "on-deactivate": ["pair", "(want-display 'havenj2 #f)"], "on-enter": ["pair", "(want-display 'havenj2 'display)"], "on-notice": ["pair", "'(havenj2)"], "next-actor": ["string", "vin-door-ctyinda-1"]}}
+    // Jak 2's vin-door-5 (vinroom) [as hj2-vin-door]
+    {"trans": [1101.1591, 25.5067, 1101.3215], "etype": "hj2-vin-door", "game_task": 0, "quat": [0.0, 0.3814, 0.0, 0.9244], "bsphere": [1101.1591, 25.5067, 1101.3215, 6.9283], "lump": {"name": "vin-door-5", "distance": ["float", 20480.0], "idle-distance": ["float", 40960.0], "height": ["vector", [81920.0, 81920.0, 0.0, 0.0]], "on-activate": ["pair", "(want-load 'havenj2 'hj2-vin 'hj2-inda)"], "on-cross": ["pair", "(want-vis 'hj2-inda)"], "on-deactivate": ["pair", "(begin (want-display 'hj2-inda #f) (want-display 'havenj2 #f))"], "on-enter": ["pair", "(begin (want-display 'hj2-inda 'display) (want-display 'havenj2 'display))"], "on-notice": ["pair", "'(hj2-inda havenj2)"], "next-actor": ["string", "vin-door-ctyinda-1"]}},
+    // Jak 2's warp-gate-21 (vinroom)
+    {"trans": [1120.55, 25.5, 1147.3069], "etype": "warp-gate", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [1120.55, 25.5, 1147.3069, 6.9282], "lump": {"name": "warp-gate-21"}},
+    // Jak 2's vin-turbine-15 (vinroom)
+    {"trans": [1094.0897, 32.9879, 1115.399], "etype": "hj2-vin-turbine", "game_task": 0, "quat": [0.0, 0.6353, 0.0, 0.7723], "bsphere": [1094.0897, 32.9879, 1115.399, 6.9282], "lump": {"name": "vin-turbine-15", "extra-id": ["int32", 1]}},
+    // Jak 2's vin-turbine-16 (vinroom)
+    {"trans": [1115.2557, 32.9879, 1094.2256], "etype": "hj2-vin-turbine", "game_task": 0, "quat": [0.0, 0.0996, 0.0, 0.995], "bsphere": [1115.2557, 32.9879, 1094.2256, 6.9282], "lump": {"name": "vin-turbine-16", "extra-id": ["int32", 1]}},
+    // Jak 2's vin-turbine-17 (vinroom)
+    {"trans": [1142.9951, 32.9879, 1105.6906], "etype": "hj2-vin-turbine", "game_task": 0, "quat": [0.0, -0.4649, 0.0, 0.8853], "bsphere": [1142.9951, 32.9879, 1105.6906, 6.9282], "lump": {"name": "vin-turbine-17"}},
+    // Jak 2's vin-turbine-18 (vinroom)
+    {"trans": [1147.0222, 32.9879, 1126.0055], "etype": "hj2-vin-turbine", "game_task": 0, "quat": [0.0, -0.7734, 0.0, 0.6339], "bsphere": [1147.0222, 32.9879, 1126.0055, 6.9282], "lump": {"name": "vin-turbine-18"}},
+    // Jak 2's vin-turbine-19 (vinroom)
+    {"trans": [1139.0443, 32.9879, 1153.7053], "etype": "hj2-vin-turbine", "game_task": 0, "quat": [0.0, -0.7085, 0.0, 0.7057], "bsphere": [1139.0443, 32.9879, 1153.7053, 6.9282], "lump": {"name": "vin-turbine-19"}},
+    // Jak 2's vin-turbine-20 (vinroom)
+    {"trans": [1120.5199, 32.9879, 1166.178], "etype": "hj2-vin-turbine", "game_task": 0, "quat": [0.0, 0.9999, 0.0, 0.0113], "bsphere": [1120.5199, 32.9879, 1166.178, 6.9282], "lump": {"name": "vin-turbine-20"}},
+    // Jak 2's vin-turbine-21 (vinroom)
+    {"trans": [1108.5502, 32.9879, 1153.6906], "etype": "hj2-vin-turbine", "game_task": 0, "quat": [0.0, 0.7086, 0.0, 0.7056], "bsphere": [1108.5502, 32.9879, 1153.6906, 6.9282], "lump": {"name": "vin-turbine-21"}},
+    // Jak 2's vinroom-part-156 (vinroom): group-vinroom-red-wall-lights
+    {"trans": [1109.8265, 53.9049, 1150.2773], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.6704, 0.0, 0.742], "bsphere": [1109.8265, 53.9049, 1150.2773, 6.9282], "lump": {"name": "vinroom-part-156", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-red-wall-lights"}},
+    // Jak 2's vinroom-part-157 (vinroom): group-vinroom-red-wall-lights
+    {"trans": [1117.1617, 53.9049, 1164.8762], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9987, 0.0, 0.0506], "bsphere": [1117.1617, 53.9049, 1164.8762, 6.9282], "lump": {"name": "vinroom-part-157", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-red-wall-lights"}},
+    // Jak 2's vinroom-part-158 (vinroom): group-vinroom-red-wall-lights
+    {"trans": [1137.7616, 53.9049, 1157.0325], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.742, 0.0, 0.6705], "bsphere": [1137.7616, 53.9049, 1157.0325, 6.9282], "lump": {"name": "vinroom-part-158", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-red-wall-lights"}},
+    // Jak 2's vinroom-part-18 (vinroom): group-vinroom-tv-threebar-1
+    {"trans": [1132.3477, 29.5027, 1130.995], "etype": "part-spawner", "game_task": 0, "quat": [-0.0557, 0.8948, -0.1166, -0.4273], "bsphere": [1132.3477, 29.5027, 1130.995, 6.9283], "lump": {"name": "vinroom-part-18", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-tv-threebar-1"}},
+    // Jak 2's vinroom-part-19 (vinroom): group-vinroom-tv-threebar-2
+    {"trans": [1131.0917, 29.5027, 1132.5529], "etype": "part-spawner", "game_task": 0, "quat": [-0.0594, 0.897, -0.127, -0.4193], "bsphere": [1131.0917, 29.5027, 1132.5529, 6.9282], "lump": {"name": "vinroom-part-19", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-tv-threebar-2"}},
+    // Jak 2's vinroom-part-20 (vinroom): group-vinroom-tv-threebar-3
+    {"trans": [1129.9752, 28.7208, 1134.2007], "etype": "part-spawner", "game_task": 0, "quat": [-0.0582, 0.893, -0.1276, -0.4277], "bsphere": [1129.9752, 28.7208, 1134.2007, 6.9282], "lump": {"name": "vinroom-part-20", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-tv-threebar-3"}},
+    // Jak 2's vinroom-part-32 (vinroom): group-vinroom-console-top-panel
+    {"trans": [1116.0046, 28.018, 1131.5861], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9805, 0.0, 0.1965], "bsphere": [1116.0046, 28.018, 1131.5861, 6.9282], "lump": {"name": "vinroom-part-32", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-top-panel"}},
+    // Jak 2's vinroom-part-33 (vinroom): group-vinroom-console-top-panel
+    {"trans": [1126.0977, 28.018, 1131.1112], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.9702, 0.0, -0.2424], "bsphere": [1126.0977, 28.018, 1131.1112, 6.9282], "lump": {"name": "vinroom-part-33", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-top-panel"}},
+    // Jak 2's vinroom-part-40 (vinroom): group-vinroom-console-blue-light-4
+    {"trans": [1125.5331, 27.4013, 1130.4209], "etype": "part-spawner", "game_task": 0, "quat": [0.0987, 0.8726, 0.438, -0.1922], "bsphere": [1125.5331, 27.4013, 1130.4209, 6.9282], "lump": {"name": "vinroom-part-40", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-blue-light-4"}},
+    // Jak 2's vinroom-part-56 (vinroom): group-vinroom-console-blue-light-8
+    {"trans": [1113.9834, 27.8535, 1130.5039], "etype": "part-spawner", "game_task": 0, "quat": [-0.6222, 0.3359, 0.3359, 0.6222], "bsphere": [1113.9834, 27.8535, 1130.5039, 6.9282], "lump": {"name": "vinroom-part-56", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-blue-light-8"}},
+    // Jak 2's vinroom-part-70 (vinroom): group-vinroom-console-orb
+    {"trans": [1115.8772, 27.6084, 1130.6687], "etype": "part-spawner", "game_task": 0, "quat": [0.5295, 0.7007, 0.452, -0.1559], "bsphere": [1115.8772, 27.6084, 1130.6687, 6.9283], "lump": {"name": "vinroom-part-70", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-orb"}},
+    // Jak 2's vinroom-part-115 (vinroom): group-vinroom-console-little-red-light-6
+    {"trans": [1127.2474, 27.6461, 1129.7355], "etype": "part-spawner", "game_task": 0, "quat": [0.1372, 0.8484, 0.43, -0.2767], "bsphere": [1127.2474, 27.6461, 1129.7355, 6.9282], "lump": {"name": "vinroom-part-115", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-6"}},
+    // Jak 2's vinroom-part-116 (vinroom): group-vinroom-console-little-red-light-5
+    {"trans": [1127.0603, 27.6449, 1129.8713], "etype": "part-spawner", "game_task": 0, "quat": [0.1372, 0.8484, 0.43, -0.2767], "bsphere": [1127.0603, 27.6449, 1129.8713, 6.9282], "lump": {"name": "vinroom-part-116", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-5"}},
+    // Jak 2's vinroom-part-117 (vinroom): group-vinroom-console-little-red-light-4
+    {"trans": [1127.4379, 27.6473, 1129.5973], "etype": "part-spawner", "game_task": 0, "quat": [0.1372, 0.8484, 0.43, -0.2767], "bsphere": [1127.4379, 27.6473, 1129.5973, 6.9282], "lump": {"name": "vinroom-part-117", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-4"}},
+    // Jak 2's vinroom-part-119 (vinroom): group-vinroom-console-little-red-light-3
+    {"trans": [1126.8612, 27.3942, 1129.5947], "etype": "part-spawner", "game_task": 0, "quat": [0.1372, 0.8484, 0.43, -0.2767], "bsphere": [1126.8612, 27.3942, 1129.5947, 6.9282], "lump": {"name": "vinroom-part-119", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-3"}},
+    // Jak 2's vinroom-part-120 (vinroom): group-vinroom-console-little-red-light-4
+    {"trans": [1127.0483, 27.3954, 1129.4589], "etype": "part-spawner", "game_task": 0, "quat": [0.1372, 0.8484, 0.43, -0.2767], "bsphere": [1127.0483, 27.3954, 1129.4589, 6.9282], "lump": {"name": "vinroom-part-120", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-4"}},
+    // Jak 2's vinroom-part-121 (vinroom): group-vinroom-console-little-red-light-3
+    {"trans": [1127.3398, 27.524, 1129.4612], "etype": "part-spawner", "game_task": 0, "quat": [0.1372, 0.8484, 0.43, -0.2767], "bsphere": [1127.3398, 27.524, 1129.4612, 6.9282], "lump": {"name": "vinroom-part-121", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-3"}},
+    // Jak 2's vinroom-part-122 (vinroom): group-vinroom-console-little-red-light-2
+    {"trans": [1126.9624, 27.5216, 1129.7352], "etype": "part-spawner", "game_task": 0, "quat": [0.1372, 0.8484, 0.43, -0.2767], "bsphere": [1126.9624, 27.5216, 1129.7352, 6.9283], "lump": {"name": "vinroom-part-122", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-2"}},
+    // Jak 2's vinroom-part-123 (vinroom): group-vinroom-console-little-red-light-1
+    {"trans": [1127.1495, 27.5228, 1129.5994], "etype": "part-spawner", "game_task": 0, "quat": [0.1372, 0.8484, 0.43, -0.2767], "bsphere": [1127.1495, 27.5228, 1129.5994, 6.9282], "lump": {"name": "vinroom-part-123", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-1"}},
+    // Jak 2's vinroom-part-1 (vinroom): group-vinroom-console-1
+    {"trans": [1114.6443, 27.3058, 1129.5413], "etype": "part-spawner", "game_task": 0, "quat": [-0.1255, 0.8632, 0.4123, 0.2628], "bsphere": [1114.6443, 27.3058, 1129.5413, 6.9282], "lump": {"name": "vinroom-part-1", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-1"}},
+    // Jak 2's vinroom-part-23 (vinroom): group-vinroom-tv-2dcode
+    {"trans": [1111.5081, 32.9415, 1129.4899], "etype": "part-spawner", "game_task": 0, "quat": [0.0763, 0.8384, -0.1217, 0.5257], "bsphere": [1111.5081, 32.9415, 1129.4899, 6.9282], "lump": {"name": "vinroom-part-23", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-tv-2dcode"}},
+    // Jak 2's vinroom-part-71 (vinroom): group-vinroom-console-orb
+    {"trans": [1116.1423, 27.1334, 1130.1041], "etype": "part-spawner", "game_task": 0, "quat": [0.5297, 0.6952, 0.4614, -0.1522], "bsphere": [1116.1423, 27.1334, 1130.1041, 6.9282], "lump": {"name": "vinroom-part-71", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-orb"}},
+    // Jak 2's vinroom-part-38 (vinroom): group-vinroom-console-blue-light-2
+    {"trans": [1126.193, 27.4012, 1130.066], "etype": "part-spawner", "game_task": 0, "quat": [0.1198, 0.8615, 0.4315, -0.2392], "bsphere": [1126.193, 27.4012, 1130.066, 6.9282], "lump": {"name": "vinroom-part-38", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-blue-light-2"}},
+    // Jak 2's vinroom-part-39 (vinroom): group-vinroom-console-blue-light-3
+    {"trans": [1125.8713, 27.4012, 1130.2472], "etype": "part-spawner", "game_task": 0, "quat": [0.1215, 0.869, 0.4311, -0.2103], "bsphere": [1125.8713, 27.4012, 1130.2472, 6.9282], "lump": {"name": "vinroom-part-39", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-blue-light-3"}},
+    // Jak 2's vinroom-part-41 (vinroom): group-vinroom-console-blue-light-5
+    {"trans": [1125.6587, 27.0609, 1129.8604], "etype": "part-spawner", "game_task": 0, "quat": [0.1144, 0.8718, 0.4315, -0.2016], "bsphere": [1125.6587, 27.0609, 1129.8604, 6.9282], "lump": {"name": "vinroom-part-41", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-blue-light-5"}},
+    // Jak 2's vinroom-part-42 (vinroom): group-vinroom-console-blue-light-6
+    {"trans": [1125.3401, 27.0638, 1130.0269], "etype": "part-spawner", "game_task": 0, "quat": [0.1078, 0.8673, 0.4339, -0.2187], "bsphere": [1125.3401, 27.0638, 1130.0269, 6.9282], "lump": {"name": "vinroom-part-42", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-blue-light-6"}},
+    // Jak 2's vinroom-part-43 (vinroom): group-vinroom-console-blue-light-7
+    {"trans": [1125.0188, 27.061, 1130.1904], "etype": "part-spawner", "game_task": 0, "quat": [0.1082, 0.8683, 0.4348, -0.2129], "bsphere": [1125.0188, 27.061, 1130.1904, 6.9282], "lump": {"name": "vinroom-part-43", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-blue-light-7"}},
+    // Jak 2's vinroom-part-15 (vinroom): group-vinroom-tv-radar
+    {"trans": [1133.6267, 27.8286, 1127.395], "etype": "part-spawner", "game_task": 0, "quat": [0.0057, 0.8918, 0.067, -0.4473], "bsphere": [1133.6267, 27.8286, 1127.395, 6.9282], "lump": {"name": "vinroom-part-15", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-tv-radar"}},
+    // Jak 2's vinroom-part-16 (vinroom): group-vinroom-tv-dots
+    {"trans": [1129.6022, 45.2467, 1123.3892], "etype": "part-spawner", "game_task": 0, "quat": [-0.0887, 0.8828, -0.1855, -0.4223], "bsphere": [1129.6022, 45.2467, 1123.3892, 6.9282], "lump": {"name": "vinroom-part-16", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-tv-dots"}},
+    // Jak 2's vinroom-part-17 (vinroom): group-vinroom-tv-code
+    {"trans": [1128.9299, 38.8732, 1129.0916], "etype": "part-spawner", "game_task": 0, "quat": [-0.0607, 0.9111, -0.1453, -0.381], "bsphere": [1128.9299, 38.8732, 1129.0916, 6.9282], "lump": {"name": "vinroom-part-17", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-tv-code"}},
+    // Jak 2's vinroom-part-28 (vinroom): group-vinroom-console-top-panel
+    {"trans": [1132.0389, 28.018, 1123.3787], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7833, 0.0, 0.6217], "bsphere": [1132.0389, 28.018, 1123.3787, 6.9283], "lump": {"name": "vinroom-part-28", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-top-panel"}},
+    // Jak 2's vinroom-part-35 (vinroom): group-vinroom-console-blue-light-7
+    {"trans": [1129.3096, 27.4595, 1127.387], "etype": "part-spawner", "game_task": 0, "quat": [0.1844, 0.8175, 0.388, -0.3836], "bsphere": [1129.3096, 27.4595, 1127.387, 6.9282], "lump": {"name": "vinroom-part-35", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-blue-light-7"}},
+    // Jak 2's vinroom-part-57 (vinroom): group-vinroom-console-blue-light-1
+    {"trans": [1128.92, 27.8585, 1129.0557], "etype": "part-spawner", "game_task": 0, "quat": [-0.27, 0.6535, 0.6535, 0.27], "bsphere": [1128.92, 27.8585, 1129.0557, 6.9282], "lump": {"name": "vinroom-part-57", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-blue-light-1"}},
+    // Jak 2's vinroom-part-155 (vinroom): group-vinroom-red-wall-lights
+    {"trans": [1145.1031, 53.9049, 1129.0541], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.8044, 0.0, 0.5941], "bsphere": [1145.1031, 53.9049, 1129.0541, 6.9283], "lump": {"name": "vinroom-part-155", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-red-wall-lights"}},
+    // Jak 2's vinroom-part-13 (vinroom): group-vinroom-console-2
+    {"trans": [1130.4885, 27.2714, 1124.8129], "etype": "part-spawner", "game_task": 0, "quat": [-0.246, -0.7448, -0.3655, 0.5012], "bsphere": [1130.4885, 27.2714, 1124.8129, 6.9282], "lump": {"name": "vinroom-part-13", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-2"}},
+    // Jak 2's vinroom-part-14 (vinroom): group-vinroom-console-1
+    {"trans": [1128.1451, 27.3437, 1128.2883], "etype": "part-spawner", "game_task": 0, "quat": [0.1632, 0.8352, 0.3982, -0.3423], "bsphere": [1128.1451, 27.3437, 1128.2883, 6.9282], "lump": {"name": "vinroom-part-14", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-1"}},
+    // Jak 2's vinroom-part-34 (vinroom): group-vinroom-console-blue-light-6
+    {"trans": [1129.5405, 27.4594, 1127.085], "etype": "part-spawner", "game_task": 0, "quat": [0.2047, 0.8098, 0.3764, -0.4008], "bsphere": [1129.5405, 27.4594, 1127.085, 6.9282], "lump": {"name": "vinroom-part-34", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-blue-light-6"}},
+    // Jak 2's vinroom-part-36 (vinroom): group-vinroom-console-blue-light-8
+    {"trans": [1129.1825, 27.1524, 1126.8293], "etype": "part-spawner", "game_task": 0, "quat": [0.1978, 0.795, 0.4033, -0.4077], "bsphere": [1129.1825, 27.1524, 1126.8293, 6.9282], "lump": {"name": "vinroom-part-36", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-blue-light-8"}},
+    // Jak 2's vinroom-part-37 (vinroom): group-vinroom-console-blue-light-6
+    {"trans": [1128.9572, 27.148, 1127.1304], "etype": "part-spawner", "game_task": 0, "quat": [0.1986, 0.7975, 0.4041, -0.4015], "bsphere": [1128.9572, 27.148, 1127.1304, 6.9282], "lump": {"name": "vinroom-part-37", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-blue-light-6"}},
+    // Jak 2's vinroom-part-118 (vinroom): group-vinroom-console-little-red-light-2
+    {"trans": [1127.2386, 27.3966, 1129.3207], "etype": "part-spawner", "game_task": 0, "quat": [0.1372, 0.8484, 0.43, -0.2767], "bsphere": [1127.2386, 27.3966, 1129.3207, 6.9282], "lump": {"name": "vinroom-part-118", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-2"}},
+    // Jak 2's vinroom-part-126 (vinroom): group-vinroom-console-little-red-light-7
+    {"trans": [1127.1364, 27.2692, 1129.1793], "etype": "part-spawner", "game_task": 0, "quat": [0.1369, 0.8488, 0.4291, -0.2768], "bsphere": [1127.1364, 27.2692, 1129.1793, 6.9282], "lump": {"name": "vinroom-part-126", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-7"}},
+    // Jak 2's vinroom-part-130 (vinroom): group-vinroom-console-little-red-light-8
+    {"trans": [1127.0385, 27.1455, 1129.0435], "etype": "part-spawner", "game_task": 0, "quat": [0.1369, 0.8488, 0.4291, -0.2768], "bsphere": [1127.0385, 27.1455, 1129.0435, 6.9282], "lump": {"name": "vinroom-part-130", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-8"}},
+    // Jak 2's vinroom-part-124 (vinroom): group-vinroom-console-little-red-light-5
+    {"trans": [1126.9459, 27.268, 1129.3175], "etype": "part-spawner", "game_task": 0, "quat": [0.1369, 0.8488, 0.4291, -0.2768], "bsphere": [1126.9459, 27.268, 1129.3175, 6.9282], "lump": {"name": "vinroom-part-124", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-5"}},
+    // Jak 2's vinroom-part-125 (vinroom): group-vinroom-console-little-red-light-6
+    {"trans": [1126.7588, 27.2668, 1129.4534], "etype": "part-spawner", "game_task": 0, "quat": [0.1369, 0.8488, 0.4291, -0.2768], "bsphere": [1126.7588, 27.2668, 1129.4534, 6.9282], "lump": {"name": "vinroom-part-125", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-6"}},
+    // Jak 2's vinroom-part-127 (vinroom): group-vinroom-console-little-red-light-2
+    {"trans": [1126.9375, 27.0178, 1128.9032], "etype": "part-spawner", "game_task": 0, "quat": [0.1369, 0.8488, 0.4291, -0.2768], "bsphere": [1126.9375, 27.0178, 1128.9032, 6.9282], "lump": {"name": "vinroom-part-127", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-2"}},
+    // Jak 2's vinroom-part-128 (vinroom): group-vinroom-console-little-red-light-1
+    {"trans": [1126.5599, 27.0154, 1129.1772], "etype": "part-spawner", "game_task": 0, "quat": [0.1369, 0.8488, 0.4291, -0.2768], "bsphere": [1126.5599, 27.0154, 1129.1772, 6.9282], "lump": {"name": "vinroom-part-128", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-1"}},
+    // Jak 2's vinroom-part-129 (vinroom): group-vinroom-console-little-red-light-3
+    {"trans": [1126.7471, 27.0166, 1129.0414], "etype": "part-spawner", "game_task": 0, "quat": [0.1369, 0.8488, 0.4291, -0.2768], "bsphere": [1126.7471, 27.0166, 1129.0414, 6.9282], "lump": {"name": "vinroom-part-129", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-3"}},
+    // Jak 2's vinroom-part-131 (vinroom): group-vinroom-console-little-red-light-6
+    {"trans": [1126.661, 27.1431, 1129.3175], "etype": "part-spawner", "game_task": 0, "quat": [0.1369, 0.8488, 0.4291, -0.2768], "bsphere": [1126.661, 27.1431, 1129.3175, 6.9282], "lump": {"name": "vinroom-part-131", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-6"}},
+    // Jak 2's vinroom-part-132 (vinroom): group-vinroom-console-little-red-light-4
+    {"trans": [1126.8481, 27.1443, 1129.1816], "etype": "part-spawner", "game_task": 0, "quat": [0.1369, 0.8488, 0.4291, -0.2768], "bsphere": [1126.8481, 27.1443, 1129.1816, 6.9282], "lump": {"name": "vinroom-part-132", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-4"}},
+    // Jak 2's vinroom-part-7 (vinroom): group-vinroom-console-2
+    {"trans": [1110.6223, 27.3067, 1124.8157], "etype": "part-spawner", "game_task": 0, "quat": [-0.2457, 0.7464, 0.3701, 0.4955], "bsphere": [1110.6223, 27.3067, 1124.8157, 6.9282], "lump": {"name": "vinroom-part-7", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-2"}},
+    // Jak 2's vinroom-part-22 (vinroom): group-vinroom-tv-splitdots
+    {"trans": [1110.5586, 41.5438, 1123.4597], "etype": "part-spawner", "game_task": 0, "quat": [0.0795, 0.8361, -0.1259, 0.528], "bsphere": [1110.5586, 41.5438, 1123.4597, 6.9282], "lump": {"name": "vinroom-part-22", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-tv-splitdots"}},
+    // Jak 2's vinroom-part-44 (vinroom): group-vinroom-console-blue-light-6
+    {"trans": [1111.7272, 27.4298, 1127.2583], "etype": "part-spawner", "game_task": 0, "quat": [-0.2099, 0.8048, 0.3955, 0.3895], "bsphere": [1111.7272, 27.4298, 1127.2583, 6.9282], "lump": {"name": "vinroom-part-44", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-blue-light-6"}},
+    // Jak 2's vinroom-part-45 (vinroom): group-vinroom-console-blue-light-4
+    {"trans": [1111.517, 27.4298, 1126.9531], "etype": "part-spawner", "game_task": 0, "quat": [-0.215, 0.7981, 0.3929, 0.4029], "bsphere": [1111.517, 27.4298, 1126.9531, 6.9282], "lump": {"name": "vinroom-part-45", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-blue-light-4"}},
+    // Jak 2's vinroom-part-46 (vinroom): group-vinroom-console-blue-light-2
+    {"trans": [1111.3145, 27.4299, 1126.6333], "etype": "part-spawner", "game_task": 0, "quat": [-0.228, 0.7802, 0.3867, 0.4356], "bsphere": [1111.3145, 27.4299, 1126.6333, 6.9282], "lump": {"name": "vinroom-part-46", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-blue-light-2"}},
+    // Jak 2's vinroom-part-47 (vinroom): group-vinroom-console-blue-light-1
+    {"trans": [1111.8823, 27.1063, 1126.7053], "etype": "part-spawner", "game_task": 0, "quat": [-0.2263, 0.8009, 0.3848, 0.3991], "bsphere": [1111.8823, 27.1063, 1126.7053, 6.9282], "lump": {"name": "vinroom-part-47", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-blue-light-1"}},
+    // Jak 2's vinroom-part-48 (vinroom): group-vinroom-console-blue-light-3
+    {"trans": [1111.6909, 27.1093, 1126.408], "etype": "part-spawner", "game_task": 0, "quat": [-0.2203, 0.775, 0.3886, 0.447], "bsphere": [1111.6909, 27.1093, 1126.408, 6.9282], "lump": {"name": "vinroom-part-48", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-blue-light-3"}},
+    // Jak 2's vinroom-part-49 (vinroom): group-vinroom-console-blue-light-5
+    {"trans": [1111.4991, 27.1064, 1126.1029], "etype": "part-spawner", "game_task": 0, "quat": [-0.2126, 0.7722, 0.394, 0.4508], "bsphere": [1111.4991, 27.1064, 1126.1029, 6.9282], "lump": {"name": "vinroom-part-49", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-blue-light-5"}},
+    // Jak 2's vinroom-part-65 (vinroom): group-vinroom-console-orb
+    {"trans": [1131.25, 27.5986, 1123.3666], "etype": "part-spawner", "game_task": 0, "quat": [-0.2804, -0.704, -0.3544, 0.5479], "bsphere": [1131.25, 27.5986, 1123.3666, 6.9282], "lump": {"name": "vinroom-part-65", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-orb"}},
+    // Jak 2's vinroom-part-106 (vinroom): group-vinroom-console-little-red-light-6
+    {"trans": [1131.4305, 27.4644, 1122.3163], "etype": "part-spawner", "game_task": 0, "quat": [-0.2906, -0.6772, -0.3462, 0.5806], "bsphere": [1131.4305, 27.4644, 1122.3163, 6.9282], "lump": {"name": "vinroom-part-106", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-6"}},
+    // Jak 2's vinroom-part-107 (vinroom): group-vinroom-console-little-red-light-4
+    {"trans": [1131.3943, 27.4625, 1122.5447], "etype": "part-spawner", "game_task": 0, "quat": [-0.2906, -0.6772, -0.3462, 0.5806], "bsphere": [1131.3943, 27.4625, 1122.5447, 6.9282], "lump": {"name": "vinroom-part-107", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-4"}},
+    // Jak 2's vinroom-part-108 (vinroom): group-vinroom-console-little-red-light-2
+    {"trans": [1131.4674, 27.4664, 1122.084], "etype": "part-spawner", "game_task": 0, "quat": [-0.2906, -0.6772, -0.3462, 0.5806], "bsphere": [1131.4674, 27.4664, 1122.084, 6.9283], "lump": {"name": "vinroom-part-108", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-2"}},
+    // Jak 2's vinroom-part-110 (vinroom): group-vinroom-console-little-red-light-3
+    {"trans": [1131.0576, 27.2123, 1122.4891], "etype": "part-spawner", "game_task": 0, "quat": [-0.2906, -0.6772, -0.3462, 0.5806], "bsphere": [1131.0576, 27.2123, 1122.4891, 6.9282], "lump": {"name": "vinroom-part-110", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-3"}},
+    // Jak 2's vinroom-part-111 (vinroom): group-vinroom-console-little-red-light-5
+    {"trans": [1131.0939, 27.2142, 1122.2607], "etype": "part-spawner", "game_task": 0, "quat": [-0.2906, -0.6772, -0.3462, 0.5806], "bsphere": [1131.0939, 27.2142, 1122.2607, 6.9282], "lump": {"name": "vinroom-part-111", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-5"}},
+    // Jak 2's vinroom-part-113 (vinroom): group-vinroom-console-little-red-light-8
+    {"trans": [1131.2286, 27.3394, 1122.5173], "etype": "part-spawner", "game_task": 0, "quat": [-0.2906, -0.6772, -0.3462, 0.5806], "bsphere": [1131.2286, 27.3394, 1122.5173, 6.9282], "lump": {"name": "vinroom-part-113", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-8"}},
+    // Jak 2's vinroom-part-114 (vinroom): group-vinroom-console-little-red-light-7
+    {"trans": [1131.265, 27.3413, 1122.2889], "etype": "part-spawner", "game_task": 0, "quat": [-0.2906, -0.6772, -0.3462, 0.5806], "bsphere": [1131.265, 27.3413, 1122.2889, 6.9282], "lump": {"name": "vinroom-part-114", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-7"}},
+    // Jak 2's vinroom-part-11 (vinroom): group-vinroom-console-1
+    {"trans": [1130.7878, 27.2639, 1117.5892], "etype": "part-spawner", "game_task": 0, "quat": [-0.3526, -0.5341, -0.2605, 0.7229], "bsphere": [1130.7878, 27.2639, 1117.5892, 6.9282], "lump": {"name": "vinroom-part-11", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-1"}},
+    // Jak 2's vinroom-part-12 (vinroom): group-vinroom-console-1
+    {"trans": [1131.0731, 27.2642, 1120.703], "etype": "part-spawner", "game_task": 0, "quat": [-0.3098, -0.6356, -0.3098, 0.6356], "bsphere": [1131.0731, 27.2642, 1120.703, 6.9282], "lump": {"name": "vinroom-part-12", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-1"}},
+    // Jak 2's vinroom-part-58 (vinroom): group-vinroom-console-blue-light-5
+    {"trans": [1132.3163, 27.8298, 1120.7], "etype": "part-spawner", "game_task": 0, "quat": [-0.0067, 0.7071, 0.7071, 0.0067], "bsphere": [1132.3163, 27.8298, 1120.7, 6.9282], "lump": {"name": "vinroom-part-58", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-blue-light-5"}},
+    // Jak 2's vinroom-part-59 (vinroom): group-vinroom-console-blue-light-4
+    {"trans": [1131.829, 27.8379, 1117.2806], "etype": "part-spawner", "game_task": 0, "quat": [0.1046, 0.6993, 0.6993, -0.1046], "bsphere": [1131.829, 27.8379, 1117.2806, 6.9282], "lump": {"name": "vinroom-part-59", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-blue-light-4"}},
+    // Jak 2's vinroom-part-77 (vinroom): group-vinroom-console-orb
+    {"trans": [1131.455, 27.604, 1119.0834], "etype": "part-spawner", "game_task": 0, "quat": [-0.3469, -0.5865, -0.2933, 0.6706], "bsphere": [1131.455, 27.604, 1119.0834, 6.9282], "lump": {"name": "vinroom-part-77", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-orb"}},
+    // Jak 2's vinroom-part-78 (vinroom): group-vinroom-console-orb
+    {"trans": [1130.8804, 27.1715, 1119.1884], "etype": "part-spawner", "game_task": 0, "quat": [-0.3396, -0.583, -0.2921, 0.6779], "bsphere": [1130.8804, 27.1715, 1119.1884, 6.9283], "lump": {"name": "vinroom-part-78", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-orb"}},
+    // Jak 2's vinroom-part-109 (vinroom): group-vinroom-console-little-red-light-1
+    {"trans": [1131.1309, 27.2162, 1122.0284], "etype": "part-spawner", "game_task": 0, "quat": [-0.2906, -0.6772, -0.3462, 0.5806], "bsphere": [1131.1309, 27.2162, 1122.0284, 6.9282], "lump": {"name": "vinroom-part-109", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-1"}},
+    // Jak 2's vinroom-part-112 (vinroom): group-vinroom-console-little-red-light-7
+    {"trans": [1131.3019, 27.3433, 1122.0566], "etype": "part-spawner", "game_task": 0, "quat": [-0.2906, -0.6772, -0.3462, 0.5806], "bsphere": [1131.3019, 27.3433, 1122.0566, 6.9282], "lump": {"name": "vinroom-part-112", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-7"}},
+    // Jak 2's vinroom-part-6 (vinroom): group-vinroom-center-sphere
+    {"trans": [1120.55, 25.5, 1120.7], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.7071, 0.0, 0.7071], "bsphere": [1120.55, 25.5, 1120.7, 6.9282], "lump": {"name": "vinroom-part-6", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-center-sphere"}},
+    // Jak 2's vinroom-part-66 (vinroom): group-vinroom-console-orb
+    {"trans": [1130.6953, 27.1709, 1123.2142], "etype": "part-spawner", "game_task": 0, "quat": [-0.2714, -0.7077, -0.3634, 0.5417], "bsphere": [1130.6953, 27.1709, 1123.2142, 6.9282], "lump": {"name": "vinroom-part-66", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-orb"}},
+    // Jak 2's vinroom-part-98 (vinroom): group-vinroom-console-little-red-light-1
+    {"trans": [1130.4983, 27.3828, 1116.2734], "etype": "part-spawner", "game_task": 0, "quat": [-0.3857, -0.4752, -0.2326, 0.7558], "bsphere": [1130.4983, 27.3828, 1116.2734, 6.9282], "lump": {"name": "vinroom-part-98", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-1"}},
+    // Jak 2's vinroom-part-101 (vinroom): group-vinroom-console-little-red-light-4
+    {"trans": [1130.1945, 27.1314, 1116.4265], "etype": "part-spawner", "game_task": 0, "quat": [-0.3857, -0.4752, -0.2326, 0.7558], "bsphere": [1130.1945, 27.1314, 1116.4265, 6.9282], "lump": {"name": "vinroom-part-101", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-4"}},
+    // Jak 2's vinroom-part-104 (vinroom): group-vinroom-console-little-red-light-7
+    {"trans": [1130.3489, 27.2591, 1116.3488], "etype": "part-spawner", "game_task": 0, "quat": [-0.3857, -0.4752, -0.2326, 0.7558], "bsphere": [1130.3489, 27.2591, 1116.3488, 6.9282], "lump": {"name": "vinroom-part-104", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-7"}},
+    // Jak 2's vinroom-part-29 (vinroom): group-vinroom-console-top-panel
+    {"trans": [1129.9637, 28.018, 1113.59], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.4457, 0.0, 0.8952], "bsphere": [1129.9637, 28.018, 1113.59, 6.9282], "lump": {"name": "vinroom-part-29", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-top-panel"}},
+    // Jak 2's vinroom-part-67 (vinroom): group-vinroom-console-orb
+    {"trans": [1127.6119, 27.1736, 1112.9938], "etype": "part-spawner", "game_task": 0, "quat": [0.0611, 0.5255, 0.7088, -0.4665], "bsphere": [1127.6119, 27.1736, 1112.9938, 6.9283], "lump": {"name": "vinroom-part-67", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-orb"}},
+    // Jak 2's vinroom-part-97 (vinroom): group-vinroom-console-little-red-light-7
+    {"trans": [1130.3966, 27.3793, 1116.0658], "etype": "part-spawner", "game_task": 0, "quat": [-0.3857, -0.4752, -0.2326, 0.7558], "bsphere": [1130.3966, 27.3793, 1116.0658, 6.9283], "lump": {"name": "vinroom-part-97", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-7"}},
+    // Jak 2's vinroom-part-99 (vinroom): group-vinroom-console-little-red-light-2
+    {"trans": [1130.2931, 27.3758, 1115.8546], "etype": "part-spawner", "game_task": 0, "quat": [-0.3857, -0.4752, -0.2326, 0.7558], "bsphere": [1130.2931, 27.3758, 1115.8546, 6.9282], "lump": {"name": "vinroom-part-99", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-2"}},
+    // Jak 2's vinroom-part-100 (vinroom): group-vinroom-console-little-red-light-3
+    {"trans": [1129.9891, 27.1244, 1116.0077], "etype": "part-spawner", "game_task": 0, "quat": [-0.3857, -0.4752, -0.2326, 0.7558], "bsphere": [1129.9891, 27.1244, 1116.0077, 6.9282], "lump": {"name": "vinroom-part-100", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-3"}},
+    // Jak 2's vinroom-part-102 (vinroom): group-vinroom-console-little-red-light-5
+    {"trans": [1130.0927, 27.1279, 1116.2189], "etype": "part-spawner", "game_task": 0, "quat": [-0.3857, -0.4752, -0.2326, 0.7558], "bsphere": [1130.0927, 27.1279, 1116.2189, 6.9282], "lump": {"name": "vinroom-part-102", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-5"}},
+    // Jak 2's vinroom-part-103 (vinroom): group-vinroom-console-little-red-light-6
+    {"trans": [1130.1436, 27.2521, 1115.9299], "etype": "part-spawner", "game_task": 0, "quat": [-0.3857, -0.4752, -0.2326, 0.7558], "bsphere": [1130.1436, 27.2521, 1115.9299, 6.9282], "lump": {"name": "vinroom-part-103", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-6"}},
+    // Jak 2's vinroom-part-105 (vinroom): group-vinroom-console-little-red-light-8
+    {"trans": [1130.2471, 27.2556, 1116.1411], "etype": "part-spawner", "game_task": 0, "quat": [-0.3857, -0.4752, -0.2326, 0.7558], "bsphere": [1130.2471, 27.2556, 1116.1411, 6.9282], "lump": {"name": "vinroom-part-105", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-8"}},
+    // Jak 2's vinroom-part-8 (vinroom): group-vinroom-console-1
+    {"trans": [1110.7914, 27.414, 1116.6515], "etype": "part-spawner", "game_task": 0, "quat": [-0.3602, 0.4995, 0.2398, 0.7505], "bsphere": [1110.7914, 27.414, 1116.6515, 6.9283], "lump": {"name": "vinroom-part-8", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-1"}},
+    // Jak 2's vinroom-part-133 (vinroom): group-vinroom-console-little-red-light-2
+    {"trans": [1110.4843, 26.9179, 1118.7117], "etype": "part-spawner", "game_task": 0, "quat": [0.5642, 0.3513, 0.6913, -0.2836], "bsphere": [1110.4843, 26.9179, 1118.7117, 6.9283], "lump": {"name": "vinroom-part-133", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-2"}},
+    // Jak 2's vinroom-part-134 (vinroom): group-vinroom-console-little-red-light-1
+    {"trans": [1110.443, 26.9214, 1118.9409], "etype": "part-spawner", "game_task": 0, "quat": [0.5727, 0.3507, 0.6872, -0.2772], "bsphere": [1110.443, 26.9214, 1118.9409, 6.9282], "lump": {"name": "vinroom-part-134", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-1"}},
+    // Jak 2's vinroom-part-135 (vinroom): group-vinroom-console-little-red-light-3
+    {"trans": [1110.5369, 26.9188, 1118.4874], "etype": "part-spawner", "game_task": 0, "quat": [0.5561, 0.344, 0.7006, -0.2855], "bsphere": [1110.5369, 26.9188, 1118.4874, 6.9282], "lump": {"name": "vinroom-part-135", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-3"}},
+    // Jak 2's vinroom-part-145 (vinroom): group-vinroom-console-little-red-light-5
+    {"trans": [1110.41, 26.8776, 1121.5651], "etype": "part-spawner", "game_task": 0, "quat": [0.6485, 0.3032, 0.6134, -0.3336], "bsphere": [1110.41, 26.8776, 1121.5651, 6.9283], "lump": {"name": "vinroom-part-145", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-5"}},
+    // Jak 2's vinroom-part-147 (vinroom): group-vinroom-console-little-red-light-2
+    {"trans": [1110.3981, 26.8742, 1120.1232], "etype": "part-spawner", "game_task": 0, "quat": [0.6145, 0.3345, 0.6459, -0.3055], "bsphere": [1110.3981, 26.8742, 1120.1232, 6.9282], "lump": {"name": "vinroom-part-147", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-2"}},
+    // Jak 2's vinroom-part-148 (vinroom): group-vinroom-console-little-red-light-3
+    {"trans": [1110.4233, 26.8682, 1119.8334], "etype": "part-spawner", "game_task": 0, "quat": [0.6073, 0.3411, 0.6525, -0.2985], "bsphere": [1110.4233, 26.8682, 1119.8334, 6.9282], "lump": {"name": "vinroom-part-148", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-3"}},
+    // Jak 2's vinroom-part-136 (vinroom): group-vinroom-console-little-red-light-5
+    {"trans": [1110.2057, 27.1692, 1118.4178], "etype": "part-spawner", "game_task": 0, "quat": [0.5561, 0.344, 0.7006, -0.2855], "bsphere": [1110.2057, 27.1692, 1118.4178, 6.9282], "lump": {"name": "vinroom-part-136", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-5"}},
+    // Jak 2's vinroom-part-139 (vinroom): group-vinroom-console-little-red-light-8
+    {"trans": [1110.374, 27.0409, 1118.453], "etype": "part-spawner", "game_task": 0, "quat": [0.5571, 0.3444, 0.6998, -0.285], "bsphere": [1110.374, 27.0409, 1118.453, 6.9282], "lump": {"name": "vinroom-part-139", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-8"}},
+    // Jak 2's vinroom-part-140 (vinroom): group-vinroom-console-little-red-light-6
+    {"trans": [1110.2802, 27.0429, 1118.9064], "etype": "part-spawner", "game_task": 0, "quat": [0.574, 0.3513, 0.686, -0.2765], "bsphere": [1110.2802, 27.0429, 1118.9064, 6.9282], "lump": {"name": "vinroom-part-140", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-6"}},
+    // Jak 2's vinroom-part-141 (vinroom): group-vinroom-console-little-red-light-4
+    {"trans": [1110.3215, 27.0406, 1118.6774], "etype": "part-spawner", "game_task": 0, "quat": [0.5645, 0.3505, 0.6917, -0.283], "bsphere": [1110.3215, 27.0406, 1118.6774, 6.9282], "lump": {"name": "vinroom-part-141", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-4"}},
+    // Jak 2's vinroom-part-142 (vinroom): group-vinroom-console-little-red-light-2
+    {"trans": [1110.3762, 26.8737, 1120.6958], "etype": "part-spawner", "game_task": 0, "quat": [0.6355, 0.3199, 0.6277, -0.3159], "bsphere": [1110.3762, 26.8737, 1120.6958, 6.9282], "lump": {"name": "vinroom-part-142", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-2"}},
+    // Jak 2's vinroom-part-143 (vinroom): group-vinroom-console-little-red-light-3
+    {"trans": [1110.3799, 26.8801, 1120.9841], "etype": "part-spawner", "game_task": 0, "quat": [0.6428, 0.3188, 0.6184, -0.3207], "bsphere": [1110.3799, 26.8801, 1120.9841, 6.9282], "lump": {"name": "vinroom-part-143", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-3"}},
+    // Jak 2's vinroom-part-144 (vinroom): group-vinroom-console-little-red-light-4
+    {"trans": [1110.3895, 26.8828, 1121.2723], "etype": "part-spawner", "game_task": 0, "quat": [0.6497, 0.3046, 0.6134, -0.3298], "bsphere": [1110.3895, 26.8828, 1121.2723, 6.9282], "lump": {"name": "vinroom-part-144", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-4"}},
+    // Jak 2's vinroom-part-146 (vinroom): group-vinroom-console-little-red-light-1
+    {"trans": [1110.3833, 26.8774, 1120.4127], "etype": "part-spawner", "game_task": 0, "quat": [0.618, 0.3234, 0.6465, -0.3089], "bsphere": [1110.3833, 26.8774, 1120.4127, 6.9282], "lump": {"name": "vinroom-part-146", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-1"}},
+    // Jak 2's vinroom-part-2 (vinroom): group-vinroom-console-1
+    {"trans": [1109.8171, 27.3611, 1120.6908], "etype": "part-spawner", "game_task": 0, "quat": [-0.3016, 0.6377, 0.2993, 0.6425], "bsphere": [1109.8171, 27.3611, 1120.6908, 6.9282], "lump": {"name": "vinroom-part-2", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-1"}},
+    // Jak 2's vinroom-part-60 (vinroom): group-vinroom-console-blue-light-4
+    {"trans": [1109.6541, 27.8515, 1116.1912], "etype": "part-spawner", "game_task": 0, "quat": [-0.6938, -0.1365, -0.1365, 0.6938], "bsphere": [1109.6541, 27.8515, 1116.1912, 6.9282], "lump": {"name": "vinroom-part-60", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-blue-light-4"}},
+    // Jak 2's vinroom-part-68 (vinroom): group-vinroom-console-orb
+    {"trans": [1110.1544, 27.3785, 1123.3191], "etype": "part-spawner", "game_task": 0, "quat": [0.706, 0.2703, 0.5512, -0.3531], "bsphere": [1110.1544, 27.3785, 1123.3191, 6.9282], "lump": {"name": "vinroom-part-68", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-orb"}},
+    // Jak 2's vinroom-part-69 (vinroom): group-vinroom-console-orb
+    {"trans": [1109.9452, 27.3778, 1122.2538], "etype": "part-spawner", "game_task": 0, "quat": [0.6761, 0.293, 0.5896, -0.3308], "bsphere": [1109.9452, 27.3778, 1122.2538, 6.9282], "lump": {"name": "vinroom-part-69", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-orb"}},
+    // Jak 2's vinroom-part-79 (vinroom): group-vinroom-console-orb
+    {"trans": [1109.8073, 27.5157, 1119.1074], "etype": "part-spawner", "game_task": 0, "quat": [0.5823, 0.3392, 0.6807, -0.2872], "bsphere": [1109.8073, 27.5157, 1119.1074, 6.9282], "lump": {"name": "vinroom-part-79", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-orb"}},
+    // Jak 2's vinroom-part-80 (vinroom): group-vinroom-console-orb
+    {"trans": [1110.0216, 27.506, 1118.0784], "etype": "part-spawner", "game_task": 0, "quat": [0.5453, 0.3545, 0.7083, -0.2744], "bsphere": [1110.0216, 27.506, 1118.0784, 6.9282], "lump": {"name": "vinroom-part-80", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-orb"}},
+    // Jak 2's vinroom-part-137 (vinroom): group-vinroom-console-little-red-light-6
+    {"trans": [1110.1111, 27.1726, 1118.8705], "etype": "part-spawner", "game_task": 0, "quat": [0.5731, 0.3575, 0.6819, -0.2805], "bsphere": [1110.1111, 27.1726, 1118.8705, 6.9283], "lump": {"name": "vinroom-part-137", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-6"}},
+    // Jak 2's vinroom-part-138 (vinroom): group-vinroom-console-little-red-light-7
+    {"trans": [1110.1533, 27.1676, 1118.6421], "etype": "part-spawner", "game_task": 0, "quat": [0.5647, 0.35, 0.692, -0.2825], "bsphere": [1110.1533, 27.1676, 1118.6421, 6.9283], "lump": {"name": "vinroom-part-138", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-7"}},
+    // Jak 2's vinroom-part-21 (vinroom): group-vinroom-tv-smallradar
+    {"trans": [1108.86, 42.9408, 1119.7843], "etype": "part-spawner", "game_task": 0, "quat": [0.0679, 0.8502, -0.1179, 0.5086], "bsphere": [1108.86, 42.9408, 1119.7843, 6.9282], "lump": {"name": "vinroom-part-21", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-tv-smallradar"}},
+    // Jak 2's vinroom-part-31 (vinroom): group-vinroom-console-top-panel
+    {"trans": [1109.0176, 28.018, 1123.184], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.778, 0.0, 0.6283], "bsphere": [1109.0176, 28.018, 1123.184, 6.9282], "lump": {"name": "vinroom-part-31", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-top-panel"}},
+    // Jak 2's vinroom-part-55 (vinroom): group-vinroom-console-blue-light-7
+    {"trans": [1108.7498, 27.8079, 1120.7], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, -0.0006, -0.0006, 0.7071], "bsphere": [1108.7498, 27.8079, 1120.7, 6.9282], "lump": {"name": "vinroom-part-55", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-blue-light-7"}},
+    // Jak 2's vinroom-part-61 (vinroom): group-vinroom-console-blue-light-8
+    {"trans": [1109.0289, 27.811, 1118.1865], "etype": "part-spawner", "game_task": 0, "quat": [-0.5564, 0.4363, 0.4363, 0.5564], "bsphere": [1109.0289, 27.811, 1118.1865, 6.9282], "lump": {"name": "vinroom-part-61", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-blue-light-8"}},
+    // Jak 2's vinroom-part-62 (vinroom): group-vinroom-console-blue-light-7
+    {"trans": [1109.1111, 27.811, 1117.8662], "etype": "part-spawner", "game_task": 0, "quat": [-0.5593, 0.4326, 0.4326, 0.5593], "bsphere": [1109.1111, 27.811, 1117.8662, 6.9282], "lump": {"name": "vinroom-part-62", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-blue-light-7"}},
+    // Jak 2's vinroom-part-63 (vinroom): group-vinroom-console-blue-light-6
+    {"trans": [1108.8917, 27.811, 1118.9392], "etype": "part-spawner", "game_task": 0, "quat": [-0.5349, 0.4625, 0.4625, 0.5349], "bsphere": [1108.8917, 27.811, 1118.9392, 6.9282], "lump": {"name": "vinroom-part-63", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-blue-light-6"}},
+    // Jak 2's vinroom-part-64 (vinroom): group-vinroom-console-blue-light-5
+    {"trans": [1108.9478, 27.811, 1118.594], "etype": "part-spawner", "game_task": 0, "quat": [-0.5414, 0.4549, 0.4549, 0.5414], "bsphere": [1108.9478, 27.811, 1118.594, 6.9282], "lump": {"name": "vinroom-part-64", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-blue-light-5"}},
+    // Jak 2's vinroom-part-24 (vinroom): group-vinroom-tv-matrix
+    {"trans": [1124.2771, 36.4136, 1110.9047], "etype": "part-spawner", "game_task": 0, "quat": [0.1642, -0.0497, 0.0083, 0.9851], "bsphere": [1124.2771, 36.4136, 1110.9047, 6.9283], "lump": {"name": "vinroom-part-24", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-tv-matrix"}},
+    // Jak 2's vinroom-part-25 (vinroom): group-vinroom-tv-bargraph
+    {"trans": [1125.976, 40.8211, 1110.4908], "etype": "part-spawner", "game_task": 0, "quat": [0.1698, -0.0403, 0.007, 0.9846], "bsphere": [1125.976, 40.8211, 1110.4908, 6.9282], "lump": {"name": "vinroom-part-25", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-tv-bargraph"}},
+    // Jak 2's vinroom-part-26 (vinroom): group-vinroom-tv-final
+    {"trans": [1121.5736, 43.3196, 1110.8577], "etype": "part-spawner", "game_task": 0, "quat": [0.1574, -0.0564, 0.009, 0.9859], "bsphere": [1121.5736, 43.3196, 1110.8577, 6.9282], "lump": {"name": "vinroom-part-26", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-tv-final"}},
+    // Jak 2's vinroom-part-54 (vinroom): group-vinroom-console-blue-light-3
+    {"trans": [1120.55, 27.8532, 1108.885], "etype": "part-spawner", "game_task": 0, "quat": [-0.5002, -0.4998, -0.4998, 0.5002], "bsphere": [1120.55, 27.8532, 1108.885, 6.9282], "lump": {"name": "vinroom-part-54", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-blue-light-3"}},
+    // Jak 2's vinroom-part-154 (vinroom): group-vinroom-red-wall-lights
+    {"trans": [1143.797, 53.9049, 1109.2009], "etype": "part-spawner", "game_task": 0, "quat": [0.0, -0.515, 0.0, 0.8572], "bsphere": [1143.797, 53.9049, 1109.2009, 6.9282], "lump": {"name": "vinroom-part-154", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-red-wall-lights"}},
+    // Jak 2's vinroom-part-10 (vinroom): group-vinroom-console-2
+    {"trans": [1126.5276, 27.2916, 1111.7666], "etype": "part-spawner", "game_task": 0, "quat": [-0.424, -0.2671, -0.1283, 0.8558], "bsphere": [1126.5276, 27.2916, 1111.7666, 6.9282], "lump": {"name": "vinroom-part-10", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-2"}},
+    // Jak 2's vinroom-part-50 (vinroom): group-vinroom-console-blue-light-2
+    {"trans": [1127.2604, 27.7921, 1110.9802], "etype": "part-spawner", "game_task": 0, "quat": [-0.6753, -0.2096, -0.2096, 0.6753], "bsphere": [1127.2604, 27.7921, 1110.9802, 6.9282], "lump": {"name": "vinroom-part-50", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-blue-light-2"}},
+    // Jak 2's vinroom-part-51 (vinroom): group-vinroom-console-blue-light-3
+    {"trans": [1127.5828, 27.7921, 1111.2223], "etype": "part-spawner", "game_task": 0, "quat": [-0.6753, -0.2096, -0.2096, 0.6753], "bsphere": [1127.5828, 27.7921, 1111.2223, 6.9283], "lump": {"name": "vinroom-part-51", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-blue-light-3"}},
+    // Jak 2's vinroom-part-52 (vinroom): group-vinroom-console-blue-light-1
+    {"trans": [1126.9178, 27.7921, 1110.745], "etype": "part-spawner", "game_task": 0, "quat": [-0.6753, -0.2096, -0.2096, 0.6753], "bsphere": [1126.9178, 27.7921, 1110.745, 6.9283], "lump": {"name": "vinroom-part-52", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-blue-light-1"}},
+    // Jak 2's vinroom-part-53 (vinroom): group-vinroom-console-blue-light-2
+    {"trans": [1126.5592, 27.7921, 1110.5302], "etype": "part-spawner", "game_task": 0, "quat": [-0.6753, -0.2096, -0.2096, 0.6753], "bsphere": [1126.5592, 27.7921, 1110.5302, 6.9282], "lump": {"name": "vinroom-part-53", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-blue-light-2"}},
+    // Jak 2's vinroom-part-72 (vinroom): group-vinroom-console-orb
+    {"trans": [1123.4086, 27.6136, 1110.0117], "etype": "part-spawner", "game_task": 0, "quat": [-0.2254, -0.4073, -0.6702, 0.578], "bsphere": [1123.4086, 27.6136, 1110.0117, 6.9282], "lump": {"name": "vinroom-part-72", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-orb"}},
+    // Jak 2's vinroom-part-74 (vinroom): group-vinroom-console-orb
+    {"trans": [1124.123, 27.6189, 1110.2494], "etype": "part-spawner", "game_task": 0, "quat": [-0.2025, -0.4244, -0.675, 0.5685], "bsphere": [1124.123, 27.6189, 1110.2494, 6.9282], "lump": {"name": "vinroom-part-74", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-orb"}},
+    // Jak 2's vinroom-part-76 (vinroom): group-vinroom-console-orb
+    {"trans": [1127.9922, 27.5869, 1112.5881], "etype": "part-spawner", "game_task": 0, "quat": [0.0611, 0.5255, 0.7088, -0.4665], "bsphere": [1127.9922, 27.5869, 1112.5881, 6.9282], "lump": {"name": "vinroom-part-76", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-orb"}},
+    // Jak 2's vinroom-part-81 (vinroom): group-vinroom-console-orb
+    {"trans": [1122.207, 27.5915, 1109.8173], "etype": "part-spawner", "game_task": 0, "quat": [-0.2717, -0.3636, -0.6594, 0.5993], "bsphere": [1122.207, 27.5915, 1109.8173, 6.9283], "lump": {"name": "vinroom-part-81", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-orb"}},
+    // Jak 2's vinroom-part-83 (vinroom): group-vinroom-console-orb
+    {"trans": [1125.0771, 27.595, 1110.6499], "etype": "part-spawner", "game_task": 0, "quat": [-0.1795, -0.4451, -0.6837, 0.5498], "bsphere": [1125.0771, 27.595, 1110.6499, 6.9282], "lump": {"name": "vinroom-part-83", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-orb"}},
+    // Jak 2's vinroom-part-85 (vinroom): group-vinroom-console-little-red-light-4
+    {"trans": [1125.6388, 26.8468, 1111.8668], "etype": "part-spawner", "game_task": 0, "quat": [-0.2357, 0.4397, 0.8601, 0.1068], "bsphere": [1125.6388, 26.8468, 1111.8668, 6.9282], "lump": {"name": "vinroom-part-85", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-4"}},
+    // Jak 2's vinroom-part-86 (vinroom): group-vinroom-console-little-red-light-5
+    {"trans": [1125.7983, 26.8491, 1111.9594], "etype": "part-spawner", "game_task": 0, "quat": [-0.2315, 0.4426, 0.8594, 0.1097], "bsphere": [1125.7983, 26.8491, 1111.9594, 6.9282], "lump": {"name": "vinroom-part-86", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-5"}},
+    // Jak 2's vinroom-part-87 (vinroom): group-vinroom-console-little-red-light-5
+    {"trans": [1126.5822, 26.8245, 1112.5221], "etype": "part-spawner", "game_task": 0, "quat": [-0.2748, 0.4234, 0.8517, 0.1407], "bsphere": [1126.5822, 26.8245, 1112.5221, 6.9283], "lump": {"name": "vinroom-part-87", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-5"}},
+    // Jak 2's vinroom-part-88 (vinroom): group-vinroom-console-little-red-light-3
+    {"trans": [1126.7386, 26.8273, 1112.6326], "etype": "part-spawner", "game_task": 0, "quat": [-0.2778, 0.4263, 0.8499, 0.1368], "bsphere": [1126.7386, 26.8273, 1112.6326, 6.9282], "lump": {"name": "vinroom-part-88", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-3"}},
+    // Jak 2's vinroom-part-91 (vinroom): group-vinroom-console-little-red-light-6
+    {"trans": [1127.024, 26.9814, 1112.6241], "etype": "part-spawner", "game_task": 0, "quat": [-0.2979, 0.4159, 0.8442, 0.1601], "bsphere": [1127.024, 26.9814, 1112.6241, 6.9282], "lump": {"name": "vinroom-part-91", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-6"}},
+    // Jak 2's vinroom-part-92 (vinroom): group-vinroom-console-little-red-light-4
+    {"trans": [1127.1986, 26.9765, 1112.774], "etype": "part-spawner", "game_task": 0, "quat": [-0.3143, 0.419, 0.8382, 0.152], "bsphere": [1127.1986, 26.9765, 1112.774, 6.9282], "lump": {"name": "vinroom-part-92", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-4"}},
+    // Jak 2's vinroom-part-95 (vinroom): group-vinroom-console-little-red-light-1
+    {"trans": [1126.9172, 26.8532, 1112.76], "etype": "part-spawner", "game_task": 0, "quat": [-0.2943, 0.4151, 0.8454, 0.1624], "bsphere": [1126.9172, 26.8532, 1112.76, 6.9282], "lump": {"name": "vinroom-part-95", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-1"}},
+    // Jak 2's vinroom-part-96 (vinroom): group-vinroom-console-little-red-light-2
+    {"trans": [1127.0922, 26.8496, 1112.9086], "etype": "part-spawner", "game_task": 0, "quat": [-0.3126, 0.4287, 0.8333, 0.1555], "bsphere": [1127.0922, 26.8496, 1112.9086, 6.9283], "lump": {"name": "vinroom-part-96", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-2"}},
+    // Jak 2's vinroom-part-73 (vinroom): group-vinroom-console-orb
+    {"trans": [1123.2457, 27.1785, 1110.5919], "etype": "part-spawner", "game_task": 0, "quat": [-0.225, -0.3885, -0.6795, 0.5803], "bsphere": [1123.2457, 27.1785, 1110.5919, 6.9282], "lump": {"name": "vinroom-part-73", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-orb"}},
+    // Jak 2's vinroom-part-75 (vinroom): group-vinroom-console-orb
+    {"trans": [1123.9183, 27.1692, 1110.8101], "etype": "part-spawner", "game_task": 0, "quat": [-0.195, -0.4174, -0.6779, 0.5729], "bsphere": [1123.9183, 27.1692, 1110.8101, 6.9282], "lump": {"name": "vinroom-part-75", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-orb"}},
+    // Jak 2's vinroom-part-82 (vinroom): group-vinroom-console-orb
+    {"trans": [1122.1027, 27.1386, 1110.4194], "etype": "part-spawner", "game_task": 0, "quat": [-0.2685, -0.3633, -0.6585, 0.602], "bsphere": [1122.1027, 27.1386, 1110.4194, 6.9282], "lump": {"name": "vinroom-part-82", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-orb"}},
+    // Jak 2's vinroom-part-84 (vinroom): group-vinroom-console-orb
+    {"trans": [1124.8411, 27.1682, 1111.1879], "etype": "part-spawner", "game_task": 0, "quat": [-0.1767, -0.4446, -0.678, 0.558], "bsphere": [1124.8411, 27.1682, 1111.1879, 6.9282], "lump": {"name": "vinroom-part-84", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-orb"}},
+    // Jak 2's vinroom-part-89 (vinroom): group-vinroom-console-little-red-light-6
+    {"trans": [1125.3417, 27.0061, 1111.4974], "etype": "part-spawner", "game_task": 0, "quat": [-0.1989, 0.4305, 0.873, 0.114], "bsphere": [1125.3417, 27.0061, 1111.4974, 6.9282], "lump": {"name": "vinroom-part-89", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-6"}},
+    // Jak 2's vinroom-part-90 (vinroom): group-vinroom-console-little-red-light-7
+    {"trans": [1125.5427, 26.9999, 1111.6051], "etype": "part-spawner", "game_task": 0, "quat": [-0.2335, 0.4326, 0.8642, 0.107], "bsphere": [1125.5427, 26.9999, 1111.6051, 6.9282], "lump": {"name": "vinroom-part-90", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-7"}},
+    // Jak 2's vinroom-part-93 (vinroom): group-vinroom-console-little-red-light-8
+    {"trans": [1125.2616, 26.8772, 1111.649], "etype": "part-spawner", "game_task": 0, "quat": [-0.1999, 0.4393, 0.8673, 0.1215], "bsphere": [1125.2616, 26.8772, 1111.649, 6.9282], "lump": {"name": "vinroom-part-93", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-8"}},
+    // Jak 2's vinroom-part-94 (vinroom): group-vinroom-console-little-red-light-3
+    {"trans": [1125.4626, 26.8739, 1111.7567], "etype": "part-spawner", "game_task": 0, "quat": [-0.2321, 0.4427, 0.8592, 0.1094], "bsphere": [1125.4626, 26.8739, 1111.7567, 6.9282], "lump": {"name": "vinroom-part-94", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-3"}},
+    // Jak 2's vinroom-part-159 (vinroom): group-vinroom-red-wall-lights-small
+    {"trans": [1103.338, 28.2245, 1100.269], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.335, 0.0, 0.9422], "bsphere": [1103.338, 28.2245, 1100.269, 6.9282], "lump": {"name": "vinroom-part-159", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-red-wall-lights-small"}},
+    // Jak 2's vinroom-part-152 (vinroom): group-vinroom-red-wall-lights
+    {"trans": [1095.9955, 53.9049, 1112.3501], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.5942, 0.0, 0.8044], "bsphere": [1095.9955, 53.9049, 1112.3501, 6.9283], "lump": {"name": "vinroom-part-152", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-red-wall-lights"}},
+    // Jak 2's vinroom-part-153 (vinroom): group-vinroom-red-wall-lights
+    {"trans": [1118.809, 53.9049, 1094.823], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.0483, 0.0, 0.9988], "bsphere": [1118.809, 53.9049, 1094.823, 6.9282], "lump": {"name": "vinroom-part-153", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-red-wall-lights"}},
+    // Jak 2's vinroom-part-9 (vinroom): group-vinroom-console-1
+    {"trans": [1120.5417, 27.3128, 1109.9547], "etype": "part-spawner", "game_task": 0, "quat": [-0.4397, 0.0, 0.0, 0.8981], "bsphere": [1120.5417, 27.3128, 1109.9547, 6.9282], "lump": {"name": "vinroom-part-9", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-1"}},
+    // Jak 2's vinroom-part-27 (vinroom): group-vinroom-tv-numbers
+    {"trans": [1119.8917, 47.0871, 1111.882], "etype": "part-spawner", "game_task": 0, "quat": [0.1548, -0.0535, 0.0084, 0.9865], "bsphere": [1119.8917, 47.0871, 1111.882, 6.9282], "lump": {"name": "vinroom-part-27", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-tv-numbers"}},
+    // Jak 2's vinroom-part-30 (vinroom): group-vinroom-console-top-panel
+    {"trans": [1116.3533, 28.018, 1109.6747], "etype": "part-spawner", "game_task": 0, "quat": [0.0, 0.1809, 0.0, 0.9835], "bsphere": [1116.3533, 28.018, 1109.6747, 6.9283], "lump": {"name": "vinroom-part-30", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-top-panel"}},
+    // Jak 2's vinroom-part-149 (vinroom): group-vinroom-console-little-red-light-1
+    {"trans": [1119.7266, 26.8443, 1110.5723], "etype": "part-spawner", "game_task": 0, "quat": [-0.4531, 0.0246, 0.0167, 0.891], "bsphere": [1119.7266, 26.8443, 1110.5723, 6.9282], "lump": {"name": "vinroom-part-149", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-1"}},
+    // Jak 2's vinroom-part-150 (vinroom): group-vinroom-console-little-red-light-2
+    {"trans": [1119.983, 26.842, 1110.5608], "etype": "part-spawner", "game_task": 0, "quat": [-0.4428, 0.0221, 0.0098, 0.8963], "bsphere": [1119.983, 26.842, 1110.5608, 6.9282], "lump": {"name": "vinroom-part-150", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-2"}},
+    // Jak 2's vinroom-part-151 (vinroom): group-vinroom-console-little-red-light-3
+    {"trans": [1120.2296, 26.8412, 1110.5518], "etype": "part-spawner", "game_task": 0, "quat": [-0.4466, 0.0182, 0.0108, 0.8945], "bsphere": [1120.2296, 26.8412, 1110.5518, 6.9282], "lump": {"name": "vinroom-part-151", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-vinroom-console-little-red-light-3"}}
   ]
 }

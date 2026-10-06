@@ -2,6 +2,7 @@
 ;; DGO definition file for hj2-hiphog: the Hip Hog saloon.
 ("HJH.DGO"
  (
-  "hip-door-a-ag.go"
+  "hj2-hip-door-ag.go"
+  "hj2-hiphog-part.o"
   "hj2-hiphog.go"
   ))

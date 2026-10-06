@@ -3,5 +3,8 @@
 ("HJI.DGO"
  (
   "hj2-fort-gate-ag.go"
+  "hj2-fort-elec-button-ag.go"
+  "hj2-fort-led-ag.go"
+  "hj2-forta-part.o"
   "hj2-forta.go"
   ))

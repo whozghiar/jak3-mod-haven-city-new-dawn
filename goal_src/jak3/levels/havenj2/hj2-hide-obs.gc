@@ -1,0 +1,73 @@
+;;-*-Lisp-*-
+(in-package goal)
+
+;; name: hj2-hide-obs.gc
+;; name in dgo: hj2-hide-obs
+;; dgos: HJD
+
+;; og:jak2-haven-city Level code for hj2-hide, Jak 2's hideout (levels/hideout/hideout-obs.gc
+;; there): the lamp swinging over the table, with its cone of light. Its models are Jak 2's, rebuilt
+;; by build-actor (hj2-hide-light.glb and hj2-hide-light-fog.glb, made by the level port,
+;; scripts/level_port). Not ported: the lamp's shadow (Jak 2's shadow mesh, hide-light-shadow-mg,
+;; isn't in the rip) and its 'spotlight-color setting (it only colors that shadow).
+
+;; Jak 2's hide-light: the lamp, swinging in its idle animation (2 s), forever. No collision.
+(deftype hj2-hide-light (hj2-anim-loop)
+  ()
+  )
+
+
+(def-actor hj2-hide-light
+  :bounds (0 -2.3 0 4.5)
+  :origin-joint-index 3
+  )
+
+;; Jak 2's skel-hide-light-fog: the lamp's cone of light (a translucent model), drawn on the lamp's
+;; bottom joint by a child process, like Jak 2's manipy. Not a hj2-anim-loop: its idle (the rip's
+;; rest pose) is one frame, and hj2-anim-loop's loop never suspends on a one-frame animation.
+(deftype hj2-hide-light-fog (process-drawable)
+  ()
+  (:state-methods
+    idle
+    )
+  )
+
+
+(def-actor hj2-hide-light-fog
+  :bounds (0 -2.5 0 3)
+  :origin-joint-index 3
+  )
+
+;; still in its pose, its joints recomputed every frame (its root joint follows the swinging lamp)
+(defstate idle (hj2-hide-light-fog)
+  :virtual #t
+  :code sleep-code
+  :post ja-post
+  )
+
+(defbehavior hj2-hide-light-fog-init-by-other hj2-hide-light-fog ((lamp hj2-hide-light))
+  "Init of the cone of light (process-spawn from the lamp). lamp: the lamp (its parent).
+Side effects: a trsqv root at the lamp's place (for the culling sphere's first frame), the skeleton,
+and its root joint (node 0) set every frame from the lamp's bottom joint (node 12, cspace<-parent-
+joint!), like Jak 2's hide-light-spawn; never paused far away. Goes to idle. Returns nothing."
+  (set! (-> self root) (new 'process 'trsqv))
+  (vector-copy! (-> self root trans) (-> lamp root trans))
+  (initialize-skeleton self *hj2-hide-light-fog-sg* (the-as pair 0))
+  (logclear! (-> self mask) (process-mask actor-pause))
+  (let ((v1-5 (-> self node-list data)))
+    (set! (-> v1-5 0 param0) (the-as (function cspace transformq none) cspace<-parent-joint!))
+    (set! (-> v1-5 0 param1) (the-as basic (-> self parent)))
+    (set! (-> v1-5 0 param2) (the-as basic 12))
+    )
+  (go-virtual idle)
+  )
+
+(defmethod init-from-entity! ((this hj2-hide-light) (arg0 entity-actor))
+  "Jak 2's hide-light setup: placement and skeleton (hj2-anim-loop-init!: not paused far away, like
+Jak 2's), its cone of light (a hj2-hide-light-fog child), then its idle loop.
+arg0: the entity. Returns nothing."
+  (hj2-anim-loop-init! this arg0 *hj2-hide-light-sg*)
+  (process-spawn hj2-hide-light-fog this :name "hj2-hide-light-fog" :to this)
+  (go (method-of-object this idle))
+  (none)
+  )

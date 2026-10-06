@@ -2,8 +2,10 @@
 ;; DGO definition file for hj2-ruins: Dead Town and the Sage's hut, through the slums airlock.
 ("HJR.DGO"
  (
-  "com-airlock-outer-ag.go"
+  "jak-pole+0-ag.go"
+  "hj2-airlock-outer-ag.go"
   "hj2-ruins-beam-ag.go"
+  "hj2-ruins-pillar-ag.go"
   "hj2-ruins-ocean.o"
   "hj2-ruins-obs.o"
   "hj2-ruins-part.o"

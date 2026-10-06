@@ -14,6 +14,223 @@
   ],
   "art_groups": [],
   "actors": [
-
+    // Jak 2's dig-part-256 (dig3b): group-dig-lava-glow-floor
+    {"trans": [457.6103, -88.0, -1972.5623], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [457.6103, -88.0, -1972.5623, 6.9282], "lump": {"name": "dig-part-256", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-257 (dig3b): group-dig-lava-glow-floor
+    {"trans": [443.3552, -88.0, -1983.6395], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [443.3552, -88.0, -1983.6395, 6.9282], "lump": {"name": "dig-part-257", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-258 (dig3b): group-dig-lava-glow-floor
+    {"trans": [446.0702, -88.0, -1974.6035], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [446.0702, -88.0, -1974.6035, 6.9282], "lump": {"name": "dig-part-258", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-259 (dig3b): group-dig-lava-glow-floor
+    {"trans": [456.4354, -88.0, -1982.8002], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [456.4354, -88.0, -1982.8002, 6.9282], "lump": {"name": "dig-part-259", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-260 (dig3b): group-dig-lava-glow-floor
+    {"trans": [396.3063, -88.0, -1994.5328], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [396.3063, -88.0, -1994.5328, 6.9282], "lump": {"name": "dig-part-260", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-261 (dig3b): group-dig-lava-glow-floor
+    {"trans": [400.1656, -88.0, -2003.3175], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [400.1656, -88.0, -2003.3175, 6.9282], "lump": {"name": "dig-part-261", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-262 (dig3b): group-dig-lava-glow-floor
+    {"trans": [390.6458, -88.0, -2003.5381], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [390.6458, -88.0, -2003.5381, 6.9282], "lump": {"name": "dig-part-262", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-263 (dig3b): group-dig-lava-glow-floor
+    {"trans": [394.4317, -88.0, -2010.8525], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [394.4317, -88.0, -2010.8525, 6.9282], "lump": {"name": "dig-part-263", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-266 (dig3b): group-dig-lava-glow-floor
+    {"trans": [383.6254, -88.0, -2031.4359], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [383.6254, -88.0, -2031.4359, 6.9282], "lump": {"name": "dig-part-266", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-267 (dig3b): group-dig-lava-glow-floor
+    {"trans": [378.1487, -88.0, -2040.772], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [378.1487, -88.0, -2040.772, 6.9282], "lump": {"name": "dig-part-267", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-269 (dig3b): group-dig-lava-glow-floor
+    {"trans": [378.406, -88.0, -2054.96], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [378.406, -88.0, -2054.96, 6.9283], "lump": {"name": "dig-part-269", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-328 (dig3b): group-dig-lava-glow-floor
+    {"trans": [434.7352, -88.0, -2064.5757], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [434.7352, -88.0, -2064.5757, 6.9282], "lump": {"name": "dig-part-328", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-329 (dig3b): group-dig-lava-glow-floor
+    {"trans": [433.1412, -88.0, -2052.0825], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [433.1412, -88.0, -2052.0825, 6.9283], "lump": {"name": "dig-part-329", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-330 (dig3b): group-dig-lava-glow-floor
+    {"trans": [459.1594, -88.0, -2058.3081], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [459.1594, -88.0, -2058.3081, 6.9282], "lump": {"name": "dig-part-330", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-264 (dig3b): group-dig-lava-glow-floor
+    {"trans": [392.8512, -88.0, -2019.1227], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [392.8512, -88.0, -2019.1227, 6.9282], "lump": {"name": "dig-part-264", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-265 (dig3b): group-dig-lava-glow-floor
+    {"trans": [383.3314, -88.0, -2021.1443], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [383.3314, -88.0, -2021.1443, 6.9282], "lump": {"name": "dig-part-265", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-320 (dig3b): group-dig-lava-glow-floor
+    {"trans": [445.2398, -88.0, -2082.5288], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [445.2398, -88.0, -2082.5288, 6.9282], "lump": {"name": "dig-part-320", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-322 (dig3b): group-dig-lava-glow-floor
+    {"trans": [456.9252, -88.0, -2078.2195], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [456.9252, -88.0, -2078.2195, 6.9283], "lump": {"name": "dig-part-322", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-323 (dig3b): group-dig-lava-glow-floor
+    {"trans": [457.2567, -88.0, -2090.4019], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [457.2567, -88.0, -2090.4019, 6.9283], "lump": {"name": "dig-part-323", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-324 (dig3b): group-dig-lava-glow-floor
+    {"trans": [469.4392, -88.0, -2096.2031], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [469.4392, -88.0, -2096.2031, 6.9282], "lump": {"name": "dig-part-324", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-325 (dig3b): group-dig-lava-glow-floor
+    {"trans": [469.0248, -88.0, -2086.4241], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [469.0248, -88.0, -2086.4241, 6.9283], "lump": {"name": "dig-part-325", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-326 (dig3b): group-dig-lava-glow-floor
+    {"trans": [477.1466, -88.0, -2076.3962], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [477.1466, -88.0, -2076.3962, 6.9283], "lump": {"name": "dig-part-326", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-327 (dig3b): group-dig-lava-glow-floor
+    {"trans": [481.2903, -88.0, -2104.0762], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [481.2903, -88.0, -2104.0762, 6.9283], "lump": {"name": "dig-part-327", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-331 (dig3b): group-dig-lava-glow-floor
+    {"trans": [481.2206, -88.0, -2066.0269], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [481.2206, -88.0, -2066.0269, 6.9282], "lump": {"name": "dig-part-331", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-271 (dig3b): group-dig-lava-glow-floor
+    {"trans": [379.4352, -88.0, -2074.7346], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [379.4352, -88.0, -2074.7346, 6.9282], "lump": {"name": "dig-part-271", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-272 (dig3b): group-dig-lava-glow-floor
+    {"trans": [382.1919, -88.0, -2085.6145], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [382.1919, -88.0, -2085.6145, 6.9282], "lump": {"name": "dig-part-272", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-299 (dig3b): group-dig-lava-glow-floor
+    {"trans": [406.4651, -88.0, -2104.9761], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [406.4651, -88.0, -2104.9761, 6.9283], "lump": {"name": "dig-part-299", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-300 (dig3b): group-dig-lava-glow-floor
+    {"trans": [395.7636, -88.0, -2096.1924], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [395.7636, -88.0, -2096.1924, 6.9282], "lump": {"name": "dig-part-300", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-270 (dig3b): group-dig-lava-glow-floor
+    {"trans": [383.1108, -88.0, -2064.5901], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [383.1108, -88.0, -2064.5901, 6.9283], "lump": {"name": "dig-part-270", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-301 (dig3b): group-dig-lava-glow-floor
+    {"trans": [440.2397, -88.0, -2101.5122], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [440.2397, -88.0, -2101.5122, 6.9283], "lump": {"name": "dig-part-301", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-319 (dig3b): group-dig-lava-glow-floor
+    {"trans": [444.5768, -88.0, -2092.3909], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [444.5768, -88.0, -2092.3909, 6.9282], "lump": {"name": "dig-part-319", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-321 (dig3b): group-dig-lava-glow-floor
+    {"trans": [442.7536, -88.0, -2072.9153], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [442.7536, -88.0, -2072.9153, 6.9283], "lump": {"name": "dig-part-321", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-302 (dig3b): group-dig-lava-glow-floor
+    {"trans": [446.5493, -88.0, -2116.791], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [446.5493, -88.0, -2116.791, 6.9283], "lump": {"name": "dig-part-302", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-303 (dig3b): group-dig-lava-glow-floor
+    {"trans": [459.7251, -88.0, -2135.5959], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [459.7251, -88.0, -2135.5959, 6.9283], "lump": {"name": "dig-part-303", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-304 (dig3b): group-dig-lava-glow-floor
+    {"trans": [470.3647, -88.0, -2147.5964], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [470.3647, -88.0, -2147.5964, 6.9283], "lump": {"name": "dig-part-304", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-305 (dig3b): group-dig-lava-glow-floor
+    {"trans": [459.5395, -88.0, -2149.6997], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [459.5395, -88.0, -2149.6997, 6.9282], "lump": {"name": "dig-part-305", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-306 (dig3b): group-dig-lava-glow-floor
+    {"trans": [457.8074, -88.0, -2161.3909], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [457.8074, -88.0, -2161.3909, 6.9282], "lump": {"name": "dig-part-306", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-307 (dig3b): group-dig-lava-glow-floor
+    {"trans": [444.8791, -88.0, -2167.8242], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [444.8791, -88.0, -2167.8242, 6.9282], "lump": {"name": "dig-part-307", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-310 (dig3b): group-dig-lava-glow-floor
+    {"trans": [469.9935, -88.0, -2166.5251], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [469.9935, -88.0, -2166.5251, 6.9282], "lump": {"name": "dig-part-310", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-311 (dig3b): group-dig-lava-glow-floor
+    {"trans": [483.7879, -88.0, -2160.4631], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [483.7879, -88.0, -2160.4631, 6.9283], "lump": {"name": "dig-part-311", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-314 (dig3b): group-dig-lava-glow-floor
+    {"trans": [467.3819, -88.0, -2184.0847], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [467.3819, -88.0, -2184.0847, 6.9283], "lump": {"name": "dig-part-314", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-315 (dig3b): group-dig-lava-glow-floor
+    {"trans": [478.5471, -88.0, -2194.718], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [478.5471, -88.0, -2194.718, 6.9283], "lump": {"name": "dig-part-315", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-316 (dig3b): group-dig-lava-glow-floor
+    {"trans": [489.1806, -88.0, -2188.262], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [489.1806, -88.0, -2188.262, 6.9283], "lump": {"name": "dig-part-316", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-317 (dig3b): group-dig-lava-glow-floor
+    {"trans": [501.0294, -88.0, -2180.8945], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [501.0294, -88.0, -2180.8945, 6.9282], "lump": {"name": "dig-part-317", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-318 (dig3b): group-dig-lava-glow-floor
+    {"trans": [495.3329, -88.0, -2202.6172], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [495.3329, -88.0, -2202.6172, 6.9283], "lump": {"name": "dig-part-318", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-309 (dig3b): group-dig-lava-glow-floor
+    {"trans": [457.6837, -88.0, -2174.938], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [457.6837, -88.0, -2174.938, 6.9283], "lump": {"name": "dig-part-309", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-312 (dig3b): group-dig-lava-glow-floor
+    {"trans": [490.0161, -88.0, -2172.084], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [490.0161, -88.0, -2172.084, 6.9282], "lump": {"name": "dig-part-312", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-313 (dig3b): group-dig-lava-glow-floor
+    {"trans": [479.6105, -88.0, -2178.9956], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [479.6105, -88.0, -2178.9956, 6.9283], "lump": {"name": "dig-part-313", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-292 (dig3b): group-dig-lava-glow-floor
+    {"trans": [408.3827, -88.0, -2125.8225], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [408.3827, -88.0, -2125.8225, 6.9283], "lump": {"name": "dig-part-292", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-293 (dig3b): group-dig-lava-glow-floor
+    {"trans": [420.3214, -88.0, -2144.2561], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [420.3214, -88.0, -2144.2561, 6.9282], "lump": {"name": "dig-part-293", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-294 (dig3b): group-dig-lava-glow-floor
+    {"trans": [425.9504, -88.0, -2133.1216], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [425.9504, -88.0, -2133.1216, 6.9283], "lump": {"name": "dig-part-294", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-296 (dig3b): group-dig-lava-glow-floor
+    {"trans": [432.1981, -88.0, -2123.5955], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [432.1981, -88.0, -2123.5955, 6.9282], "lump": {"name": "dig-part-296", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-297 (dig3b): group-dig-lava-glow-floor
+    {"trans": [421.8678, -88.0, -2117.9663], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [421.8678, -88.0, -2117.9663, 6.9283], "lump": {"name": "dig-part-297", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-308 (dig3b): group-dig-lava-glow-floor
+    {"trans": [427.3732, -88.0, -2162.3188], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [427.3732, -88.0, -2162.3188, 6.9282], "lump": {"name": "dig-part-308", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-298 (dig3b): group-dig-lava-glow-floor
+    {"trans": [422.0534, -88.0, -2105.533], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [422.0534, -88.0, -2105.533, 6.9282], "lump": {"name": "dig-part-298", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-295 (dig3b): group-dig-lava-glow-floor
+    {"trans": [440.9201, -88.0, -2128.2349], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [440.9201, -88.0, -2128.2349, 6.9282], "lump": {"name": "dig-part-295", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-284 (dig3b): group-dig-lava-glow-floor
+    {"trans": [376.676, -88.0, -2135.2046], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [376.676, -88.0, -2135.2046, 6.9283], "lump": {"name": "dig-part-284", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-285 (dig3b): group-dig-lava-glow-floor
+    {"trans": [382.0131, -88.0, -2142.6318], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [382.0131, -88.0, -2142.6318, 6.9283], "lump": {"name": "dig-part-285", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-286 (dig3b): group-dig-lava-glow-floor
+    {"trans": [392.8207, -88.0, -2141.5645], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [392.8207, -88.0, -2141.5645, 6.9283], "lump": {"name": "dig-part-286", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-288 (dig3b): group-dig-lava-glow-floor
+    {"trans": [398.0688, -88.0, -2134.3594], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [398.0688, -88.0, -2134.3594, 6.9283], "lump": {"name": "dig-part-288", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-289 (dig3b): group-dig-lava-glow-floor
+    {"trans": [387.1723, -88.0, -2133.1587], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [387.1723, -88.0, -2133.1587, 6.9282], "lump": {"name": "dig-part-289", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-290 (dig3b): group-dig-lava-glow-floor
+    {"trans": [389.1737, -88.0, -2122.1731], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [389.1737, -88.0, -2122.1731, 6.9282], "lump": {"name": "dig-part-290", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-287 (dig3b): group-dig-lava-glow-floor
+    {"trans": [406.875, -88.0, -2137.2505], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [406.875, -88.0, -2137.2505, 6.9283], "lump": {"name": "dig-part-287", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-291 (dig3b): group-dig-lava-glow-floor
+    {"trans": [400.836, -88.0, -2116.2344], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [400.836, -88.0, -2116.2344, 6.9282], "lump": {"name": "dig-part-291", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-274 (dig3b): group-dig-lava-glow-floor
+    {"trans": [363.9241, -88.0, -2083.4092], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [363.9241, -88.0, -2083.4092, 6.9282], "lump": {"name": "dig-part-274", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-275 (dig3b): group-dig-lava-glow-floor
+    {"trans": [357.8594, -88.0, -2093.4436], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [357.8594, -88.0, -2093.4436, 6.9283], "lump": {"name": "dig-part-275", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-280 (dig3b): group-dig-lava-glow-floor
+    {"trans": [350.2575, -88.0, -2114.6567], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [350.2575, -88.0, -2114.6567, 6.9282], "lump": {"name": "dig-part-280", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-281 (dig3b): group-dig-lava-glow-floor
+    {"trans": [362.088, -88.0, -2120.75], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [362.088, -88.0, -2120.75, 6.9283], "lump": {"name": "dig-part-281", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-268 (dig3b): group-dig-lava-glow-floor
+    {"trans": [371.1283, -88.0, -2046.5795], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [371.1283, -88.0, -2046.5795, 6.9282], "lump": {"name": "dig-part-268", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-273 (dig3b): group-dig-lava-glow-floor
+    {"trans": [372.0105, -88.0, -2085.9819], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [372.0105, -88.0, -2085.9819, 6.9283], "lump": {"name": "dig-part-273", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-282 (dig3b): group-dig-lava-glow-floor
+    {"trans": [366.4466, -88.0, -2132.0466], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [366.4466, -88.0, -2132.0466, 6.9283], "lump": {"name": "dig-part-282", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-283 (dig3b): group-dig-lava-glow-floor
+    {"trans": [373.5182, -88.0, -2123.7297], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [373.5182, -88.0, -2123.7297, 6.9282], "lump": {"name": "dig-part-283", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-191 (dig3b): group-dig-lava-glow-floor
+    {"trans": [229.0159, -56.0, -2138.6992], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [229.0159, -56.0, -2138.6992, 6.9282], "lump": {"name": "dig-part-191", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-192 (dig3b): group-dig-lava-glow-floor
+    {"trans": [232.5445, -56.0, -2128.5544], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [232.5445, -56.0, -2128.5544, 6.9282], "lump": {"name": "dig-part-192", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-193 (dig3b): group-dig-lava-glow-floor
+    {"trans": [240.1311, -56.0, -2121.5852], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [240.1311, -56.0, -2121.5852, 6.9283], "lump": {"name": "dig-part-193", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-215 (dig3b): group-dig-lava-glow-floor
+    {"trans": [229.2805, -56.0, -2180.2493], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [229.2805, -56.0, -2180.2493, 6.9283], "lump": {"name": "dig-part-215", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-277 (dig3b): group-dig-lava-glow-floor
+    {"trans": [339.4446, -88.0, -2107.521], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [339.4446, -88.0, -2107.521, 6.9283], "lump": {"name": "dig-part-277", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-278 (dig3b): group-dig-lava-glow-floor
+    {"trans": [330.3324, -88.0, -2103.9827], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [330.3324, -88.0, -2103.9827, 6.9282], "lump": {"name": "dig-part-278", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-279 (dig3b): group-dig-lava-glow-floor
+    {"trans": [322.2378, -88.0, -2097.9338], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [322.2378, -88.0, -2097.9338, 6.9283], "lump": {"name": "dig-part-279", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-276 (dig3b): group-dig-lava-glow-floor
+    {"trans": [348.4131, -88.0, -2101.3828], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [348.4131, -88.0, -2101.3828, 6.9282], "lump": {"name": "dig-part-276", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-198 (dig3b): group-dig-lava-glow-floor
+    {"trans": [204.7564, -56.0, -2100.7661], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [204.7564, -56.0, -2100.7661, 6.9283], "lump": {"name": "dig-part-198", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-200 (dig3b): group-dig-lava-glow-floor
+    {"trans": [209.6083, -56.0, -2085.9458], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [209.6083, -56.0, -2085.9458, 6.9283], "lump": {"name": "dig-part-200", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-202 (dig3b): group-dig-lava-glow-floor
+    {"trans": [211.2844, -56.0, -2071.302], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [211.2844, -56.0, -2071.302, 6.9282], "lump": {"name": "dig-part-202", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-203 (dig3b): group-dig-lava-glow-floor
+    {"trans": [201.2277, -56.0, -2064.8621], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [201.2277, -56.0, -2064.8621, 6.9283], "lump": {"name": "dig-part-203", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-204 (dig3b): group-dig-lava-glow-floor
+    {"trans": [218.5181, -56.0, -2060.363], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [218.5181, -56.0, -2060.363, 6.9283], "lump": {"name": "dig-part-204", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-205 (dig3b): group-dig-lava-glow-floor
+    {"trans": [203.9624, -56.0, -2051.718], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [203.9624, -56.0, -2051.718, 6.9283], "lump": {"name": "dig-part-205", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-206 (dig3b): group-dig-lava-glow-floor
+    {"trans": [220.4589, -56.0, -2047.0425], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [220.4589, -56.0, -2047.0425, 6.9282], "lump": {"name": "dig-part-206", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-197 (dig3b): group-dig-lava-glow-floor
+    {"trans": [221.6939, -56.0, -2093.709], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [221.6939, -56.0, -2093.709, 6.9282], "lump": {"name": "dig-part-197", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-212 (dig3b): group-dig-lava-glow-floor
+    {"trans": [215.4306, -56.0, -2151.2261], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [215.4306, -56.0, -2151.2261, 6.9283], "lump": {"name": "dig-part-212", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-213 (dig3b): group-dig-lava-glow-floor
+    {"trans": [210.5786, -56.0, -2162.9587], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [210.5786, -56.0, -2162.9587, 6.9282], "lump": {"name": "dig-part-213", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-189 (dig3b): group-dig-lava-glow-floor
+    {"trans": [225.8401, -56.0, -2158.6362], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [225.8401, -56.0, -2158.6362, 6.9282], "lump": {"name": "dig-part-189", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-190 (dig3b): group-dig-lava-glow-floor
+    {"trans": [228.663, -56.0, -2148.7559], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [228.663, -56.0, -2148.7559, 6.9283], "lump": {"name": "dig-part-190", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-194 (dig3b): group-dig-lava-glow-floor
+    {"trans": [226.3694, -56.0, -2119.3799], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [226.3694, -56.0, -2119.3799, 6.9282], "lump": {"name": "dig-part-194", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-214 (dig3b): group-dig-lava-glow-floor
+    {"trans": [221.4293, -56.0, -2171.0747], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [221.4293, -56.0, -2171.0747, 6.9282], "lump": {"name": "dig-part-214", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-196 (dig3b): group-dig-lava-glow-floor
+    {"trans": [218.3417, -56.0, -2104.1184], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [218.3417, -56.0, -2104.1184, 6.9282], "lump": {"name": "dig-part-196", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-195 (dig3b): group-dig-lava-glow-floor
+    {"trans": [228.7512, -56.0, -2109.5879], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [228.7512, -56.0, -2109.5879, 6.9282], "lump": {"name": "dig-part-195", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-207 (dig3b): group-dig-lava-glow-floor
+    {"trans": [183.0551, -56.0, -2102.8835], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [183.0551, -56.0, -2102.8835, 6.9283], "lump": {"name": "dig-part-207", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-208 (dig3b): group-dig-lava-glow-floor
+    {"trans": [169.7345, -56.0, -2108.0881], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [169.7345, -56.0, -2108.0881, 6.9282], "lump": {"name": "dig-part-208", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-209 (dig3b): group-dig-lava-glow-floor
+    {"trans": [187.1131, -56.0, -2119.6445], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [187.1131, -56.0, -2119.6445, 6.9282], "lump": {"name": "dig-part-209", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-210 (dig3b): group-dig-lava-glow-floor
+    {"trans": [190.1125, -56.0, -2144.1687], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [190.1125, -56.0, -2144.1687, 6.9282], "lump": {"name": "dig-part-210", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-219 (dig3b): group-dig-lava-glow-floor
+    {"trans": [174.4099, -56.0, -2155.5486], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [174.4099, -56.0, -2155.5486, 6.9282], "lump": {"name": "dig-part-219", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-199 (dig3b): group-dig-lava-glow-floor
+    {"trans": [195.1408, -56.0, -2091.5034], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [195.1408, -56.0, -2091.5034, 6.9283], "lump": {"name": "dig-part-199", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-201 (dig3b): group-dig-lava-glow-floor
+    {"trans": [197.6991, -56.0, -2079.1533], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [197.6991, -56.0, -2079.1533, 6.9283], "lump": {"name": "dig-part-201", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-211 (dig3b): group-dig-lava-glow-floor
+    {"trans": [201.0513, -56.0, -2150.4321], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [201.0513, -56.0, -2150.4321, 6.9283], "lump": {"name": "dig-part-211", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-217 (dig3b): group-dig-lava-glow-floor
+    {"trans": [192.9354, -56.0, -2177.7791], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [192.9354, -56.0, -2177.7791, 6.9282], "lump": {"name": "dig-part-217", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-221 (dig3b): group-dig-lava-glow-floor
+    {"trans": [175.9978, -56.0, -2174.6917], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [175.9978, -56.0, -2174.6917, 6.9283], "lump": {"name": "dig-part-221", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-218 (dig3b): group-dig-lava-glow-floor
+    {"trans": [185.7016, -56.0, -2162.4294], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [185.7016, -56.0, -2162.4294, 6.9282], "lump": {"name": "dig-part-218", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-220 (dig3b): group-dig-lava-glow-floor
+    {"trans": [165.2354, -56.0, -2164.6348], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [165.2354, -56.0, -2164.6348, 6.9283], "lump": {"name": "dig-part-220", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}},
+    // Jak 2's dig-part-216 (dig3b): group-dig-lava-glow-floor
+    {"trans": [198.1401, -56.0, -2164.8994], "etype": "part-spawner", "game_task": 0, "quat": [-0.7071, 0.0, 0.0, 0.7071], "bsphere": [198.1401, -56.0, -2164.8994, 6.9283], "lump": {"name": "dig-part-216", "vis-dist": ["float", 819200.0], "art-name": "group-hj2-dig-lava-glow-floor"}}
   ]
 }

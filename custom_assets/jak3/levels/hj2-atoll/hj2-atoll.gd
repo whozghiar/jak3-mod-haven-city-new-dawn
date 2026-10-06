@@ -2,7 +2,7 @@
 ;; DGO definition file for hj2-atoll: the pumping station.
 ("HJL.DGO"
  (
-  "com-airlock-outer-ag.go"
+  "hj2-airlock-outer-ag.go"
   "hj2-piston-ag.go"
   "hj2-turbine-ag.go"
   "hj2-liftcat-ag.go"
@@ -12,6 +12,8 @@
   "hj2-atoll-valve-ag.go"
   "hj2-atoll-hatch-ag.go"
   "hj2-atoll-mar-symbol-ag.go"
+  "hj2-gun-buoy-ag.go"
   "hj2-atoll-obs.o"
+  "hj2-atoll-part.o"
   "hj2-atoll.go"
   ))

@@ -1,4 +1,4 @@
-"""python scripts/level_port <port manifest> [--steps water,mesh,...]
+"""python scripts/level_port <port manifest> [--steps mesh,levels,...]
 
 Runs the port's steps (see steps/__init__.py) from the repository root. Generated files are only
 rewritten when their content changes, so goalc only rebuilds the levels that changed."""

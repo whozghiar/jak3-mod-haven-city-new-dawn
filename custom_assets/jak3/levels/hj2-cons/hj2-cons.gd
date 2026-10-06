@@ -2,10 +2,11 @@
 ;; DGO definition file for hj2-cons: the construction site.
 ("HJC.DGO"
  (
-  "com-airlock-outer-ag.go"
+  "hj2-airlock-outer-ag.go"
   "hj2-cons-silo-doors-ag.go"
   "hj2-cons-bomb-elevator-ag.go"
   "hj2-cons-bomb-hinges-ag.go"
   "hj2-cons-obs.o"
+  "hj2-cons-part.o"
   "hj2-cons.go"
   ))

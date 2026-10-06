@@ -6,8 +6,11 @@ continue points. This step ports all of them, translated by convert/scripts.py: 
 becomes the port's level holding it (a level merging several source levels stands for all of
 them), and the level sets the source game loads together are kept.
 
+A level with a hub (the manifest's "hub": a city's districts and their city-wide level) is always
+loaded after its hub: every level list naming it gets the hub, first (convert/scripts.py with_hubs).
+
 Writes, for each level of the manifest:
-  - its .jsonc (or, for a level whose .jsonc is written by hand, its GENERATED section) and .gd,
+  - its .jsonc and .gd,
   - its regions (<level>-regions.json) and water regions (<level>-water-regions.json),
   - the models its actors use (models_dir/<model>.glb, for build-actor),
 and every level's level-load-info with its continue points (the manifest's "level_info" file).
@@ -26,10 +29,13 @@ import re
 from ..common import glb
 from ..common.files import write_if_changed
 from ..common.geometry import bounding_sphere, box_faces, front, r4
-from ..convert.scripts import Translator
+from ..convert.scripts import Translator, with_hubs
 from ..manifest import nested
+from . import mesh as mesh_step
+from . import nav as nav_step
 from . import particles
 from . import props as props_step
+from . import water as water_step
 
 
 def script(text):
@@ -45,7 +51,6 @@ class Context:
         self.actors = port.story.all_actors()
         self.all_levels = port.source.level_names() | set(port.level_map)
         self.backdrops = set(port.get("backdrop_levels", []))
-        self.shown = {lv.name for lv in port.levels if lv.get("shown")}
         conts = port["continues"]
         self.continue_prefix = conts["prefix"]
         self.continue_renames = conts.get("names", {})
@@ -59,8 +64,11 @@ class Context:
         self.regions = port.source.regions()
         # our level -> its level-memory-mode: fixed in the manifest, else set by memory_modes
         self.memory = {lv.name: lv["memory"] for lv in port.levels if "memory" in lv}
-        # part-engine-max of the levels with particles: their static part spawners
+        # part-engine-max of the levels with part spawners (their static ones), and the spawners
+        # and sprite textures of the levels' particles (write_particles)
         self.part_engine_max = {}
+        self.part_actors = {}
+        self.sprite_textures = {}
         self.etypes = {**self.pair.DOOR_ETYPES, **port.get("etypes", {})}
         self.models = port.get("models", {})
         self.doors = [tuple(d) for d in port.get("doors", [])]
@@ -73,7 +81,7 @@ class Context:
     def translator(self, source_level, open_tasks=()):
         port = self.port
         story = port.story
-        return Translator(self.pair, port.level_map, self.all_levels | self.backdrops, self.shown,
+        return Translator(self.pair, port.level_map, self.all_levels | self.backdrops, port.hubs,
                           port.level_map[source_level],
                           lambda task: story.closed(task, open_tasks), self.continue_names,
                           port.get("renames", {}), [tuple(e) for e in port.get("drop_events", [])],
@@ -205,14 +213,21 @@ def next_actor(actor):
     return value[0] if isinstance(value, list) else value
 
 
-def base_lumps(actor):
-    """Door settings from the source game (res units)."""
+def base_lumps(actor, door_height=None, meter=4096.0):
+    """Door settings from the source game (res units). door_height: [above, below] meters, the
+    height lump of a door that has none (the manifest's "door_height"): the target game's airlock
+    only opens and runs its scripts while Jak is between door y - below and door y + above. The
+    source game paused the actors it didn't see (its levels' visibility data); the port's levels
+    have none, so without it a door right above Jak (the top of the palace pillars, 420m up) acts
+    on him from the street below: it only tests the distance on x and z."""
     lump = {"name": actor["lump"]["name"]}
     for key in ("distance", "idle-distance", "height"):
         if key in actor["lump"]:
             value = actor["lump"][key]
             values = value if isinstance(value, list) else [value]
             lump[key] = ["float"] + [float(v) for v in values]
+    if "height" not in lump and door_height:
+        lump["height"] = ["vector", [door_height[0] * meter, door_height[1] * meter, 0.0, 0.0]]
     if "options" in actor["lump"]:
         # bit 0: inner door (runs on-inside)
         lump["options"] = ["uint32", int(actor["lump"]["options"])]
@@ -222,7 +237,9 @@ def base_lumps(actor):
 
 
 def placed(actor, etype, lump, trans=None):
-    """An actor of the level .jsonc, placed like the source actor."""
+    """An actor of the level .jsonc, placed like the source actor. Its vis-dist isn't copied: the
+    source game only used it in levels without visibility data, never here (a door born on the way
+    up a pillar would run its scripts there)."""
     trans = trans or [r4(x) for x in actor["trans"][:3]]
     return {
         "trans": trans,
@@ -237,7 +254,7 @@ def placed(actor, etype, lump, trans=None):
 def make_door(ctx, source_level, name, closed):
     actor = ctx.actors[(source_level, name)]
     etype = ctx.etypes[actor["etype"]]
-    lump = base_lumps(actor)
+    lump = base_lumps(actor, ctx.port.get("door_height"), ctx.meter)
     scripts = {} if closed else translate_lumps(ctx, source_level, name, actor["lump"])
     if "on-notice" not in scripts:
         # never opens: nothing else to run either
@@ -297,7 +314,10 @@ def make_stopping_elevator(ctx, spec):
 
 def lump_value(ctx, kind, value):
     """A source lump value (a number or list) as a builder res lump: "float", "int32", "uint32",
-    "vector" (as they are) or "path" (points rounded, w = 1)."""
+    "vector" (as they are), "path" (points rounded, w = 1), or "string", "symbol", "type" (names,
+    passed through: the art-name of a prop, for instance)."""
+    if kind in ("string", "symbol", "type"):
+        return [kind] + [str(v) for v in (value if isinstance(value, list) else [value])]
     if kind == "path":
         return ["vector"] + [[r4(c) for c in p[:3]] + [1.0] for p in value]
     if kind == "vector":
@@ -564,11 +584,14 @@ def water_regions(ctx, level):
     """The source game's water-vol actors of a level as the target game's 'water' regions (Jak 3's
     water is regions only). A water-vol is an axis-aligned box of 6 planes (outside where
     dot(p, n) > d) with its water height; the region goes from the box bottom to 2m above the
-    water. A level with the ocean also gets the source game's ocean water regions (spheres:
+    water. A level with a "water" block gets its regions (steps/water.py: its ocean sphere and its
+    pools), else a level with the ocean gets the source game's ocean water regions (spheres:
     swimming at the ocean's height)."""
     regions = []
     meter = ctx.meter
-    if level.get("ocean"):
+    if "water" in level:
+        regions += water_step.surfaces(ctx.port, level)[1]
+    elif level.get("ocean"):
         for region in sorted(ctx.regions.values(), key=lambda r: r["id"]):
             if (region["level"] not in level.sources or region["tree"] != "water" or
                     not region["sphere"] or
@@ -576,7 +599,6 @@ def water_regions(ctx, level):
                 continue
             sphere = [r4(x) for x in region["sphere"]]
             regions.append({
-                "id": level["base_id"] + len(regions),
                 "shape": "sphere",
                 "trans": sphere[:3],
                 "bsphere": sphere,
@@ -602,7 +624,6 @@ def water_regions(ctx, level):
         center = [(lo[i] + hi[i]) / 2 for i in range(3)]
         radius = sum((hi[i] - center[i]) ** 2 for i in range(3)) ** 0.5
         regions.append({
-            "id": level["base_id"] + len(regions),
             "shape": "volume",
             "bsphere": [r4(c) for c in center] + [r4(radius + 0.5)],
             "on-inside": f"(water height {height:.4f} (swim wade))",
@@ -610,6 +631,7 @@ def water_regions(ctx, level):
         })
     if not regions:
         return None
+    regions = [{"id": level["base_id"] + i, **r} for i, r in enumerate(regions)]
     points = [r["bsphere"][:3] for r in regions]
     radius = max(r["bsphere"][3] for r in regions)
     sphere = bounding_sphere(points, radius)
@@ -619,17 +641,22 @@ def water_regions(ctx, level):
 # continues #######################################################################################
 
 
-def translate_wants(ctx, source_wants):
+def translate_wants(ctx, source_wants, owner=None):
     """A continue's source level list for our levels: a level merging several source levels is
-    shown if one of them was, the levels that aren't ported are dropped."""
+    shown if one of them was, the levels that aren't ported are dropped; the continue's own level
+    (owner) is shown if it's missing, and the hubs come first (with_hubs), hidden if missing."""
     out = {}
     for lev, disp in source_wants:
         ours = ctx.port.level_map.get(lev)
         if not ours:
             continue
-        shown = disp == "'display"
-        out[ours] = out.get(ours, False) or shown
-    return [(lev, "'display" if shown else "#f") for lev, shown in out.items()]
+        # 'display, else 'special (drawn as a backdrop), else hidden
+        rank = {"'display": 2, "'special": 1}.get(disp, 0)
+        out[ours] = max(out.get(ours, 0), rank)
+    if owner and owner not in out:
+        out = {owner: 2, **out}
+    return [(lev, {2: "'display", 1: "'special"}.get(out.get(lev, 0), "#f"))
+            for lev in with_hubs(list(out), ctx.port.hubs)]
 
 
 def continue_wants(ctx, source_name, cont):
@@ -653,19 +680,24 @@ def continue_candidates(ctx):
                     cont["flags"] & ctx.pair.SKIPPED_CONTINUE_FLAGS or
                     any(word in source_name for word in ctx.pair.SKIPPED_CONTINUE_NAMES)):
                 continue
-            wants = translate_wants(ctx, continue_wants(ctx, source_name, cont))
-            levels = [lev for lev, _ in wants]
-            if level.name not in levels:
-                levels.append(level.name)
-            yield level.name, source_name, levels
+            wants = translate_wants(ctx, continue_wants(ctx, source_name, cont), level.name)
+            yield level.name, source_name, [lev for lev, _ in wants]
+
+
+def listed_continues(ctx):
+    """(our level, source continue, the levels it loads) for the continues the levels list."""
+    for level in ctx.port.levels:
+        for source_name in level.get("continues", []):
+            cont = ctx.continues[source_name]
+            wants = translate_wants(ctx, continue_wants(ctx, source_name, cont), level.name)
+            yield level.name, source_name, [lev for lev, _ in wants]
 
 
 def select_continues(ctx):
     """(our level, continue name, source continue) for every continue point to write."""
     chosen = []
-    for level in ctx.port.levels:
-        for source_name in level.get("continues", []):
-            chosen.append((level.name, ctx.continue_name(source_name), source_name))
+    for level, source_name, _ in listed_continues(ctx):
+        chosen.append((level, ctx.continue_name(source_name), source_name))
     for level, source_name, levels in continue_candidates(ctx):
         try:
             check_memory(ctx, levels)
@@ -680,9 +712,7 @@ def select_continues(ctx):
 
 def continue_point(ctx, level, cont_name, source_name):
     cont = ctx.continues[source_name]
-    wants = translate_wants(ctx, continue_wants(ctx, source_name, cont))
-    if not any(lev == level for lev, _ in wants):
-        wants.insert(0, (level, "'display"))
+    wants = translate_wants(ctx, continue_wants(ctx, source_name, cont), level)
     check_memory(ctx, [lev for lev, _ in wants])
     flags = [f for f in ctx.pair.KEPT_CONTINUE_FLAGS if f in cont["flags"]]
     return ctx.port.target.continue_point(cont_name, level, cont["trans"], cont["camera_trans"],
@@ -738,9 +768,13 @@ def load_sets(ctx):
             add_script(tr.script(text))
         for text in region_overrides(ctx, region).values():
             add_script(text)
-    for _, _, levels in continue_candidates(ctx):
+    for _, _, levels in list(continue_candidates(ctx)) + list(listed_continues(ctx)):
         if len(set(levels)) > 1:
             sets.add(tuple(sorted(set(levels))))
+    for levels in sets:
+        for lev in levels:
+            if lev in ctx.port.hubs and ctx.port.hubs[lev] not in levels:
+                raise ValueError(f"{levels}: {lev} is loaded without its hub {ctx.port.hubs[lev]}")
     return sets
 
 
@@ -789,10 +823,6 @@ def memory_modes(ctx):
 
 
 # outputs #########################################################################################
-
-
-GENERATED_BEGIN = "  // BEGIN GENERATED by scripts/level_port: edit the port, not this section"
-GENERATED_END = "  // END GENERATED by scripts/level_port"
 
 
 def actors_json(actor_list, indent):
@@ -852,7 +882,16 @@ def build_level(ctx, level):
     port = ctx.port
     actor_list, art = make_actors(ctx, level)
     if level.get("ported_actors", True):
-        actor_list += ported_actors(ctx, level)
+        ported = ported_actors(ctx, level)
+        actor_list += ported
+        # the target game's art group of a ported class that uses one (the manifest's
+        # "art_groups": a searchlight, a barge); classes with a rebuilt model bring theirs through
+        # custom_models, and the others (a slide, a swinging bar) have none
+        art_groups = port.get("art_groups", {})
+        for _, actor in ported:
+            ag = art_groups.get(actor["etype"])
+            if ag and ag not in art:
+                art.append(ag)
     prop_code = []
     if "props" in level:
         # the props that are actors, with the target game's classes and models
@@ -866,16 +905,12 @@ def build_level(ctx, level):
         art += [ag for ag in level["traffic"].get("art", []) if ag not in art]
         code = [obj for obj in traffic_code(level) if obj not in prop_code]
     code += prop_code + list(level.get("code", []))
-    sprite_textures = None
-    if "particles" in level:
-        # the source game's particle effects: part spawners, <level>-part.gc and the sprite
-        # textures of the level's own texture page
-        part_actors, sprite_textures, engine_max, stats = particles.write_level(port, level)
-        print(f"  particles: {stats}")
-        actor_list += part_actors
-        ctx.part_engine_max[level.name] = engine_max
-        if f"{level.name}-part.o" not in code:
-            code.append(f"{level.name}-part.o")
+    # the source game's particle effects (write_particles): the part spawners of the level, and
+    # for a level with particles, <level>-part.gc and the sprite textures of its own texture page
+    actor_list += ctx.part_actors.get(level.name, [])
+    sprite_textures = ctx.sprite_textures.get(level.name)
+    if "particles" in level and f"{level.name}-part.o" not in code:
+        code.append(f"{level.name}-part.o")
     models = []
     for model in level.get("models", []):
         build_model(ctx, model_spec(ctx, model))
@@ -905,54 +940,6 @@ def write_gd(ctx, level, built, comment):
     write_if_changed(f"{level.folder}/{level.name}.gd", "\n".join(gd))
 
 
-def write_section_level(ctx, level):
-    """A level whose .jsonc is written by hand: its GENERATED section (the background, navigation,
-    sprite textures, cameras, models, art groups and actors), its regions and its .gd."""
-    port = ctx.port
-    built = build_level(ctx, level)
-    title = port.source.TITLE
-    section = [
-        GENERATED_BEGIN,
-        f"  // the background (tfrag/tie/shrub render trees + collision with its original pat),",
-        f"  // merged from {title}'s extracted .fr3 files (out/{port.source.NAME}/fr3/<level>.fr3)",
-        '  "import_fr3": ' + json.dumps(import_fr3(ctx, level)) + ",",
-    ]
-    if "nav" in level:
-        section += [
-            f"  // {title}'s navigation: its nav meshes and its traffic data merged into one",
-            "  // city-level-info (the level port's nav step)",
-            f'  "nav_data": "{level.folder}/{level.name}-nav.json",',
-        ]
-    if built["sprite_textures"]:
-        section += [
-            "  // the sprite textures of its particles, as texture page "
-            f"{built['sprite_textures']['page']} ({level.name}-part.gc)",
-            '  "sprite_textures": ' + json.dumps(built["sprite_textures"]) + ",",
-        ]
-    section += [
-        '  "cameras": [',
-        cameras_json(ctx.cameras.get(level.name, []), 4),
-        "  ],",
-        '  "custom_models": ' + json.dumps(built["models"]) + ",",
-        f"  // {port.target.TITLE}'s models of the doors, props and traffic, extracted from "
-        f"{port.target.TITLE}'s DGOs",
-        '  "art_groups": ' + json.dumps(built["art"]) + ",",
-        '  "actors": [',
-        actors_json(built["actors"], 4),
-        "  ]",
-        GENERATED_END,
-    ]
-    path = f"{level.folder}/{level.name}.jsonc"
-    text = open(path, encoding="utf-8").read()
-    begin = text.index(GENERATED_BEGIN)
-    end = text.index(GENERATED_END) + len(GENERATED_END)
-    text = text[:begin] + "\n".join(section) + text[end:]
-    write_if_changed(path, text)
-    write_regions(level, built["trees"])
-    write_gd(ctx, level, built, level.what)
-    return built
-
-
 def write_full_level(ctx, level):
     """A level whose .jsonc is generated whole, with its regions and its .gd."""
     port = ctx.port
@@ -979,6 +966,20 @@ def write_full_level(ctx, level):
             f"{built['sprite_textures']['page']} ({level.name}-part.gc)",
             '  "sprite_textures": ' + json.dumps(built["sprite_textures"]) + ",",
         ]
+    mesh_lines = []
+    if "mesh" in level:
+        mesh_lines = [
+            f"  // {title}'s static props that aren't actors here, and its pools' surfaces, as one "
+            "mesh (the mesh step)",
+            f'  "gltf_file": "{mesh_step.mesh_path(level)}",',
+        ]
+    nav_lines = []
+    if nav_step.city_sources(port, level):
+        nav_lines = [
+            f"  // {title}'s navigation: its nav meshes and its traffic data (its city-level-info,",
+            "  // the nav step)",
+            f'  "nav_data": "{nav_step.nav_path(level)}",',
+        ]
     what = level.what[0].upper() + level.what[1:]
     lines = [
         "{",
@@ -989,6 +990,8 @@ def write_full_level(ctx, level):
         f'  "iso_name": "{level["iso"]}",',
         f'  "nickname": "{level.nick}",',
         '  "import_fr3": ' + json.dumps(import_fr3(ctx, level)) + ",",
+        *mesh_lines,
+        *nav_lines,
         *region_lines,
         *sprite_lines,
         f'  "base_id": {level["base_id"]},',
@@ -1009,6 +1012,75 @@ def write_full_level(ctx, level):
     write_if_changed(f"{level.folder}/{level.name}.jsonc", "\n".join(lines))
     write_gd(ctx, level, built, level.what)
     return built
+
+
+def district_map(ctx, cfg):
+    """GOAL data: which level with a hub (a city district) holds each square of a grid over the
+    levels' navigation, from the source game's traffic cells (they cover a district's streets): the
+    cell squares holding segments, each grid square going to the district with the most segments
+    there. cfg: "var" (the prefix of the defines), "cell" (meters)."""
+    port = ctx.port
+    meter = ctx.meter
+    size = cfg["cell"] * meter
+    squares = {}  # (ix, iz) -> {level: segments}
+    names = []
+    for level in port.levels:
+        if level.name not in port.hubs:
+            continue
+        for src in nav_step.city_sources(port, level):
+            city = nav_step.decode_city(nav_step.data_blob.Blob(
+                os.path.join(port.source.ENTITIES, src + "-city.json")))
+            half = city["grid"]["cell_size"][0] / 2
+            for cell in city["cells"]:
+                if cell["segment_count"] <= 0:
+                    continue
+                x, _, z, _ = cell["sphere"]
+                for ix in range(math.floor((x - half) / size), math.floor((x + half) / size) + 1):
+                    for iz in range(math.floor((z - half) / size),
+                                    math.floor((z + half) / size) + 1):
+                        counts = squares.setdefault((ix, iz), {})
+                        counts[level.name] = counts.get(level.name, 0) + cell["segment_count"]
+            if level.name not in names:
+                names.append(level.name)
+    x0 = min(ix for ix, _ in squares)
+    z0 = min(iz for _, iz in squares)
+    nx = max(ix for ix, _ in squares) - x0 + 1
+    nz = max(iz for _, iz in squares) - z0 + 1
+    cells = [0] * (nx * nz)
+    for (ix, iz), counts in squares.items():
+        best = max(sorted(counts), key=lambda lv: counts[lv])
+        cells[(ix - x0) + (iz - z0) * nx] = names.index(best) + 1
+    # one square more around the streets (sidewalks, alleys): an empty square takes the district
+    # most of its 8 neighbors hold
+    grown = list(cells)
+    for iz in range(nz):
+        for ix in range(nx):
+            if cells[ix + iz * nx]:
+                continue
+            near = [cells[jx + jz * nx] for jz in range(max(0, iz - 1), min(nz, iz + 2))
+                    for jx in range(max(0, ix - 1), min(nx, ix + 2)) if cells[jx + jz * nx]]
+            if near:
+                grown[ix + iz * nx] = max(sorted(set(near)), key=near.count)
+    cells = grown
+    var = cfg["var"]
+    rows = [" ".join(str(c) for c in cells[i:i + 40]) for i in range(0, len(cells), 40)]
+    return [
+        f";; the city's districts, and which of them holds each {cfg['cell']}m square of the city's "
+        "streets (1 + its",
+        f";; index in {var}-names*, 0: none), from {port.source.TITLE}'s traffic cells. The grid: "
+        "x and z of its first",
+        ";; square (game units), square size, squares per row.",
+        f"(define {var}-names* (new 'static 'boxed-array :type symbol " +
+        " ".join(f"'{n}" for n in names) + "))",
+        "",
+        f"(define {var}-grid* (new 'static 'vector :x {x0 * size} :y {z0 * size} :z {size} "
+        f":w {float(nx)}))",
+        "",
+        f"(define {var}-cells* (new 'static 'boxed-array :type uint8",
+        *["  " + r for r in rows],
+        "  ))",
+        "",
+    ]
 
 
 def write_level_info(ctx, chosen):
@@ -1032,6 +1104,13 @@ def write_level_info(ctx, chosen):
         out += [f";; {cfg['levels_var_comment']}",
                 f"(define {cfg['levels_var']} '(" + " ".join(lv.name for lv in port.levels) + "))",
                 ""]
+    if "hubs_var" in cfg:
+        out += [f";; {cfg['hubs_var_comment']}",
+                f"(define {cfg['hubs_var']} '(" + " ".join(f"({lv} . {hub})" for lv, hub in
+                                                           port.hubs.items()) + "))",
+                ""]
+    if "district_map" in cfg:
+        out += district_map(ctx, cfg["district_map"])
     for level in port.levels:
         info = {**defaults, **level.get("level_info", {})}
         conts = [continue_point(ctx, lv, name, src) for lv, name, src in chosen
@@ -1039,7 +1118,7 @@ def write_level_info(ctx, chosen):
         memory = ctx.memory[level.name]
         ocean = level.get("ocean")
         flags = " ".join(["sky"] * bool(level.get("sky")) +
-                         ["ocean-near-translucent"] * bool(ocean))
+                         ["ocean-near-translucent"] * bool(ocean) + level.get("level_flags", []))
         if "comment" in info:
             comment = "\n".join(f";; {line}" for line in info["comment"])
         else:
@@ -1099,18 +1178,31 @@ def write_build_file(ctx, built_levels):
     print(f"  wrote {cfg['file']} ({len(built_levels)} levels)")
 
 
+def write_particles(ctx):
+    """The particles of the levels with a "particles" block: <level>-part.gc, the part spawners (in
+    the levels holding their source levels) and the sprite textures."""
+    alloc = particles.Allocator(ctx.port)
+    # the levels with a fixed texture page first: the "auto" ones are chosen around them
+    with_particles = [lv for lv in ctx.port.levels if "particles" in lv]
+    for level in sorted(with_particles, key=lambda lv: lv["particles"]["page"] == "auto"):
+        by_level, sprite_textures, engine_max, stats = particles.write_level(ctx.port, level, alloc)
+        print(f"  {level.name} particles: {stats}")
+        for lv, actors in by_level.items():
+            ctx.part_actors.setdefault(lv, []).extend(actors)
+        ctx.part_engine_max.update(engine_max)
+        ctx.sprite_textures[level.name] = sprite_textures
+
+
 def run(port):
     ctx = Context(port)
     ctx.memory.update(memory_modes(ctx))
     print("  memory: " + ", ".join(f"{lv.name} {ctx.memory[lv.name]}" for lv in port.levels))
     chosen = select_continues(ctx)
     check_pairs(ctx)
+    write_particles(ctx)
     built_levels = []
     for level in port.levels:
-        if level.jsonc == "section":
-            built = write_section_level(ctx, level)
-        else:
-            built = write_full_level(ctx, level)
+        built = write_full_level(ctx, level)
         built_levels.append((level, built))
         nreg = sum(len(t["regions"]) for t in built["trees"].values())
         print(f"  {level.name}: {len(built['actors'])} actors, {nreg} regions "

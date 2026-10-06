@@ -1,11 +1,16 @@
-"""Traffic navigation data: the source levels' city-level-infos and nav meshes, merged for one
-level (<level>-nav.json, read by the level builder as the level .jsonc's "nav_data").
+"""Traffic navigation data: the source levels' city-level-infos and nav meshes for one level
+(<level>-nav.json, read by the level builder as the level .jsonc's "nav_data"): a level holding one
+district gets that district's as they are, a level holding several gets them merged.
 
 Jak 2 gives each district of its city its own city-level-info (the traffic: a grid of cells holding
 the nav segments, and a nav graph of nodes and branches, linked to the neighbor districts' graphs)
-and its own nav meshes (where citizens and guards walk). A bsp has one city-level-info: the
-districts' are merged here into one, over one grid covering them all, with one nav graph (the links
-between districts become plain branches). The nav meshes are kept as they are (their ids too, which
+and its own nav meshes (where citizens and guards walk). The traffic engine (Jak 2's and Jak 3's,
+the same) links the city-level-infos of at most 2 displayed levels, its 2 districts, and only
+spawns objects in their active cells: a district level keeps its own data, as it is (links to its
+neighbors' graphs included, resolved by graph id when both are linked), so the traffic only lives
+where the city is displayed. A level merging several districts (one bsp, one city-level-info) gets
+them merged into one, over one grid covering them all, with one nav graph (the links between
+districts become plain branches). The nav meshes are kept as they are (their ids too, which
 the nav graph uses). Jak 2 and Jak 3 share these layouts (city-level-info, vis-cell, nav-segment,
 nav-graph, nav-node, nav-branch, nav-graph-link, nav-mesh).
 
@@ -24,7 +29,9 @@ Manifest, on the level:
     "cell": 50.0,              meters, the merged grid's cells (the districts' grids are aligned on
                                multiples of their cell size)
     "outside_depth": 10000.0,  meters under the level of the spheres of cells no district covers
-    "height_map": {"source": the source game's traffic-height-map.gc}
+    "height_map": {"source": the source game's traffic-height-map.gc},
+    "sources": [the source levels whose navigation it holds, else the level's own; none: only the
+                height map (a city's hub: its districts hold their own)]
   }
 Inputs: decompiler_out/<game>/entities/<level>-city.json and <level>-nav.json of the level's
 sources (see decompiler/level_extractor/extract_nav.h).
@@ -325,6 +332,52 @@ def nav_path(level):
     return f"{level.folder}/{level.name}-nav.json"
 
 
+def city_sources(port, level):
+    """The source levels of a level's "nav" that have navigation data (empty: no nav_data)."""
+    if "nav" not in level:
+        return []
+    return [src for src in sorted(level["nav"].get("sources", level.sources))
+            if os.path.exists(os.path.join(port.source.ENTITIES, src + "-city.json"))]
+
+
+def write_district(port, level, src):
+    """One source level's city-level-info and nav meshes, as they are: its own grid, cells and nav
+    graph, with its links to its neighbors' graphs. Its node levels (the level it was loaded in, a
+    symbol) become ours: when a level is unloaded, the traffic engine stops the vehicles heading to
+    a node of that level by its name (deactivate-all-from-level). Its pedestrian segments on a nav
+    mesh it doesn't have go to nav mesh 0, which no citizen spawns on."""
+    entities = port.source.ENTITIES
+    city = data_blob.Blob(os.path.join(entities, src + "-city.json"))
+    nav_file = os.path.join(entities, src + "-nav.json")
+    meshes = data_blob.Blob(nav_file) if os.path.exists(nav_file) else None
+    mesh_aids = {meshes.u32(byte + 44) for byte in meshes.roots.values()} if meshes else set()
+    for w, name in city.symbols.items():
+        if name == src:
+            city.symbols[w] = level.name
+    base = city.roots["city-level-info"]
+    segment_count = city.s16(base + 68)
+    segment_array = city.ptr(base + 72)
+    moved = 0
+    for i in range(segment_count):
+        seg = segment_array + 48 * i
+        if city.s8(seg + 46) == 1 and city.u32(seg + 36) not in mesh_aids | {0}:
+            city.words[(seg + 36) // 4] = 0
+            moved += 1
+    w = data_blob.Writer()
+    offset = w.append_blob(city)
+    w.blob.roots["city-level-info"] = base + offset
+    if meshes:
+        offset = w.append_blob(meshes)
+        for root, byte in meshes.roots.items():
+            w.blob.roots[f"nav-mesh-{src}-{root}"] = byte + offset
+    write_if_changed(nav_path(level), json.dumps(w.blob.to_json(), separators=(",", ":")))
+    info = decode_city(city)
+    print(f"  {level.name}: {src}'s navigation as it is: grid {info['grid']['dims']}, "
+          f"{len(info['cells'])} cells, {segment_count} segments ({moved} on no nav mesh), "
+          f"{len(info['graph']['nodes'])} nodes, {len(info['graph']['links'])} links, "
+          f"{len(mesh_aids)} nav meshes, {len(w.blob.words) * 4 // 1024} KB")
+
+
 def write_level(port, level):
     cfg = level["nav"]
     meter = port.source.METER
@@ -332,11 +385,15 @@ def write_level(port, level):
     if "height_map" in cfg:
         dims = write_height_map(port, level, cfg["height_map"]["source"])
         print(f"  wrote {height_map_path(port, level)} ({dims[0]} x {dims[1]} heights)")
+    sources = city_sources(port, level)
+    if len(sources) == 1:
+        write_district(port, level, sources[0])
+        return
+    if not sources:
+        return
     districts, meshes = {}, {}
-    for src in sorted(level.sources):
+    for src in sources:
         city_path = os.path.join(entities, src + "-city.json")
-        if not os.path.exists(city_path):
-            continue
         districts[src] = decode_city(data_blob.Blob(city_path))
         nav_path_src = os.path.join(entities, src + "-nav.json")
         if os.path.exists(nav_path_src):

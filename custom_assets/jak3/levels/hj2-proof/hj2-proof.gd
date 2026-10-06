@@ -2,6 +2,10 @@
 ;; DGO definition file for hj2-proof: the palace roof.
 ("HJP.DGO"
  (
-  "com-airlock-outer-ag.go"
+  "hj2-airlock-outer-ag.go"
+  "hj2-pal-flip-step-ag.go"
+  "hj2-pal-lowrez-throne-ag.go"
+  "hj2-pal-prong-ag.go"
+  "hj2-proof-part.o"
   "hj2-proof.go"
   ))

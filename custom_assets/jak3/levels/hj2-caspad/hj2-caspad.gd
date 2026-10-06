@@ -2,8 +2,11 @@
 ;; DGO definition file for hj2-caspad: the castle pad, above the dig.
 ("HJY.DGO"
  (
-  "com-airlock-outer-ag.go"
   "air-train-ag.go"
+  "hj2-airlock-outer-ag.go"
   "hj2-cpad-elevator-ag.go"
+  "elec-gate.o"
+  "hj2-caspad-obs.o"
+  "hj2-caspad-part.o"
   "hj2-caspad.go"
   ))
