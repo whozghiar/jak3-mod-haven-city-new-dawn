@@ -174,7 +174,7 @@ class Glb:
 # a model for build-actor #########################################################################
 
 
-def rebuild_model(src, path, name, keep_prims, collide=None, anims=None):
+def rebuild_model(src, path, name, keep_prims, collide=None, anims=None, anim_fps=None):
     """<name>.glb for build-actor (written to path) from a model ripped by the decompiler: the kept
     primitives (None: all) with only the vertices they use (the rip shares one buffer), its first
     animation renamed <name>-idle (the name build-actor's def-actor looks up), no collision from
@@ -191,6 +191,9 @@ def rebuild_model(src, path, name, keep_prims, collide=None, anims=None):
     anims: the animations to keep instead, [(rip, animation, our name)], from rips of models with
     the same joints (a rip's joint nodes are its joints + 1): a model whose animations its game
     keeps in another model's art group.
+    anim_fps: the frames per second of the kept animations, instead of the rip's (its art group's
+    speed): a model whose animations its game plays at another model's frames (Jak 2's big-bopper,
+    cloning Daxter's frame numbers: his are 30 per second, the hammer's rip 60).
     Returns (vertex count, lo, hi) of the kept vertices."""
     gltf, read = load_glb(src)
     sizes = GLTF_TYPES
@@ -318,8 +321,11 @@ def rebuild_model(src, path, name, keep_prims, collide=None, anims=None):
         samplers = []
         for s in anim["samplers"]:
             out_acc = anim_gltf["accessors"][s["output"]]
-            samplers.append({"input": add(anim_read(s["input"]), "f", "SCALAR", 5126, minmax=True,
-                                          target=None),
+            times = anim_read(s["input"])
+            if anim_fps:
+                # the rip has one key per frame: key i at frame i / anim_fps
+                times = [(i / anim_fps,) for i in range(len(times))]
+            samplers.append({"input": add(times, "f", "SCALAR", 5126, minmax=True, target=None),
                              "output": add(anim_read(s["output"]), "%df" % sizes[out_acc["type"]],
                                            out_acc["type"], 5126, target=None),
                              "interpolation": s.get("interpolation", "LINEAR")})
@@ -353,6 +359,35 @@ def rebuild_model(src, path, name, keep_prims, collide=None, anims=None):
                                  "target": {"node": node_idx, "path": path_name}})
         return {"name": new_name, "channels": channels, "samplers": samplers}
 
+    def prejoint_scale():
+        """The uniform scale of the source model's prejoint, None when there is none. The rips
+        leave out the animations' first two joints (align and prejoint, matrices in the game), so
+        a model its prejoint scales comes out too big (Jak 2's whack-a-metal cabinet: 0.64). The
+        bind pose keeps it: the bind pose of the prejoint's child (main) is then that scale times
+        main's pose in the first frame of the rip's first animation."""
+        joints = skin["joints"]
+        if (len(joints) < 3 or "inverseBindMatrices" not in skin or not gltf.get("animations")
+                or gltf["nodes"][joints[1]].get("name") != "prejoint"):
+            return None
+        bind = geometry.mat_inverse(geometry.mat_from_gltf(read(skin["inverseBindMatrices"])[2]))
+        anim = gltf["animations"][0]
+        pose = {"translation": (0.0, 0.0, 0.0), "rotation": (0.0, 0.0, 0.0, 1.0),
+                "scale": (1.0, 1.0, 1.0)}
+        for c in anim["channels"]:
+            if c["target"]["node"] == joints[2] and c["target"]["path"] in pose:
+                pose[c["target"]["path"]] = read(anim["samplers"][c["sampler"]]["output"])[0]
+        cols = [geometry.quat_rotate(pose["rotation"], axis)
+                for axis in ((1, 0, 0), (0, 1, 0), (0, 0, 1))]
+        local = [[cols[c][r] * pose["scale"][c] for c in range(3)] + [pose["translation"][r]]
+                 for r in range(3)] + [[0.0, 0.0, 0.0, 1.0]]
+        ratio = geometry.mat_mul(bind, geometry.mat_inverse(local))
+        s = ratio[0][0]
+        expected = [[s if r == c else 0.0 for c in range(3)] + [0.0] for r in range(3)]
+        if abs(s - 1.0) < 1e-3 or any(abs(ratio[r][c] - expected[r][c]) > 1e-3
+                                     for r in range(3) for c in range(4)):
+            return None
+        return s
+
     if anims:
         out_anims = []
         for rip, anim_name, new_name in anims:
@@ -364,6 +399,17 @@ def rebuild_model(src, path, name, keep_prims, collide=None, anims=None):
                      for anim in gltf.get("animations", [])[:1]]
         if not out_anims and "inverseBindMatrices" in skin:
             out_anims = [rest_pose_anim(f"{name}-idle")]
+
+    # the prejoint's scale given back to every animation (build-actor makes its matrix of it)
+    scale = prejoint_scale()
+    if scale is not None:
+        for anim in out_anims:
+            anim["samplers"].append({
+                "input": add([(0.0,)], "f", "SCALAR", 5126, minmax=True, target=None),
+                "output": add([(scale, scale, scale)], "3f", "VEC3", 5126, target=None),
+                "interpolation": "LINEAR"})
+            anim["channels"].append({"sampler": len(anim["samplers"]) - 1,
+                                     "target": {"node": skin["joints"][1], "path": "scale"}})
 
     if "inverseBindMatrices" in skin:
         skin["inverseBindMatrices"] = add(read(skin["inverseBindMatrices"]), "16f", "MAT4", 5126,

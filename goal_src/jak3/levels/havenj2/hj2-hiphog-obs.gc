@@ -790,6 +790,9 @@
 
 ;; Jak 2's hip-whack-a-metal: the cabinet. Joints (node = joint + 1): main 3, the 8 holes mole to
 ;; mole7 4 to 11, the scoreboards misses 12 and points 13. Bounds: Jak 2's skel-hip-whack-a-metal's.
+;; Its idle animation scales its prejoint by 0.64 (the rip leaves the prejoint out: the level port
+;; gives it back), which the joints' 1.5625 scale undoes: the holes and the scoreboards' matrices are
+;; Jak 2's size, the latter unscaled (the 3D particles take their rotation from them).
 (def-actor hj2-whack-cabinet
   :bounds (0 -1 1 3.8)
   :origin-joint-index 3
@@ -834,7 +837,9 @@
   :origin-joint-index 6
   )
 
-;; Jak 2's big-bopper: Daxter's hammer, with the same animations as his (by name: clone-anim-once).
+;; Jak 2's big-bopper: Daxter's hammer, with the same animations as his (by name: clone-anim-once,
+;; which copies his frame numbers: the level port rebuilds them at his 30 frames per second,
+;; anim_fps, where the hammer's rip says 60).
 (def-actor hj2-whack-bopper
   :art (mole-idle-ja
         mole-whack0-ja
@@ -1840,9 +1845,45 @@ gold twins, the scoreboards' particles. camera-name: the cabinet's camera. Goes 
   )
 
 (defmethod init-from-entity! ((this hj2-whack-cabinet) (arg0 entity-actor))
-  "The cabinet: collision, placement and skeleton (hj2-still-prop-init!), its camera (camera-name
-lump), then idle. Returns nothing."
-  (hj2-still-prop-init! this arg0 *hj2-whack-cabinet-sg*)
+  "The cabinet: Jak 2's collision (a process-taskable's: three 1 m spheres stacked on its origin, not
+the model's collide mesh, which hj2-still-prop-init! would bind to the main joint, scaled and tilted
+here), placement and skeleton, its camera (camera-name lump), then idle. Returns nothing."
+  (let ((s5-0 (new 'process 'collide-shape this (collide-list-enum usually-hit-by-player))))
+    (let ((s4-0 (new 'process 'collide-shape-prim-group s5-0 (the-as uint 3) 0)))
+      (set! (-> s5-0 total-prims) (the-as uint 4))
+      (set! (-> s4-0 prim-core collide-as) (collide-spec civilian))
+      (set! (-> s4-0 prim-core action) (collide-action solid no-standon))
+      (set! (-> s4-0 transform-index) 0)
+      (set-vector! (-> s4-0 local-sphere) 0.0 -1024.0 0.0 7372.8)
+      (set! (-> s5-0 root-prim) s4-0)
+      )
+    (let ((v1-7 (new 'process 'collide-shape-prim-sphere s5-0 (the-as uint 0))))
+      (set! (-> v1-7 prim-core collide-as) (collide-spec civilian))
+      (set! (-> v1-7 prim-core action) (collide-action solid))
+      (set! (-> v1-7 transform-index) 0)
+      (set-vector! (-> v1-7 local-sphere) 0.0 -4096.0 0.0 4096.0)
+      )
+    (let ((v1-9 (new 'process 'collide-shape-prim-sphere s5-0 (the-as uint 0))))
+      (set! (-> v1-9 prim-core collide-as) (collide-spec civilian))
+      (set! (-> v1-9 prim-core action) (collide-action solid))
+      (set! (-> v1-9 transform-index) 0)
+      (set-vector! (-> v1-9 local-sphere) 0.0 -1024.0 0.0 4096.0)
+      )
+    (let ((v1-11 (new 'process 'collide-shape-prim-sphere s5-0 (the-as uint 0))))
+      (set! (-> v1-11 prim-core collide-as) (collide-spec civilian))
+      (set! (-> v1-11 prim-core action) (collide-action solid no-standon))
+      (set! (-> v1-11 transform-index) 0)
+      (set-vector! (-> v1-11 local-sphere) 0.0 2048.0 0.0 4096.0)
+      )
+    (set! (-> s5-0 nav-radius) (* 0.75 (-> s5-0 root-prim local-sphere w)))
+    (let ((v1-14 (-> s5-0 root-prim)))
+      (set! (-> s5-0 backup-collide-as) (-> v1-14 prim-core collide-as))
+      (set! (-> s5-0 backup-collide-with) (-> v1-14 prim-core collide-with))
+      )
+    (set! (-> this root) s5-0)
+    )
+  (process-drawable-from-entity! this arg0)
+  (initialize-skeleton this *hj2-whack-cabinet-sg* (the-as pair 0))
   (set! (-> this camera-name) (res-lump-struct arg0 'camera-name string))
   (set! (-> this game) (the-as handle #f))
   (go (method-of-object this idle))

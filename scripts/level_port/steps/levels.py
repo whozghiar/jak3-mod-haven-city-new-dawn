@@ -510,7 +510,8 @@ def build_model(ctx, spec):
     anims = [(port.rip(rip), anim, ours) for rip, anim, ours in spec.get("anims", [])] or None
     verts, lo, hi = glb.rebuild_model(port.rip(spec["rip"]),
                                       f"{port.models_dir}/{spec['model']}.glb", spec["model"],
-                                      spec.get("prims"), spec.get("collide"), anims=anims)
+                                      spec.get("prims"), spec.get("collide"), anims=anims,
+                                      anim_fps=spec.get("anim_fps"))
     print(f"    {spec['model']}: {verts} vertices, bounds {lo} - {hi}")
 
 
