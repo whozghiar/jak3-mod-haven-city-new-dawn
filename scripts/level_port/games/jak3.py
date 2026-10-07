@@ -6,6 +6,12 @@ TITLE = "Jak 3"
 ISO = "iso_data/jak3"
 FR3 = "out/jak3/fr3"
 METER = 4096.0
+# the sound banks always loaded (game/overlord/jak3/sbank.cpp: common), the ones of Jak's state
+# (its "mode" bank: gun, board, Dark Jak...) and the ones of a language (commonj: Japanese), for
+# the sound check (steps/sound_check.py)
+ALWAYS_LOADED_BANKS = ["common"]
+STATE_BANK_PREFIXES = ["mode"]
+LANGUAGE_BANKS = ["commonj"]
 
 # Jak 3's level heap is 18 chunks. A level of each memory mode takes one of these chunk sets (the
 # plain case of level-group::alloc-levels!, goal_src/jak3/engine/level/level.gc, no micro or tiny

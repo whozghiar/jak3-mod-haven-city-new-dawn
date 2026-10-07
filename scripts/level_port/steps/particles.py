@@ -15,8 +15,10 @@ kept and translated:
   - the callbacks (:func, :birth-func) are the target game's when it has them, else ported by the
     mod ("ported_callbacks", their text in the port's folder) or copied (the manifest's
     "copied_callbacks", and the source game's splash callbacks, check-drop-level-*),
-  - sounds are dropped (they are the source game's).
-The part spawners become the target game's part-spawner actors.
+  - sounds (:sound) are kept: the same static-sound-spec in both games, played from the source
+    game's banks the level wants (steps/sound.py),
+The part spawners become the target game's part-spawner actors, with their ambient sound
+(effect_lumps).
 
 Writes <level>-part.gc into the level's code (its DGO) and returns the actors and the sprite
 texture list to the levels step, which writes the level's .jsonc. A part spawner goes to the level
@@ -497,6 +499,20 @@ def vis_dist(cfg, src, lump, meter):
     return min(value, cap[0] * meter) if value is not None else cap[0] * meter
 
 
+def effect_lumps(lump):
+    """A part spawner's ambient sound, as the source game's lumps give it: effect-name (the
+    sound), effect-param (its sound-spec parameters) and cycle-speed (seconds between plays and
+    their random part, -1: looped). The target game's part-spawner plays it from the same lumps
+    (ambient-sound, gsound.gc); the sound is in the source game's banks the level wants."""
+    out = {}
+    if "effect-name" in lump:
+        out["effect-name"] = ["symbol", str(lump["effect-name"]).lstrip("'")]
+        for key in ("effect-param", "cycle-speed"):
+            if key in lump:
+                out[key] = ["float"] + [float(v) for v in lump[key]]
+    return out
+
+
 def part_actors(port, level, cfg, tr):
     """The level's part spawners (and sign and kiosk actors): (source level, comment, actor)
     list."""
@@ -531,6 +547,7 @@ def part_actors(port, level, cfg, tr):
                 new_name, _ = tr.group(lump["art-name"])
                 entity["etype"] = "part-spawner"
                 entity["lump"]["art-name"] = new_name
+                entity["lump"].update(effect_lumps(lump))
                 out.append((src, f"{title}'s {name} ({src}): {lump['art-name']}", entity))
             elif etype in signs:
                 entity["etype"] = signs[etype]

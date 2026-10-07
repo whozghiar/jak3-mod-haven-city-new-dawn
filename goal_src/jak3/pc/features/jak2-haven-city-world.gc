@@ -1716,12 +1716,14 @@ then the parent's sound id and no ambient sound. Returns nothing."
   "Jak 2's cpad-elevator sounds (levels/castle/pad/caspad-obs.gc there), in its DIG7 bank, which the
 castle pad (hj2-caspad) loads: the dig-elevate loop while it moves, dig-elevate-end when it stops
 (Jak 2 plays no start sound). Jak 2's ambient cpad-elevator-l is in none of its banks: left out.
-Side effects: sets the loop and arrival sounds (no start sound), then the parent's sound id and no
-ambient sound. Returns nothing."
+Side effects: sets the loop and arrival sounds (no start sound), then Jak 3's elevator's sound id
+and no ambient sound: elevator's init-sound!, not hj2-elevator's (call-parent-method), which put
+back Jak 2's com-elevator sounds, in no bank the castle pad loads (the elevator was silent).
+Returns nothing."
   (set! (-> this sound-running-loop) (static-sound-spec "dig-elevate" :group 0))
   (set! (-> this sound-arrived) (static-sound-spec "dig-elevate-end" :group 0))
   (set! (-> this sound-start) #f)
-  (call-parent-method this)
+  ((method-of-type elevator init-sound!) this)
   (none)
   )
 
@@ -2137,27 +2139,202 @@ freehq's fr3 by the decompiler's extra_art_groups_by_dgo): without it, no gate."
 ;; Jak 2's MIDI music, played by game/overlord/jak3/srpc.cpp). Jak 2 loaded 3 banks; Jak 3 has room
 ;; for 3 full banks or 6 half ones. Jak 2's are taken for half ones (on PC a bank's size doesn't
 ;; matter), so the city's 3 leave room for Jak 3's traffic sounds: its cars, citizens and Freedom
-;; League guards (citycarh, citypedh, cityffh: havenj2's :extra-sound-bank).
+;; League guards (citycarh, citypedh, cityffh: havenj2's :extra-sound-bank, *hj2-extra-sound-bank*).
 
 (define *hj2-stock-sound-bank-name->mode* sound-bank-name->mode)
 
-(defun hj2-sound-bank-name->mode ((name symbol))
-  "sound-bank-name->mode (level.gc), Jak 2's banks (named j2*) taken for half banks. name: a sound
-bank's name, or #f. Returns its sound-bank-mode."
+(defun hj2-sound-bank? ((name symbol))
+  "Is name (a sound bank's name, or #f) one of Jak 2's banks, renamed j2* by the level port?"
   (let ((s (if name
                (symbol->string name)
                (the-as string #f)
                )
            )
         )
-    (if (and s (>= (length s) 2) (= (-> s data 0) #\j) (= (-> s data 1) #\2))
-        (sound-bank-mode half)
-        (*hj2-stock-sound-bank-name->mode* name)
-        )
+    (and s (>= (length s) 2) (= (-> s data 0) #\j) (= (-> s data 1) #\2))
     )
   )
 
+(defun hj2-sound-bank-name->mode ((name symbol))
+  "sound-bank-name->mode (level.gc), Jak 2's banks (named j2*) taken for half banks. name: a sound
+bank's name, or #f. Returns its sound-bank-mode."
+  (if (hj2-sound-bank? name)
+      (sound-bank-mode half)
+      (*hj2-stock-sound-bank-name->mode* name)
+      )
+  )
+
 (set! sound-bank-name->mode hj2-sound-bank-name->mode)
+
+;; The extra sound banks. Jak 3 loads 6 half banks at most (3 pairs of the overlord's level bank
+;; records, game/overlord/jak3/sbank.cpp; update-sound-banks, level.gc, counts them), and the levels
+;; want up to 3 of Jak 2's (want-sound): the free slots take extra banks, loaded with the wanted
+;; ones through the :extra-sound-bank of the active levels (update-sound-banks loads, for a wanted
+;; bank, the list an entry names with it). The extra banks, in this order while a slot is free:
+;; - in the city (Jak in the hub or a district), Jak 3's traffic banks: the guards' rifles and
+;;   tazers (guard-shot-fire, guard-zap, also fired by the Hellcats and the turrets) are in cityffh,
+;;   and among Jak 2's banks only in CTYWIDE3 and CTYFARM1; then the cars' (citycarh) and the
+;;   citizens' (citypedh). A list tied to j2ctywi1-3 lost cityffh where Jak 2 wants other banks
+;;   (phase 20): the extra banks ride on the wanted ones, whichever they are;
+;; - then the Jak 2 banks holding sounds of the level Jak is in that some of its want sets lack
+;;   (*hj2-level-sound-banks*, from the level port's sound check, scripts/level_port/steps/
+;;   sound_check.py): the castle pad's airlock, elevator and electric gate, the fortress gates, the
+;;   gun buoy of the atoll... Jak 2 wanted them only near these objects, or nowhere;
+;; - in a place loaded with the city (the gun course, the hideout, Vin's room...), its own banks
+;;   come first, then the traffic's.
+
+;; the Jak 2 banks each level's content needs besides its wanted ones, best first (generated in
+;; jak2-haven-city-levels.gc): ((level bank ...) ...)
+(define-extern *hj2-level-sound-banks* pair)
+
+;; Jak 3's traffic banks, loaded with Jak 2's while the hub (havenj2) is, the guards' first
+(define *hj2-traffic-sound-banks* '(cityffh citycarh citypedh))
+
+;; the :extra-sound-bank of the active levels of this mod: an entry per Jak 2 bank the load-state
+;; wants, (wanted wanted extra ...), its extra banks loaded with it (#f: none); the extra banks are
+;; all on the first entry whose bank is wanted once. 'hj2-none: an unused entry.
+(define *hj2-extra-sound-bank* (list (list 'hj2-none 'hj2-none #f #f #f #f #f)
+                                     (list 'hj2-none 'hj2-none #f #f #f #f #f)
+                                     (list 'hj2-none 'hj2-none #f #f #f #f #f)
+                                     )
+  )
+
+(defun hj2-bank-halves ((name symbol))
+  "The half bank slots a sound bank takes (update-sound-banks, level.gc): 2 for a full bank, 0 for
+none (#f), else 1 (a half bank; a virtual one takes no slot but an entry of the expanded list,
+which has 6). name: a bank's name or #f."
+  (cond
+    ((not name)
+     0
+     )
+    ((= (sound-bank-name->mode name) (sound-bank-mode full))
+     2
+     )
+    (else
+      1
+      )
+    )
+  )
+
+(defun hj2-want-sound-count ((name symbol))
+  "How many entries of the load-state's want-sound are name."
+  (let ((n 0))
+    (dotimes (i 3)
+      (if (= (-> *load-state* want-sound i name) name)
+          (+! n 1)
+          )
+      )
+    n
+    )
+  )
+
+(defun hj2-extra-sound-bank-fill ((extras pair) (banks object) (free int))
+  "Put each bank of the list banks that the load-state doesn't want and extras doesn't hold yet in
+the first empty (#f) place of extras (the extra banks of an entry of *hj2-extra-sound-bank*), while
+free (half bank slots) lasts. Returns the free half bank slots left."
+  (let ((b banks))
+    (while (and (not (null? b)) (> free 0))
+      (let ((name (the-as symbol (car b))))
+        (when (and (zero? (hj2-want-sound-count name)) (not (member name extras)))
+          (let ((place (member #f extras)))
+            (when place
+              (set! (car (the-as pair place)) name)
+              (set! free (- free (hj2-bank-halves name)))
+              )
+            )
+          )
+        )
+      (set! b (cdr b))
+      )
+    )
+  free
+  )
+
+(defun hj2-update-extra-sound-bank ()
+  "Called every frame by the city's process: the entries of *hj2-extra-sound-bank* take the Jak 2
+banks the load-state wants (want-sound, each once, in order; the others 'hj2-none), and the first
+of them wanted once takes the extra banks that fit in the free half bank slots: in the city Jak 3's
+traffic banks (*hj2-traffic-sound-banks*, while the hub is loaded), then the ones of the level Jak
+is in (vis-nick, *hj2-level-sound-banks*); in a place, its own first. The list is the
+:extra-sound-bank of every loaded level of this mod (update-sound-banks, level.gc, reads those of
+the active ones). Side effects: the list's entries, the levels' level-load-infos. Returns nothing."
+  (let ((entries *hj2-extra-sound-bank*))
+    ;; every entry unused
+    (let ((p entries))
+      (while (not (null? p))
+        (let ((e (the-as pair (car p))))
+          (set! (car e) 'hj2-none)
+          (set! (car (the-as pair (cdr e))) 'hj2-none)
+          (let ((x (cdr (cdr e))))
+            (while (not (null? x))
+              (set! (car (the-as pair x)) #f)
+              (set! x (cdr x))
+              )
+            )
+          )
+        (set! p (cdr p))
+        )
+      )
+    ;; the wanted banks: the half bank slots they take, an entry for each of Jak 2's
+    (let ((free 6)
+          (p entries)
+          (carrier (the-as pair #f))
+          )
+      (dotimes (i 3)
+        (let ((name (-> *load-state* want-sound i name)))
+          (set! free (- free (hj2-bank-halves name)))
+          (when (and (hj2-sound-bank? name) (not (assoc name entries)))
+            (let ((e (the-as pair (car p))))
+              (set! (car e) name)
+              (set! (car (the-as pair (cdr e))) name)
+              (if (and (not carrier) (= (hj2-want-sound-count name) 1))
+                  (set! carrier e)
+                  )
+              )
+            (set! p (cdr p))
+            )
+          )
+        )
+      ;; the extra banks, on the carrier entry
+      (when carrier
+        (let* ((nick (-> *load-state* vis-nick))
+               (own (assoc nick *hj2-level-sound-banks*))
+               (level-banks (if own
+                                (cdr own)
+                                '()
+                                )
+                            )
+               (traffic (if (level-get *level* 'havenj2)
+                            *hj2-traffic-sound-banks*
+                            '()
+                            )
+                        )
+               (extras (the-as pair (cdr (cdr carrier))))
+               )
+          (cond
+            ((= (hj2-hub-of nick) 'havenj2)
+             (set! free (hj2-extra-sound-bank-fill extras traffic free))
+             (hj2-extra-sound-bank-fill extras level-banks free)
+             )
+            (else
+              (set! free (hj2-extra-sound-bank-fill extras level-banks free))
+              (hj2-extra-sound-bank-fill extras traffic free)
+              )
+            )
+          )
+        )
+      )
+    ;; the list of every loaded level of this mod (only the active ones count)
+    (dotimes (i (-> *level* length))
+      (let ((lev (-> *level* level i)))
+        (if (and (!= (-> lev status) 'inactive) (member (-> lev name) *havenj2-levels*))
+            (set! (-> lev info extra-sound-bank) entries)
+            )
+        )
+      )
+    )
+  (none)
+  )
 
 ;; Jak 2's music has variations (its flava: MIDI register 14) for Jak's state, set in
 ;; target-gun.gc, target-board.gc, target-darkjak.gc and vehicle-states.gc there. Jak 3 never sets
@@ -2309,8 +2486,9 @@ map is still displayed (the mountain seen from Haven Forest)."
   "The city process's code, every frame: Jak's current level in the city (hj2-update-vis-nick, the
 respawn point follows it like in Jak 2), the water of the level Jak is in first
 (hj2-update-ocean-order), the city district under Jak shown (hj2-district-guard), the sound banks
-of the level Jak enters (hj2-update-level-sounds), and Jak 2's music variation for Jak's state
-(hj2-update-music-flava)."
+of the level Jak enters (hj2-update-level-sounds), Jak 2's music variation for Jak's state
+(hj2-update-music-flava), and the extra sound banks in the free bank slots: Jak 3's traffic banks
+and the Jak 2 banks of the level Jak is in (hj2-update-extra-sound-bank)."
   (set! *hj2-music-flava* 0)
   (loop
     (when *target*
@@ -2320,6 +2498,7 @@ of the level Jak enters (hj2-update-level-sounds), and Jak 2's music variation f
       (hj2-update-music-flava)
       )
     (hj2-update-ocean-order)
+    (hj2-update-extra-sound-bank)
     (suspend)
     )
   )

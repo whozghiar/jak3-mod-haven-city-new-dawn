@@ -17,6 +17,7 @@ From the repository root:
 ```bash
 task level-port -- custom_assets/jak3/ports/jak2-haven-city/port.jsonc
 python scripts/level_port <manifest> --steps levels      # only some steps
+python scripts/level_port <manifest> --steps sound       # the sound check of the levels written
 ```
 
 It needs:
@@ -44,7 +45,8 @@ changes, so `goalc` only rebuilds the levels that changed.
 | `mesh` | `<level>-mesh.glb`: the source props kept as background, and the pool surfaces (`mesh`, `water`) |
 | `ocean` | `<level>-ocean.gc`: a level's own ocean map, copied from the source game (`ocean_source`) |
 | `nav` | `<level>-nav.json`: the traffic navigation data merged for the level (`nav`), and its height map |
-| `levels` | Each level's `.jsonc` and `.gd`, its regions and water regions (`<level>-water-regions.json`), its particles (`<level>-part.gc`), the models its actors use (`<model>.glb`), the level-load-infos and continue points (`level_info`), and the levels' `goalc` build steps (`build`), with the steps copying and packing the source game's sound (`sound`) |
+| `levels` | Each level's `.jsonc` and `.gd`, its regions and water regions (`<level>-water-regions.json`), its particles (`<level>-part.gc`), the models its actors use (`<model>.glb`), the level-load-infos and continue points (`level_info`), and the levels' `goalc` build steps (`build`), with the steps copying and packing the source game's sound (`sound`), and the source banks each level needs besides its wanted ones (`sound.level_banks_var`) |
+| `sound` | Nothing: the sound check of the levels written ([steps/sound_check.py](steps/sound_check.py)), per level the sounds its content plays that no loaded bank has (MISSING), that only some of its want sets have (partial), or that no bank of either game has (NOBANK) |
 
 Every generated file says so in its first lines. A fix goes into the manifest or the tool, never
 into a generated file.
@@ -65,7 +67,8 @@ scripts/level_port/
   convert/<a>_<b>.py     what changes between two games: door classes, pickup ids, particle flag
                          names and callbacks, continue flags, ocean maps...
   steps/                 the steps, run in order: extract, mesh, ocean, nav, levels (which runs
-                         props.py, particles.py, water.py and sound.py for the levels)
+                         props.py, particles.py, water.py, sound.py and sound_check.py for the
+                         levels), sound (the sound check alone)
 ```
 
 The data of a mod (its level names and ids, the doors it keeps, its own classes, its models...) is
@@ -105,7 +108,7 @@ names (`callbacks_file`) are in the same folder. Top-level keys:
 | `models` | Models rebuilt from source rips for `build-actor`, by the class using them: `rip`, `prims`, `collide`, `anims`, `extras` ([common/glb.py](common/glb.py) `rebuild_model`) |
 | `region_id_offset`, `region_open_tasks`, `region_script_overrides` | Our region ids; per source region, tasks taken as open, scripts replaced |
 | `continues` | Our continue names (`prefix`, `names`), the source continues `kept` anyway, level lists (`wants`), and continues added: in front of a door (`door_continues`), at a position in a source level (`new_continues`), in a target game level (`target_continues`) |
-| `sound` | The source game's sound ([steps/sound.py](steps/sound.py)): the scripts' sound banks and ambiences, the continues' banks and the levels' music are kept, renamed with `prefix`; `extra_banks` (target game banks loaded with a source bank while a hub is loaded), `voice_prefix` and `voices` (GOAL arrays of voice lines, packed by `goalc`'s `pack-vags`). Without the block, the levels are silent |
+| `sound` | The source game's sound ([steps/sound.py](steps/sound.py)): the scripts' sound banks and ambiences, the continues' banks and the levels' music are kept, renamed with `prefix`; `extra_banks` (target game banks loaded with a source bank while a hub is loaded), `voice_prefix` and `voices` (GOAL arrays of voice lines, packed by `goalc`'s `pack-vags`); `game_code` (the mod's GAME files holding classes the levels place) and `level_banks_var` (the GOAL list of the source banks each level's content needs besides its wanted ones, from the sound check: [steps/sound_check.py](steps/sound_check.py)). Without the block, the levels are silent |
 
 A level:
 

@@ -25,17 +25,20 @@ import json
 import math
 import os
 import re
+import subprocess
 
 from ..common import glb
 from ..common.files import write_if_changed
 from ..common.geometry import bounding_sphere, box_faces, front, r4
 from ..convert.scripts import Translator, with_hubs
 from ..manifest import nested
+from . import extract as extract_step
 from . import mesh as mesh_step
 from . import nav as nav_step
 from . import particles
 from . import props as props_step
 from . import sound as sound_step
+from . import sound_check
 from . import water as water_step
 
 
@@ -56,8 +59,10 @@ class Context:
         self.continue_prefix = conts["prefix"]
         self.continue_renames = conts.get("names", {})
         self.continues = port.source.continues()
-        self.continues.update(door_continues(self))
-        self.continues.update(new_continues(self))
+        added = {**door_continues(self), **new_continues(self)}
+        for cont in added.values():
+            cont["want_sound"] = nearest_want_sound(self.continues, cont)
+        self.continues.update(added)
         self.continue_names = {}  # source name -> ours, filled by the continue selection
         self.aid_to_name = {a["aid"]: name for (lev, name), a in self.actors.items() if "aid" in a}
         self.cameras = load_cameras(port)
@@ -168,6 +173,17 @@ def facing_continue(meter, pos, facing, distance, flags, wants):
     return dict(trans=[c * meter for c in at] + [1.0], quat=quat,
                 camera_trans=[c * meter for c in cam] + [1.0], camera_rot=look_at(at, cam, 1.5),
                 flags=set(flags), wants=wants)
+
+
+def nearest_want_sound(continues, cont):
+    """The sound banks of a continue the port adds: those of the source game's continue of its
+    level nearest to it (a respawn there wants them, and so does hj2-update-level-sounds when Jak
+    enters the level near it; without them every source bank was unloaded)."""
+    best = min((c for c in continues.values() if c["level"] == cont["level"] and
+                any(c.get("want_sound") or [])),
+               key=lambda c: sum((a - b) ** 2 for a, b in zip(c["trans"][:3], cont["trans"][:3])),
+               default=None)
+    return list(best["want_sound"]) if best else [None] * 3
 
 
 def new_continues(ctx):
@@ -735,6 +751,18 @@ def continue_point(ctx, level, cont_name, source_name):
                                           want_sound=want_sound)
 
 
+def continue_sound_sets(ctx, chosen):
+    """{level: [(label, banks, levels)]}: the sound banks each chosen continue wants (new names)
+    and the levels it loads, for the sound check."""
+    out = {}
+    for level, name, source in chosen:
+        cont = ctx.continues[source]
+        levels = [lev for lev, _ in translate_wants(ctx, continue_wants(ctx, source, cont), level)]
+        banks = tuple(ctx.sound.bank(b) for b in cont.get("want_sound") or [] if b)
+        out.setdefault(level, []).append((f"continue {name}", banks, levels))
+    return out
+
+
 def target_continue(ctx, spec):
     """One of the manifest's "target_continues": a continue of a target game level, defined in the
     level-info file for the mod's code (in front of a gate, facing away from it)."""
@@ -1181,6 +1209,8 @@ def write_level_info(ctx, chosen):
     if ctx.sound and ctx.sound.voices:
         out += [f";; {ctx.title}'s voice lines the mod plays (packed by the build: "
                 "scripts/level_port/steps/sound.py)", *ctx.sound.voice_defines()]
+    if ctx.sound:
+        out += sound_check.level_banks_lines(ctx, ctx.level_banks)
     for level in port.levels:
         info = {**defaults, **level.get("level_info", {})}
         conts = [continue_point(ctx, lv, name, src) for lv, name, src in chosen
@@ -1291,6 +1321,9 @@ def run(port):
         nreg = sum(len(t["regions"]) for t in built["trees"].values())
         print(f"  {level.name}: {len(built['actors'])} actors, {nreg} regions "
               f"({', '.join(level.sources)})")
+    # the source banks each level's content needs besides its wanted ones (its files written)
+    ctx.level_banks = (sound_check.level_banks(ctx, continue_sound_sets(ctx, chosen))
+                       if ctx.sound else {})
     write_level_info(ctx, chosen)
     if "build" in port.data:
         write_build_file(ctx, built_levels)

@@ -60,7 +60,12 @@
   // sounds (its cars, citizens and Freedom League guards) load with the city's banks.
   "sound": {
     "prefix": "j2",
-    "extra_banks": {"ctywide1": ["citycarh"], "ctywide2": ["citypedh"], "ctywide3": ["cityffh"]},
+    "extra_banks": {"ctywide3": ["cityffh"], "ctywide1": ["citycarh"], "ctywide2": ["citypedh"]},
+    // the sound check (scripts/level_port/steps/sound_check.py): the mod's GAME code, whose classes
+    // the levels place, and the GOAL list of the Jak 2 banks each level's content needs besides
+    // the wanted ones (hj2-update-extra-sound-bank, jak2-haven-city-world.gc, loads them)
+    "game_code": ["goal_src/jak3/pc/features/jak2-haven-city-world.gc", "goal_src/jak3/levels/havenj2/hj2-common-obs.gc"],
+    "level_banks_var": "*hj2-level-sound-banks*",
     // Jak 2's voice lines, packed for Jak 3 by the build (goalc's pack-vags), j + their name (Jak 3's
     // code plays some of Jak 2's names: its propa class). Each list is defined in the level-info file:
     // the speakers' speeches (havenj2-obs.gc), the citizens' and the guards' lines (Jak 2's

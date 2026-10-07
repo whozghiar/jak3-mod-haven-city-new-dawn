@@ -78,15 +78,13 @@ void InitBanks() {
   gBanks[7]->m_nSpuMemLoc = 0x1d0600;
 }
 
+/*!
+ * Pick the bank record for a sound bank about to load: common and mode banks have theirs, a full
+ * bank (mode 4) takes an empty pair of level records, a half bank (modes 6 to 8: halfa, halfb,
+ * halfc) one record of a pair. Returns the record, set to that mode, or nullptr when there is no
+ * room (the bank isn't loaded).
+ */
 SoundBankInfo* AllocateBankName(const char* name, u32 mode) {
-  int iVar1;
-  int mem_sz;
-  SoundBankInfo** ppSVar2;
-  int iVar3;
-  int iVar4;
-  SoundBankInfo* pSVar5;
-  int iVar6;
-  int iVar6_d4 = 2;
   SoundBankInfo* bank = nullptr;
 
   // handle common case
@@ -108,56 +106,55 @@ SoundBankInfo* AllocateBankName(const char* name, u32 mode) {
         break;
       }
     }
-  } else if (mode > 3 && (mode - 6u < 3)) {  // wtf
-    iVar1 = 2;
-    // iVar6 = 8;
-    iVar6_d4 = 2;
-    while (gBanks[iVar6_d4]->in_use == 0 || gBanks[iVar6_d4]->mode != mode) {
-      auto* sbi = gBanks[iVar6_d4 + 1];
-      iVar6 = iVar6 + 8;
-      if (((sbi->in_use != 0) && (iVar4 = iVar1, sbi->mode == mode)) ||
-          (iVar1 = iVar1 + 2, iVar4 = -1, 7 < iVar1))
-        goto LAB_0000c2fc;
+  } else if (mode >= 6 && mode <= 8) {
+    // og:jak2-haven-city changed: the decompiled search only ever looked at the first pair of level
+    // records (its record index never moved), so a half bank (halfa, halfb, halfc) whose partner of
+    // the same mode was in another pair wasn't loaded when no pair was empty, and its sounds were
+    // missing. As the original: the free record next to a loaded half bank of the same mode, else
+    // a pair with both records free.
+    int pair = -1;
+    for (int i = 2; i < kNumBanks && pair < 0; i += 2) {
+      if ((gBanks[i]->in_use && gBanks[i]->mode == mode) ||
+          (gBanks[i + 1]->in_use && gBanks[i + 1]->mode == mode)) {
+        pair = i;
+      }
     }
-    iVar4 = iVar1 + 1;
-  LAB_0000c2fc:
-    if (iVar4 < 0) {
-      iVar1 = 2;
-      ppSVar2 = gBanks;
-    LAB_0000c36c:
-      ppSVar2 = ppSVar2 + 2;
-      pSVar5 = *ppSVar2;
-      iVar1 = iVar1 + 2;
-      if ((pSVar5->in_use != 0) || (ppSVar2[1]->in_use != 0))
-        goto LAB_0000c39c;
-      mem_sz = 0x28a00;
-      pSVar5->m_nSpuMemSize = mem_sz;
-      bank = pSVar5;
-      goto LAB_0000c3a4;
+    if (pair >= 0) {
+      if (!gBanks[pair]->in_use) {
+        bank = gBanks[pair];
+      } else if (!gBanks[pair + 1]->in_use) {
+        bank = gBanks[pair + 1];
+      }
+    } else {
+      for (int i = 2; i < kNumBanks; i += 2) {
+        if (!gBanks[i]->in_use && !gBanks[i + 1]->in_use) {
+          bank = gBanks[i];
+          break;
+        }
+      }
     }
-    pSVar5 = gBanks[iVar4];
-    if (pSVar5->in_use == 0) {
-      gBanks[iVar1]->m_nSpuMemSize = 0x28a00;
-      bank = pSVar5;
+    if (bank) {
+      bank->m_nSpuMemSize = 0x28a00;
     }
   }
-LAB_0000c3a4:
+
   if (bank) {
     bank->mode = mode;
     bank->snd_handle = nullptr;
     bank->unk0 = 0;
   }
   return bank;
-
-LAB_0000c39c:
-  if (7 < iVar1)
-    goto LAB_0000c3a4;
-  goto LAB_0000c36c;
 }
 
+/*!
+ * The record of the loaded sound bank with this name, or nullptr.
+ */
 SoundBankInfo* LookupBank(const char* name) {
   for (int i = kNumBanks; i-- > 0;) {
-    if (memcmp(name, gBanks[i]->m_name1, 16) == 0) {
+    // og:jak2-haven-city changed: only a loaded record (in_use), as Jak 1 and 2's LookupBank. An
+    // unloaded bank keeps its name in its record: found, it made the bank's next load be skipped
+    // (its sounds missing until that record was reused).
+    if (gBanks[i]->in_use && memcmp(name, gBanks[i]->m_name1, 16) == 0) {
       return gBanks[i];
     }
   }
