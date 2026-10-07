@@ -908,11 +908,14 @@
     {"level": "caspad", "name": "air-train-3", "etype": "hj2-air-train", "dest": "ctyport-warp", "travel_name": "Haven City"}
   ],
   // The time gate in Jak 2's hideout to the Freedom HQ (hj2-time-gate, Jak 3's warp gate, in GAME),
-  // in the free corner of its main room, facing the room's middle (pos in meters, facing a unit xz
-  // vector). Its destination is the Freedom HQ's arrival point (continues.target_continues); the
-  // Freedom HQ's gate is spawned by GAME and goes to the hideout's (continues.new_continues).
+  // in the free corner of its main room (pos in meters, facing a unit xz vector: the actor's local
+  // z). Jak 3's warp gate's opening faces its local x (Jak 3's arrival points stand along it), so
+  // facing is the room's direction (-0.722, 0.692), toward the arrival point (new_continues
+  // hideout-gate), turned 90 degrees: the opening faces the room and Jak. Its destination is the
+  // Freedom HQ's arrival point (continues.target_continues); the Freedom HQ's gate is spawned by
+  // GAME and goes to the hideout's (continues.new_continues).
   "new_teleporters": [
-    {"level": "hideout", "name": "hj2-time-gate-1", "etype": "hj2-time-gate", "pos": [1207.0, 3.1, 53.0], "facing": [-0.722, 0.692], "radius": 8.0, "dest": "hj2-freehq-gate", "travel_name": "Jak 3", "comment": "the time gate to hj2-freehq-gate (hj2-time-gate, Jak 3's warp gate)"}
+    {"level": "hideout", "name": "hj2-time-gate-1", "etype": "hj2-time-gate", "pos": [1207.0, 3.1, 53.0], "facing": [-0.692, -0.722], "radius": 8.0, "dest": "hj2-freehq-gate", "travel_name": "Jak 3", "comment": "the time gate to hj2-freehq-gate (hj2-time-gate, Jak 3's warp gate)"}
   ],
 
   // Jak 2's platforms and props of the pumping station, the mountain, the dig, Dead Town, the

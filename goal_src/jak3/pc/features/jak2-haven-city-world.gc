@@ -2444,7 +2444,10 @@ prompt)."
 ;; found on the HQ's collision dump), facing the room (freehq-start), to the hideout
 (define *hj2-hq-gate-trans* (static-vectorm 710 80.338 -565))
 
-(define *hj2-hq-gate-yaw* (degrees -65.3))
+;; the gate's yaw: Jak 3's warp gate's opening faces its local x (Jak 3's arrival points stand along
+;; it), so this turns local x toward the room, (-0.908, 0.418) in xz: freehq-start and the arrival
+;; point in front of the gate (*hj2-freehq-gate-continue*, 6 m along it)
+(define *hj2-hq-gate-yaw* (degrees -155.3))
 
 (define *hj2-hq-gate-notice* '(quote ("hj2-hideout-gate" #f #f)))
 
