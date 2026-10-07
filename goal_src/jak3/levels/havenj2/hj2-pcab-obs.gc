@@ -173,8 +173,8 @@ when far (the nuts stay in step), and its rotation for the current phase.
 ;; Falling platforms ///////////////////////////////////////////////////////////////////////////////
 
 ;; Jak 2's pal-falling-plat: a hinged plat on the cable. Once Jak stands on it, it shakes (Jak 2's
-;; pal-fall-plat sound, PALCAB3), then swings down (Jak falls off) and back up (its idle
-;; animation), and is ready again.
+;; pal-fall-plat sound, PALCAB3, and its animation's pal-falling-a, PALCAB2), then swings down (Jak
+;; falls off, pal-falling-b) and back up (its idle animation, pal-falling-c), and is ready again.
 (deftype hj2-pal-falling-plat (process-drawable)
   ((root  collide-shape  :override)
    )
@@ -247,16 +247,30 @@ when far (the nuts stay in step), and its rotation for the current phase.
     )
   :trans rider-trans
   :code (behavior ()
+    ;; Jak 2's animations played their sounds (effect-name tags of pal-falling-plat-ag, PALCAB2):
+    ;; build-actor's have none, so they are played here at the same frames: pal-falling-a at frame
+    ;; 0.2 of the shake, pal-falling-b at frame 0.2 of the swing (idle), pal-falling-c at its frame
+    ;; 26.1 of 0-38 (as it comes back up)
     (ja-no-eval :group! hj2-pal-falling-plat-shake-ja :num! (seek!) :frame-num 0.0)
+    (sound-play "pal-falling-a")
     (until (ja-done? 0)
       (suspend)
       (ja :num! (seek!))
       )
     (logclear! (-> self root root-prim prim-core action) (collide-action rideable))
     (ja-no-eval :group! hj2-pal-falling-plat-idle-ja :num! (seek!) :frame-num 0.0)
-    (until (ja-done? 0)
-      (suspend)
-      (ja :num! (seek!))
+    (sound-play "pal-falling-b")
+    (let ((c-frame (* 0.68684 (the float (+ (-> (ja-group) frames num-frames) -1))))
+          (c-played? #f)
+          )
+      (until (ja-done? 0)
+        (suspend)
+        (ja :num! (seek!))
+        (when (and (not c-played?) (>= (ja-frame-num 0) c-frame))
+          (sound-play "pal-falling-c")
+          (set! c-played? #t)
+          )
+        )
       )
     (go-virtual idle)
     )

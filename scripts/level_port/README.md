@@ -63,7 +63,7 @@ port's install sequence and error codes: [Launcher install](../../docs/modding/c
 | `ocean` | `<level>-ocean.gc`: a level's own ocean map, copied from the source game (`ocean_source`) |
 | `nav` | `<level>-nav.json`: the traffic navigation data merged for the level (`nav`), and its height map |
 | `levels` | Each level's `.jsonc` and `.gd`, its regions and water regions (`<level>-water-regions.json`), its particles (`<level>-part.gc`), the models its actors use (`<model>.glb`), the level-load-infos and continue points (`level_info`), and the levels' `goalc` build steps (`build`), with the steps copying and packing the source game's sound (`sound`), and the source banks each level needs besides its wanted ones (`sound.level_banks_var`) |
-| `sound` | Nothing: the sound check of the levels written ([steps/sound_check.py](steps/sound_check.py)), per level the sounds its content plays that no loaded bank has (MISSING), that only some of its want sets have (partial), or that no bank of either game has (NOBANK) |
+| `sound` | Nothing: the sound check of the levels written ([steps/sound_check.py](steps/sound_check.py)), per level the sounds its content plays that no loaded bank has (MISSING), that only some of its want sets have (partial), or that no bank of either game has (NOBANK); then the sounds the source game's animations of the rebuilt models play (their art groups' `effect-name` tags, which `build-actor` models lack), each `played` by its class's code, `UNPLAYED` or `NOBANK` |
 
 Every generated file says so in its first lines. A fix goes into the manifest or the tool, never
 into a generated file.

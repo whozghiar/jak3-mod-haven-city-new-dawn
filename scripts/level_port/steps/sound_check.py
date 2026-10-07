@@ -23,7 +23,9 @@ wanted banks while Jak is in the level and a bank slot is free (the "sound" bloc
 `python scripts/level_port <manifest> --steps sound` prints the whole check of the generated
 levels: per level, the sounds no wanted bank has (MISSING), the ones only some of its want sets
 have (partial, often the source game's own choice: a door's bank wanted by the region at the
-door), the ones in no bank of either game (NOBANK: silent in the source game too).
+door), the ones in no bank of either game (NOBANK: silent in the source game too). Then the sounds the
+source game's animations of the rebuilt models play (their art groups' effect-name tags, which
+build-actor's models lack): played by their class's code, UNPLAYED, or NOBANK.
 """
 
 import collections
@@ -66,6 +68,92 @@ def table_name(name):
     """A GOAL sound name as the banks' tables have it (the overlord's strcpy_toupper: upper case,
     '_' for '-', 16 characters)."""
     return name.upper().replace("-", "_")[:16]
+
+
+# the effect-name values that aren't sounds (Jak 2's effect-control do-effect): particle groups,
+# events, footsteps by surface, the camera shake, scripts
+NOT_SOUND = re.compile(r"^(group-|event-|effect-)|^(camera-shake|script)$")
+
+
+def art_group_effects(path):
+    """{animation: (frames, [(frame, effect name)])}: the effect-name tags of the art-joint-anims of
+    an art group (a decompiler raw object -ag.go, a v4 object file), each at its animation's frame
+    (the tag's artist frame, less artist-base, over artist-step). The link data read as the
+    decompiler does (decompiler/ObjectFile/LinkedObjectFileCreation.cpp, link_v2_or_v4)."""
+    with open(path, "rb") as f:
+        d = f.read()
+    _, _, version, size = struct.unpack_from("<IIHxxI", d, 0)
+    if version != 4:
+        return {}
+    co = 16
+    p = co + size + 12  # past the data and the v2 link header (12 bytes)
+    ptrs = set()  # data offsets of the pointers
+    if d[p] == 0:
+        p += 1
+    else:
+        cp, fixing = co, False
+        while True:
+            while True:
+                c = d[p]
+                p += 1
+                if fixing:
+                    ptrs.update(cp - co + 4 * i for i in range(c))
+                cp += 4 * c
+                if c != 0xff:
+                    break
+                if d[p] == 0:
+                    p += 1
+                    fixing = not fixing
+            fixing = not fixing
+            if d[p] == 0:
+                break
+        p += 1
+    syms = {}  # data offset -> the symbol or type linked there
+    while d[p] != 0:
+        if d[p] & 0x80:  # a type: its method count first
+            p += 1
+        e = d.index(b"\0", p)
+        name, p, cp = d[p:e].decode("latin1"), e + 1, co
+        while True:
+            seek, n = d[p], 1
+            if seek & 3:
+                seek, n = seek | d[p + 1] << 8, 2
+                if seek & 2:
+                    seek, n = seek | d[p + 2] << 16, 3
+                    if seek & 1:
+                        seek, n = seek | d[p + 3] << 24, 4
+            p += n
+            cp += seek & ~3
+            syms[cp - co] = name
+            if d[p] == 0:
+                break
+        p += 1
+    data = d[co:]
+
+    def u32(o):
+        return struct.unpack_from("<I", data, o)[0]
+
+    out = {}
+    # an art-joint-anim (type word at o): name 8, extra (res-lump) 16, artist-base 24, artist-step
+    # 28, frames 44; a res-lump: tag count 4, data-base 12, tags 28 (fields from the type word)
+    for o, kind in syms.items():
+        if kind != "art-joint-anim" or o + 16 not in ptrs or o + 8 not in ptrs:
+            continue
+        s, lump = u32(o + 8), u32(o + 16)
+        anim = data[s + 4:s + 4 + u32(s)].split(b"\0")[0].decode("latin1")
+        base, step = struct.unpack_from("<ff", data, o + 24)
+        frames = struct.unpack_from("<H", data, u32(o + 44))[0] if o + 44 in ptrs else 0
+        base_data, tags = u32(lump + 8), u32(lump + 24)
+        fx = []
+        for i in range(u32(lump)):
+            t = tags + 16 * i
+            if syms.get(t) == "effect-name":
+                key = struct.unpack_from("<f", data, t + 4)[0]
+                fx.append(((key - base) / step if step else key,
+                           syms.get(base_data + (u32(t + 12) & 0xffff), "?")))
+        if fx:
+            out[anim] = (frames, fx)
+    return out
 
 
 class Banks:
@@ -446,6 +534,36 @@ class Check:
                 rep["partial"][s] = (src, sorted(banks & set().union(*loaded)), absent, len(sets))
         return rep
 
+    def anim_sounds(self):
+        """[(class, sound, "animation@frame/frames", banks, played by the class's code?)]: the
+        sounds the source game's animations of the port's rebuilt models play (their art groups'
+        effect-name tags), which build-actor's models lack: the "models" and the levels'
+        "custom_props". Empty without the decompiler's raw objects (the source game's RAW_OBJ)."""
+        raw = getattr(self.port.source, "RAW_OBJ", None)
+        if not raw or not os.path.isdir(raw):
+            return []
+        models = list(self.port.get("models", {}).items())
+        for lv in self.port.levels:
+            models += [(v["etype"], v) for v in lv.get("custom_props", {}).get("etypes", {}).values()]
+        out, seen = [], set()
+        for cls, spec in models:
+            played = self.code.closure({cls}, self.mod_files)
+            for rip in [spec["rip"]] + [e["rip"] for e in spec.get("extras", [])]:
+                # the rip's art group: <model>-ag.go, or a shorter name's (an extra's parent)
+                name = os.path.basename(rip).replace("-lod0.glb", "")
+                while "-" in name and not os.path.exists(f"{raw}/{name}-ag.go"):
+                    name = name.rsplit("-", 1)[0]
+                ag = f"{raw}/{name}-ag.go"
+                if (cls, ag) in seen or not os.path.exists(ag):
+                    continue
+                seen.add((cls, ag))
+                for anim, (frames, fx) in art_group_effects(ag).items():
+                    for frame, s in fx:
+                        if not NOT_SOUND.search(s):
+                            out.append((cls, s, f"{anim}@{frame:g}/{frames}",
+                                        sorted(self.banks.of(s)), s in played))
+        return out
+
 
 def cover(uncovered, wanted, used=()):
     """The banks holding the uncovered sounds, best first: each the one holding most sounds the
@@ -529,9 +647,21 @@ def print_report(reports):
     print(f"  total: {dict(totals)}")
 
 
+def print_anim_sounds(rows):
+    if not rows:
+        return
+    print("  animation sounds of the rebuilt models (the source art groups' effect-name tags: "
+          "build-actor's models have none, their class must play them):")
+    for cls, s, where, banks, played in rows:
+        state = "played" if played else ("NOBANK" if not banks else "UNPLAYED")
+        print(f"    {state:8} {s:20} {where:40} in {','.join(banks) or '-':24} ({cls})")
+
+
 def run(port):
     """The "sound" step: the check of the generated levels, printed (writes nothing)."""
-    print_report(Check(port).run(continue_sets_written(port)))
+    check = Check(port)
+    print_report(check.run(continue_sets_written(port)))
+    print_anim_sounds(check.anim_sounds())
 
 
 if __name__ == "__main__":
@@ -555,4 +685,10 @@ if __name__ == "__main__":
     assert set(got) == {"b-snd", "a-go", "helper-snd"}, got
     assert table_name("guard-shot-fire") == "GUARD_SHOT_FIRE"
     assert cover({"x": {"k1", "k2"}, "y": {"k2"}, "z": {"k3"}}, set()) == ["k2", "k3"]
+    # an art group's animation sounds (with Jak 2 decompiled: the palace cable's falling plat)
+    ag = "../decompiler_out/jak2/raw_obj/pal-falling-plat-ag.go"
+    if os.path.exists(ag):
+        fx = {a: [(round(f, 1), s) for f, s in x] for a, (_, x) in art_group_effects(ag).items()}
+        assert fx == {"pal-falling-plat-idle": [(0.2, "pal-falling-b"), (26.1, "pal-falling-c")],
+                      "pal-falling-plat-shake": [(0.2, "pal-falling-a")]}, fx
     print("ok")

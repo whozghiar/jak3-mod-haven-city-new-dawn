@@ -3,6 +3,7 @@
   - decompiler_out/jak2/entities/<level>-actors.json, -cameras.json, -nav.json, -city.json: the
     decompiler's dumps of each level's bsp,
   - decompiler_out/jak2/levels/<level>/*.glb: its model rips (rip_levels in jak2_config.jsonc),
+  - decompiler_out/jak2/raw_obj/<name>-ag.go: its art groups (their animations' sounds),
   - out/jak2/fr3/<level>.fr3: its background, collision and textures,
   - goal_src/jak2: its decompiled code (story, level-info, regions, particles...).
 """
@@ -20,6 +21,7 @@ METER = 4096.0
 ISO = "iso_data/jak2"
 ENTITIES = "decompiler_out/jak2/entities"
 RIPS = "decompiler_out/jak2/levels"
+RAW_OBJ = "decompiler_out/jak2/raw_obj"
 FR3 = "out/jak2/fr3"
 GAME_TASK = "goal_src/jak2/engine/game/task/game-task.gc"
 LEVEL_INFO = "goal_src/jak2/engine/level/level-info.gc"

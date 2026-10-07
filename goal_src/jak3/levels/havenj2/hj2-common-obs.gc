@@ -294,8 +294,8 @@ Goes to idle (still). Returns nothing."
 ;; Jak 2's time.
 ;; Sounds: Jak 2's, by the names Jak 2's classes give them. The airlock-* and wood-* sounds are in
 ;; Jak 2's CTYWIDE1 bank ('j2ctywi1), loaded by the city and the places by its doors; the hideout
-;; doors' hide-door-* sounds are in HIDEOUT1 ('j2hideo1), loaded in the slums by the hideout and
-;; inside it. Jak 2's airlock-slide-e is in none of its banks (silent in Jak 2 too).
+;; doors' hide-door-* sounds are in HIDEOUT1 ('j2hideo1), wanted inside the hideout and asked for by
+;; both doors before they open (*hj2-door-sound-banks*, GAME). Jak 2's airlock-slide-e is in none of its banks (silent in Jak 2 too).
 
 (defun hj2-door-two-leaves! ((this com-airlock)
                              (group-y float)

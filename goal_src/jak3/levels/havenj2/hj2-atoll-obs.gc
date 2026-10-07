@@ -1329,8 +1329,9 @@ proc: the sender, message: the event, block: its parameters. Returns #t for an a
     )
   )
 
-;; opening its guns (faster on the board); then fires (told to kill, or Jak already warned), warns
-;; Jak (still in its zone) or stares at him (gone). Jak moving faster than 25m/s: fires at once.
+;; opening its guns (faster on the board, Jak 2's buoy-guns-out sound); then fires (told to kill,
+;; or Jak already warned), warns Jak (still in its zone) or stares at him (gone). Jak moving faster
+;; than 25m/s: fires at once.
 (defstate open-guns (hj2-gun-buoy)
   :virtual #t
   :event (behavior ((proc process) (argc int) (message symbol) (block event-message-block))
@@ -1348,6 +1349,10 @@ proc: the sender, message: the event, block: its parameters. Returns #t for an a
           (set! rate (* 2.0 rate))
           )
       (ja-no-eval :group! hj2-gun-buoy-open-ja :num! (seek! max rate) :frame-num 0.0)
+      ;; Jak 2's open animation played buoy-guns-out at its frame 0 (an effect-name tag of
+      ;; gun-buoy-ag; build-actor's has none). Its close one plays buoy-guns-in, which stare-down
+      ;; plays by code like Jak 2's.
+      (sound-play "buoy-guns-out")
       (until (ja-done? 0)
         (suspend)
         (ja :num! (seek! max rate))

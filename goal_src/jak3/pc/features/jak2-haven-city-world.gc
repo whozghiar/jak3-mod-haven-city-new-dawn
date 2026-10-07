@@ -481,13 +481,82 @@ renderer' once a second (*hj2-wait-print-time*)."
 ;; other and both stayed shut. So a door of this mod waits, still shut, for the renderer to have its
 ;; levels before it opens: they are shown with it, like in Jak 2.
 
+;; Doors and their sound bank. Jak 2 wants a door's bank only in some places, or after the door
+;; opened (the palace gate's PALCAB1 by its own on-enter, the hideout door's HIDEOUT1 inside the
+;; hideout, the slums' fortress gates' FOREXIT1 nowhere), and in the city the 6 bank slots hold the 3
+;; banks Jak 2 wants and Jak 3's 3 traffic banks: these doors opened and closed silently. So a door
+;; of these classes asks for its bank while Jak is about to cross it or it stands open (each call of
+;; destination-loaded?), and waits, shut, up to 2 s for it before opening. hj2-update-extra-sound-bank
+;; loads the bank first among the extra banks (before the traffic's) until 15 s after the last ask,
+;; so the closing sounds play too. The banks: the sound check's (scripts/level_port/steps/
+;; sound_check.py: the bank of the door class's sounds).
+
+;; (door class, its sound bank)
+(define *hj2-door-sound-banks* '((hj2-palace-door j2palca1)
+                                 (hj2-hide-door-a j2hideo1)
+                                 (hj2-hide-door-b j2hideo1)
+                                 (hj2-fort-gate j2forex1)
+                                 )
+  )
+
+;; the bank the last door asked for, as a one-bank list for hj2-extra-sound-bank-fill ('hj2-none:
+;; none yet); when that ask started (the door's wait) and when it was last made (base clock)
+(define *hj2-door-sound-bank* (list 'hj2-none))
+(define *hj2-door-sound-since* 0)
+(define *hj2-door-sound-last* 0)
+
+(defun hj2-sound-bank-loaded? ((name symbol))
+  "Is the sound bank name in one of the game's bank slots (*level* sound-bank), with no bank load
+under way (rpc-busy? 1)?"
+  (and (zero? (rpc-busy? 1))
+       (dotimes (i 6 #f)
+         (if (= (-> *level* sound-bank i name) name)
+             (return #t)
+             )
+         )
+       )
+  )
+
+(defun hj2-door-sound-bank-held? ()
+  "Did a door ask for its sound bank (*hj2-door-sound-bank*) less than 15 s ago?"
+  (and (!= (car *hj2-door-sound-bank*) 'hj2-none)
+       (< (- (the-as int (hj2-now)) *hj2-door-sound-last*) (the-as int (seconds 15)))
+       )
+  )
+
+(defun hj2-door-sound-bank-ready? ((this com-airlock))
+  "Called by destination-loaded? for every door: a door of *hj2-door-sound-banks* asks for its bank
+(side effects: *hj2-door-sound-bank*, the ask's start and last times; a new ask starts when the bank
+changes or the last ask is over 1 s old). Returns #f while the door's bank isn't loaded, less than
+2 s after the ask started; #t otherwise (and for the other doors)."
+  (let ((entry (assoc (-> this type symbol) *hj2-door-sound-banks*)))
+    (if (not entry)
+        (return #t)
+        )
+    (let ((bank (the-as symbol (car (cdr entry))))
+          (now (the-as int (hj2-now)))
+          )
+      (if (or (!= bank (car *hj2-door-sound-bank*))
+              (>= (- now *hj2-door-sound-last*) (the-as int (seconds 1)))
+              )
+          (set! *hj2-door-sound-since* now)
+          )
+      (set! (car *hj2-door-sound-bank*) bank)
+      (set! *hj2-door-sound-last* now)
+      (or (hj2-sound-bank-loaded? bank) (>= (- now *hj2-door-sound-since*) (the-as int (seconds 2))))
+      )
+    )
+  )
+
 (define *hj2-destination-loaded?* (method-of-type com-airlock destination-loaded?))
 
 (defmethod destination-loaded? ((this com-airlock) (level-status symbol))
   "Jak 3's destination-loaded? (airlock.gc), and for a door in one of this mod's levels asked whether
 its levels (on-notice) are loaded (level-status #t: the open code's wait before on-enter), #f while
 one of them is pending in the PC renderer (hj2-renderer-pending?), printing 'hj2: <door> waits for
-the renderer (<level>)' once a second. Jak 3's own doors are unchanged. Defined before this mod's
+the renderer (<level>)' once a second. A door of *hj2-door-sound-banks* also asks for its sound bank
+and, asked whether it can open (level-status #f), answers #f while waiting for it
+(hj2-door-sound-bank-ready?). Jak 3's own doors are unchanged. Defined before this mod's
 door classes (hj2-fort-gate below, hj2-common-obs.gc, havenj2-obs.gc), which inherit it; Jak 3's
 classes defined earlier in airlock.gc keep Jak 3's method. Returns Jak 3's result otherwise."
   (let ((result ((the-as (function com-airlock symbol symbol) *hj2-destination-loaded?*) this level-status)))
@@ -506,6 +575,13 @@ classes defined earlier in airlock.gc keep Jak 3's method. Returns Jak 3's resul
           (set! names (the-as pair (cdr names)))
           )
         )
+      )
+    ;; a door of *hj2-door-sound-banks* asks for its sound bank at each call, and (level-status #f:
+    ;; the close state's "can it open?") waits, shut, for it (hj2-door-sound-bank-ready?)
+    (let ((bank-ready? (hj2-door-sound-bank-ready? this)))
+      (if (and (not level-status) result (not bank-ready?))
+          (return #f)
+          )
       )
     result
     )
@@ -2634,8 +2710,8 @@ free (half bank slots) lasts. Returns the free half bank slots left."
 (defun hj2-update-extra-sound-bank ()
   "Called every frame by the city's process: the entries of *hj2-extra-sound-bank* take the Jak 2
 banks the load-state wants (want-sound, each once, in order; the others 'hj2-none), and the first
-of them wanted once takes the extra banks that fit in the free half bank slots: in the city Jak 3's
-traffic banks (*hj2-traffic-sound-banks*, while the hub is loaded), then the ones of the level Jak
+of them wanted once takes the extra banks that fit in the free half bank slots: first the bank a
+door asked for (*hj2-door-sound-bank*, for 15 s), then in the city Jak 3's traffic banks (*hj2-traffic-sound-banks*, while the hub is loaded), then the ones of the level Jak
 is in (vis-nick, *hj2-level-sound-banks*); in a place, its own first. The list is the
 :extra-sound-bank of every loaded level of this mod (update-sound-banks, level.gc, reads those of
 the active ones). Side effects: the list's entries, the levels' level-load-infos. Returns nothing."
@@ -2692,6 +2768,10 @@ the active ones). Side effects: the list's entries, the levels' level-load-infos
                         )
                (extras (the-as pair (cdr (cdr carrier))))
                )
+          ;; first the bank a door asked for in the last 15 s (hj2-door-sound-bank-ready?)
+          (if (hj2-door-sound-bank-held?)
+              (set! free (hj2-extra-sound-bank-fill extras *hj2-door-sound-bank* free))
+              )
           (cond
             ((= (hj2-hub-of nick) 'havenj2)
              (set! free (hj2-extra-sound-bank-fill extras traffic free))

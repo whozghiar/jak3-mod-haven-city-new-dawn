@@ -383,7 +383,7 @@ break it, the hologram (group-ctywide-baron-propoganda-holo, in havenj2-part.gc)
 (defmethod init-from-entity! ((this hj2-palace-door) (arg0 entity-actor))
   "Jak 2's palace-door setup: a collision box bound to the sliding door (joint door, transform
 index 3, as in Jak 2), the frames of Jak 2's animation, and Jak 2's pal-door sounds (its PALCAB1
-bank, 'j2palca1, which hj2-pal's region by the gate loads, as Jak 2 does)."
+bank, 'j2palca1: the gate asks for it before opening, *hj2-door-sound-banks*)."
   (stack-size-set! (-> this main-thread) 1024)
   (let ((s5-0 (new 'process 'collide-shape this (collide-list-enum usually-hit-by-player))))
     (set! (-> s5-0 penetrated-by) (penetrate))
@@ -765,8 +765,11 @@ and num-shots."
     0
     )
   :code (behavior ()
-    ;; rise: pop-up-down from its start to Jak 2's frame 20, at half speed
+    ;; rise: pop-up-down from its start to Jak 2's frame 20, at half speed. Jak 2's animation played
+    ;; guard-turret-up at its frame 0.1 (an effect-name tag of cty-guard-turret-ag; build-actor's
+    ;; has none): played here as it starts (CTYWIDE1, CTYWIDE3)
     (ja-no-eval :group! hj2-cty-guard-turret-pop-up-down-ja :num! zero :frame-num 0.0)
+    (sound-play "guard-turret-up")
     (let ((f30-0 (hj2-cty-guard-turret-anim-frame 20.0)))
       (ja-no-eval :num! (seek! f30-0 0.5))
       (until (ja-done? 0)
@@ -1431,7 +1434,9 @@ pass's color, glowing (no fog, emissive), then open if Jak owns its pass at the 
 ;; 4 of its 8 animations). Not ported: Jak 2's nav mesh (a yakow walks to a random point near
 ;; where it stands, checked with collision probes instead), its shadow, the walk-left/right and run
 ;; blends, its sounds (Jak 2's yakow-hit and yakow-die are named by its nav-enemy-info but are in
-;; none of Jak 2's sound banks, CTYFARM1 included; Jak 2's kicked plays none either).
+;; none of Jak 2's sound banks, CTYFARM1 included; Jak 2's kicked plays none either; its animations'
+;; effect-name sounds, yakow-idle, yakow-grazing, yakow-kicked and walk-step-left/right, are in no
+;; bank of either game: silent in Jak 2 too).
 (deftype hj2-yakow (process-focusable)
   ((incoming-attack-id  uint32)
    (home                vector  :inline)
