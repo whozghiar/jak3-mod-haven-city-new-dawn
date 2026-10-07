@@ -1674,8 +1674,14 @@ shimmering on palette 6, palette 7 on."
   )
 
 (defun hj2-apply-weather ()
-  "Apply the weather chosen in the Mods menu now, and hold it from now on (hj2-weather-driver)."
-  (hj2-weather-update)
+  "Apply the weather chosen in the Mods menu now, and hold it from now on (hj2-weather-driver).
+While the game is paused (the Mods menu is open), the driver applies it on the first frame after."
+  ;; the particles don't move while paused (part-clock): a weather switched now would leave the rain
+  ;; drops hanging under the new sky until the game resumes. The driver, paused too, switches it
+  ;; when the game runs again, and the drops in flight then fall as when Jak 3's rain stops.
+  (if (not (paused?))
+      (hj2-weather-update)
+      )
   (when (not (handle->process *hj2-weather-driver*))
     (let ((proc (process-spawn-function process hj2-weather-driver-code :name "hj2-weather")))
       (set! *hj2-weather-driver* (if proc
@@ -2567,7 +2573,8 @@ while the mod is off (*mod-jak2-haven-city-enabled*)."
 (defun mod-jak2-haven-city-set-enabled ((on symbol))
   "Turn the mod on (on: #t) or off (#f) from the Mods menu, now: the Freedom HQ's time gate comes or
 goes if the Freedom HQ is active, and the weather driver, if running, goes back to Jak 3's weather
-while off (hj2-weather-update). Returns nothing."
+while off (hj2-weather-update; while paused, on the first frame after, see hj2-apply-weather).
+Returns nothing."
   (set! *mod-jak2-haven-city-enabled* on)
   (let ((lev (level-get *level* 'freehq)))
     (when (and lev (= (-> lev status) 'active))
@@ -2577,7 +2584,7 @@ while off (hj2-weather-update). Returns nothing."
           )
       )
     )
-  (if (handle->process *hj2-weather-driver*)
+  (if (and (handle->process *hj2-weather-driver*) (not (paused?)))
       (hj2-weather-update)
       )
   (none)
