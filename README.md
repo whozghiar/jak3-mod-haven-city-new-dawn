@@ -79,9 +79,8 @@ dig site, all rebuilt from Jak 2's own extracted data and linked the way Jak 2 l
   crops are solid and burst when hit hard.
 - **Air trains:** the port's air train takes Jak to the dig site and back, in a short fade.
 - **City traffic:** Jak 3's citizens, Freedom League guards, hover bikes and cars, as many as in
-  Jak 2; Jak 2's Freedom League Hellcats as an option: they fly with the traffic, and Jak can
-  steal one and fire its front gun; Jak 2's Crimson Guard bikes, ridden by Freedom League guards,
-  as another option.
+  Jak 2; Jak 2's Freedom League Hellcats: they fly with the traffic, and Jak can steal one and fire
+  its front gun; Jak 2's Crimson Guard bikes, ridden by Freedom League guards.
 - **Jak 2's alert:** Jak 2's five alert levels. Hitting a citizen or a guard, hitting a guard
   vehicle or turning into Dark Jak raises the alert; the guards hunt Jak, the Hellcats and guard
   bikes chase and shoot him from level 2, the city music plays its alert mode and the minimap
@@ -112,17 +111,11 @@ The menu's entries:
 
 | Entry | Does |
 |---|---|
-| Warp to Haven City (Jak 2) | Warps to the city, in the slums |
-| Warp to a district | Warps to one of 15 spots, at least one in each district (slums, port, bazaar, industrial section, main town, gardens, palace plaza, stadium grounds) |
-| Warp to a key place | Warps in front of the construction site gate, the palace, Mar's tomb, the cable pillar, the Hip Hog, the gun course, the port's air train, Vin's power station or the fortress; or to the hideout, the palace roof, the Oracle or Keira's garage |
-| Warp outside the city | Warps to Dead Town, the Sage's hut, the inside of the fortress, its prison, the way out of the fortress, the stadium's race track, the construction site, the pumping station, the mountain top, Haven Forest, the castle pad or the dig site |
-| Warp to the Freedom HQ (Jak 3) | Warps back to Jak 3's world, in the room of the time gate |
-| Time of day | 9:00, 12:00, 16:00 (default), 19:00, 23:00, or Jak 2's day and night |
-| Weather (whole game) | Changing (Jak 3's weather, default), or a fixed one |
-| City traffic | Switches the traffic on (default) or off |
-| Hellcats in the traffic | Adds Jak 2's Freedom League Hellcats to the traffic (off by default) |
-| Guard bikes in the traffic | Adds Jak 2's Crimson Guard bikes, ridden by Freedom League guards (off by default) |
-| Jak 2's alert (turrets) | Jak 2's alert: guards and guard vehicles hunt Jak, the turrets fire at Jak's vehicle (on by default; off: Jak 3's alert code) |
+| Mod enabled | Switches the mod on or off (off by default). On: the time gate stands in Jak 3's Freedom HQ, and the entries below can be used. Off: Jak 3 as it is |
+| Warp to Haven City (Jak 2) | Warps to the underground hideout |
+| Warp to a district | Warps to a spot in each district (slums, port, bazaar, industrial section, main town, gardens, palace plaza and roof, stadium grounds) or to a place in it (the Hip Hog, the gun course, the port's air train, Vin's power station, the construction site gate, the cable pillar, the fortress gate, the Oracle, Keira's garage) |
+| Warp outside the city | Warps to Dead Town, the Sage's hut, the inside of the fortress, its prison, the stadium's race track, the construction site, the pumping station, the mountain top, Haven Forest, the castle pad, the dig site, or back to Jak 3's Freedom HQ |
+| Weather | Changing (Jak 3's weather, default) or a fixed one, in the whole game; and the time of day in Jak 2's levels: 9:00, 12:00, 16:00 (default), 19:00, 23:00, or Jak 2's day and night |
 
 ## Download & Play via OpenGOAL Launcher (Players)
 

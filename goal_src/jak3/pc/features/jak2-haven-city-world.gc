@@ -1508,6 +1508,12 @@ shimmering on palette 6, palette 7 on."
 ;; (another level's, a mission's) takes it over.
 (define *mod-jak2-haven-city-weather* 0)
 
+;; The mod's switch (Mods menu: Mod enabled), off by default: what the mod changes in Jak 3's own
+;; levels waits for it. On: the Freedom HQ's time gate stands (hj2-freehq-activate), the menu's
+;; weather holds (hj2-weather-update) and the menu's warps are usable. Off: Jak 3 as it is (no gate,
+;; Jak 3's own weather, warps greyed out). Jak 2's levels themselves don't read it.
+(define *mod-jak2-haven-city-enabled* #f)
+
 ;; clouds, fog and snow of the fixed weathers (index: the weather - 1). The rain comes from the
 ;; clouds and the fog: min(0.75, 4 (cloud - 0.5) (fog - 0.5)).
 (define *hj2-weather-presets* (new 'static 'boxed-array :type float
@@ -1530,7 +1536,7 @@ shimmering on palette 6, palette 7 on."
 (defun hj2-weather-update ()
   "Hold the weather chosen in the Mods menu (see *mod-jak2-haven-city-weather*)."
   (let ((ctrl *mood-control*)
-        (weather *mod-jak2-haven-city-weather*)
+        (weather (if *mod-jak2-haven-city-enabled* *mod-jak2-haven-city-weather* 0))
         )
     (cond
       ((> weather 0)
@@ -2435,8 +2441,12 @@ hideout (on-notice, travel-name, distance), or the Freedom HQ's gate's (no entit
 (defun hj2-freehq-activate ((lev level) (mode symbol))
   "freehq's activation callback (slot 35, added below): the time gate to Jak 2's world. Its model
 (warp-gate-ag) must be in freehq's DGO (added in goal_src/jak3/dgos/freehq.gd, its geometry in
-freehq's fr3 by the decompiler's extra_art_groups_by_dgo): without it, no gate."
-  (when (and (not (handle->process *hj2-time-gate*)) (hj2-level-has-art? lev "skel-warp-gate"))
+freehq's fr3 by the decompiler's extra_art_groups_by_dgo): without it, no gate. No gate either
+while the mod is off (*mod-jak2-haven-city-enabled*)."
+  (when (and *mod-jak2-haven-city-enabled*
+             (not (handle->process *hj2-time-gate*))
+             (hj2-level-has-art? lev "skel-warp-gate")
+             )
     (let ((proc (process-spawn hj2-time-gate :init hj2-time-gate-init lev :name "hj2-time-gate" :to *entity-pool*)))
       (set! *hj2-time-gate* (if proc
                                 (ppointer->handle proc)
@@ -2466,6 +2476,25 @@ freehq's fr3 by the decompiler's extra_art_groups_by_dgo): without it, no gate."
           (cons (car callbacks) (cons (car (cdr callbacks)) (-> freehq callback-list)))
           )
     )
+  )
+
+(defun mod-jak2-haven-city-set-enabled ((on symbol))
+  "Turn the mod on (on: #t) or off (#f) from the Mods menu, now: the Freedom HQ's time gate comes or
+goes if the Freedom HQ is active, and the weather driver, if running, goes back to Jak 3's weather
+while off (hj2-weather-update). Returns nothing."
+  (set! *mod-jak2-haven-city-enabled* on)
+  (let ((lev (level-get *level* 'freehq)))
+    (when (and lev (= (-> lev status) 'active))
+      (if on
+          (hj2-freehq-activate lev 'display)
+          (hj2-freehq-deactivate lev)
+          )
+      )
+    )
+  (if (handle->process *hj2-weather-driver*)
+      (hj2-weather-update)
+      )
+  (none)
   )
 
 ;; the arrival point in front of the Freedom HQ's gate (*hj2-freehq-gate-continue*, generated in
@@ -2951,17 +2980,17 @@ named under the slot's title."
 
 ;; Traffic ////////////////////////////////////////////////////////////////////////////////////////
 
-;; Jak 3's citizens, guards and vehicles in havenj2 (Mods menu: City traffic)
+;; Jak 3's citizens, guards and vehicles in havenj2, always on (no menu entry since phase 20)
 (define *mod-jak2-haven-city-traffic* #t)
 
-;; Jak 2's Freedom League Hellcats in havenj2's traffic (Mods menu: Hellcats), off by default
-(define *mod-jak2-haven-city-hellcats* #f)
+;; Jak 2's Freedom League Hellcats in havenj2's traffic, always on (no menu entry since phase 20)
+(define *mod-jak2-haven-city-hellcats* #t)
 
-;; Jak 2's Crimson Guard bikes, flown by Freedom League guards, in havenj2's traffic (Mods menu:
-;; Guard bikes, havenj2-traffic.gc), off by default
-(define *mod-jak2-haven-city-guard-bikes* #f)
+;; Jak 2's Crimson Guard bikes, flown by Freedom League guards, in havenj2's traffic
+;; (havenj2-traffic.gc), always on (no menu entry since phase 20)
+(define *mod-jak2-haven-city-guard-bikes* #t)
 
-;; Jak 2's alert in havenj2 (Mods menu: Jak 2's alert), on by default, read every frame: Jak 2's
+;; Jak 2's alert in havenj2, always on (no menu entry since phase 20), read every frame: Jak 2's
 ;; alert state machine, levels, music, alarm and guard vehicle pursuit (havenj2-traffic.gc); hitting
 ;; a citizen or a guard raises the Freedom League's alert to 1, hitting a guard vehicle or Dark Jak
 ;; to 2, and the city's guard turrets pop up and fire at Jak flying a vehicle near them while the

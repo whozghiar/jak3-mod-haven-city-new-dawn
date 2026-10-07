@@ -20,7 +20,7 @@
 ;; takes an attacker from it when it spawns (crimson-guard's citizen-method-215 only checks that it
 ;; is nonzero, so #f crashes it) and when it is activated.
 ;;
-;; The traffic runs while havenj2 is active and *mod-jak2-haven-city-traffic* is on (Mods menu), see
+;; The traffic runs while havenj2 is active and *mod-jak2-haven-city-traffic* is on (always, since phase 20), see
 ;; hj2-traffic-refresh in jak2-haven-city-world.gc. Jak 2's Hellcats join it while
 ;; *mod-jak2-haven-city-hellcats* is on (see "Freedom League Hellcats" below), its guard bikes while
 ;; *mod-jak2-haven-city-guard-bikes* is on (see "Freedom League guard bikes").
@@ -199,7 +199,7 @@ Returns nothing."
 ;; citizen-method-210), not when he hits a guard or a guard vehicle: its guard's event-handler skips
 ;; the citizen one on a hit, and vehicle-method-130 does nothing. Jak 2 raises it there (guard.gc's
 ;; general-event-handler: trigger-alert 1; vehicle-guard's vehicle-method-130: 2). With
-;; *mod-jak2-haven-city-alert* on (Mods menu), havenj2 does it too. These methods replace Jak 3's
+;; *mod-jak2-haven-city-alert* on (always, since phase 20), havenj2 does it too. These methods replace Jak 3's
 ;; in the guard and Hellcat classes of havenj2's DGO (their code, guard.o and car.o, is linked
 ;; before this file there): Jak 3's city loads its own.
 
@@ -845,7 +845,7 @@ the parameter count, arg2: the event, arg3: its parameters. Returns the event's 
 ;; Freedom League guard bikes /////////////////////////////////////////////////////////////////////
 ;;
 ;; Jak 2's Crimson Guard bikes (guard-bike, bike.gc there) in the city's traffic, while
-;; *mod-jak2-haven-city-guard-bikes* is on (Mods menu, off by default), flown by the Hellcats' pilot
+;; *mod-jak2-haven-city-guard-bikes* is on (always, since phase 20), flown by the Hellcats' pilot
 ;; (hj2-hellcat-pilot, in its bike stance). Like the Hellcats, they fly the traffic lanes and chase
 ;; Jak while *mod-jak2-haven-city-alert* is on ("Guard vehicle pursuit").
 ;; Jak 3 keeps the traffic type guard-bike (the Freedom League squad's guard type 4) but has no
@@ -1115,7 +1115,9 @@ Returns nothing."
 ;; Jak 2's *alert-level-settings* (traffic-engine.gc there), one per alert level 0 to 4, in Jak 3's
 ;; squad-alert-state-settings layout (slots: 0 tazer, 1 rifle, 2 grenade, 3 waster, 4 guard bike,
 ;; 5 Hellcat). Jak 2's roboguard slot sends none at any level: the waster slot stays empty. The bike
-;; and Hellcat counts are capped by hj2-guard-vehicle-caps.
+;; and Hellcat counts are capped by hj2-guard-vehicle-caps. Jak 2's city sends no grenadier at any
+;; level; Jak 3's does (1 at rest): the user asked for them above the tazers' level, so levels 2 to 4
+;; add 1, 2 and 2 grenadiers to Jak 2's counts (phase 20).
 (define *hj2-alert-level-settings*
   (new 'static 'inline-array squad-alert-state-settings 5
     ;; level 0: 5 tazers, 1 guard bike, 1 Hellcat
@@ -1144,39 +1146,39 @@ Returns nothing."
       :hellcat-turret (new 'static 'squad-unit-settings :shot-count 2 :rand-shot-count 1 :inaccuracy 0.5
                         :acquire-delay (seconds 1) :shot-delay (seconds 0.25) :burst-delay (seconds 5))
       )
-    ;; level 2: 3 tazers, 4 rifles, 2 guard bikes
+    ;; level 2: 3 tazers, 4 rifles, 1 grenadier (not Jak 2's), 2 guard bikes
     (new 'static 'squad-alert-state-settings
       :ped-tazer (new 'static 'squad-unit-settings :target-count 3 :shot-count 1 :inaccuracy 0.5
                    :acquire-delay (seconds 1) :shot-delay (seconds 0.25) :burst-delay (seconds 2))
       :ped-rifle (new 'static 'squad-unit-settings :target-count 4 :shot-count 2 :rand-shot-count 1 :inaccuracy 0.5
                    :acquire-delay (seconds 1) :shot-delay (seconds 0.25) :burst-delay (seconds 2))
-      :ped-grenade (new 'static 'squad-unit-settings :shot-count 1 :inaccuracy 0.5
+      :ped-grenade (new 'static 'squad-unit-settings :target-count 1 :shot-count 1 :inaccuracy 0.5
                      :acquire-delay (seconds 1) :shot-delay (seconds 0.25) :burst-delay (seconds 2))
       :bike-turret (new 'static 'squad-unit-settings :target-count 2 :shot-count 2 :rand-shot-count 1 :inaccuracy 0.5
                      :acquire-delay (seconds 1) :shot-delay (seconds 0.25) :burst-delay (seconds 5))
       :hellcat-turret (new 'static 'squad-unit-settings :shot-count 2 :rand-shot-count 1 :inaccuracy 0.5
                         :acquire-delay (seconds 1) :shot-delay (seconds 0.25) :burst-delay (seconds 5))
       )
-    ;; level 3: 2 tazers, 7 rifles with better aim, 3 guard bikes, 2 Hellcats, faster vehicle bursts
+    ;; level 3: 2 tazers, 7 rifles with better aim, 2 grenadiers (not Jak 2's), 3 guard bikes, 2 Hellcats, faster vehicle bursts
     (new 'static 'squad-alert-state-settings
       :ped-tazer (new 'static 'squad-unit-settings :target-count 2 :shot-count 1 :inaccuracy 0.5
                    :acquire-delay (seconds 1) :shot-delay (seconds 0.25) :burst-delay (seconds 2))
       :ped-rifle (new 'static 'squad-unit-settings :target-count 7 :shot-count 2 :rand-shot-count 1 :inaccuracy 0.25
                    :acquire-delay (seconds 1) :shot-delay (seconds 0.25) :burst-delay (seconds 2))
-      :ped-grenade (new 'static 'squad-unit-settings :shot-count 1 :inaccuracy 0.5
+      :ped-grenade (new 'static 'squad-unit-settings :target-count 2 :shot-count 1 :inaccuracy 0.5
                      :acquire-delay (seconds 1) :shot-delay (seconds 0.25) :burst-delay (seconds 2))
       :bike-turret (new 'static 'squad-unit-settings :target-count 3 :shot-count 2 :rand-shot-count 1 :inaccuracy 0.25
                      :acquire-delay (seconds 0.75) :shot-delay (seconds 0.25) :burst-delay (seconds 4))
       :hellcat-turret (new 'static 'squad-unit-settings :target-count 2 :shot-count 2 :rand-shot-count 1 :inaccuracy 0.25
                         :acquire-delay (seconds 0.75) :shot-delay (seconds 0.25) :burst-delay (seconds 4))
       )
-    ;; level 4: the same squad, sharpest aim and fastest fire
+    ;; level 4: the same squad (2 grenadiers), sharpest aim and fastest fire
     (new 'static 'squad-alert-state-settings
       :ped-tazer (new 'static 'squad-unit-settings :target-count 2 :shot-count 1 :inaccuracy 0.125
                    :acquire-delay (seconds 0.5) :shot-delay (seconds 0.25) :burst-delay (seconds 2))
       :ped-rifle (new 'static 'squad-unit-settings :target-count 7 :shot-count 2 :rand-shot-count 2 :inaccuracy 0.125
                    :acquire-delay (seconds 0.5) :shot-delay (seconds 0.15) :burst-delay (seconds 2))
-      :ped-grenade (new 'static 'squad-unit-settings :shot-count 1 :inaccuracy 0.125
+      :ped-grenade (new 'static 'squad-unit-settings :target-count 2 :shot-count 1 :inaccuracy 0.125
                      :acquire-delay (seconds 1) :shot-delay (seconds 0.25) :burst-delay (seconds 3))
       :bike-turret (new 'static 'squad-unit-settings :target-count 3 :shot-count 2 :rand-shot-count 2 :inaccuracy 0.125
                      :acquire-delay (seconds 0.5) :shot-delay (seconds 0.25) :burst-delay (seconds 3))

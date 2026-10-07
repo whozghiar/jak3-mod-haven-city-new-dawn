@@ -977,7 +977,7 @@ effects: all of the turret's fields. Returns nothing."
 ;; 3's, a spot spawns its vehicle when the camera is 40 to 250 m away (out of sight closer than 150
 ;; m), keeps it while Jak is near or looking, and lets the traffic take it back 10 s after that. The
 ;; spot faces +z on the ground below it, whatever its actor's rotation (Jak 2 and Jak 3 do the same).
-;; Nothing spawns while the city's traffic is off (Mods menu): no traffic type is active then.
+;; Nothing spawns while the city's traffic is off (*mod-jak2-haven-city-traffic*): no traffic type is active then.
 ;; ponytail: no minimap icon (Jak 3's add-icon! 11): havenj2 has no minimap of its own.
 (deftype hj2-parking-spot (process-drawable)
   ((vehicle           handle)

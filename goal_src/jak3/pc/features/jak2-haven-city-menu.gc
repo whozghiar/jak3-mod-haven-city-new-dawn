@@ -24,22 +24,22 @@
   rain and thunderstorms), or a fixed one (sunny, cloudy, foggy, light rain, rain,
   thunderstorm, snow), see *mod-jak2-haven-city-weather*.
 
-  The traffic: Jak 3's citizens, guards and vehicles in the city, on or off (see
-  *mod-jak2-haven-city-traffic*).
+  The menu (the user's layout, phase 20): the mod's switch (*mod-jak2-haven-city-enabled*, off by
+  default), then four entries, greyed out while the mod is off: the warp to Jak 2's city (its
+  underground hideout), the warps by district, the warps outside the city, and the weather (with
+  the time of day). The traffic, its Hellcats and guard bikes, and Jak 2's alert are always on in
+  Jak 2's levels (jak2-haven-city-world.gc).
 
 |#
 
 ;; defined in jak2-haven-city-world.gc, which GAME loads after this file
+(define-extern *mod-jak2-haven-city-enabled* symbol)
+(define-extern mod-jak2-haven-city-set-enabled (function symbol none))
 (define-extern *mod-jak2-haven-city-hour* int)
 (define-extern hj2-world-level-active? (function level symbol))
 (define-extern hj2-apply-time-of-day (function none))
 (define-extern *mod-jak2-haven-city-weather* int)
 (define-extern hj2-apply-weather (function none))
-(define-extern *mod-jak2-haven-city-traffic* symbol)
-(define-extern *mod-jak2-haven-city-hellcats* symbol)
-(define-extern *mod-jak2-haven-city-guard-bikes* symbol)
-(define-extern *mod-jak2-haven-city-alert* symbol)
-(define-extern hj2-traffic-refresh (function level symbol none))
 
 (defun mod-jak2-haven-city-warp ((name string))
   "Close the Mods menu and restart the player at one of this mod's continue points (havenj2-start:
@@ -71,33 +71,6 @@ Jak is in one of them."
   (none)
   )
 
-(defun mod-jak2-haven-city-set-traffic ((on symbol))
-  "Turn the city's traffic on or off, and start or stop it now if Jak is in the city."
-  (set! *mod-jak2-haven-city-traffic* on)
-  (let ((lev (level-get *level* 'havenj2)))
-    (if (and lev (= (-> lev status) 'active))
-        (hj2-traffic-refresh lev 'display)
-        )
-    )
-  (none)
-  )
-
-(defun mod-jak2-haven-city-set-hellcats ((on symbol))
-  "Turn the Hellcats of the city's traffic on or off, and restart the traffic now if it runs (its
-start sets the Hellcats' level and counts, havenj2-traffic.gc)."
-  (set! *mod-jak2-haven-city-hellcats* on)
-  (mod-jak2-haven-city-set-traffic *mod-jak2-haven-city-traffic*)
-  (none)
-  )
-
-(defun mod-jak2-haven-city-set-guard-bikes ((on symbol))
-  "Turn Jak 2's guard bikes of the city's traffic on (on: #t) or off (#f), and restart the traffic
-now if it runs (its start sets the bikes' level and counts, havenj2-traffic.gc). Returns nothing."
-  (set! *mod-jak2-haven-city-guard-bikes* on)
-  (mod-jak2-haven-city-set-traffic *mod-jak2-haven-city-traffic*)
-  (none)
-  )
-
 (defmacro mod-jak2-haven-city-warp-button (label continue)
   "A Mods menu button warping to a continue point."
   `(new 'static 'popup-menu-button :label ,label
@@ -113,55 +86,66 @@ now if it runs (its start sets the bikes' level and counts, havenj2-traffic.gc).
         )
   )
 
+(defmacro mod-jak2-haven-city-hour-flag (label hour)
+  "A Mods menu choice of the hour the clock stays at in this mod's levels (-1: Jak 2's day and night
+cycle, any negative hour)."
+  `(new 'static 'popup-menu-flag :label ,label
+        :is-toggled? (lambda () (if (< ,hour 0) (< *mod-jak2-haven-city-hour* 0) (= *mod-jak2-haven-city-hour* ,hour)))
+        :on-confirm (lambda () (mod-jak2-haven-city-set-hour ,hour) (none))
+        )
+  )
+
 (define *mod-jak2-haven-city-menu*
   (new 'static 'popup-menu-submenu :label "jak2-haven-city"
     :entries (new 'static 'boxed-array :type popup-menu-entry
-      (mod-jak2-haven-city-warp-button "Warp to Haven City (Jak 2)" "havenj2-start")
-      ;; the districts, by Jak 2's continue points (Jak 2's city levels)
+      ;; the mod's switch: the Freedom HQ's time gate, the weather, the entries below (each greyed out
+      ;; while the mod is off, an entry-disabled? lambda: a static field can't name a function)
+      (new 'static 'popup-menu-flag :label "Mod enabled"
+           :is-toggled? (lambda () *mod-jak2-haven-city-enabled*)
+           :on-confirm (lambda () (mod-jak2-haven-city-set-enabled (not *mod-jak2-haven-city-enabled*)) (none))
+           )
+      ;; to Jak 2's city: its underground hideout
+      (new 'static 'popup-menu-button :label "Warp to Haven City (Jak 2)"
+           :entry-disabled? (lambda () (not *mod-jak2-haven-city-enabled*))
+           :on-confirm (lambda () (mod-jak2-haven-city-warp "hj2-hideout-start") (none))
+           )
+      ;; the districts (Jak 2's city levels) and the places in them, by Jak 2's continue points
       (new 'static 'popup-menu-submenu :label "Warp to a district"
+        :entry-disabled? (lambda () (not *mod-jak2-haven-city-enabled*))
         :entries (new 'static 'boxed-array :type popup-menu-entry
-          (mod-jak2-haven-city-warp-button "Slums: the hideout" "havenj2-start")
-          (mod-jak2-haven-city-warp-button "Slums: the fortress" "hj2-ctyslumb-start")
+          (mod-jak2-haven-city-warp-button "Slums: the hideout's street" "havenj2-start")
+          (mod-jak2-haven-city-warp-button "Slums: the fortress gate" "hj2-ctyslumb-fort")
           (mod-jak2-haven-city-warp-button "Slums: the Oracle" "hj2-ctyslumc-start")
+          (mod-jak2-haven-city-warp-button "Slums: inside the Oracle" "hj2-oracle-start")
           (mod-jak2-haven-city-warp-button "Port" "hj2-ctyport-start")
+          (mod-jak2-haven-city-warp-button "Port: Hip Hog saloon" "hj2-ctyport-hiphog")
+          (mod-jak2-haven-city-warp-button "Port: gun course" "hj2-ctyport-gungame")
+          (mod-jak2-haven-city-warp-button "Port: air train" "hj2-ctyport-warp")
           (mod-jak2-haven-city-warp-button "Bazaar: Brutter's stall" "hj2-ctymarka-brutter")
           (mod-jak2-haven-city-warp-button "Bazaar: the east side" "hj2-ctymarkb-tanker")
           (mod-jak2-haven-city-warp-button "Industrial Section: Vin's side" "hj2-ctyinda-start")
+          (mod-jak2-haven-city-warp-button "Industrial Section: Vin's power station" "hj2-ctyinda-vinroom")
+          (mod-jak2-haven-city-warp-button "Industrial Section: construction site gate" "hj2-ctyinda-consite")
           (mod-jak2-haven-city-warp-button "Industrial Section: the south side" "hj2-ctyindb-start")
           (mod-jak2-haven-city-warp-button "Main Town: the west side" "hj2-ctygena-start")
           (mod-jak2-haven-city-warp-button "Main Town: the cable pillar" "hj2-ctygenb-start")
           (mod-jak2-haven-city-warp-button "Main Town: the east side" "hj2-ctygenc-start")
+          (mod-jak2-haven-city-warp-button "Main Town: pillar to the palace" "hj2-cable-pillar")
           (mod-jak2-haven-city-warp-button "Gardens: the mountain airlock" "hj2-ctyfarma-start")
           (mod-jak2-haven-city-warp-button "Gardens: the north side" "hj2-ctyfarmb-start")
           (mod-jak2-haven-city-warp-button "Palace plaza" "hj2-ctypal-shaft")
-          (mod-jak2-haven-city-warp-button "Stadium grounds" "hj2-stadium-start")
-          )
-        )
-      ;; key places: in front of a door, or inside
-      (new 'static 'popup-menu-submenu :label "Warp to a key place"
-        :entries (new 'static 'boxed-array :type popup-menu-entry
-          (mod-jak2-haven-city-warp-button "Underground hideout" "hj2-hideout-start")
-          (mod-jak2-haven-city-warp-button "Construction site gate" "hj2-ctyinda-consite")
-          (mod-jak2-haven-city-warp-button "In front of the palace" "hj2-ctypal-shaft")
-          (mod-jak2-haven-city-warp-button "Mar's tomb" "hj2-ctypal-tomb")
-          (mod-jak2-haven-city-warp-button "Pillar to the palace (cable)" "hj2-cable-pillar")
           (mod-jak2-haven-city-warp-button "Palace roof" "hj2-palroof-throne")
-          (mod-jak2-haven-city-warp-button "Hip Hog saloon" "hj2-ctyport-hiphog")
-          (mod-jak2-haven-city-warp-button "Gun course" "hj2-ctyport-gungame")
-          (mod-jak2-haven-city-warp-button "Air train (port)" "hj2-ctyport-warp")
-          (mod-jak2-haven-city-warp-button "Vin's power station" "hj2-ctyinda-vinroom")
-          (mod-jak2-haven-city-warp-button "The fortress" "hj2-ctyslumb-fort")
-          (mod-jak2-haven-city-warp-button "The Oracle" "hj2-oracle-start")
+          (mod-jak2-haven-city-warp-button "Stadium grounds" "hj2-stadium-start")
           (mod-jak2-haven-city-warp-button "Keira's garage" "hj2-garage-start-skate")
           )
         )
       (new 'static 'popup-menu-submenu :label "Warp outside the city"
+        :entry-disabled? (lambda () (not *mod-jak2-haven-city-enabled*))
         :entries (new 'static 'boxed-array :type popup-menu-entry
           (mod-jak2-haven-city-warp-button "Dead Town" "hj2-ruins-start")
           (mod-jak2-haven-city-warp-button "Dead Town: the Sage's hut" "hj2-ruins-hut")
           (mod-jak2-haven-city-warp-button "Inside the fortress" "hj2-forresca-start")
           (mod-jak2-haven-city-warp-button "Fortress: the prison" "hj2-prison-start")
-          (mod-jak2-haven-city-warp-button "Fortress: the way out" "hj2-forexita-start")
           (mod-jak2-haven-city-warp-button "Stadium race track" "hj2-stadiumd-start")
           (mod-jak2-haven-city-warp-button "Construction site" "hj2-consite-start")
           (mod-jak2-haven-city-warp-button "Pumping station" "hj2-atoll-start")
@@ -169,40 +153,13 @@ now if it runs (its start sets the bikes' level and counts, havenj2-traffic.gc).
           (mod-jak2-haven-city-warp-button "Haven Forest" "hj2-forest-start")
           (mod-jak2-haven-city-warp-button "Castle pad (air train)" "hj2-caspad-start")
           (mod-jak2-haven-city-warp-button "Dig site" "hj2-dig3-start")
+          ;; back to Jak 3's world: its Freedom HQ, where the time gate to Jak 2's city stands
+          (mod-jak2-haven-city-warp-button "Freedom HQ (Jak 3)" "freehq-start")
           )
         )
-      ;; back to Jak 3's world: its Freedom HQ, where the time gate to Jak 2's city stands
-      (mod-jak2-haven-city-warp-button "Warp to the Freedom HQ (Jak 3)" "freehq-start")
-      (new 'static 'popup-menu-submenu :label "Time of day"
-        :entries (new 'static 'boxed-array :type popup-menu-entry
-          (new 'static 'popup-menu-flag :label "Morning (9:00)"
-               :is-toggled? (lambda () (= *mod-jak2-haven-city-hour* 9))
-               :on-confirm (lambda () (mod-jak2-haven-city-set-hour 9) (none))
-               )
-          (new 'static 'popup-menu-flag :label "Noon (12:00)"
-               :is-toggled? (lambda () (= *mod-jak2-haven-city-hour* 12))
-               :on-confirm (lambda () (mod-jak2-haven-city-set-hour 12) (none))
-               )
-          (new 'static 'popup-menu-flag :label "Afternoon (16:00)"
-               :is-toggled? (lambda () (= *mod-jak2-haven-city-hour* 16))
-               :on-confirm (lambda () (mod-jak2-haven-city-set-hour 16) (none))
-               )
-          (new 'static 'popup-menu-flag :label "Evening (19:00)"
-               :is-toggled? (lambda () (= *mod-jak2-haven-city-hour* 19))
-               :on-confirm (lambda () (mod-jak2-haven-city-set-hour 19) (none))
-               )
-          (new 'static 'popup-menu-flag :label "Night (23:00)"
-               :is-toggled? (lambda () (= *mod-jak2-haven-city-hour* 23))
-               :on-confirm (lambda () (mod-jak2-haven-city-set-hour 23) (none))
-               )
-          (new 'static 'popup-menu-flag :label "Day and night cycle (Jak 2)"
-               :is-toggled? (lambda () (< *mod-jak2-haven-city-hour* 0))
-               :on-confirm (lambda () (mod-jak2-haven-city-set-hour -1) (none))
-               )
-          )
-        )
-      ;; the weather of the whole game (jak2-haven-city-world.gc)
-      (new 'static 'popup-menu-submenu :label "Weather (whole game)"
+      ;; the weather of the whole game and the hour of Jak 2's levels (jak2-haven-city-world.gc)
+      (new 'static 'popup-menu-submenu :label "Weather"
+        :entry-disabled? (lambda () (not *mod-jak2-haven-city-enabled*))
         :entries (new 'static 'boxed-array :type popup-menu-entry
           (mod-jak2-haven-city-weather-flag "Changing (Jak 3's weather)" 0)
           (mod-jak2-haven-city-weather-flag "Sunny" 1)
@@ -212,25 +169,18 @@ now if it runs (its start sets the bikes' level and counts, havenj2-traffic.gc).
           (mod-jak2-haven-city-weather-flag "Rain" 5)
           (mod-jak2-haven-city-weather-flag "Thunderstorm" 6)
           (mod-jak2-haven-city-weather-flag "Snow" 7)
+          (new 'static 'popup-menu-submenu :label "Time of day (Jak 2's levels)"
+            :entries (new 'static 'boxed-array :type popup-menu-entry
+              (mod-jak2-haven-city-hour-flag "Morning (9:00)" 9)
+              (mod-jak2-haven-city-hour-flag "Noon (12:00)" 12)
+              (mod-jak2-haven-city-hour-flag "Afternoon (16:00)" 16)
+              (mod-jak2-haven-city-hour-flag "Evening (19:00)" 19)
+              (mod-jak2-haven-city-hour-flag "Night (23:00)" 23)
+              (mod-jak2-haven-city-hour-flag "Day and night cycle (Jak 2)" -1)
+              )
+            )
           )
         )
-      (new 'static 'popup-menu-flag :label "City traffic"
-           :is-toggled? (lambda () *mod-jak2-haven-city-traffic*)
-           :on-confirm (lambda () (mod-jak2-haven-city-set-traffic (not *mod-jak2-haven-city-traffic*)) (none))
-           )
-      (new 'static 'popup-menu-flag :label "Hellcats in the traffic"
-           :is-toggled? (lambda () *mod-jak2-haven-city-hellcats*)
-           :on-confirm (lambda () (mod-jak2-haven-city-set-hellcats (not *mod-jak2-haven-city-hellcats*)) (none))
-           )
-      (new 'static 'popup-menu-flag :label "Guard bikes in the traffic"
-           :is-toggled? (lambda () *mod-jak2-haven-city-guard-bikes*)
-           :on-confirm (lambda () (mod-jak2-haven-city-set-guard-bikes (not *mod-jak2-haven-city-guard-bikes*)) (none))
-           )
-      ;; read every frame by the guards, Hellcats and turrets: takes effect at once
-      (new 'static 'popup-menu-flag :label "Jak 2's alert (turrets)"
-           :is-toggled? (lambda () *mod-jak2-haven-city-alert*)
-           :on-confirm (lambda () (set! *mod-jak2-haven-city-alert* (not *mod-jak2-haven-city-alert*)) (none))
-           )
       )
     )
   )
