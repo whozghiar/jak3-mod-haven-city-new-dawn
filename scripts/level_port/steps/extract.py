@@ -20,8 +20,14 @@ missing.
 The games' disc files must be in iso_data/<game> (copied from the disc, like for `task extract`).
 The decompiler runs with its config's default version (ntsc_v1): the one the level port's paths
 follow (decompiler_out/<game>, out/<game>/fr3).
+
+At a mod's install (the port run by a mod release's extractor, __main__.py --extractor), that
+extractor extracts instead of the decompiler: from the discs --iso gives (the player's launcher
+install), with the disc's own version (its buildinfo.json), into the root (the mod's data/ folder).
+It extracts only the source game's DGOs the port reads, never the whole game.
 """
 
+import importlib
 import json
 import os
 import subprocess
@@ -32,6 +38,8 @@ from ..common.files import read_jsonc
 EXE = ".exe" if os.name == "nt" else ""
 DECOMPILER = f"out/build/Release/bin/decompiler{EXE}"
 FR3_CHECK = f"out/build/Release/bin/fr3_check{EXE}"
+# a mod release's extractor (__main__.py --extractor), extracting in the decompiler's place
+EXTRACTOR = None
 VERSION = "ntsc_v1"
 
 
@@ -41,7 +49,15 @@ def fail(lines):
 
 
 def decompile(game, overrides):
-    """Run the decompiler on iso_data/<game> with these config overrides."""
+    """Run the decompiler on iso_data/<game> with these config overrides (or the extractor on the
+    game's disc, writing into the root, when there is one: EXTRACTOR)."""
+    if EXTRACTOR:
+        iso = importlib.import_module(f"level_port.games.{game}").ISO
+        cmd = [EXTRACTOR, os.path.abspath(iso), "--folder", "--decompile", "--game", game,
+               "--proj-path", os.getcwd(), "--decomp-config-override", json.dumps(overrides)]
+        print("  running: " + " ".join(cmd))
+        subprocess.run(cmd, check=True)
+        return
     # an absolute path: Windows' CreateProcess doesn't find a relative one with "/" separators
     cmd = [os.path.abspath(DECOMPILER), f"./decompiler/config/{game}/{game}_config.jsonc",
            "./iso_data", "./decompiler_out", "--version", VERSION, "--config-override",
@@ -57,6 +73,29 @@ def newest_replacement(game):
                 for f in fs if f.lower().endswith(".png")), default=0)
 
 
+def manifest_levels(port):
+    """Every source level the manifest names anywhere (the particles' "textures_from",
+    "backdrop_levels", the rips' folders...): a string, key or value, that is one, or a path that
+    starts with one, and whose DGO is on the source game's disc (Jak 2's level-info names levels it
+    doesn't ship, like Jak 3's wasall). A few may be the target game's levels of the same name:
+    extracted for nothing."""
+    src = port.source
+    names = {lv for lv in src.level_names() if os.path.exists(f"{src.ISO}/DGO/{src.dgo_of(lv)}")}
+    found = set()
+
+    def walk(x):
+        if isinstance(x, dict):
+            x = [*x, *x.values()]
+        if isinstance(x, list):
+            for v in x:
+                walk(v)
+        elif isinstance(x, str) and x.split("/")[0] in names:
+            found.add(x.split("/")[0])
+
+    walk(port.data)
+    return found
+
+
 def source_needs(port):
     """The source game's files the port reads: source level -> its files missing or older than
     the newest texture replacement (to extract again)."""
@@ -67,6 +106,7 @@ def source_needs(port):
         return not os.path.exists(path) or os.path.getmtime(path) < newest
 
     levels = {s for lv in port.levels for s in lv.sources} | set(port.get("ported_levels", []))
+    levels |= manifest_levels(port)
     missing = {}
     for lv in sorted(levels):
         for path in (f"{src.ENTITIES}/{lv}-actors.json", f"{src.FR3}/{lv}.fr3"):
@@ -101,7 +141,7 @@ def missing_baked_models(game):
 def run(port):
     src, dst = port.source, port.target
     problems = [f"no {tool} (build it: {how})" for tool, how in (
-        (DECOMPILER, "task build-release-decomp"),
+        (EXTRACTOR or DECOMPILER, "task build-release-decomp"),
         (FR3_CHECK, "cmake --build out/build/Release --target fr3_check --config Release"))
         if not os.path.exists(tool)]
     for game in (src, dst):
@@ -114,7 +154,8 @@ def run(port):
     # the source game: everything with its rips when nothing was ripped, else the missing DGOs
     missing = source_needs(port)
     if missing:
-        whole = not os.path.isdir(src.RIPS) or not os.listdir(src.RIPS)
+        # (never with the extractor: the player's install extracts only what the port reads)
+        whole = not EXTRACTOR and (not os.path.isdir(src.RIPS) or not os.listdir(src.RIPS))
         overrides = {"decompile_code": False, "levels_extract": True, "allowed_objects": [],
                      "rip_levels": True}
         if whole:

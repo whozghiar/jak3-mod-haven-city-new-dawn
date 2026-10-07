@@ -8,7 +8,8 @@ scripts/level_port/README.md describes its keys.
 import importlib
 import os
 
-from .common.files import ROOT, read_jsonc
+from .common import files
+from .common.files import read_jsonc
 
 
 class Level:
@@ -44,7 +45,7 @@ class Level:
 
 class Port:
     def __init__(self, path):
-        self.path = os.path.relpath(os.path.abspath(path), ROOT).replace(os.sep, "/")
+        self.path = os.path.relpath(os.path.abspath(path), files.ROOT).replace(os.sep, "/")
         self.dir = os.path.dirname(self.path)
         self.data = read_jsonc(path)
         d = self.data

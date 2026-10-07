@@ -6,7 +6,8 @@ ambiences (sound-play-loop), their continues' sound banks, their music (the leve
 the same name (Jak 2's FOREST1.SBK isn't Jak 3's), so each gets the manifest's "prefix", shortened
 to the disc's 8 characters (Jak 2's CTYWIDE1.SBK: J2CTYWI1.SBK, the bank 'j2ctywi1). The build
 copies the files the levels use from the source game's extracted disc (iso_data/<game>) to the
-target game's (out/<game>/iso), when they are there: without them the levels are silent.
+target game's (out/<game>/iso), when they are there (the absolute path of the player's
+disc when the port runs with --iso, at a mod's install): without them the levels are silent.
 
 Voice lines (the source game's VAG files: speeches, citizens' lines) are packed by goalc's
 pack-vags tool into a directory and wads of the target game's format (VAGDIRM.AYB,
@@ -49,6 +50,8 @@ class Sound:
         self.voices = cfg.get("voices", {})
         self.build_file = port["build"]["file"]
         self.source = port.source.NAME
+        # its extracted disc: iso_data/<game>, or the absolute path of a launcher install (--iso)
+        self.iso = port.source.ISO
         self.source_title = port.source.TITLE
         self.target_title = port.target.TITLE
         self.banks = {}  # new name -> source name
@@ -95,7 +98,7 @@ class Sound:
                  "extracted disc when it is", ";; there (renamed: scripts/level_port/steps/sound.py)"]
         for used, ext in ((self.banks, "SBK"), (self.music, "MUS")):
             for new, name in sorted(used.items()):
-                src = f"iso_data/{self.source}/{ext}/{name.upper()}.{ext}"
+                src = f"{self.iso}/{ext}/{name.upper()}.{ext}"
                 out = f"$OUT/iso/{new.upper()}.{ext}"
                 # in the "iso" group (game.gp), with the target game's own sound banks
                 lines += [f'(when (file-exists? "{src}")',
@@ -111,7 +114,7 @@ class Sound:
         lines = list(dict.fromkeys(x for v in self.voices.values() for x in v))
         if not lines:
             return []
-        src = f"iso_data/{self.source}/VAG/VAGDIR.AYB"
+        src = f"{self.iso}/VAG/VAGDIR.AYB"
         outs = ["$OUT/iso/VAGDIRM.AYB"] + [f"$OUT/iso/VAGWADM.{lang}" for lang in VOICE_LANGUAGES]
         pairs = [f"({x} {self.voice(x)})" for x in lines]
         arg = ["    " + " ".join(pairs[i:i + 6]) for i in range(0, len(pairs), 6)]

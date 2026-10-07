@@ -38,6 +38,22 @@ It needs:
 Then `(mi)` in `goalc` builds the levels. A generated file is only rewritten when its content
 changes, so `goalc` only rebuilds the levels that changed.
 
+Options, all optional (without them it runs as above, from the repository root):
+
+| Option | Default | Use |
+|---|---|---|
+| `--steps a,b` | every step | run only these steps |
+| `--root DIR` | the repository root (the working directory for the one-file executable) | the folder every path of the port is relative to: a mod release's `data/` |
+| `--iso GAME=PATH` | `iso_data/<game>` | a game's disc files, repeatable. The build file then copies the source game's sound from this absolute path |
+| `--extractor PATH` | none: the decompiler of `out/build/Release/bin` | extract with this OpenGOAL extractor (`--decompile --game <game> --proj-path <root>`, the disc's own version from its `buildinfo.json`), and only the DGOs the manifest names, never the whole game |
+| `--fr3-check PATH` | `out/build/Release/bin/fr3_check` | the `fr3_check` executable |
+
+At a mod's install from the OpenGOAL Launcher, the mod's extractor runs the port with all of them
+before it compiles (`run_level_ports`, `decompiler/extractor/main.cpp`), as a one-file executable
+the release builds with PyInstaller (`.github/workflows/release.yml`). Outside a git checkout (no
+`.git` in the root) a full run leaves the `ignore_outputs` `.gitignore` alone. The Jak 2 → Jak 3
+port's install sequence and error codes: [Launcher install](../../docs/modding/current_mod/jak2_haven_city_readme.md#46-launcher-install).
+
 ## What it writes
 
 | Step | Writes |

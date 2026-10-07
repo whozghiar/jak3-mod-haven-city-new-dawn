@@ -3,9 +3,13 @@
 import json
 import os
 import re
+import sys
 
-# the repository root (scripts/level_port/common/files.py)
-ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+# the repository root (scripts/level_port/common/files.py), or, for the one-file executable a mod
+# release ships (frozen: no repository around it), the working directory. __main__.py's --root
+# sets it (a mod's data/ folder, when the extractor runs the port at install time).
+ROOT = (os.getcwd() if getattr(sys, "frozen", False)
+        else os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..")))
 
 _JSONC_TOKEN = re.compile(r'"(?:[^"\\]|\\.)*"|//[^\n]*|/\*.*?\*/', re.S)
 

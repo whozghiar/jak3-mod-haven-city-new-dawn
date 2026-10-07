@@ -75,8 +75,7 @@ import textwrap
 from ..common import goal_lisp as gl
 from ..common.files import write_if_changed
 from ..common.goal_lisp import Atom, QUOTE
-
-FR3_CHECK = os.path.abspath("out/build/Release/bin/fr3_check" + (".exe" if os.name == "nt" else ""))
+from . import extract as extract_step
 
 
 # texture tables ##################################################################################
@@ -101,7 +100,8 @@ def load_textures(game):
 
 def fr3_textures(game, level, filter_text):
     """fr3_check's texture list of a .fr3 file."""
-    return subprocess.run([FR3_CHECK, f"out/{game}/fr3/{level}.fr3", "--textures", filter_text],
+    return subprocess.run([os.path.abspath(extract_step.FR3_CHECK), f"out/{game}/fr3/{level}.fr3",
+                           "--textures", filter_text],
                           capture_output=True, text=True, check=True).stdout
 
 
