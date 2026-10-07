@@ -103,9 +103,10 @@
     "levels_var": "*havenj2-levels*",
     "levels_var_comment": "every level of this mod (the clock stays as set while one of them is active)",
     "hubs_var": "*havenj2-hubs*",
-    // which district holds each 25m square of the city's streets (the district loading guard,
+    // which district holds each 25m square of the city (the one whose collision ground covers most
+    // of it, else Jak 2's traffic cells; the district loading guard,
     // hj2-district-guard in jak2-haven-city-world.gc), and the districts within "preload" meters of
-    // each square, loaded hidden before Jak gets there
+    // each square, whose geometry the PC renderer loads before Jak gets there (hj2-renderer-prefetch)
     "district_map": {"var": "*havenj2-district", "cell": 25.0, "preload": 130.0},
     "hubs_var_comment": "the city's districts and their hub, (district . hub): a district is loaded after its hub"
   },

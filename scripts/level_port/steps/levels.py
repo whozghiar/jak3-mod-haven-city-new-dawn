@@ -1062,22 +1062,45 @@ def write_full_level(ctx, level):
 GROW = 3
 
 
+def ground_squares(game, source, cell):
+    """{(ix, iz): m2} of the source level's collision ground (triangles facing up, seen from above)
+    in each square of cell meters, ix = floor(x / cell) (fr3_check --squares on its .fr3)."""
+    out = subprocess.run([os.path.abspath(extract_step.FR3_CHECK), f"{game.FR3}/{source}.fr3",
+                          "--squares", str(cell)], capture_output=True, text=True)
+    if out.returncode:
+        raise SystemExit(f"{extract_step.FR3_CHECK} has no --squares (rebuild it: cmake --build "
+                         "out/build/Release --target fr3_check --config Release)")
+    squares = {}
+    for line in out.stdout.splitlines():
+        parts = line.split()
+        if len(parts) == 3 and re.fullmatch(r"-?\d+", parts[0]):
+            squares[(int(parts[0]), int(parts[1]))] = float(parts[2])
+    return squares
+
+
 def district_map(ctx, cfg):
     """GOAL data: which level with a hub (a city district) holds each square of a grid over the
-    levels' navigation, from the source game's traffic cells (they cover a district's streets): each
-    cell's segments shared by the squares it overlaps, in proportion to the overlap (cells are 25
-    or 50 m: a 50 m cell counted whole on every square it touches pushed a district over its
-    neighbor's ground), each square going to the district with the most there; then GROW rings of
-    empty squares around (sidewalks, alleys, the ground past the last street). cfg: "var" (the
-    prefix of the defines), "cell" (meters)."""
+    city: the district whose collision ground (its source levels' .fr3, triangles facing up) covers
+    most of the square, so the district drawing the ground under Jak (the hub's own ground left
+    out). A square with no district ground (water, the air over a canal) goes to the source game's
+    traffic cells instead: each cell's segments shared by the squares it overlaps, in proportion to
+    the overlap, the square to the district with the most there. Then GROW rings of empty squares
+    around (the ground past the last street). The traffic cells alone (phases 15b to 20) put
+    streets' sides and the stadium's grounds by the main town in the wrong district. cfg: "var"
+    (the prefix of the defines), "cell" (meters)."""
     port = ctx.port
     meter = ctx.meter
     size = cfg["cell"] * meter
-    squares = {}  # (ix, iz) -> {level: segments}
+    squares = {}  # (ix, iz) -> {level: segments}, from the traffic cells
+    ground = {}  # (ix, iz) -> {level: m2 of ground}
     names = []
     for level in port.levels:
         if level.name not in port.hubs:
             continue
+        for src in level.sources:
+            for key, area in ground_squares(port.source, src, cfg["cell"]).items():
+                counts = ground.setdefault(key, {})
+                counts[level.name] = counts.get(level.name, 0) + area
         for src in nav_step.city_sources(port, level):
             city = nav_step.decode_city(nav_step.data_blob.Blob(
                 os.path.join(port.source.ENTITIES, src + "-city.json")))
@@ -1095,8 +1118,11 @@ def district_map(ctx, cfg):
                             continue
                         counts = squares.setdefault((ix, iz), {})
                         counts[level.name] = counts.get(level.name, 0) + share
-            if level.name not in names:
-                names.append(level.name)
+        if level.name not in names:
+            names.append(level.name)
+    # less than 5 m2 of a district's ground in a square is a stray triangle (a kerb, a step)
+    ground = {k: c for k, c in ground.items() if max(c.values()) >= 5.0}
+    squares.update(ground)
     x0 = min(ix for ix, _ in squares) - GROW
     z0 = min(iz for _, iz in squares) - GROW
     nx = max(ix for ix, _ in squares) - x0 + 1 + GROW
@@ -1123,11 +1149,11 @@ def district_map(ctx, cfg):
     preload = nearest_districts(cells, nx, nz, cfg.get("preload", PRELOAD) / cfg["cell"])
     preload_rows = [" ".join(str(c) for c in preload[i:i + 40]) for i in range(0, len(preload), 40)]
     return [
-        f";; the city's districts, and which of them holds each {cfg['cell']}m square of the city's "
-        "streets (1 + its",
-        f";; index in {var}-names*, 0: none), from {port.source.TITLE}'s traffic cells. The grid: "
-        "x and z of its first",
-        ";; square (game units), square size, squares per row.",
+        f";; the city's districts, and which of them holds each {cfg['cell']}m square of the city "
+        "(1 + its index in",
+        f";; {var}-names*, 0: none): the district whose collision ground covers most of it, else "
+        f"{port.source.TITLE}'s traffic cells.",
+        ";; The grid: x and z of its first square (game units), square size, squares per row.",
         f"(define {var}-names* (new 'static 'boxed-array :type symbol " +
         " ".join(f"'{n}" for n in names) + "))",
         "",
@@ -1140,8 +1166,8 @@ def district_map(ctx, cfg):
         "",
         f";; for each square of {var}-cells*, two values: the nearest other districts (1 + index, 0: "
         "none) within",
-        f";; {cfg.get('preload', PRELOAD)}m of it, nearest first: the districts loaded hidden "
-        "before Jak gets there.",
+        f";; {cfg.get('preload', PRELOAD)}m of it, nearest first: the districts whose geometry the "
+        "PC renderer loads before Jak gets there.",
         f"(define {var}-preload* (new 'static 'boxed-array :type uint8",
         *["  " + r for r in preload_rows],
         "  ))",
@@ -1149,7 +1175,7 @@ def district_map(ctx, cfg):
     ]
 
 
-# meters: how far from a square of the district map the districts loaded ahead are (the
+# meters: how far from a square of the district map the districts the renderer loads ahead are (the
 # district_map's "preload"; Jak 2's loading faces are about that far before its display faces)
 PRELOAD = 130.0
 

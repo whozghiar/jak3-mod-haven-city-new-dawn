@@ -3,8 +3,16 @@
 // matrices, bvh nodes). Useful to validate generated or merged custom level fr3 files offline.
 //
 // usage: fr3_check <path/to/level.fr3> [xmin ymin zmin xmax ymax zmax (meters) | --palettes |
-//                                       --draws <name filter> | --textures <name filter>]
+//                                       --draws <name filter> | --textures <name filter> |
+//                                       --models <name filter> | --squares <meters>]
+//
+// --models lists the merc models (actors' skinned meshes) the level carries, one name per line.
+// --squares prints, for each square of that size (meters) on x and z holding some, the area (m2,
+// seen from above) of the level's collision ground (triangles facing up): "ix iz area" per line,
+// ix = floor(x / size). The level port builds its district map from it (which level's ground lies
+// under Jak).
 
+#include <cmath>
 #include <cstdio>
 #include <map>
 
@@ -278,10 +286,13 @@ int main(int argc, char** argv) {
   const bool palettes = argc == 3 && std::string(argv[2]) == "--palettes";
   const bool draws = argc == 4 && std::string(argv[2]) == "--draws";
   const bool textures = argc == 4 && std::string(argv[2]) == "--textures";
-  if (argc != 2 && argc != 8 && !palettes && !draws && !textures) {
+  const bool models = argc == 4 && std::string(argv[2]) == "--models";
+  const bool squares = argc == 4 && std::string(argv[2]) == "--squares";
+  if (argc != 2 && argc != 8 && !palettes && !draws && !textures && !models && !squares) {
     fmt::print(
         "usage: fr3_check <path/to/level.fr3> [xmin ymin zmin xmax ymax zmax (meters) | "
-        "--palettes | --draws <name filter> | --textures <name filter>]\n");
+        "--palettes | --draws <name filter> | --textures <name filter> | "
+        "--models <name filter>]\n");
     return 1;
   }
   Timer timer;
@@ -307,6 +318,52 @@ int main(int argc, char** argv) {
         fmt::print("{:40} {:4}x{:<4} combo {:#010x} pool {}\n", name, tex.w, tex.h, tex.combo_id,
                    tex.load_to_pool);
       }
+    }
+    return 0;
+  }
+  if (models) {
+    for (const auto& model : lev.merc_data.models) {
+      if (model.name.find(argv[3]) != std::string::npos) {
+        fmt::print("{}\n", model.name);
+      }
+    }
+    return 0;
+  }
+  if (squares) {
+    // each ground triangle cut into n * n equal triangles (n from its longest edge), each small
+    // triangle's area counted in the square holding its centroid
+    const float size = std::stof(argv[3]) * 4096;
+    std::map<std::pair<int, int>, double> area;
+    const auto& v = lev.collision.vertices;
+    for (size_t i = 0; i + 2 < v.size(); i += 3) {
+      const float ax = v[i].x, az = v[i].z;
+      const float bx = v[i + 1].x - ax, by = v[i + 1].y - v[i].y, bz = v[i + 1].z - az;
+      const float cx = v[i + 2].x - ax, cy = v[i + 2].y - v[i].y, cz = v[i + 2].z - az;
+      const double nx = by * cz - bz * cy, ny = bz * cx - bx * cz, nz = bx * cy - by * cx;
+      const double len = std::sqrt(nx * nx + ny * ny + nz * nz);
+      if (len <= 0 || std::abs(ny) < 0.5 * len) {
+        continue;  // walls and degenerate triangles
+      }
+      const float edge =
+          std::max({std::hypot(bx, bz), std::hypot(cx, cz), std::hypot(cx - bx, cz - bz)});
+      const int n = std::max(1, (int)std::ceil(edge / (size / 4)));
+      const double part = std::abs(ny) / 2 / (4096.0 * 4096.0) / (n * n);
+      auto add = [&](double s, double t) {
+        const double x = ax + s / n * bx + t / n * cx;
+        const double z = az + s / n * bz + t / n * cz;
+        area[{(int)std::floor(x / size), (int)std::floor(z / size)}] += part;
+      };
+      for (int a = 0; a < n; a++) {
+        for (int b = 0; a + b < n; b++) {
+          add(a + 1.0 / 3, b + 1.0 / 3);
+          if (a + b < n - 1) {
+            add(a + 2.0 / 3, b + 2.0 / 3);
+          }
+        }
+      }
+    }
+    for (const auto& [sq, a] : area) {
+      fmt::print("{} {} {:.1f}\n", sq.first, sq.second, a);
     }
     return 0;
   }

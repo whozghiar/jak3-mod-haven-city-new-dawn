@@ -28,7 +28,8 @@ It needs:
   then only the DGOs of the levels whose files are missing or older than the newest PNG in
   `custom_assets/<source game>/texture_replacements`), the target game's backgrounds,
 - the decompiler and `fr3_check` built (`cmake --build out/build/Release --target fr3_check`): the particle step lists
-  the textures of `.fr3` files with it,
+  the textures of `.fr3` files with it, the levels step the collision ground of the districts
+  (`--squares`, the district map),
 - the C++ side: the decompiler's exports (fixed cameras, navigation data, TIE collision tags) and the
   level builder's keys the generated `.jsonc` files use (`import_fr3`, `nav_data`, `cameras`,
   `region_tree_files`, `sprite_textures`, `pair` and `string` lumps). Today they exist for Jak 3's

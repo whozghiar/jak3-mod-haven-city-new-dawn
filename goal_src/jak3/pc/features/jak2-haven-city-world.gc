@@ -34,21 +34,23 @@ itself (name): the city's districts and their hub make one group (respawn points
 ;; Jak 2 loads its city with region scripts: a face Jak crosses loads the next district (want-load),
 ;; a face the camera crosses shows or hides one (want-display), and a request to show a level that
 ;; isn't wanted is lost (load-state want-display-level: "can't display X because it isn't loaded").
-;; Jak 2's scripts run here as they are. Where Jak's route misses one of their loading faces (they
-;; can be walked around: from the industrial section to the port, from the palace to the main
-;; town...), this mod helps, in this order:
-;; 1. ahead of Jak (hj2-preload-district): the nearest districts of the street square under him
-;;    (*havenj2-district-preload*, generated) loaded hidden before he gets there, and shown when he
-;;    comes within 50 m of them (hj2-show-near-districts);
-;; 2. at display time (the want-display-level wrapper): a district (or a place loaded with the city)
-;;    asked to be shown while it isn't wanted is swapped in for a hidden district of the same hub
-;;    (hj2-swap-in-district);
-;; 3. the district guard (hj2-district-guard): the district under Jak shown if it still isn't.
-;; While a script puts Jak in a place loaded with the city (hj2-in-place?: the stadium's race track,
-;; under the main town's streets), steps 1 and 3 leave the city alone.
-;; None of them evicts a district Jak 2's scripts asked for less than 5 s ago (hj2-recently-asked?),
-;; so nothing loads back and forth. And no district is shown before the PC renderer has its
-;; geometry (hj2-display-wait?): shown, its collision would be live with nothing drawn.
+;; Jak 2's scripts run here as they are, and alone decide which levels the game loads and shows, as
+;; in Jak 2. Where Jak's route misses one of their loading faces (they can be walked around: from the
+;; industrial section to the port, from the palace to the main town...), two fallbacks act only when
+;; Jak 2's own loading would leave Jak on the void:
+;; 1. at display time (the want-display-level wrapper): a district (or a place loaded with the city)
+;;    a script asks to show while it isn't wanted is swapped in for a hidden district of the same
+;;    hub (hj2-swap-in-district);
+;; 2. the district guard (hj2-district-guard): the district whose ground is under Jak shown if it
+;;    still isn't after 0.3 s, and the district he will be over in 1.5 s loaded hidden. While a
+;;    script puts Jak in a place loaded with the city (hj2-in-place?: the stadium's race track,
+;;    under the main town's streets), it leaves the city alone.
+;; Neither evicts a district Jak 2's scripts asked for less than 5 s ago (hj2-recently-asked?), so
+;; nothing loads back and forth. What makes the loading fast is the PC renderer, which loads a
+;; level's geometry (.fr3, 1.5 to 2.5 s for a district) much slower than the game loads the level
+;; (0.05 to 0.3 s): it loads the districts near Jak ahead of the game (hj2-renderer-prefetch), and no
+;; district is shown before the renderer has its geometry (hj2-display-wait?): shown, its collision
+;; would be live with nothing drawn.
 
 (define *hj2-want-names* (new 'static 'boxed-array :type symbol :length 10 :allocated-length 10))
 
@@ -102,28 +104,98 @@ the oldest). Levels that aren't districts are ignored. Returns nothing."
   #f
   )
 
+(defun hj2-mod-level? ((name symbol))
+  "Is name one of this mod's levels (*havenj2-levels*)?"
+  (if (member name *havenj2-levels*)
+      #t
+      #f
+      )
+  )
+
+(defun hj2-wanted? ((this load-state) (name symbol))
+  "Is the level name in the load-state's want list?"
+  (dotimes (i 10)
+    (if (= (-> this want i name) name)
+        (return #t)
+        )
+    )
+  #f
+  )
+
+(defun hj2-want-shown? ((this load-state) (name symbol))
+  "Is the level name in the load-state's want list, asked to be shown?"
+  (dotimes (i 10)
+    (if (= (-> this want i name) name)
+        (return (if (-> this want i display?)
+                    #t
+                    #f
+                    )
+                )
+        )
+    )
+  #f
+  )
+
+(defun hj2-print-jak ()
+  "End a log line of this file with where Jak is (x and z, meters) and the frame (hj2-now): the
+script requests and the district guard's state can then be placed on the district map. Returns
+nothing."
+  (if *target*
+      (format 0 " (Jak at ~,,1M ~,,1M, frame ~D)~%" (-> (target-pos 0) x) (-> (target-pos 0) z) (hj2-now))
+      (format 0 " (frame ~D)~%" (hj2-now))
+      )
+  (none)
+  )
+
+;; the last level list a script asked for that the log printed (want-levels below)
+(define *hj2-script-want-names* (new 'static 'boxed-array :type symbol :length 10 :allocated-length 10))
+
 (define *hj2-want-levels* (method-of-type load-state want-levels))
 
 (defmethod want-levels ((this load-state) (arg0 (pointer symbol)))
   "Jak 3's want-levels (load-state.gc), after noting the districts it names as asked by a script
-(hj2-note-asked), unless this file calls it (*hj2-own-want?*). arg0: 10 level names or #f (Jak 3's
-method clears the names already wanted). Returns Jak 3's result."
-  (if (not *hj2-own-want?*)
+(hj2-note-asked), unless this file calls it (*hj2-own-want?*). A script's list naming one of this
+mod's levels is printed when it differs from the last printed ('hj2: script wants <levels>', with
+where Jak is): the log then says which of Jak 2's faces loaded what. arg0: 10 level names or #f
+(Jak 3's method clears the names already wanted). Returns Jak 3's result."
+  (when (not *hj2-own-want?*)
+    (let ((new? #f)
+          (mod? #f)
+          )
       (dotimes (i 10)
-        (if (-> arg0 i)
-            (hj2-note-asked (-> arg0 i))
+        (when (-> arg0 i)
+          (hj2-note-asked (-> arg0 i))
+          (if (hj2-mod-level? (-> arg0 i))
+              (set! mod? #t)
+              )
+          )
+        (if (!= (-> arg0 i) (-> *hj2-script-want-names* i))
+            (set! new? #t)
             )
         )
+      (when (and mod? new?)
+        (format 0 "hj2: script wants")
+        (dotimes (i 10)
+          (set! (-> *hj2-script-want-names* i) (-> arg0 i))
+          (if (-> arg0 i)
+              (format 0 " ~A" (-> arg0 i))
+              )
+          )
+        (hj2-print-jak)
+        )
       )
+    )
   ((the-as (function load-state (pointer symbol) int) *hj2-want-levels*) this arg0)
   )
 
 (defun hj2-want-levels ((this load-state) (names (pointer symbol)))
   "want-levels called by this file: not noted as a script's request. names: 10 level names or #f.
 Returns nothing."
-  (set! *hj2-own-want?* #t)
-  (want-levels this names)
-  (set! *hj2-own-want?* #f)
+  (let ((old *hj2-own-want?*))
+    (set! *hj2-own-want?* #t)
+    (want-levels this names)
+    (set! *hj2-own-want?* old)
+    )
   (none)
   )
 
@@ -200,7 +272,13 @@ log. #t if it did."
 (defmethod want-display-level ((this load-state) (arg0 symbol) (arg1 symbol))
   "Jak 3's want-display-level (load-state.gc), after a city district (or a place loaded with the
 city) asked to be shown while it isn't wanted is swapped in (hj2-swap-in-district): the last resort
-when it wasn't loaded ahead. Only this mod's levels are concerned. Returns Jak 3's result."
+when it wasn't loaded ahead. Only this mod's levels are concerned. A request of a script (not this
+file: *hj2-own-want?*) that changes one of them is printed first ('hj2: script shows <level> (not
+wanted)' or 'hj2: script hides <level>', with where Jak is). Returns Jak 3's result."
+  (when (and (not *hj2-own-want?*) (hj2-mod-level? arg0) (!= (hj2-want-shown? this arg0) (if arg1 #t #f)))
+    (format 0 "hj2: script ~A ~A~A" (if arg1 "shows" "hides") arg0 (if (hj2-wanted? this arg0) "" " (not wanted)"))
+    (hj2-print-jak)
+    )
   (if arg1
       (hj2-swap-in-district this arg0 "to show it")
       )
@@ -211,18 +289,11 @@ when it wasn't loaded ahead. Only this mod's levels are concerned. Returns Jak 3
 ;; the renderer once it is loaded: a district loaded late (a face walked around) showed black for
 ;; a while. This mod's levels are named to it as soon as they start loading (level.gc,
 ;; *pc-renderer-early-level?*), so the upload overlaps the load.
-(defun hj2-mod-level? ((name symbol))
-  "Is name one of this mod's levels (*havenj2-levels*)?"
-  (if (member name *havenj2-levels*)
-      #t
-      #f
-      )
-  )
-
 (set! *pc-renderer-early-level?* hj2-mod-level?)
 
-;; The district map (generated from Jak 2's traffic cells): which district holds each 25 m street
-;; square, and the two nearest other districts within 130 m of it (the manifest's "preload").
+;; The district map (generated from the districts' collision ground, Jak 2's traffic cells where
+;; none has ground): which district holds each 25 m square, and the two nearest other districts
+;; within 130 m of it (the manifest's "preload").
 
 (define-extern *havenj2-district-names* (array symbol))
 
@@ -271,72 +342,77 @@ when it wasn't loaded ahead. Only this mod's levels are concerned. Returns Jak 3
     )
   )
 
-(defun hj2-wanted? ((this load-state) (name symbol))
-  "Is the level name in the load-state's want list?"
-  (dotimes (i 10)
-    (if (= (-> this want i name) name)
-        (return #t)
+;; the last district hj2-renderer-prefetch printed, so each is printed once when it starts
+(define *hj2-prefetch-printed* (the-as symbol #f))
+
+(defun hj2-prefetch-add ((names (pointer string)) (name symbol))
+  "Put the level name in the first empty slot (\"none\") of names, the 10 level names given to the
+PC renderer (__pc-set-levels), unless it is already there or no slot is empty. Prints 'hj2: renderer
+loads <level> ahead of Jak' when the renderer doesn't have it yet (__pc-level-ready?). Returns
+nothing."
+  (when name
+    (let ((s (symbol->string name))
+          (free -1)
+          (found? #f)
+          )
+      (dotimes (i 10)
+        (cond
+          ((string= (-> names i) s)
+           (set! found? #t)
+           )
+          ((and (< free 0) (string= (-> names i) "none"))
+           (set! free i)
+           )
+          )
         )
-    )
-  #f
-  )
-
-;; when hj2-preload-district last swapped a district in (hj2-now)
-(define *hj2-preload-time* 0)
-
-(defun hj2-preload-district ((this load-state) (pos vector))
-  "Load ahead of Jak (pos): when the nearest other district of the square under pos
-(*havenj2-district-preload*, a) isn't wanted, it is wanted hidden in place of a hidden district
-(hj2-swap-in-district, never one shown or one a script asked for less than 5 s ago), even when the
-second nearest (b) is wanted, unless a script asked for b less than 5 s ago (Jak 2's loading faces
-know where Jak goes). b is often the district Jak just left, still wanted hidden: it kept the
-district ahead from loading (the stadium, from the main town). At most one swap per 5 s, so Jak on
-the line between a and b doesn't load them in turn. Nothing while a level loads. Returns nothing."
-  (let ((i (hj2-district-square pos)))
-    (when (and (>= i 0)
-               (>= (- (the-as int (hj2-now)) *hj2-preload-time*) (the-as int (seconds 5)))
-               (not (load-in-progress? *level*))
-               (not (check-busy *load-dgo-rpc*))
-               )
-      (let ((a (hj2-district-name (the int (-> *havenj2-district-preload* (* 2 i)))))
-            (b (hj2-district-name (the int (-> *havenj2-district-preload* (+ (* 2 i) 1)))))
-            )
-        (if (and a
-                 (not (hj2-wanted? this a))
-                 (not (and b (hj2-wanted? this b) (hj2-recently-asked? b)))
-                 (hj2-swap-in-district this a "ahead of Jak")
-                 )
-            (set! *hj2-preload-time* (the-as int (hj2-now)))
-            )
+      (when (and (not found?) (>= free 0))
+        (set! (-> names free) s)
+        (when (and (!= name *hj2-prefetch-printed*) (not (__pc-level-ready? s)))
+          (set! *hj2-prefetch-printed* name)
+          (format 0 "hj2: renderer loads ~A ahead of Jak (frame ~D)~%" name (hj2-now))
+          )
         )
       )
     )
   (none)
   )
 
-(defun hj2-wanted-hidden? ((this load-state) (name symbol))
-  "Is the level name in the load-state's want list, not shown?"
-  (dotimes (i 10)
-    (if (= (-> this want i name) name)
-        (return (not (-> this want i display?)))
+(defun hj2-renderer-prefetch ((names (pointer string)))
+  "This mod's *pc-renderer-prefetch* (level.gc), called every frame with the 10 level names given to
+the PC renderer (__pc-set-levels, \"none\" for an empty slot). While the hub is loaded and Jak is on
+the city's streets, the renderer also loads the geometry (.fr3) of the district under Jak and of the
+two nearest other districts of his square (*havenj2-district-preload*, within 130 m): the game's
+loads stay Jak 2's, but when a script loads one of them its geometry is already there (the renderer
+loads a district in 1.5 to 2.5 s, the game in 0.05 to 0.3 s). The renderer keeps up to 11 levels
+and unloads first those no longer named, so the districts Jak passed stay there for a while. The
+levels the game loads are moved first, as the renderer loads the first missing name first. Returns
+nothing."
+  (when (and *target* (level-get *level* 'havenj2))
+    (let ((i (hj2-district-square (target-pos 0))))
+      (when (>= i 0)
+        ;; the game's levels first, the empty slots last
+        (let ((n 0))
+          (dotimes (j 10)
+            (when (not (string= (-> names j) "none"))
+              (set! (-> names n) (-> names j))
+              (+! n 1)
+              )
+            )
+          (while (< n 10)
+            (set! (-> names n) "none")
+            (+! n 1)
+            )
+          )
+        (hj2-prefetch-add names (hj2-district-name (the int (-> *havenj2-district-cells* i))))
+        (hj2-prefetch-add names (hj2-district-name (the int (-> *havenj2-district-preload* (* 2 i)))))
+        (hj2-prefetch-add names (hj2-district-name (the int (-> *havenj2-district-preload* (+ (* 2 i) 1)))))
         )
+      )
     )
-  #f
+  (none)
   )
 
-(defun hj2-want-shown? ((this load-state) (name symbol))
-  "Is the level name in the load-state's want list, asked to be shown?"
-  (dotimes (i 10)
-    (if (= (-> this want i name) name)
-        (return (if (-> this want i display?)
-                    #t
-                    #f
-                    )
-                )
-        )
-    )
-  #f
-  )
+(set! *pc-renderer-prefetch* hj2-renderer-prefetch)
 
 (defun hj2-in-place? ()
   "Did a script make a place of this mod (not the hub nor a district) Jak's level (want-vis, the
@@ -352,56 +428,28 @@ still the district he came from: the district loading code leaves the city alone
     )
   )
 
-(defun hj2-show-near-districts ((this load-state) (pos vector))
-  "Show ahead of Jak (pos): every district wanted but hidden (loaded ahead by hj2-preload-district or
-by Jak 2's loading faces) with a street square within 2 squares (50 m) of the square under pos is
-shown (Jak 3's display path: it waits for the renderer, hj2-display-wait?). Jak 2's camera faces
-show a district before Jak reaches it; when they are walked around, it was shown only once Jak stood
-on it (the district guard), so Jak saw it missing from inside. The log prints 'hj2: <district>
-shown ahead of Jak'. Returns nothing."
-  (let ((i (hj2-district-square pos)))
-    (when (>= i 0)
-      (let* ((nx (the int (-> *havenj2-district-grid* w)))
-             (ix (mod i nx))
-             (iz (/ i nx))
-             )
-        (dotimes (dz 5)
-          (dotimes (dx 5)
-            (let ((jx (+ ix dx -2))
-                  (j (+ ix dx -2 (* (+ iz dz -2) nx)))
-                  )
-              (when (and (>= jx 0) (< jx nx) (>= j 0) (< j (-> *havenj2-district-cells* length)))
-                (let ((d (hj2-district-name (the int (-> *havenj2-district-cells* j)))))
-                  (when (and d (hj2-wanted-hidden? this d))
-                    (format 0 "hj2: ~A shown ahead of Jak (frame ~D)~%" d (hj2-now))
-                    (want-display-level this d 'display)
-                    )
-                  )
-                )
-              )
-            )
-          )
-        )
-      )
-    )
-  (none)
-  )
-
-;; when hj2-display-wait? last printed (hj2-now)
+;; when hj2-display-wait? or a door waiting for the renderer last printed (hj2-now)
 (define *hj2-wait-print-time* 0)
+
+(defun hj2-renderer-pending? ((lev level))
+  "Is lev (loaded or loading) one of this mod's levels whose geometry the PC renderer doesn't have yet
+(__pc-level-ready?), less than 6 s after its load started? Such a level isn't shown yet
+(hj2-display-wait?) and a door leading to it doesn't open yet (destination-loaded? below)."
+  (and (hj2-mod-level? (-> lev name))
+       (< (- (-> *display* real-clock frame-counter) (the-as time-frame (-> lev load-start-time))) (seconds 6))
+       (not (__pc-level-ready? (symbol->string (bsp-name lev))))
+       )
+  )
 
 (defun hj2-display-wait? ((lev level))
   "This mod's *pc-renderer-display-wait?* (level.gc): #t while lev, one of this mod's levels asked to
-be shown, has no geometry in the PC renderer yet (__pc-level-ready?): it stays hidden (its
+be shown, has no geometry in the PC renderer yet (hj2-renderer-pending?): it stays hidden (its
 collision and actors off) and is shown the first frame it is ready, at most 6 s after its load
 started (then shown anyway, like Jak 3). Meanwhile, if Jak stands on that district's street square,
 or lev is the level a script made Jak's (vis-nick: a place, the stadium's race track), he waits like
 for a stock display-wait level (the 'loading event). The log prints 'hj2: <level> waits for the
 renderer' once a second (*hj2-wait-print-time*)."
-  (when (and (hj2-mod-level? (-> lev name))
-             (< (- (-> *display* real-clock frame-counter) (the-as time-frame (-> lev load-start-time))) (seconds 6))
-             (not (__pc-level-ready? (symbol->string (bsp-name lev))))
-             )
+  (when (hj2-renderer-pending? lev)
     ;; the real clock steps by a variable count per frame: a "multiple of 300" test missed seconds.
     ;; Every level waiting prints in the frame of the print.
     (when (or (= (the-as int (hj2-now)) *hj2-wait-print-time*)
@@ -422,64 +470,368 @@ renderer' once a second (*hj2-wait-print-time*)."
 
 (set! *pc-renderer-display-wait?* hj2-display-wait?)
 
-(defun hj2-district-guard ()
-  "Called every frame while Jak is in this mod's levels (havenj2-continues-code). While Jak is in the
-city (his level is the hub or one of its districts, and no script put him in a place:
-hj2-in-place?): the districts loaded near him are shown
-(hj2-show-near-districts); with the district under him shown, loads ahead (hj2-preload-district);
-else, the safety net: when it hasn't been shown for 0.3 s, it is shown, in
-place of a hidden district (the want-display-level wrapper), else loaded with the hub and the
-district Jak was in. Shown through Jak 3's display path, so it waits for the renderer too
-(hj2-display-wait?). Returns nothing."
-  (let ((lev (-> *target* current-level)))
-    (if (not (and lev
-                  (-> *level* border?)
-                  (not (movie?))
-                  (= (hj2-hub-of (-> lev name)) 'havenj2)
-                  (not (hj2-in-place?))
-                  (level-get *level* 'havenj2)
-                  )
-             )
-        (return #f)
+;; Doors and the renderer. A Jak 2 door loads the level behind it (on-activate), waits for it to be
+;; loaded, then shows it (on-enter) and swings open; Jak 3's airlock code (the same) also closes an
+;; open door at once while that level isn't shown ('display check of its open state). Held hidden
+;; by hj2-display-wait?, the level appeared seconds after its door opened: the door cycled open and
+;; shut (its on-deactivate hiding the level each time), and where two doors stand back to back (the
+;; fortress's far gate fort-entry-gate-11 and the prison's fort-entry-gate-20, 2 m apart), Jak walked
+;; through the first before the second existed. Each door of a pair opens toward Jak's back only once
+;; the other is open (next-actor, subtask-complete): when the second appeared, each waited for the
+;; other and both stayed shut. So a door of this mod waits, still shut, for the renderer to have its
+;; levels before it opens: they are shown with it, like in Jak 2.
+
+(define *hj2-destination-loaded?* (method-of-type com-airlock destination-loaded?))
+
+(defmethod destination-loaded? ((this com-airlock) (level-status symbol))
+  "Jak 3's destination-loaded? (airlock.gc), and for a door in one of this mod's levels asked whether
+its levels (on-notice) are loaded (level-status #t: the open code's wait before on-enter), #f while
+one of them is pending in the PC renderer (hj2-renderer-pending?), printing 'hj2: <door> waits for
+the renderer (<level>)' once a second. Jak 3's own doors are unchanged. Defined before this mod's
+door classes (hj2-fort-gate below, hj2-common-obs.gc, havenj2-obs.gc), which inherit it; Jak 3's
+classes defined earlier in airlock.gc keep Jak 3's method. Returns Jak 3's result otherwise."
+  (let ((result ((the-as (function com-airlock symbol symbol) *hj2-destination-loaded?*) this level-status)))
+    (when (and (= level-status #t) (= result #t) (-> this level) (hj2-mod-level? (-> this level name)))
+      (let ((names (the-as pair (script-eval (-> this level-name)))))
+        (while (not (null? names))
+          (let ((lev (level-get *level* (the-as symbol (car names)))))
+            (when (and lev (hj2-renderer-pending? lev))
+              (when (>= (- (the-as int (hj2-now)) *hj2-wait-print-time*) (the-as int (seconds 1)))
+                (set! *hj2-wait-print-time* (the-as int (hj2-now)))
+                (format 0 "hj2: ~A waits for the renderer (~A, frame ~D)~%" (-> this name) (-> lev name) (hj2-now))
+                )
+              (return #f)
+              )
+            )
+          (set! names (the-as pair (cdr names)))
+          )
         )
-    (hj2-show-near-districts *load-state* (target-pos 0))
-    (let* ((d (hj2-district-at (target-pos 0)))
-           (shown (if d
-                      (level-get *level* d)
-                      (the-as level #f)
-                      )
+      )
+    result
+    )
+  )
+
+(defun hj2-want-display ((this load-state) (name symbol))
+  "want-display-level (name shown) called by this file: swapped in like a script's request (the
+want-display-level wrapper), but not printed as one. Returns nothing."
+  (let ((old *hj2-own-want?*))
+    (set! *hj2-own-want?* #t)
+    (want-display-level this name 'display)
+    (set! *hj2-own-want?* old)
+    )
+  (none)
+  )
+
+(defun hj2-district-ahead ((secs float))
+  "The city district of the street square Jak will be over in secs seconds at his speed (from the
+last two positions the regions saw, *level* target-pos), looking 60 m ahead at most (flying, 2.5 s
+reached a district beyond the next one: the slums from the stadium's gate, swapped with the stadium
+Jak 2 had just shown, back and forth), #f when none or when Jak moved more than 8 m in a frame (a
+warp, a respawn)."
+  (let* ((delta (vector-! (new 'stack-no-clear 'vector) (-> *level* target-pos 0) (-> *level* target-pos 1)))
+         (spf (-> *display* real-clock seconds-per-frame))
+         (len (vector-length delta))
+         )
+    (if (and (< len (meters 8)) (< 0.0 len) (< 0.0 spf))
+        (hj2-district-at
+          (vector+float*! (new 'stack-no-clear 'vector) (-> *level* target-pos 0) delta
+                          (/ (fmin (* len (/ secs spf)) (meters 60)) len)
+                          )
+          )
+        (the-as symbol #f)
+        )
+    )
+  )
+
+;; what the district guard printed last: the district under Jak and its state, or why the guard is
+;; off (hj2-district-guard)
+(define *hj2-guard-district* (the-as symbol #f))
+
+(define *hj2-guard-state* (the-as symbol #f))
+
+;; when the district guard last loaded a district ahead of Jak (hj2-now)
+(define *hj2-ahead-time* 0)
+
+(defun hj2-near-district ((pos vector) (k int) (except symbol) (unwanted? symbol))
+  "The city district whose ground is nearest pos within k squares (k * 25 m) of its square on the
+district map, except the district except; with unwanted? #t, only a district not wanted. #f for
+none. Walking speed is too slow for hj2-district-ahead to see a border coming (the user's last
+phase 20 test: walking from the port to the palace plaza, the plaza loaded only under Jak)."
+  (let ((i (hj2-district-square pos))
+        (best (the-as symbol #f))
+        (best-d2 1000000)
+        )
+    (when (>= i 0)
+      (let* ((nx (the int (-> *havenj2-district-grid* w)))
+             (n (-> *havenj2-district-cells* length))
+             (ix (mod i nx))
+             (iz (/ i nx))
+             )
+        (countdown (a (+ (* 2 k) 1))
+          (countdown (b (+ (* 2 k) 1))
+            (let* ((dx (- a k))
+                   (dz (- b k))
+                   (x (+ ix dx))
+                   (j (+ x (* (+ iz dz) nx)))
+                   (d2 (+ (* dx dx) (* dz dz)))
+                   )
+              (when (and (>= x 0) (< x nx) (>= j 0) (< j n) (< d2 best-d2))
+                (let ((name (hj2-district-name (the int (-> *havenj2-district-cells* j)))))
+                  (when (and name
+                             (!= name except)
+                             (not (and unwanted? (hj2-wanted? *load-state* name)))
+                             )
+                    (set! best name)
+                    (set! best-d2 d2)
+                    )
                   )
-           )
-      (cond
-        ((or (not d) (and shown (= (-> shown status) 'active)))
-         (set! *hj2-district-guard-time* 0)
-         (if d
-             (hj2-preload-district *load-state* (target-pos 0))
+                )
+              )
+            )
+          )
+        )
+      )
+    best
+    )
+  )
+
+(defun hj2-district-within? ((name symbol) (pos vector) (k int))
+  "Does the city district name have ground within k squares (k * 25 m) of the square under pos on
+the district map?"
+  (let ((i (hj2-district-square pos)))
+    (when (>= i 0)
+      (let* ((nx (the int (-> *havenj2-district-grid* w)))
+             (n (-> *havenj2-district-cells* length))
+             (ix (mod i nx))
+             (iz (/ i nx))
              )
-         )
-        ((zero? *hj2-district-guard-time*)
-         (set-time! *hj2-district-guard-time*)
-         )
-        ((time-elapsed? *hj2-district-guard-time* (seconds 0.3))
-         (set! *hj2-district-guard-time* 0)
-         ;; in place of a hidden district of the hub (the want-display-level wrapper), else with the
-         ;; hub and the district Jak was in (his current level, when it is a district)
-         (want-display-level *load-state* d 'display)
-         (when (not (hj2-wanted? *load-state* d))
-           (format 0 "hj2: district guard loads ~A (Jak in ~A, frame ~D)~%" d (-> lev name) (hj2-now))
-           (dotimes (i 10)
-             (set! (-> *hj2-want-names* i) (the-as symbol #f))
-             )
-           (set! (-> *hj2-want-names* 0) 'havenj2)
-           (set! (-> *hj2-want-names* 1) d)
-           (if (and (!= (-> lev name) 'havenj2) (!= (-> lev name) d))
-               (set! (-> *hj2-want-names* 2) (-> lev name))
+        (countdown (a (+ (* 2 k) 1))
+          (countdown (b (+ (* 2 k) 1))
+            (let* ((x (+ ix (- a k)))
+                   (j (+ x (* (+ iz (- b k)) nx)))
+                   )
+              (if (and (>= x 0) (< x nx) (>= j 0) (< j n)
+                       (= (hj2-district-name (the int (-> *havenj2-district-cells* j))) name)
+                       )
+                  (return #t)
+                  )
+              )
+            )
+          )
+        )
+      )
+    )
+  #f
+  )
+
+(defun hj2-load-ahead ((name symbol) (under symbol))
+  "Load the city district name, hidden, because Jak is heading onto its ground (hj2-district-ahead):
+in place of a hidden district of the hub no script asked for in the last 5 s, or in an empty slot
+(hj2-swap-in-district); else in place of another district of the hub, or a place loaded with the
+city, a hidden one first: Jak's heading wins over a script's recent request for a district far
+behind (a Jak 2 loading face walked around: from the industrial section to the slums, the slums
+loaded only once Jak was on them). Never the hub, under (the district under Jak), Jak's level, the
+nearest district within 50 m, nor a district shown or recently asked for with ground within 100 m. Prints 'hj2: <name> wanted in place of <district>, ahead of Jak'. Returns #t if it did."
+  (if (or (hj2-wanted? *load-state* name) (!= (hj2-hub-of name) 'havenj2))
+      (return #f)
+      )
+  (if (hj2-swap-in-district *load-state* name "ahead of Jak")
+      (return #t)
+      )
+  (let ((slot -1)
+        (slot-shown? #t)
+        )
+    (dotimes (i 10)
+      (let ((want (-> *load-state* want i name)))
+        (when (and want
+                   (!= want 'havenj2)
+                   (!= want under)
+                   (!= want (-> *load-state* vis-nick))
+                   (not (and (-> *target* current-level) (= want (-> *target* current-level name))))
+                   ;; a district or a place loaded with the city (the gun course...), not Jak's
+                   (member want *havenj2-levels*)
+                   (or (= (hj2-hub-of want) 'havenj2) (= (hj2-hub-of want) want))
+                   ;; never a district whose ground is within 50 m of Jak: he may turn back
+                   (!= want (hj2-near-district (target-pos 0) 2 under #f))
+                   ;; never a district shown or asked for by a script in the last 5 s with ground
+                   ;; within 100 m of Jak: swapping it fought Jak 2's faces (the stadium, back and
+                   ;; forth)
+                   (not (and (or (-> *load-state* want i display?) (hj2-recently-asked? want))
+                             (hj2-district-within? want (target-pos 0) 4)
+                             )
+                        )
+                   (or (< slot 0) (and slot-shown? (not (-> *load-state* want i display?))))
+                   )
+          (set! slot i)
+          (set! slot-shown? (-> *load-state* want i display?))
+          )
+        )
+      )
+    (when (>= slot 0)
+      (dotimes (i 10)
+        (set! (-> *hj2-want-names* i) (if (= i slot)
+                                          name
+                                          (-> *load-state* want i name)
+                                          )
+              )
+        )
+      (format 0 "hj2: ~A wanted in place of ~A, ahead of Jak (frame ~D)~%" name (-> *load-state* want slot name) (hj2-now))
+      (hj2-want-levels *load-state* (-> *hj2-want-names* data))
+      (return #t)
+      )
+    )
+  #f
+  )
+
+(defun hj2-show-if-loaded ((name symbol))
+  "Show the city district name now if it is loaded but hidden and its ground lies within 25 m of
+Jak (he is on it, or about to be): Jak 2's camera face for it may lie on another street. Farther,
+Jak 2's camera faces decide (a district they hide may overlap the one shown). Returns #t if it
+asked."
+  (let ((lev (level-get *level* name)))
+    (when (and lev
+               (= (-> lev status) 'loaded)
+               (not (hj2-want-shown? *load-state* name))
+               (hj2-district-within? name (target-pos 0) 1)
                )
-           (hj2-want-levels *load-state* (-> *hj2-want-names* data))
-           (want-display-level *load-state* d 'display)
+      (format 0 "hj2: guard shows ~A, loaded and Jak on or near its ground (frame ~D)~%" name (hj2-now))
+      (hj2-want-display *load-state* name)
+      (return #t)
+      )
+    )
+  #f
+  )
+
+(defun hj2-district-guard ()
+  "Called every frame while Jak is in this mod's levels (havenj2-continues-code). The safety net for
+the streets where Jak 2's loading faces are walked around: while Jak is in the city (his level is
+the hub or one of its districts, and no script put him in a place: hj2-in-place?):
+- the district of the square under him (the district map: the district whose ground is there),
+  when loaded but hidden, is shown at once (hj2-show-if-loaded); when not loaded for 0.3 s, it is
+  shown in place of a hidden district (the want-display-level wrapper), else loaded with the hub
+  and the district Jak was in;
+- while it is shown (or there is none), the district of the square he will be over in 1 s is shown
+  if loaded, and the one he will be over in 1 s or 2.5 s, else the nearest one whose ground is
+  within 50 m (hj2-near-district: walking), when not wanted, is loaded hidden (hj2-load-ahead:
+  never in place of the district under him nor of one within 50 m), at most once every 2 s.
+Shown through Jak 3's display path, so it waits for the renderer too (hj2-display-wait?); its
+geometry is usually there already (hj2-renderer-prefetch). Prints 'hj2: guard: under Jak <district>
+(<state>)' each time the district under Jak or its state changes: the state is the level's status
+('active: shown), wanted (loaded or loading, not shown), not-wanted, or why the guard is off
+(not-in-city, in-place, no-hub...). Returns nothing."
+  (let* ((lev (-> *target* current-level))
+         (d (hj2-district-at (target-pos 0)))
+         (shown (if d
+                    (level-get *level* d)
+                    (the-as level #f)
+                    )
+                )
+         (off (cond
+                ((not lev)
+                 'no-level
+                 )
+                ((not (-> *level* border?))
+                 'no-border
+                 )
+                ((movie?)
+                 'movie
+                 )
+                ((!= (hj2-hub-of (-> lev name)) 'havenj2)
+                 'not-in-city
+                 )
+                ((hj2-in-place?)
+                 'in-place
+                 )
+                ((not (level-get *level* 'havenj2))
+                 'no-hub
+                 )
+                (else
+                  #f
+                  )
+                )
+              )
+         (state (cond
+                  (off
+                   off
+                   )
+                  ((not d)
+                   'no-district
+                   )
+                  (shown
+                   (-> shown status)
+                   )
+                  ((hj2-wanted? *load-state* d)
+                   'wanted
+                   )
+                  (else
+                    'not-wanted
+                    )
+                  )
+                )
+         )
+    (when (or (!= d *hj2-guard-district*) (!= state *hj2-guard-state*))
+      (set! *hj2-guard-district* d)
+      (set! *hj2-guard-state* state)
+      (format 0 "hj2: guard: under Jak ~A (~A), Jak's level ~A" d state (if lev
+                                                                           (-> lev name)
+                                                                           #f
+                                                                           )
+              )
+      (hj2-print-jak)
+      )
+    (cond
+      (off
+       (set! *hj2-district-guard-time* 0)
+       )
+      ((or (not d) (= state 'active))
+       (set! *hj2-district-guard-time* 0)
+       ;; the district Jak is heading to: shown if loaded, else loaded hidden before he gets there
+       (let ((near (hj2-district-ahead 1.0))
+             (far (hj2-district-ahead 2.5))
+             )
+         (if (and near (!= near d))
+             (hj2-show-if-loaded near)
+             )
+         (when (>= (- (the-as int (hj2-now)) *hj2-ahead-time*) (the-as int (seconds 2)))
+           (let ((close (hj2-near-district (target-pos 0) 2 d #t)))
+             ;; heading onto it (vehicle speed), else its ground within 50 m (walking)
+             (if (or (and near (!= near d) (hj2-load-ahead near d))
+                     (and far (!= far d) (!= far near) (hj2-load-ahead far d))
+                     (and close (hj2-load-ahead close d))
+                     )
+                 (set! *hj2-ahead-time* (the-as int (hj2-now)))
+                 )
+             )
            )
          )
-        )
+       )
+      ((= state 'loaded)
+       ;; loaded but hidden under Jak (its camera face on another street): shown at once
+       (set! *hj2-district-guard-time* 0)
+       (hj2-show-if-loaded d)
+       )
+      ((zero? *hj2-district-guard-time*)
+       (set-time! *hj2-district-guard-time*)
+       )
+      ((time-elapsed? *hj2-district-guard-time* (seconds 0.3))
+       (set! *hj2-district-guard-time* 0)
+       ;; in place of a hidden district of the hub (the want-display-level wrapper), else with the
+       ;; hub and the district Jak was in (his current level, when it is a district)
+       (hj2-want-display *load-state* d)
+       (when (not (hj2-wanted? *load-state* d))
+         (format 0 "hj2: district guard loads ~A (Jak in ~A, frame ~D)~%" d (-> lev name) (hj2-now))
+         (dotimes (i 10)
+           (set! (-> *hj2-want-names* i) (the-as symbol #f))
+           )
+         (set! (-> *hj2-want-names* 0) 'havenj2)
+         (set! (-> *hj2-want-names* 1) d)
+         (if (and (!= (-> lev name) 'havenj2) (!= (-> lev name) d))
+             (set! (-> *hj2-want-names* 2) (-> lev name))
+             )
+         (hj2-want-levels *load-state* (-> *hj2-want-names* data))
+         (hj2-want-display *load-state* d)
+         )
+       )
       )
     )
   (none)

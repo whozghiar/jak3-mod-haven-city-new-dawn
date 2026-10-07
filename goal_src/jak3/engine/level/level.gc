@@ -728,6 +728,12 @@
 ;; none (Jak 3's own behavior). A mod sets it for its own levels.
 (define *pc-renderer-display-wait?* (the-as (function level symbol) #f))
 
+;; og:jak2-haven-city added: a function called each frame with the 10 level names given to the PC
+;; renderer (__pc-set-levels, "none" for an empty slot, see the end of level-update). It may fill
+;; the empty slots with levels the renderer should load ahead of the game (their geometry only: the
+;; game's own loads are unchanged). #f, none (Jak 3's own behavior). A mod sets it for its levels.
+(define *pc-renderer-prefetch* (the-as (function (pointer string) none) #f))
+
 (define *print-login* #t)
 
 (defun load-buffer-resize ((arg0 level) (arg1 dgo-header))
@@ -3906,6 +3912,10 @@
           )
         )
       )
+    ;; og:jak2-haven-city added: levels a mod's renderer loads ahead (*pc-renderer-prefetch*)
+    (if *pc-renderer-prefetch*
+        (*pc-renderer-prefetch* lev-names)
+        )
     (__pc-set-levels lev-names)
     (__pc-set-active-levels active-lev-names)
     )
