@@ -4,7 +4,7 @@
   //   python scripts/level_port custom_assets/jak3/ports/jak2-haven-city/port.jsonc
   // (from the repository root, after a Jak 2 and a Jak 3 extraction). A fix goes here, never in
   // a generated file. What each key means: scripts/level_port/README.md; the mod itself:
-  // docs/modding/current_mod/jak2_haven_city_readme.md.
+  // docs/modding/current_mod/haven_city_new_dawn_readme.md.
   "name": "jak2-haven-city",
   "source_game": "jak2",
   "target_game": "jak3",

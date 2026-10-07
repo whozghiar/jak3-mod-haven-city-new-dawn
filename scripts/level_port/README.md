@@ -5,7 +5,7 @@ background and collision, actors, doors and elevators with their level loading s
 fixed cameras, particles, traffic navigation, models rebuilt for `build-actor`, continue points and
 level-load-infos. A mod describes its port in a manifest; the tool writes every level file from it.
 
-What it knows today: **Jak 2 → Jak 3** (the `jak3/features/jak2-haven-city` mod,
+What it knows today: **Jak 2 → Jak 3** (the Haven City: New Dawn mod,
 `custom_assets/jak3/ports/jak2-haven-city/port.jsonc`). The code is split so that another source
 game, target game or game pair is added next to the existing ones (see
 [Adding a game](#adding-a-game-or-a-game-pair)).
@@ -52,7 +52,7 @@ At a mod's install from the OpenGOAL Launcher, the mod's extractor runs the port
 before it compiles (`run_level_ports`, `decompiler/extractor/main.cpp`), as a one-file executable
 the release builds with PyInstaller (`.github/workflows/release.yml`). Outside a git checkout (no
 `.git` in the root) a full run leaves the `ignore_outputs` `.gitignore` alone. The Jak 2 → Jak 3
-port's install sequence and error codes: [Launcher install](../../docs/modding/current_mod/jak2_haven_city_readme.md#46-launcher-install).
+port's install sequence and error codes: [Launcher install](../../docs/modding/current_mod/haven_city_new_dawn_readme.md#46-launcher-install).
 
 ## What it writes
 

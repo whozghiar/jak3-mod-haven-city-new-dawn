@@ -1,6 +1,7 @@
-# Jak 2 Haven City in Jak 3 — Technical README
+# Haven City: New Dawn — Technical README
 
-This document explains how the `jak3/features/jak2-haven-city` branch rebuilds Jak 2's Haven City
+This document explains how Haven City: New Dawn (repository `jak3-mod-haven-city-new-dawn`,
+formerly Jak2 Haven City, `jak3-mod-jak2-haven-city`) rebuilds Jak 2's Haven City
 and the places around it inside Jak 3, and how to rebuild, extend and debug it. For each feature it
 gives what you see in game, how it is made, which files hold it, and the problems met on the way.
 Players only need the root [`README.md`](../../../README.md).
@@ -283,7 +284,7 @@ To port one more place (one of [14](#14-not-done-yet)):
    out/build/Release/bin/fr3_check.exe out/jak3/fr3/havenj2.fr3
    ```
 
-7. **Play:** `task boot-game`, then L3 + SELECT, Mods, jak2-haven-city, Warp to Haven City (Jak 2).
+7. **Play:** `task boot-game`, then L3 + SELECT, Mods, Haven City: New Dawn, Warp to Haven City (Jak 2).
 
 What to redo after a change:
 
@@ -1544,7 +1545,7 @@ voice lines (`VAGDIRM.AYB`, and a 28 MB `VAGWADM.<language>` for each of Jak 2's
 ### 9.1 Mods menu
 
 L3 + SELECT opens the Mods menu (retail and debug boots); the mod's entries are under
-jak2-haven-city. Every warp goes through a continue point, never through `bg`: the hub and its
+Haven City: New Dawn. Every warp goes through a continue point, never through `bg`: the hub and its
 districts need the level heap Jak 3's own city takes, and a continue point makes the level system
 unload every level it doesn't want before loading the new ones (the hub first, then the
 continue's districts).

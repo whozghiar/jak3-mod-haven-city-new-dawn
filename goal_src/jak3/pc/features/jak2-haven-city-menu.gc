@@ -3,7 +3,8 @@
 
 #|
 
-  jak2-haven-city-menu.gc -- Mods menu entry for jak3/features/jak2-haven-city.
+  jak2-haven-city-menu.gc -- Mods menu entry for Haven City: New Dawn (registered as
+  haven-city-new-dawn, the launcher catalog key; the files keep the jak2-haven-city prefix).
 
   Jak 2's Haven City is rebuilt as custom levels like Jak 2's: the city-wide hub
   `havenj2` (custom_assets/jak3/levels/havenj2) and one level per district
@@ -96,7 +97,7 @@ cycle, any negative hour)."
   )
 
 (define *mod-jak2-haven-city-menu*
-  (new 'static 'popup-menu-submenu :label "jak2-haven-city"
+  (new 'static 'popup-menu-submenu :label "Haven City: New Dawn"
     :entries (new 'static 'boxed-array :type popup-menu-entry
       ;; the mod's switch: the Freedom HQ's time gate, the weather, the entries below (each greyed out
       ;; while the mod is off, an entry-disabled? lambda: a static field can't name a function)
@@ -190,4 +191,4 @@ cycle, any negative hour)."
   (the-as popup-menu-entry *mod-jak2-haven-city-menu*)
   )
 
-(mods-menu-register "jak2-haven-city" mod-jak2-haven-city-build-menu)
+(mods-menu-register "haven-city-new-dawn" mod-jak2-haven-city-build-menu)

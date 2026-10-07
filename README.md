@@ -1,4 +1,4 @@
-# Jak2 Haven City — Jak 3
+# Haven City: New Dawn — Jak 3
 
 <p align="center">
   <img src="https://img.shields.io/badge/OpenGOAL-Mod-blue.svg" alt="OpenGOAL Mod">
@@ -6,28 +6,12 @@
   <img src="https://img.shields.io/badge/AI--assisted-Modding-purple.svg" alt="AI Assisted">
 </p>
 
-<p align="center">
-
-[![Branch Sync Check](https://github.com/whozghiar/jak-project/actions/workflows/branch-sync-check.yaml/badge.svg?branch=jak3%2Ffeatures%2Fjak2-haven-city)](https://github.com/whozghiar/jak-project/actions/workflows/branch-sync-check.yaml?query=branch%3Ajak3%2Ffeatures%2Fjak2-haven-city)
-
-</p>
-
-> [!NOTE]
-> The badge above is a native **GitHub Actions status badge** for
-> [`branch-sync-check.yaml`](https://github.com/whozghiar/jak-project/actions/workflows/branch-sync-check.yaml),
-> scoped to this branch — GitHub renders it live from that workflow's own run history,
-> nothing generates or rewrites this image by hand. It goes green the moment this branch
-> next merges `master-dev` cleanly (usually via the daily automated sync), and can turn
-> red if someone pushes commits here without syncing first. It cannot turn red purely
-> because `master-dev` moved on without a new push landing here — run `task modding-branch-status`
-> or check GitHub Actions to audit fleet-wide mergeability.
-
 > **Contents:** [Overview](#overview) · [Requirements](#requirements) · [Key Features](#key-features) · [Controls](#controls) · [Download & Play](#download--play-via-opengoal-launcher-players) · [Developer Setup](#developer-setup--local-compilation) · [Demo Video](#demonstration-video) · [Technical Documentation](#technical-documentation)
 
 ---
 
 > [!NOTE]
-> This mod moved from the `jak3/features/jak2-haven-city` branch of [whozghiar/jak-project](https://github.com/whozghiar/jak-project) to this repository. Earlier releases stay installable from the launcher catalog.
+> This mod was called Jak2 Haven City: first the `jak3/features/jak2-haven-city` branch of [whozghiar/jak-project](https://github.com/whozghiar/jak-project), then the repository `jak3-mod-jak2-haven-city`, renamed `jak3-mod-haven-city-new-dawn` (GitHub redirects the old address).
 
 ## Overview
 Brings Jak 2's Haven City and the places around it into Jak 3, as they are at the end of Jak 2:
@@ -36,7 +20,7 @@ station, the mountain, Haven Forest, the fortress and its prison, the stadium's 
 dig site, all rebuilt from Jak 2's own extracted data and linked the way Jak 2 links them.
 
 - **Target Game:** Jak 3
-- **Repository:** [`whozghiar/jak3-mod-jak2-haven-city`](https://github.com/whozghiar/jak3-mod-jak2-haven-city)
+- **Repository:** [`whozghiar/jak3-mod-haven-city-new-dawn`](https://github.com/whozghiar/jak3-mod-haven-city-new-dawn)
 
 ## Requirements
 
@@ -109,7 +93,7 @@ dig site, all rebuilt from Jak 2's own extracted data and linked the way Jak 2 l
 
 | Action | How |
 |---|---|
-| Open the mod's menu | L3 + SELECT, then Mods ▸ jak2-haven-city (retail and debug boots) |
+| Open the mod's menu | L3 + SELECT, then Mods ▸ Haven City: New Dawn (retail and debug boots) |
 | Take an air train or a time gate | Triangle, when the prompt shows |
 
 The menu's entries:
@@ -139,16 +123,16 @@ launcher's log says to install Jak 2, then to reinstall the mod.
 1. In the **OpenGOAL Launcher**, navigate to **Settings ▸ Mods ▸ Add Custom Mod Source**.
 2. Paste this catalog URL:
    ```text
-   https://raw.githubusercontent.com/whozghiar/jak-project/jak3/features/jak2-haven-city/index.json
+   https://raw.githubusercontent.com/whozghiar/jak3-mod-haven-city-new-dawn/main/index.json
    ```
-3. Go to the **Mods** tab, locate **Jak2 Haven City**, and click **Install**.
+3. Go to the **Mods** tab, locate **Haven City: New Dawn**, and click **Install**.
 4. If Jak 3 isn't installed yet, the launcher asks for your Jak 3 ISO. It then extracts, generates
    the Jak 2 levels from your installed Jak 2 and compiles the mod.
 
 ### Option B — Manual Installation from GitHub Releases
-1. Download the pre-built package for your operating system from the [Releases](https://github.com/whozghiar/jak-project/releases) tab (`windows-v*.zip` or `linux-v*.zip`).
+1. Download the pre-built package for your operating system from the [Releases](https://github.com/whozghiar/jak3-mod-haven-city-new-dawn/releases) tab (`windows-v*.zip` or `linux-v*.zip`).
 2. Extract the archive into the `features` folder of the launcher's installation folder (the one
-   chosen in its settings): `<installation folder>/features/jak3/mods/_local/jak2_haven_city/`.
+   chosen in its settings): `<installation folder>/features/jak3/mods/_local/haven-city-new-dawn/`.
 3. Run the mod's decompile and compile from the OpenGOAL Launcher (the compile generates the Jak 2
    levels), then launch the game.
 
@@ -167,7 +151,7 @@ task set-game-jak3
 ### 2. Binary Compilation
 - **Status:** `task build-release-game` and `task build-release-decomp`: the custom level builder
   in `goalc` and the decompiler changed.
-- **Details:** see [Rebuilding it step by step](docs/modding/current_mod/jak2_haven_city_readme.md#3-rebuilding-it-step-by-step)
+- **Details:** see [Rebuilding it step by step](docs/modding/current_mod/haven_city_new_dawn_readme.md#3-rebuilding-it-step-by-step)
   in the technical README.
 ```bash
 task build-release-game
@@ -192,7 +176,7 @@ Build with `task repl` then `(mi)`, and run the game natively:
 ```bash
 task boot-game
 ```
-Then warp from the Mods menu (L3 + SELECT, Mods ▸ jak2-haven-city ▸ Warp to Haven City (Jak 2)).
+Then warp from the Mods menu (L3 + SELECT, Mods ▸ Haven City: New Dawn ▸ Warp to Haven City (Jak 2)).
 
 ## Demonstration Video
 
@@ -205,7 +189,7 @@ Then warp from the Mods menu (L3 + SELECT, Mods ▸ jak2-haven-city ▸ Warp to 
 
 ## Technical Documentation
 For the complete technical breakdown, architecture, and developer notes, refer to:
-- [`docs/modding/current_mod/jak2_haven_city_readme.md`](docs/modding/current_mod/jak2_haven_city_readme.md)
+- [`docs/modding/current_mod/haven_city_new_dawn_readme.md`](docs/modding/current_mod/haven_city_new_dawn_readme.md)
 
 ---
 *(AI-assisted)*
