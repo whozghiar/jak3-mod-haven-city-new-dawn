@@ -294,6 +294,8 @@ graphify-out/*
 /custom_assets/jak3/models/custom_levels/hj2-cpad-elevator.glb
 /custom_assets/jak3/models/custom_levels/hj2-cty-guard-turret-explode.glb
 /custom_assets/jak3/models/custom_levels/hj2-cty-guard-turret.glb
+/custom_assets/jak3/models/custom_levels/hj2-ctyn-lamp-explode.glb
+/custom_assets/jak3/models/custom_levels/hj2-ctyn-lamp.glb
 /custom_assets/jak3/models/custom_levels/hj2-dig-balloon-lurker.glb
 /custom_assets/jak3/models/custom_levels/hj2-dig-button.glb
 /custom_assets/jak3/models/custom_levels/hj2-dig-log.glb
@@ -312,6 +314,8 @@ graphify-out/*
 /custom_assets/jak3/models/custom_levels/hj2-fort-led.glb
 /custom_assets/jak3/models/custom_levels/hj2-fort-lift-plat.glb
 /custom_assets/jak3/models/custom_levels/hj2-fort-pool.glb
+/custom_assets/jak3/models/custom_levels/hj2-fort-trap-door-explode.glb
+/custom_assets/jak3/models/custom_levels/hj2-fort-trap-door.glb
 /custom_assets/jak3/models/custom_levels/hj2-fort-turret.glb
 /custom_assets/jak3/models/custom_levels/hj2-gar-curtain.glb
 /custom_assets/jak3/models/custom_levels/hj2-guard-bike.glb

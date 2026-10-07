@@ -62,6 +62,8 @@ level's sprite page, so no two levels' particles ever share a slot or an id.
     "skip_groups": [source groups whose part spawners aren't placed (a race's scoreboard)],
     "kiosks": {"<source etype>": {"group": source group, "suffix": name suffix,
                                   "vis_dist": default vis-dist}}   actors whose hologram is a group
+    "part_specs": {"<source part id>": {"<init-spec field>": [its values, as written]}}  the
+                   values of these fields replaced (a color changed: ":r": ["32.0", "64.0"])
   }
 """
 
@@ -311,6 +313,7 @@ class Translator:
         self.target_callbacks = self.pair.TARGET_CALLBACKS | set(glob.get("level_callbacks", []))
         self.ported_callbacks = level_cfg.get("ported_callbacks", {})
         self.copied_names = set(glob.get("copied_callbacks", []))
+        self.part_specs = level_cfg.get("part_specs", {})
         self.part_map = {}
         self.group_map = {}  # source group name -> (new name, new id)
         # the ids: the level's ranges but the reserved ones, or the allocator's ("auto")
@@ -419,10 +422,11 @@ class Translator:
 
     def part_form(self, pid):
         specs = []
+        replaced = self.part_specs.get(str(pid), {})
         for spec in gl.keyword_args(self.defs.parts[pid], 2)[":init-specs"]:
             field = str(spec[0])
-            if field == ":sound":
-                continue  # the source game's sounds
+            if field in replaced:
+                spec = [spec[0]] + [Atom(v) for v in replaced[field]]
             if field == ":texture":
                 spec = [spec[0], self.tex.texture_form(str(spec[1][0]), str(spec[1][1]))]
             elif field == ":next-launcher":

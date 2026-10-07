@@ -1676,3 +1676,155 @@ Goes to idle. Returns nothing."
   (transform-post)
   (go (method-of-object this idle))
   )
+
+
+;; ---------------------------------------------------------------------------------------------
+;; Street lamps
+;; ---------------------------------------------------------------------------------------------
+
+;; Jak 2's street lamps (ctyn-lamp, levels/city/ctywide-obs.gc there; 42 in ctygena and 42 in
+;; ctygenc, the main town by the palace and by the stadium): a thin pole Jak's attacks and the
+;; vehicles snap, its pieces flying away from the hitter. Jak 3 has the same class but not its art:
+;; the pole and its four pieces are Jak 2's models, rebuilt by build-actor (hj2-ctyn-lamp.glb,
+;; hj2-ctyn-lamp-explode.glb, made by the level port: "models"), in the districts' DGOs. Jak 2's
+;; vehicles sent an attack to what they touched; Jak 3's send impact-impulse (rigid-body.gc), so
+;; both break it. Sound: lamp-hit (Jak 2's and Jak 3's name). Like Jak 2's, a broken lamp is gone
+;; until its district reloads.
+(deftype hj2-ctyn-lamp (process-focusable)
+  ()
+  (:state-methods
+    idle
+    die
+    )
+  )
+
+
+;; the pole (5.7m high) and its explode model (Jak 2's bounds: the pieces fly far)
+(def-actor hj2-ctyn-lamp
+  :bounds (0 3 0 3.5)
+  )
+
+(def-actor hj2-ctyn-lamp-explode
+  :bounds (0 0 0 80)
+  )
+
+;; the pieces the explosion throws (Jak 2's): the explode model's joints a to d, each on its own
+(define *hj2-ctyn-lamp-exploder-params*
+  (new 'static 'joint-exploder-static-params
+    :joints (new 'static 'boxed-array :type joint-exploder-static-joint-params
+      (new 'static 'joint-exploder-static-joint-params :joint-index 3 :parent-joint-index -1)
+      (new 'static 'joint-exploder-static-joint-params :joint-index 4 :parent-joint-index -1)
+      (new 'static 'joint-exploder-static-joint-params :joint-index 5 :parent-joint-index -1)
+      (new 'static 'joint-exploder-static-joint-params :joint-index 6 :parent-joint-index -1)
+      )
+    :collide-spec (collide-spec backgnd)
+    )
+  )
+
+(defbehavior hj2-ctyn-lamp-break hj2-ctyn-lamp ((hitter process))
+  "Snap the lamp: its pieces fly up and away from hitter (Jak 2's fountain tuning: from the
+hitter's position, up to 4m sideways and 10m up), then die. hitter: who hit it (Jak, a shot, a
+vehicle). Does not return (goes to die)."
+  (let ((gp-0 (new 'stack 'joint-exploder-tuning (the-as uint 1)))
+        (s5-0 (as-type hitter process-drawable))
+        )
+    (vector-copy! (-> gp-0 fountain-rand-transv-lo) (-> (the-as process-drawable (or s5-0 self)) root trans))
+    (set! (-> gp-0 fountain-rand-transv-hi x) 16384.0)
+    (set! (-> gp-0 fountain-rand-transv-hi y) 40960.0)
+    (process-spawn
+      joint-exploder
+      *hj2-ctyn-lamp-explode-sg*
+      2
+      gp-0
+      *hj2-ctyn-lamp-exploder-params*
+      :name "joint-exploder"
+      :to self
+      )
+    )
+  (go-virtual die)
+  )
+
+;; standing: any attack (Jak's, a shot) or any vehicle bumping into it (impact-impulse, Jak 3's
+;; vehicles) snaps it, as in Jak 2
+(defstate idle (hj2-ctyn-lamp)
+  :virtual #t
+  :event (behavior ((proc process) (argc int) (message symbol) (block event-message-block))
+    (case message
+      (('attack 'impact-impulse)
+       (hj2-ctyn-lamp-break proc)
+       )
+      )
+    )
+  :code sleep-code
+  )
+
+;; snapped: the sound, no collision, hidden; waits for its flying pieces (its child process) to
+;; land, then is gone for good (cleanup-for-death)
+(defstate die (hj2-ctyn-lamp)
+  :virtual #t
+  :code (behavior ()
+    (sound-play "lamp-hit")
+    (let ((v1-3 (-> self root root-prim)))
+      (set! (-> v1-3 prim-core collide-as) (collide-spec))
+      (set! (-> v1-3 prim-core collide-with) (collide-spec))
+      )
+    (logior! (-> self draw status) (draw-control-status no-draw))
+    (while (-> self child)
+      (suspend)
+      )
+    (cleanup-for-death self)
+    )
+  )
+
+(defmethod init-from-entity! ((this hj2-ctyn-lamp) (arg0 entity-actor))
+  "Jak 2's lamp setup: its collision (its model's collide mesh, the pole and its head, on the main
+joint: an obstacle, solid, hit by Jak's attacks and the vehicles), placement, the build-actor model,
+a crate for the vehicles' and Jak's targeting (Jak 2's process mask). arg0: the entity (placement).
+Goes to idle. Returns nothing."
+  (let ((s5-0 (new 'process 'collide-shape-moving this (collide-list-enum usually-hit-by-player))))
+    (set! (-> s5-0 dynam) (copy *standard-dynamics* 'process))
+    (set! (-> s5-0 reaction) cshape-reaction-default)
+    (set! (-> s5-0 no-reaction)
+          (the-as (function collide-shape-moving collide-query vector vector object) nothing)
+          )
+    (set! (-> s5-0 penetrated-by) (penetrate
+                                    generic-attack
+                                    lunge
+                                    flop
+                                    punch
+                                    spin
+                                    roll
+                                    uppercut
+                                    bonk
+                                    tube
+                                    vehicle
+                                    flut-attack
+                                    board
+                                    mech-punch
+                                    dark-punch
+                                    dark-smack
+                                    flut
+                                    )
+          )
+    (let ((v1-7 (new 'process 'collide-shape-prim-mesh s5-0 (the-as uint 0) (the-as uint 0))))
+      (set! (-> v1-7 prim-core collide-as) (collide-spec obstacle))
+      (set! (-> v1-7 prim-core collide-with) (collide-spec jak player-list tobot))
+      (set! (-> v1-7 prim-core action) (collide-action solid))
+      (set! (-> v1-7 transform-index) 3)
+      (set-vector! (-> v1-7 local-sphere) 0.0 (meters 2.9) 0.0 (meters 3.2))
+      (set! (-> s5-0 total-prims) (the-as uint 1))
+      (set! (-> s5-0 root-prim) v1-7)
+      )
+    (set! (-> s5-0 nav-radius) (* 0.75 (-> s5-0 root-prim local-sphere w)))
+    (let ((v1-10 (-> s5-0 root-prim)))
+      (set! (-> s5-0 backup-collide-as) (-> v1-10 prim-core collide-as))
+      (set! (-> s5-0 backup-collide-with) (-> v1-10 prim-core collide-with))
+      )
+    (set! (-> this root) s5-0)
+    )
+  (process-drawable-from-entity! this arg0)
+  (initialize-skeleton this *hj2-ctyn-lamp-sg* (the-as pair 0))
+  (logior! (-> this mask) (process-mask crate))
+  (transform-post)
+  (go (method-of-object this idle))
+  )

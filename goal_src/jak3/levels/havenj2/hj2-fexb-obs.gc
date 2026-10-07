@@ -6,10 +6,180 @@
 ;; dgos: HKG
 
 ;; og:jak2-haven-city Level code for hj2-fexb, the end of Jak 2's way out of the fortress
-;; (levels/fortress/fortress-obs.gc there): the pool's surface. Its model is Jak 2's, rebuilt by
-;; build-actor (hj2-fort-pool.glb, made by the level port, scripts/level_port).
-;; The slide is Jak 3's slide-control (the same as Jak 2's). Not ported: the trap doors, broken for
-;; good by the escape, the pool's ripples, the particles.
+;; (levels/fortress/fortress-obs.gc there): the trap doors Jak breaks with a dive attack, the pool's
+;; surface. Their models are Jak 2's, rebuilt by build-actor (hj2-fort-trap-door.glb,
+;; hj2-fort-trap-door-explode.glb, hj2-fort-pool.glb, made by the level port, scripts/level_port).
+;; The slide is Jak 3's slide-control (the same as Jak 2's), with Jak's slide states and animations
+;; (target-tube.o, jak-tube+0-ag), which hj2-fexb's DGO carries like Jak 2's FEB. Not ported: the
+;; pool's ripples.
+
+;; Jak 2's fort-trap-door: an 8 x 8m grating over a drop on the way out, solid until Jak lands on it
+;; with a dive attack (flop). It then breaks: no more collision, Jak 2's sounds (trapdoor, from its
+;; FOREXIT2 bank 'j2forex2, and wcrate-break, Jak 3's COMMON), its 17 pieces fly apart
+;; (joint-exploder with its explode model). Unlike Jak 2's, its entity isn't marked dead: it stays
+;; broken until hj2-fexb unloads, and is whole again each time the level loads (the user's choice:
+;; the escape can be replayed).
+;;   notify-actor: the alt-actor told 'trigger when it breaks (none in Jak 2's forexitb).
+(deftype hj2-fort-trap-door (process-drawable)
+  ((root          collide-shape :override)
+   (notify-actor  entity-actor)
+   )
+  (:state-methods
+    idle
+    die
+    )
+  )
+
+
+;; the grating and its pieces (Jak 2's bounds)
+(def-actor hj2-fort-trap-door
+  :bounds (0 0 0 5)
+  )
+
+(def-actor hj2-fort-trap-door-explode
+  :bounds (0 0 0 15)
+  )
+
+;; the pieces the break throws: every joint of the explode model past main (explo1..explo17, Jak 2's)
+(define *hj2-fort-trap-door-exploder-params*
+  (new 'static 'joint-exploder-static-params
+    :joints (new 'static 'boxed-array :type joint-exploder-static-joint-params
+      (new 'static 'joint-exploder-static-joint-params :joint-index 4 :parent-joint-index -1)
+      (new 'static 'joint-exploder-static-joint-params :joint-index 5 :parent-joint-index -1)
+      (new 'static 'joint-exploder-static-joint-params :joint-index 6 :parent-joint-index -1)
+      (new 'static 'joint-exploder-static-joint-params :joint-index 7 :parent-joint-index -1)
+      (new 'static 'joint-exploder-static-joint-params :joint-index 8 :parent-joint-index -1)
+      (new 'static 'joint-exploder-static-joint-params :joint-index 9 :parent-joint-index -1)
+      (new 'static 'joint-exploder-static-joint-params :joint-index 10 :parent-joint-index -1)
+      (new 'static 'joint-exploder-static-joint-params :joint-index 11 :parent-joint-index -1)
+      (new 'static 'joint-exploder-static-joint-params :joint-index 12 :parent-joint-index -1)
+      (new 'static 'joint-exploder-static-joint-params :joint-index 13 :parent-joint-index -1)
+      (new 'static 'joint-exploder-static-joint-params :joint-index 14 :parent-joint-index -1)
+      (new 'static 'joint-exploder-static-joint-params :joint-index 15 :parent-joint-index -1)
+      (new 'static 'joint-exploder-static-joint-params :joint-index 16 :parent-joint-index -1)
+      (new 'static 'joint-exploder-static-joint-params :joint-index 17 :parent-joint-index -1)
+      (new 'static 'joint-exploder-static-joint-params :joint-index 18 :parent-joint-index -1)
+      (new 'static 'joint-exploder-static-joint-params :joint-index 19 :parent-joint-index -1)
+      (new 'static 'joint-exploder-static-joint-params :joint-index 20 :parent-joint-index -1)
+      )
+    :collide-spec (collide-spec backgnd)
+    )
+  )
+
+;; whole and solid; breaks (die) when an attack that penetrates with a flop (Jak's dive attack) hits it
+(defstate idle (hj2-fort-trap-door)
+  :virtual #t
+  :event (behavior ((proc process) (argc int) (message symbol) (block event-message-block))
+    (case message
+      (('attack)
+       (when (logtest? (-> (the-as attack-info (-> block param 1)) penetrate-using) (penetrate flop))
+         (go-virtual die)
+         #f
+         )
+       )
+      )
+    )
+  :code sleep-code
+  )
+
+;; breaking (Jak 2's): collision off, the trapdoor sound, notify-actor told 'trigger; then the break
+;; sound, the pieces thrown from 4m under Jak, the grating hidden, and once 1 s has passed and the
+;; pieces are gone, hidden and asleep until the level unloads (no cleanup-for-death: its entity
+;; isn't marked dead, so it is whole again when the level loads again)
+(defstate die (hj2-fort-trap-door)
+  :virtual #t
+  :enter (behavior ()
+    (let ((v1-1 (-> self root root-prim)))
+      (set! (-> v1-1 prim-core collide-as) (collide-spec))
+      (set! (-> v1-1 prim-core collide-with) (collide-spec))
+      )
+    0
+    ;; Jak 2's sound (FOREXIT2)
+    (sound-play "trapdoor")
+    (let ((a1-1 (new 'stack-no-clear 'event-message-block)))
+      (set! (-> a1-1 from) (process->ppointer self))
+      (set! (-> a1-1 num-params) 0)
+      (set! (-> a1-1 message) 'trigger)
+      (let ((t9-2 send-event-function)
+            (v1-6 (-> self notify-actor))
+            )
+        (t9-2
+          (if v1-6
+              (-> v1-6 extra process)
+              )
+          a1-1
+          )
+        )
+      )
+    )
+  :code (behavior ()
+    (sound-play "wcrate-break")
+    (let ((gp-0 (new 'stack 'joint-exploder-tuning (the-as uint 1))))
+      (let ((a0-3 (as-type *target* process-focusable)))
+        (when a0-3
+          (vector-copy! (-> gp-0 fountain-rand-transv-lo) (get-trans (the-as process-focusable a0-3) 0))
+          (+! (-> gp-0 fountain-rand-transv-lo y) -16384.0)
+          )
+        )
+      (set! (-> gp-0 fountain-rand-transv-hi x) 24576.0)
+      (set! (-> gp-0 fountain-rand-transv-hi y) 81920.0)
+      (set! (-> gp-0 fountain-rand-transv-hi z) 12288.0)
+      (set! (-> gp-0 fountain-rand-transv-hi w) 32768.0)
+      (process-spawn
+        joint-exploder
+        *hj2-fort-trap-door-explode-sg*
+        2
+        gp-0
+        *hj2-fort-trap-door-exploder-params*
+        :name "joint-exploder"
+        :to self
+        )
+      )
+    (suspend)
+    (ja-channel-set! 0)
+    (suspend-for (seconds 1)
+      )
+    (send-event self 'death-end)
+    (while (-> self child)
+      (suspend)
+      )
+    (logior! (-> self draw status) (draw-control-status no-draw))
+    (loop
+      (suspend)
+      )
+    )
+  :post ja-post
+  )
+
+;; WARN: Return type mismatch object vs none.
+(defmethod init-from-entity! ((this hj2-fort-trap-door) (arg0 entity-actor))
+  "Jak 2's fort-trap-door setup: solid (the hull of its model, on main) and broken by a flop only,
+placement, skeleton, notify-actor from the alt-actor lump."
+  (let ((s4-0 (new 'process 'collide-shape this (collide-list-enum usually-hit-by-player))))
+    (let ((v1-2 (new 'process 'collide-shape-prim-mesh s4-0 (the-as uint 0) (the-as uint 0))))
+      (set! (-> v1-2 prim-core collide-as) (collide-spec obstacle))
+      (set! (-> v1-2 prim-core collide-with) (collide-spec jak bot player-list))
+      (set! (-> v1-2 prim-core action) (collide-action solid))
+      (set! (-> v1-2 transform-index) 3)
+      ;; 6m (Jak 2: 5m): around the hull's corners, 5.7m from its center
+      (set-vector! (-> v1-2 local-sphere) 0.0 0.0 0.0 (meters 6))
+      (set! (-> s4-0 total-prims) (the-as uint 1))
+      (set! (-> s4-0 root-prim) v1-2)
+      )
+    (set! (-> s4-0 nav-radius) (* 0.75 (-> s4-0 root-prim local-sphere w)))
+    (let ((v1-5 (-> s4-0 root-prim)))
+      (set! (-> s4-0 backup-collide-as) (-> v1-5 prim-core collide-as))
+      (set! (-> s4-0 backup-collide-with) (-> v1-5 prim-core collide-with))
+      )
+    (set! (-> this root) s4-0)
+    )
+  (set! (-> this root penetrated-by) (penetrate flop))
+  (process-drawable-from-entity! this arg0)
+  (initialize-skeleton this *hj2-fort-trap-door-sg* (the-as pair 0))
+  (set! (-> this notify-actor) (entity-actor-lookup arg0 'alt-actor 0))
+  (transform-post)
+  (go (method-of-object this idle))
+  )
 
 ;; Jak 2's water-anim-fortress: the pool under the trap doors, its surface (look 21, the model, at
 ;; the water's height), tinted like Jak 2's. Jak swims in it through its water region (the pool's

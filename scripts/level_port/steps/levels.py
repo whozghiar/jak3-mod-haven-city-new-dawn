@@ -91,7 +91,8 @@ class Context:
         story = port.story
         return Translator(self.pair, port.level_map, self.all_levels | self.backdrops, port.hubs,
                           port.level_map[source_level],
-                          lambda task: story.closed(task, open_tasks), self.continue_names,
+                          lambda task: story.closed(task, open_tasks, source_level),
+                          self.continue_names,
                           port.get("renames", {}), [tuple(e) for e in port.get("drop_events", [])],
                           self.camera_names, source=source_level, sound=self.sound)
 

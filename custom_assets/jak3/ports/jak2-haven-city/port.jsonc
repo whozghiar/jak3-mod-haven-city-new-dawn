@@ -26,8 +26,14 @@
   // The story state every level is in: the end of the game, but for these story nodes, taken as
   // still open (the palace stays reachable: Jak 2 closes its doors once this mission is over).
   // It decides which of Jak 2's actors are placed (their kill-mask), the background prototypes
-  // shown and the branches of Jak 2's scripts.
-  "story": {"state": "end", "open_tasks": ["palace-sneak-in-meeting"]},
+  // shown and the branches of Jak 2's scripts. level_open_tasks: more story nodes taken as open
+  // for one source level only. The palace plaza is as it is before Mar's tomb is found
+  // (canyon-insert-items): the Baron's statue standing on its wall, no rubble, no broken statue, the
+  // tomb's airlock behind the wall. The intact statue is ctywide's (baron-statue, in havenj2's mesh):
+  // ctywide is taken before Mar's tomb too (no other ctywide actor or script depends on it).
+  "story": {"state": "end", "open_tasks": ["palace-sneak-in-meeting"],
+            "level_open_tasks": {"ctypal": ["canyon-insert-items-shard", "canyon-insert-items-resolution"],
+                                 "ctywide": ["canyon-insert-items-shard", "canyon-insert-items-resolution"]}},
 
   // the goalc build steps of the levels (goal_src/jak3/game.gp loads this file): their models, their
   // level code and the levels. A level code object depends on the GAME code of the mod
@@ -152,13 +158,14 @@
       // metal). The palace plaza at the end of the game (Mar's tomb found): the Baron's statue
       // broken on the plaza, the wall under it broken; Jak 2's broken statue has no collision, the
       // broken wall's collide mesh isn't in the rip, and a box would shut the tomb's way through it.
+      // Not placed while the plaza is before Mar's tomb (story.level_open_tasks).
       // Not kept: the market props, farm crops and propaganda speakers, which are actors (props,
-      // custom_props), the force-field walls, the searchlights and the guard turrets (actors too:
+      // custom_props), the street lamps (hj2-ctyn-lamp, ported_everywhere), the force-field walls, the searchlights and the guard turrets (actors too:
       // ported_everywhere, named_actors), and the cutscene or mission actors.
       // The palettes: the city's background palettes have their ambient around 110/255 and their
       // sun palettes up to about 100.
       "mesh": {
-        "props": {"ctyn-lamp": ["post", 16], "burning-bush": [null, null], "lurker-pipe-lid": [null, null], "barons-ship-lores": [null, null], "ctypal-baron-statue-broken": [null, null], "ctypal-broke-wall": [null, null]},
+        "props": {"burning-bush": [null, null], "lurker-pipe-lid": [null, null], "barons-ship-lores": [null, null], "ctypal-baron-statue-broken": [null, null], "ctypal-broke-wall": [null, null]},
         "post_width": 0.6,
         "palette": {"ambient": 110.0, "sun": 100.0}
       },
@@ -167,8 +174,9 @@
       // The crops have Jak 3's art (it still has Jak 2's burst models) and Jak 2's behavior
       // (havenj2-farm.gc). Jak 2 turned its crops to a random angle when they spawned.
       "props": {
-        // born within 80m of the camera at most (no visibility data in the port's levels)
-        "max_vis_dist": 80.0,
+        // no max_vis_dist: each keeps Jak 2's vis-dist (140m for the market's), which is also how far
+        // it is drawn (Jak 2's and Jak 3's setup-lods! take it for a 999999m last lod, as these
+        // props' are). Phase 15b capped them at 80m: they vanished well before Jak 2's
         "etypes": {"market-crate": ["market-crate", "market-crate-ag"], "market-basket-a": ["market-basket-a", "market-basket-a-ag"], "market-basket-b": ["market-basket-b", "market-basket-b-ag"], "market-sack-a": ["market-sack-a", "market-sack-a-ag"], "market-sack-b": ["market-sack-b", "market-sack-b-ag"], "cty-fruit-stand": ["fruit-stand", "cty-fruit-stand-ag"], "farm-marrow": ["hj2-farm-marrow", "farm-marrow-ag"], "farm-beetree": ["hj2-farm-beetree", "farm-beetree-ag"], "farm-chilirots": ["hj2-farm-chilirots", "farm-chilirots-ag"], "farm-cabbage": ["hj2-farm-cabbage", "farm-cabbage-ag"], "farm-small-cabbage": ["hj2-farm-small-cabbage", "farm-small-cabbage-ag"], "farm-sprinkler-barrels": ["farm-sprinkler-barrels", "farm-sprinkler-barrels-ag"]},
         "random_yaw": ["farm-beetree", "farm-cabbage", "farm-chilirots", "farm-marrow", "farm-small-cabbage"]
       },
@@ -233,13 +241,16 @@
       // metal). The palace plaza at the end of the game (Mar's tomb found): the Baron's statue
       // broken on the plaza, the wall under it broken; Jak 2's broken statue has no collision, the
       // broken wall's collide mesh isn't in the rip, and a box would shut the tomb's way through it.
+      // Not placed while the plaza is before Mar's tomb (story.level_open_tasks). The Baron's intact
+      // statue on the plaza's wall (ctywide's baron-statue, 250m high, no collision in Jak 2): placed
+      // only then.
       // Not kept: the market props, farm crops and propaganda speakers, which are actors (props,
-      // custom_props), the force-field walls, the searchlights and the guard turrets (actors too:
+      // custom_props), the street lamps (hj2-ctyn-lamp, ported_everywhere), the force-field walls, the searchlights and the guard turrets (actors too:
       // ported_everywhere, named_actors), and the cutscene or mission actors.
       // The palettes: the city's background palettes have their ambient around 110/255 and their
       // sun palettes up to about 100.
       "mesh": {
-        "props": {"ctyn-lamp": ["post", 16], "burning-bush": [null, null], "lurker-pipe-lid": [null, null], "barons-ship-lores": [null, null], "ctypal-baron-statue-broken": [null, null], "ctypal-broke-wall": [null, null]},
+        "props": {"burning-bush": [null, null], "lurker-pipe-lid": [null, null], "barons-ship-lores": [null, null], "ctypal-baron-statue-broken": [null, null], "ctypal-broke-wall": [null, null], "baron-statue": [null, null]},
         "post_width": 0.6,
         "palette": {"ambient": 110.0, "sun": 100.0}
       },
@@ -285,9 +296,9 @@
       // guard turrets' hits (ctywide-obs.gc).
       "particles": {
         // the part spawners of every district, each placed in its district's level
-        // spawners born within 150m of the camera at most (Jak 2's levels culled them with their
-        // visibility data, the port's have none), but ctywide's: the skyline's lights
-        "max_vis_dist": [150.0, ["ctywide"]],
+        // no max_vis_dist: every spawner keeps Jak 2's vis-dist (the city's signs 384m, the port's
+        // 600m). Phase 15b capped the districts' at 150m (Jak 2's levels culled them with their
+        // visibility data, the port's have none): the signs vanished well before Jak 2's
         "levels": ["ctywide", "ctysluma", "ctyslumb", "ctyslumc", "ctyport", "ctymarka", "ctymarkb", "ctyinda", "ctyindb", "ctygena", "ctygenb", "ctygenc", "ctyfarma", "ctyfarmb", "ctypal", "stadium", "garage"],
         "files": [
           "goal_src/jak2/levels/city/ctywide-part.gc",
@@ -320,6 +331,10 @@
         "ported_callbacks": {"birth-func-ctywide-baron-propoganda-ticker-rotate": "hj2-birth-func-baron-ticker-rotate", "birth-func-race-poster": "hj2-birth-func-race-poster"},
         "callbacks_file": "particle-callbacks.gc",
         "data": {"*baron-neon-skull*": "*hj2-baron-neon-skull*", "*praxis*": "*hj2-praxis*", "*praxis-backing*": "*hj2-praxis-backing*", "*hiphog-exterior-marquee*": "*hj2-hiphog-exterior-marquee*"},
+        // part_specs: init-specs replaced in Jak 2's parts (by its part id). The halo around the
+        // Baron's hologram over his speakers (819, a 10m glow) and the projector's flare (822),
+        // red and orange in Jak 2, are blue; the Baron's red logo is kept
+        "part_specs": {"819": {":r": ["32.0", "64.0"], ":g": [":copy", "r"], ":b": ["255.0"]}, "822": {":r": ["0.0", "64.0"], ":g": ["64.0", "64.0"], ":b": ["255.0"]}},
         "group_arrays": {"*city-baron-group-ids*": "*hj2-baron-group-ids*", "*city-neon-praxis-group-ids*": "*hj2-neon-praxis-group-ids*", "*hiphog-exterior-marquee-group-ids*": "*hj2-hiphog-marquee-group-ids*"},
         "extra_groups": {"group-ctywide-baron-propoganda-holo": "*hj2-propa-holo-group-ids*", "group-ctywide-burning-bush-holo-off": "*hj2-burning-bush-holo-group-ids*", "group-farm-marrow-explode": "*hj2-farm-marrow-explode-group-ids*", "group-farm-beetree-explode": "*hj2-farm-beetree-explode-group-ids*", "group-farm-cabbage-explode": "*hj2-farm-cabbage-explode-group-ids*", "group-farm-small-cabbage-explode": "*hj2-farm-small-cabbage-explode-group-ids*", "group-farm-chilirots-explode": "*hj2-farm-chilirots-explode-group-ids*", "group-farm-sprinkler-barrels-water": "*hj2-farm-sprinkler-water-group-ids*", "group-cty-guard-turret-hit": "*hj2-cty-guard-turret-hit-group-ids*"},
         "sign_actors": {"neon-baron": "hj2-neon-baron", "city-neon-praxis": "hj2-neon-praxis", "hiphog-exterior-marquee": "hj2-hiphog-marquee"},
@@ -656,7 +671,7 @@
     {
       // the fortress's far gate opens on the prison (its cells, torture machine, warp gate), whose
       // tunnels lead to Jak 2's way out of the fortress: forexita (its lifts), then forexitb (the
-      // pool under the broken trap doors, the slide), whose gate opens on the slums. Jak 2's
+      // trap doors Jak dives through, the slide, the pool), whose gate opens on the slums. Jak 2's
       // escape from the fortress, open at the end of the game. Actor ids: 1000 per place (the
       // prison's particles alone are 382 part spawners).
       "name": "hj2-prison", "nick": "hke", "iso": "HJ2PRISN", "index": "0x145", "base_id": 50000,
@@ -680,7 +695,9 @@
       "what": "the end of the way out of the fortress, with its gate to the slums",
       "sources": ["forexitb"],
       "sky": false,
-      "code": ["hj2-fexb-obs.o"]
+      // Jak's slide (Jak 3's target-tube.o: slide-control and Jak's tube states), carried with its
+      // animations (art_groups) like Jak 2's FEB and Jak 3's PRECC carry them: not in GAME
+      "code": ["target-tube.o", "hj2-fexb-obs.o"]
     },
     {
       // the stadium's race track (the class 1 race's, the one Jak 2 loads at the end of the
@@ -862,8 +879,9 @@
   // group goes into its level's DGO: the force-field walls, the searchlights, the port's barges
   // Jak's pole animations (jak-pole+0-ag, the target's jakb-pole-cycle-ja): Jak 3 only lets him grab
   // a swingpole while a level of his has them, like its own levels with poles (halfpipe, precc,
-  // tema); the levels placing swingpoles or the dig's trapezes carry them
-  "art_groups": {"swingpole": "jak-pole+0-ag", "hj2-dig-balloon-lurker": "jak-pole+0-ag", "hj2-air-train": "air-train-ag", "hj2-time-gate": "warp-gate-ag", "hj2-security-wall": "security-wall-ag", "searchlight": "searchlight-ag", "hj2-boat-manager": "barge-ag"},
+  // tema); the levels placing swingpoles or the dig's trapezes carry them. Jak's slide animations
+  // (jak-tube+0-ag, the target's jakb-tube-turn-ja...) the same way, with the slides
+  "art_groups": {"swingpole": "jak-pole+0-ag", "slide-control": "jak-tube+0-ag", "hj2-dig-balloon-lurker": "jak-pole+0-ag", "hj2-air-train": "air-train-ag", "hj2-time-gate": "warp-gate-ag", "hj2-security-wall": "security-wall-ag", "searchlight": "searchlight-ag", "hj2-boat-manager": "barge-ag"},
 
   // Actors ported by Jak 2 level and name. The mountain's: the warp gates between its foot (the
   // gardens airlock) and its top, Jak 2's only way up; the trans-plat riding from the top down to
@@ -899,8 +917,8 @@
   // levels/havenj2/hj2-*-obs.gc. Not ported from the dig: its enemies and the spiky spheres its
   // doors roll (the doors stay, still). At the end of the game, Dead Town's slabs,
   // bridge, floating platforms and flag are gone with the tower (Jak 2 only spawns them before).
-  // The way out of the fortress: its trap doors are broken for good by the escape (Jak 2 marks them
-  // dead), so they're left out. Its lifts are Jak 3's plat (the user18 option raises the deck in
+  // The way out of the fortress: its trap doors stand whole, for Jak to break with a dive attack
+  // as in Jak 2's escape (it then marks them dead). Its lifts are Jak 3's plat (the user18 option raises the deck in
   // place). The log is raised and the buttons down, like once Jak 2's dig is done; the mtn-plat-gap
   // stands at the top of its path, raised over the gap ("trans": "path_start").
   "ported_levels": ["atoll", "caspad", "consite", "ctyfarmb", "ctyport", "dig3a", "forest", "forexita", "forexitb", "forresca", "forrescb", "garage", "hideout", "mountain", "mtnext", "oracle", "palcab", "palroof", "prison", "ruins", "vinroom"],
@@ -939,6 +957,7 @@
     "warp-gate-b": {"etype": "hj2-warp-gate-b"},
     "fort-lift-plat": {"etype": "hj2-fort-lift-plat", "lumps": {"path": "vector", "sync": "float", "options": "uint32", "initial-spline-pos": "float"}},
     "water-anim-fortress": {"etype": "hj2-fort-pool"},
+    "fort-trap-door": {"etype": "hj2-fort-trap-door"},
     "consite-silo-doors": {"etype": "hj2-cons-silo-doors"},
     "consite-bomb-elevator": {"etype": "hj2-cons-bomb-elevator"},
     // the gardens' yakows, alive (havenj2-obs.gc)
@@ -1004,6 +1023,9 @@
     "parking-spot": {"etype": "hj2-parking-spot", "lumps": {"rotoffset": "float"}},
     "security-wall": {"etype": "hj2-security-wall", "lumps": {"path": "vector", "pickup-type": "int32"}},
     "searchlight": {"etype": "searchlight"},
+    // the main town's street lamps (ctygena, ctygenc: by the palace and by the stadium), which
+    // Jak's attacks and the vehicles snap, as in Jak 2 (hj2-ctyn-lamp, havenj2-obs.gc)
+    "ctyn-lamp": {"etype": "hj2-ctyn-lamp"},
     // the port and the garage: Daxter's mech (farthy) and the garage's parked cars (hj2-common-
     // obs.gc), the port's barges (hj2-port-obs.gc, Jak 3's boat-manager and barge)
     "farthy": {"etype": "hj2-farthy"},
@@ -1014,7 +1036,7 @@
   // swingpole, the bar itself is background) and the slides (Jak 3's slide-control, target-tube.gc).
   // Jak 2's crates are placed in every level too (as Jak 3's wood crates, with their pickups). The
   // city's parking spots, force-field walls and searchlights (the hub, its districts, the cable).
-  "ported_everywhere": ["slide-control", "swingpole", "parking-spot", "security-wall", "searchlight"],
+  "ported_everywhere": ["slide-control", "swingpole", "parking-spot", "security-wall", "searchlight", "ctyn-lamp"],
 
   // Models rebuilt from Jak 2's rips for build-actor (custom_assets/jak3/models/custom_levels/
   // <model>.glb, built by goal_src/jak3/game.gp), by the class that uses them:
@@ -1092,6 +1114,8 @@
     "hj2-warp-gate-b": {"model": "hj2-warp-gate-b", "rip": "prison/warp-gate-b-lod0.glb", "prims": [2, 3], "collide": {"hull": null}},
     "hj2-fort-lift-plat": {"model": "hj2-fort-lift-plat", "rip": "forexita/fort-lift-plat-lod0.glb", "prims": null, "collide": [{"hull": null, "joint": "platscale"}, {"hull": null, "joint": "armrotate"}, {"hull": null, "joint": "main"}], "anims": [["forexita/fort-lift-plat-lod0.glb", "fort-lift-plat-idle", "hj2-fort-lift-plat-idle"], ["forexita/fort-lift-plat-lod0.glb", "fort-lift-plat-scale", "hj2-fort-lift-plat-scale"]]},
     "hj2-fort-pool": {"model": "hj2-fort-pool", "rip": "forexitb/water-anim-fortress-exitb-pool-lod0.glb", "prims": null, "collide": null},
+    // the way out's trap doors: the grating (8 x 8m, 0.66m thick, solid: its hull) and its 17 pieces
+    "hj2-fort-trap-door": {"model": "hj2-fort-trap-door", "rip": "forexitb/fort-trap-door-lod0.glb", "prims": null, "collide": {"hull": null}, "extras": [{"model": "hj2-fort-trap-door-explode", "rip": "forexitb/fort-trap-door-explode-lod0.glb", "prims": null, "collide": null}]},
     "hj2-ruins-beam": {"model": "hj2-ruins-beam", "rip": "ruins/beam-lod0.glb", "prims": null, "collide": null, "anims": [["ruins/beam-lod0.glb", "beam-idle", "hj2-ruins-beam-idle"], ["ruins/beam-lod0.glb", "beam-slide-center", "hj2-ruins-beam-slide"]]},
     // the end of the game: the mountain temple's pressed buttons, ejected steps, lens room, dice
     // and dark eco pool (hj2-mount-obs.gc), Dead Town's fallen pillars (hj2-ruins-obs.gc), the
@@ -1137,6 +1161,9 @@
     "hj2-gun-buoy": {"model": "hj2-gun-buoy", "rip": "atoll/gun-buoy-lod0.glb", "prims": null, "collide": null, "anims": [["atoll/gun-buoy-lod0.glb", "gun-buoy-idle", "hj2-gun-buoy-idle"], ["atoll/gun-buoy-lod0.glb", "gun-buoy-open", "hj2-gun-buoy-open"], ["atoll/gun-buoy-lod0.glb", "gun-buoy-close", "hj2-gun-buoy-close"]]},
     // the fortress's laser turrets (hj2-fortb-obs.gc), invincible like Jak 2's; the city's guard
     // turrets are named actors (hj2-cty-guard-turret, havenj2-obs.gc)
+    // the street lamps (havenj2-obs.gc): the pole (Jak 2's 2 primitives), its collision two boxes
+    // (the pole, the head; 5.67m high), and the four pieces it snaps into (joints a to d)
+    "hj2-ctyn-lamp": {"model": "hj2-ctyn-lamp", "rip": "ctygenc/ctyn-lamp-lod0.glb", "prims": null, "collide": [[[[-0.2, 0.0, -0.2], [0.2, 4.6, 0.2]], [[-0.37, 4.6, -0.37], [0.37, 5.67, 0.37]]]], "extras": [{"model": "hj2-ctyn-lamp-explode", "rip": "ctygenc/ctyn-lamp-explode-lod0.glb", "prims": null, "collide": null}]},
     "hj2-cty-guard-turret": {"model": "hj2-cty-guard-turret", "rip": "ctywide/cty-guard-turret-lod0.glb", "prims": null, "collide": [{"hull": null, "joint": "lidL"}, {"hull": null, "joint": "lidR"}, {"hull": null, "joint": "main"}], "anims": [["ctywide/cty-guard-turret-lod0.glb", "cty-guard-turret-idle", "hj2-cty-guard-turret-idle"], ["ctywide/cty-guard-turret-lod0.glb", "cty-guard-turret-pop-up-down", "hj2-cty-guard-turret-pop-up-down"]], "extras": [{"model": "hj2-cty-guard-turret-explode", "rip": "ctywide/cty-guard-turret-explode-lod0.glb", "prims": null, "collide": null}]},
     "hj2-fort-turret": {"model": "hj2-fort-turret", "rip": "forrescb/fort-turret-lod0.glb", "prims": null, "collide": [{"hull": null, "joint": "recoiltrans"}, {"hull": null, "joint": "secrotate"}, {"hull": null, "joint": "main"}], "anims": [["forrescb/fort-turret-lod0.glb", "fort-turret-idle", "hj2-fort-turret-idle"], ["forrescb/fort-turret-lod0.glb", "fort-turret-shoot", "hj2-fort-turret-shoot"], ["forrescb/fort-turret-lod0.glb", "fort-turret-rise", "hj2-fort-turret-rise"]]},
     // the port and the garage: Daxter's mech (farthy) and the garage's parked cars (hj2-common-

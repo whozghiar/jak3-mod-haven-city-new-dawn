@@ -11,7 +11,11 @@ missing.
     whose files are missing, or older than a texture replacement of the source game
     (custom_assets/<game>/texture_replacements, which the decompiler applies when it extracts):
     editing one re-extracts the levels and rips the port reads, once;
-  - the target game: its backgrounds (the particles' textures, the levels the build borrows from).
+  - the target game: its backgrounds (the particles' textures, the levels the build borrows from),
+    with the models its decompiler config bakes into its levels (extra_art_groups_by_dgo): a level
+    whose .fr3 lacks one is extracted again. out/<game> is shared by every worktree of the
+    repository, so an extraction made with another config (master-dev's, another mod's) rewrites
+    the .fr3 without them.
 
 The games' disc files must be in iso_data/<game> (copied from the disc, like for `task extract`).
 The decompiler runs with its config's default version (ntsc_v1): the one the level port's paths
@@ -22,6 +26,8 @@ import json
 import os
 import subprocess
 import sys
+
+from ..common.files import read_jsonc
 
 EXE = ".exe" if os.name == "nt" else ""
 DECOMPILER = f"out/build/Release/bin/decompiler{EXE}"
@@ -36,8 +42,10 @@ def fail(lines):
 
 def decompile(game, overrides):
     """Run the decompiler on iso_data/<game> with these config overrides."""
-    cmd = [DECOMPILER, f"./decompiler/config/{game}/{game}_config.jsonc", "./iso_data",
-           "./decompiler_out", "--version", VERSION, "--config-override", json.dumps(overrides)]
+    # an absolute path: Windows' CreateProcess doesn't find a relative one with "/" separators
+    cmd = [os.path.abspath(DECOMPILER), f"./decompiler/config/{game}/{game}_config.jsonc",
+           "./iso_data", "./decompiler_out", "--version", VERSION, "--config-override",
+           json.dumps(overrides)]
     print("  running: " + " ".join(cmd))
     subprocess.run(cmd, check=True)
 
@@ -68,6 +76,26 @@ def source_needs(port):
         if "rip" in model and stale(port.rip(model["rip"])):
             missing.setdefault(model["rip"].split("/")[0], []).append(port.rip(model["rip"]))
     return missing
+
+
+def missing_baked_models(game):
+    """The game's DGOs whose .fr3 lacks a model its decompiler config bakes into it
+    (extra_art_groups_by_dgo, entries "<art-group>[:<HOME.DGO>]", the model "<art group>-lod0")."""
+    config = read_jsonc(f"decompiler/config/{game.NAME}/{game.NAME}_config.jsonc")
+    stale = []
+    for dgo, entries in sorted(config.get("extra_art_groups_by_dgo", {}).items()):
+        fr3 = f"{game.FR3}/{dgo[:-4].lower()}.fr3"
+        models = set()
+        if os.path.exists(fr3):
+            out = subprocess.run([os.path.abspath(FR3_CHECK), fr3, "--models", "-lod0"],
+                                 capture_output=True, text=True)
+            if out.returncode:
+                fail([f"{FR3_CHECK} has no --models (rebuild it: cmake --build out/build/Release "
+                      f"--target fr3_check --config Release)"])
+            models = set(out.stdout.split())
+        if any(e.split(":")[0].removesuffix("-ag") + "-lod0" not in models for e in entries):
+            stale.append(dgo)
+    return stale
 
 
 def run(port):
@@ -103,9 +131,18 @@ def run(port):
             fail([f"{src.TITLE}'s extraction has no {p}" for ps in still.values() for p in ps])
     print(f"  {src.TITLE}: extracted")
 
-    # the target game: its backgrounds
+    # the target game: its backgrounds, then the levels missing a model its config bakes in
     if not os.path.isdir(dst.FR3) or not any(f.endswith(".fr3") for f in os.listdir(dst.FR3)):
         print(f"  {dst.TITLE} isn't extracted: extracting it")
         decompile(dst.NAME, {"decompile_code": False, "levels_extract": True,
                              "allowed_objects": []})
+    stale = missing_baked_models(dst)
+    if stale:
+        print(f"  {dst.TITLE}: {', '.join(stale)} lack the models extra_art_groups_by_dgo bakes "
+              f"in (extracted with another config): extracting them again")
+        decompile(dst.NAME, {"decompile_code": False, "levels_extract": True,
+                             "allowed_objects": [], "levels_to_extract": stale})
+        if missing_baked_models(dst):
+            fail([f"{dst.TITLE}'s extraction of {', '.join(stale)} still lacks its "
+                  f"extra_art_groups_by_dgo models (see the decompiler's warnings)"])
     print(f"  {dst.TITLE}: extracted")
