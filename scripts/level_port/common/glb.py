@@ -310,6 +310,11 @@ def rebuild_model(src, path, name, keep_prims, collide=None, anims=None):
                           for i, spec in enumerate(collide or [[(lo, hi)]])]
 
     def copy_anim(anim, anim_gltf, anim_read, new_name):
+        # the joints' channels only: a face's blend shape weights (Daxter's) are on the mesh node,
+        # which build-actor doesn't animate
+        kept = [c for c in anim["channels"] if c["target"]["path"] != "weights"]
+        anim = {"channels": [dict(c, sampler=i) for i, c in enumerate(kept)],
+                "samplers": [anim["samplers"][c["sampler"]] for c in kept]}
         samplers = []
         for s in anim["samplers"]:
             out_acc = anim_gltf["accessors"][s["output"]]

@@ -329,6 +329,8 @@ graphify-out/*
 /custom_assets/jak3/models/custom_levels/hj2-hide-light-fog.glb
 /custom_assets/jak3/models/custom_levels/hj2-hide-light.glb
 /custom_assets/jak3/models/custom_levels/hj2-hip-door.glb
+/custom_assets/jak3/models/custom_levels/hj2-hip-mole-gold.glb
+/custom_assets/jak3/models/custom_levels/hj2-hip-mole.glb
 /custom_assets/jak3/models/custom_levels/hj2-iris-door.glb
 /custom_assets/jak3/models/custom_levels/hj2-liftcat.glb
 /custom_assets/jak3/models/custom_levels/hj2-minnow-blue.glb
@@ -380,6 +382,9 @@ graphify-out/*
 /custom_assets/jak3/models/custom_levels/hj2-vin-door.glb
 /custom_assets/jak3/models/custom_levels/hj2-vin-turbine.glb
 /custom_assets/jak3/models/custom_levels/hj2-warp-gate-b.glb
+/custom_assets/jak3/models/custom_levels/hj2-whack-bopper.glb
+/custom_assets/jak3/models/custom_levels/hj2-whack-cabinet.glb
+/custom_assets/jak3/models/custom_levels/hj2-whack-daxter.glb
 /custom_assets/jak3/models/custom_levels/hj2-wren-fly.glb
 /custom_assets/jak3/models/custom_levels/hj2-wren.glb
 /custom_assets/jak3/models/custom_levels/hj2-yakow.glb

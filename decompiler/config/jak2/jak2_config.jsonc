@@ -136,7 +136,11 @@
   // merc's texture ids are home-level-relative). Omitted -> first level DGO the art
   // group shipped in is auto-picked (unreliable). Wrong/missing -> untextured model.
   // Example: "LWIDEA.DGO": ["transport-ag:LPROTECT.DGO"]
-  "extra_art_groups_by_dgo": {},
+  // og:jak2-haven-city added: Daxter's high-res model in the whack-a-metal's level (LWHACK holds his
+  // daxter-mole animations but not his model, which HIPHOG ships): its rip then exports Daxter
+  // with those animations (decompiler_out/jak2/levels/lwhack/daxter-highres-lod0.glb), for the
+  // Jak 3 port's Hip Hog mini-game (custom_assets/jak3/ports/jak2-haven-city/port.jsonc).
+  "extra_art_groups_by_dgo": {"LWHACK.DGO": ["daxter-highres-ag:HIPHOG.DGO"]},
   // turn this on if you want extracted levels to be saved out as .glb files in decompiler_out/<game>/levels
   "rip_levels": false,
   // should we also extract collision meshes to the .fr3 files?

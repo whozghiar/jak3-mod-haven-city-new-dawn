@@ -125,6 +125,8 @@ TARGET_CALLBACKS = {
     "birth-func-random-next-time", "check-drop-group-center",
     # the palace roof's rain (weather-part.gc)
     "birth-func-omega-normal-orient",
+    # a part tracker's particles following its target's root (generic-obs.gc)
+    "part-tracker-track-root",
 }
 # Jak 2's splash callbacks (check-drop-level-<level>-drop-userdata): written in Jak 3's form
 # (drop_func_text)

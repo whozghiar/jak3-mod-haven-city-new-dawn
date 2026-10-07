@@ -15,7 +15,8 @@ VAGWADM.<language>), which the Jak 3 overlord adds to its own (game/overlord/jak
 get the "voice_prefix" (a name of the source game's could be one the target game's code plays).
 
 Block keys: "prefix" (the new names' start), "extra_banks" (source bank -> target game banks loaded
-with it, while a hub is loaded: Jak 3's traffic sounds with Jak 2's city banks), "voice_prefix",
+with it, while a hub is loaded: Jak 3's traffic sounds with Jak 2's city banks), "music" (source
+musics the mod's code plays itself, copied like the levels'), "voice_prefix",
 "voices" (GOAL variable -> its lines: the level-info file defines each as an array of the lines'
 new names, for the mod's code to play).
 """
@@ -56,6 +57,9 @@ class Sound:
         self.target_title = port.target.TITLE
         self.banks = {}  # new name -> source name
         self.music = {}
+        # musics the mod's code plays besides the levels' (a mini-game's)
+        for name in cfg.get("music", []):
+            self.music_bank(name)
 
     def _use(self, used, name):
         new = renamed(self.prefix, name)

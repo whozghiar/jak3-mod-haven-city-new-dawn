@@ -67,6 +67,7 @@ dig site, all rebuilt from Jak 2's own extracted data and linked the way Jak 2 l
 - **Breakable city:** the Baron's propaganda speakers break in two hits like in Jak 2, the farm
   crops are solid and burst when hit hard.
 - **Air trains:** the port's air train takes Jak to the dig site and back, in a short fade.
+- **Whack-a-Metal-Head:** Jak 2's arcade game in the Hip Hog, with Daxter, Tess and the session's best score: press triangle at the cabinet.
 - **City traffic:** Jak 3's citizens, Freedom League guards, hover bikes and cars, as many as in
   Jak 2; Jak 2's Freedom League Hellcats: they fly with the traffic, and Jak can steal one and fire
   its front gun; Jak 2's Crimson Guard bikes, ridden by Freedom League guards.

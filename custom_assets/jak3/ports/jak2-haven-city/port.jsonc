@@ -57,6 +57,9 @@
       // the Oracle's banners and the hideout's lamp are hj2-anim-loop (GAME, hj2-common-obs.gc)
       "hj2-oracle-obs": ["jak2-haven-city-world", "hj2-common-obs"],
       "hj2-hide-obs": ["jak2-haven-city-world", "hj2-common-obs"],
+      // the Hip Hog's whack-a-metal cabinet is a hj2-still-prop (GAME, hj2-common-obs.gc); its game
+      // launches the particles of hj2-hiphog-part.gc by the ids it defines
+      "hj2-hiphog-obs": ["jak2-haven-city-world", "hj2-common-obs", "hj2-hiphog-part"],
       // the castle pad's electric gate is Jak 3's elec-gate (elec-gate.o, linked before it in HJY)
       "hj2-caspad-obs": ["jak2-haven-city-world", "elec-gate"],
       // the port's barges are Jak 3's (ctyport-obs.o, linked before it in HPT)
@@ -76,6 +79,8 @@
     // the wanted ones (hj2-update-extra-sound-bank, jak2-haven-city-world.gc, loads them)
     "game_code": ["goal_src/jak3/pc/features/jak2-haven-city-world.gc", "goal_src/jak3/levels/havenj2/hj2-common-obs.gc"],
     "level_banks_var": "*hj2-level-sound-banks*",
+    // Jak 2's musics the mod's code plays itself: danger3, the whack-a-metal's (hj2-hiphog-obs.gc)
+    "music": ["danger3"],
     // Jak 2's voice lines, packed for Jak 3 by the build (goalc's pack-vags), j + their name (Jak 3's
     // code plays some of Jak 2's names: its propa class). Each list is defined in the level-info file:
     // the speakers' speeches (havenj2-obs.gc), the citizens' and the guards' lines (Jak 2's
@@ -98,7 +103,16 @@
       "*hj2-guard-victory-sounds*": ["kg009", "kg132", "kg132a", "kg133", "kg146", "kg147", "kg148", "kg149", "kg151", "kg152", "kg153", "kg154", "kg159", "kg165", "kg165a", "kg165b", "kg166", "kg166a", "kg166b", "kg167", "kg167a", "kg167b", "kg168", "kg168a", "kg168b", "kg169", "kg169a", "kg169b", "kg170", "kg170a", "kg170b", "kg171", "kg171a", "kg171b", "kg172", "kg172a", "kg172b", "kg173", "kg173a", "kg173b", "kg236a", "kg236b", "kg237a", "kg237b", "kg238a", "kg239a", "kg239b", "kg240a"],
       "*hj2-guard-change-targets-sounds*": ["kg044a", "kg045a", "kg046a", "kg047a", "kg048a", "kg049a", "kg050a"],
       "*hj2-guard-bumped-sounds*": ["kg387a", "kg396a", "kg399a"],
-      "*hj2-guard-battle-sounds*": ["kg001", "kg002", "kg004", "kg006", "kg001a", "kg013", "kg016", "kg018", "kg019", "kg020", "kg023", "kg024", "kg002a", "kg004a", "kg078a", "kg079a", "kg080a", "kg081a", "kg082a", "kg083a", "kg084a", "kg085a", "kg086a", "kg087a", "kg088a", "kg091a", "kg023a", "kg006a", "kg092a", "kg020a", "kg093a", "kg094a", "kg005a", "kg095a", "kg103a", "kg104a", "kg112a", "kg024a", "kg134", "kg136", "kg137", "kg138", "kg139", "kg140", "kg141", "kg014", "kg153", "kg135", "kg142", "kg144", "kg145", "kg150"]
+      "*hj2-guard-battle-sounds*": ["kg001", "kg002", "kg004", "kg006", "kg001a", "kg013", "kg016", "kg018", "kg019", "kg020", "kg023", "kg024", "kg002a", "kg004a", "kg078a", "kg079a", "kg080a", "kg081a", "kg082a", "kg083a", "kg084a", "kg085a", "kg086a", "kg087a", "kg088a", "kg091a", "kg023a", "kg006a", "kg092a", "kg020a", "kg093a", "kg094a", "kg005a", "kg095a", "kg103a", "kg104a", "kg112a", "kg024a", "kg134", "kg136", "kg137", "kg138", "kg139", "kg140", "kg141", "kg014", "kg153", "kg135", "kg142", "kg144", "kg145", "kg150"],
+      // Tess at the Hip Hog's whack-a-metal (Jak 2's talker speeches 395 to 448, whack.gc there;
+      // hj2-hiphog-obs.gc): cheering, near 1300 points, after a hit, after a red metal head, at the
+      // end of a game won or lost
+      "*hj2-whack-cheer-sounds*": ["tswm001", "tswm002", "tswm003", "tswm004", "tswm007", "tswm009", "tswm010", "tswm011", "tswm012", "tswm013", "tswm014", "tswm015", "tswm016", "tswm017", "tswm018", "tswm027", "tswm028", "tswm029", "tswm044", "tswm045"],
+      "*hj2-whack-close-sounds*": ["tswm047", "tswm048", "tswm049"],
+      "*hj2-whack-hit-sounds*": ["tswm005", "tswm006", "tswm008"],
+      "*hj2-whack-wrong-sounds*": ["tswm019", "tswm020", "tswm021", "tswm039", "tswm040", "tswm041", "tswm042", "tswm043", "tswm046", "tswm051", "tswm052", "tswm053"],
+      "*hj2-whack-win-sounds*": ["tswm050", "tswm054", "tswm055", "tswm056", "tswm023", "tswm024", "tswm025", "tswm026"],
+      "*hj2-whack-lose-sounds*": ["tswm030", "tswm031", "tswm032", "tswm033", "tswm034", "tswm036", "tswm037", "tswm038"]
     }
   },
 
@@ -450,11 +464,19 @@
     },
     {
       "name": "hj2-hiphog", "nick": "hjh", "iso": "HJ2HIPHG", "index": "0x12A", "base_id": 21500,
-      // Jak 2's static props kept as background (its trophies on the walls, the mirror behind the bar and the whack-a-metal cabinet (Jak 2's idles are one frame)): one mesh, the mesh step
-      "mesh": {"props": {"hip-trophy-a": [null, null], "hip-trophy-c": [null, null], "hip-trophy-d": [null, null], "hip-trophy-f": [null, null], "hip-trophy-g": [null, null], "hip-trophy-i": [null, null], "hip-trophy-j": [null, null], "hip-trophy-m": [null, null], "hip-trophy-n": [null, null], "hip-mirror": [null, null], "hip-whack-a-metal": ["box", 16]}, "post_width": 0.6, "palette": {"ambient": 128.0, "sun": null}},
-      "particles": {"files": ["goal_src/jak2/levels/hiphog/hiphog-part.gc"], "data": {"*hiphog-mirror-sheen-waveform*": "*hj2-hiphog-mirror-sheen-waveform*"}, "textures_from": ["GAME", "hiphog"], "page": "auto", "parts": "auto", "groups": "auto"},
+      // Jak 2's static props kept as background (its trophies on the walls, the mirror behind the bar (Jak 2's idles are one frame)): one mesh, the mesh step. The whack-a-metal cabinet is an actor (ported_etypes)
+      "mesh": {"props": {"hip-trophy-a": [null, null], "hip-trophy-c": [null, null], "hip-trophy-d": [null, null], "hip-trophy-f": [null, null], "hip-trophy-g": [null, null], "hip-trophy-i": [null, null], "hip-trophy-j": [null, null], "hip-trophy-m": [null, null], "hip-trophy-n": [null, null], "hip-mirror": [null, null]}, "post_width": 0.6, "palette": {"ambient": 128.0, "sun": null}},
+      // with the whack-a-metal's (whack.gc): its scoreboards, hits, misses, shocks and Daxter's dizzy
+      // stars, launched by hj2-hiphog-obs.gc (extra_groups; its miss marks by part id: extra_parts).
+      // vinroom: the scoreboard screen's first texture (vinroom-sprite's screen-00, Jak 2's part 3334)
+      "particles": {"files": ["goal_src/jak2/levels/hiphog/hiphog-part.gc", "goal_src/jak2/levels/hiphog/whack.gc"], "data": {"*hiphog-mirror-sheen-waveform*": "*hj2-hiphog-mirror-sheen-waveform*"}, "textures_from": ["GAME", "hiphog", "vinroom"], "page": "auto", "parts": "auto", "groups": "auto",
+                    "extra_groups": {"group-whack-scoreboard-misses": "*hj2-whack-misses-group-ids*", "group-whack-scoreboard-points": "*hj2-whack-points-group-ids*", "group-whack-miss": "*hj2-whack-miss-group-ids*", "group-whack-hit": "*hj2-whack-hit-group-ids*", "group-whack-shock": "*hj2-whack-shock-group-ids*", "group-mole-dizzy": "*hj2-mole-dizzy-group-ids*"},
+                    "extra_parts": {"3336": "*hj2-whack-miss-mark-part-id*"}},
       "what": "the Hip Hog saloon",
-      "sources": ["hiphog"],
+      // lwhack: the level Jak 2 loads for the whack-a-metal (no background, its fixed camera
+      // camera-230); the game's classes (hj2-hiphog-obs.gc)
+      "sources": ["hiphog", "lwhack"],
+      "code": ["hj2-hiphog-obs.o"],
       "sky": false
     },
     {
@@ -752,7 +774,7 @@
   // sprite-vec-data-2d), the callbacks of Jak 3's level code the levels include (ctyfarm-obs, in
   // havenj2), and ids never taken (Jak 3's level code in havenj2)
   "particles": {
-    "copied_callbacks": ["check-drop-level-ruins-rubble", "check-drop-level-ruins-tower-userdata", "ruins-bird-bob-func", "sparticle-ruins-bird-moon", "palcab-bird-bob-func", "sparticle-palcab-bird-moon", "check-drop-level-atoll-drop", "check-drop-level-dig-lava-bloops", "check-drop-level-forexitb-drop-water-userdata", "check-drop-level-hide-fireplace-sparks", "birth-func-rotate-hour", "birth-func-rotate-minute", "hiphog-mirror-sheen-func", "birth-func-vinroom-sphere", "check-drop-level-kiosk-fire-sparks", "check-bubble-surface-onintent", "check-onintent-bugs"],
+    "copied_callbacks": ["check-drop-level-ruins-rubble", "check-drop-level-ruins-tower-userdata", "ruins-bird-bob-func", "sparticle-ruins-bird-moon", "palcab-bird-bob-func", "sparticle-palcab-bird-moon", "check-drop-level-atoll-drop", "check-drop-level-dig-lava-bloops", "check-drop-level-forexitb-drop-water-userdata", "check-drop-level-hide-fireplace-sparks", "birth-func-rotate-hour", "birth-func-rotate-minute", "hiphog-mirror-sheen-func", "birth-func-vinroom-sphere", "check-drop-level-kiosk-fire-sparks", "check-bubble-surface-onintent", "check-onintent-bugs", "birth-func-whack-score"],
     "level_callbacks": ["birth-func-ctyfarma-drip", "birth-func-ctyfarmb-drip", "check-farm-piece-ground"],
     // ids of the target game's level code linked with the levels: ctymark-obs (parts 1117-1162,
     // groups 248-253), ctyfarm-obs (parts 4001-4047, groups 1134-1145); "auto" ids start past the
@@ -928,7 +950,7 @@
   // as in Jak 2's escape (it then marks them dead). Its lifts are Jak 3's plat (the user18 option raises the deck in
   // place). The log is raised and the buttons down, like once Jak 2's dig is done; the mtn-plat-gap
   // stands at the top of its path, raised over the gap ("trans": "path_start").
-  "ported_levels": ["atoll", "caspad", "consite", "ctyfarmb", "ctyport", "dig3a", "forest", "forexita", "forexitb", "forresca", "forrescb", "garage", "hideout", "mountain", "mtnext", "oracle", "palcab", "palroof", "prison", "ruins", "vinroom"],
+  "ported_levels": ["atoll", "caspad", "consite", "ctyfarmb", "ctyport", "dig3a", "forest", "forexita", "forexitb", "forresca", "forrescb", "garage", "hideout", "hiphog", "mountain", "mtnext", "oracle", "palcab", "palroof", "prison", "ruins", "vinroom"],
   "ported_etypes": {
     "piston": {"etype": "hj2-piston", "lumps": {"move-range": "float", "sync": "float"}},
     "turbine": {"etype": "hj2-turbine", "lumps": {"rotspeed": "float", "rise-height": "float"}},
@@ -1037,7 +1059,9 @@
     // obs.gc), the port's barges (hj2-port-obs.gc, Jak 3's boat-manager and barge)
     "farthy": {"etype": "hj2-farthy"},
     "dummy-vehicle": {"etype": "hj2-dummy-vehicle", "lumps": {"art-name": "string"}},
-    "boat-manager": {"etype": "hj2-boat-manager", "lumps": {"nav-mesh-actor": "uint32"}}
+    "boat-manager": {"etype": "hj2-boat-manager", "lumps": {"nav-mesh-actor": "uint32"}},
+    // the Hip Hog's whack-a-metal cabinet (hj2-hiphog-obs.gc), its game's fixed camera kept
+    "hip-whack-a-metal": {"etype": "hj2-whack-cabinet", "lumps": {"camera-name": "string"}}
   },
   // the ported classes placed in every level, not only in ported_levels: the swinging bars (Jak 3's
   // swingpole, the bar itself is background) and the slides (Jak 3's slide-control, target-tube.gc).
@@ -1065,6 +1089,17 @@
     "hj2-airlock-outer": {"model": "hj2-airlock-outer", "rip": "ctyslumb/com-airlock-outer-lod0.glb", "prims": null, "collide": [{"hull": null, "joint": "Ldoor"}, {"hull": null, "joint": "Rdoor"}]},
     "hj2-airlock-inner": {"model": "hj2-airlock-inner", "rip": "ctyslumb/com-airlock-inner-lod0.glb", "prims": null, "collide": [{"hull": null, "joint": "Ldoormove"}, {"hull": null, "joint": "Rdoormove"}]},
     "hj2-hip-door": {"model": "hj2-hip-door", "rip": "hiphog/hip-door-a-lod0.glb", "prims": null, "collide": [{"hull": null, "joint": "Ldoor"}, {"hull": null, "joint": "Rdoor"}]},
+    // the Hip Hog's whack-a-metal (hj2-hiphog-obs.gc): the cabinet (a box), and the models its game
+    // spawns: the metal heads (hip-mole's normal primitives 6 to 11) and their gold twin (0 to 5,
+    // Jak 2's other mask), Daxter (daxter-highres, ripped from lwhack with his daxter-mole
+    // animations: jak2_config.jsonc's extra_art_groups_by_dgo bakes his model there) and his hammer
+    // (big-bopper, the same animations by name)
+    "hj2-whack-cabinet": {"model": "hj2-whack-cabinet", "rip": "hiphog/hip-whack-a-metal-lod0.glb", "prims": null, "collide": null, "extras": [
+      {"model": "hj2-hip-mole", "rip": "lwhack/hip-mole-lod0.glb", "prims": [6, 7, 8, 9, 10, 11], "collide": null, "anims": [["lwhack/hip-mole-lod0.glb", "hip-mole-idle", "hj2-hip-mole-idle"], ["lwhack/hip-mole-lod0.glb", "hip-mole-up", "hj2-hip-mole-up"], ["lwhack/hip-mole-lod0.glb", "hip-mole-loop", "hj2-hip-mole-loop"], ["lwhack/hip-mole-lod0.glb", "hip-mole-down", "hj2-hip-mole-down"]]},
+      {"model": "hj2-hip-mole-gold", "rip": "lwhack/hip-mole-lod0.glb", "prims": [0, 1, 2, 3, 4, 5], "collide": null, "anims": [["lwhack/hip-mole-lod0.glb", "hip-mole-idle", "hj2-hip-mole-gold-idle"], ["lwhack/hip-mole-lod0.glb", "hip-mole-up", "hj2-hip-mole-gold-up"], ["lwhack/hip-mole-lod0.glb", "hip-mole-loop", "hj2-hip-mole-gold-loop"], ["lwhack/hip-mole-lod0.glb", "hip-mole-down", "hj2-hip-mole-gold-down"]]},
+      {"model": "hj2-whack-daxter", "rip": "lwhack/daxter-highres-lod0.glb", "prims": null, "collide": null, "anims": [["lwhack/daxter-highres-lod0.glb", "daxter-highres-mole-idle", "hj2-whack-daxter-mole-idle"], ["lwhack/daxter-highres-lod0.glb", "daxter-highres-mole-whack0", "hj2-whack-daxter-mole-whack0"], ["lwhack/daxter-highres-lod0.glb", "daxter-highres-mole-whack1", "hj2-whack-daxter-mole-whack1"], ["lwhack/daxter-highres-lod0.glb", "daxter-highres-mole-whack2", "hj2-whack-daxter-mole-whack2"], ["lwhack/daxter-highres-lod0.glb", "daxter-highres-mole-whack3", "hj2-whack-daxter-mole-whack3"], ["lwhack/daxter-highres-lod0.glb", "daxter-highres-mole-whack4", "hj2-whack-daxter-mole-whack4"], ["lwhack/daxter-highres-lod0.glb", "daxter-highres-mole-whack5", "hj2-whack-daxter-mole-whack5"], ["lwhack/daxter-highres-lod0.glb", "daxter-highres-mole-whack6", "hj2-whack-daxter-mole-whack6"], ["lwhack/daxter-highres-lod0.glb", "daxter-highres-mole-whack7", "hj2-whack-daxter-mole-whack7"], ["lwhack/daxter-highres-lod0.glb", "daxter-highres-mole-idle-crazy", "hj2-whack-daxter-mole-idle-crazy"], ["lwhack/daxter-highres-lod0.glb", "daxter-highres-mole-idle-tired", "hj2-whack-daxter-mole-idle-tired"], ["lwhack/daxter-highres-lod0.glb", "daxter-highres-mole-idle-angry", "hj2-whack-daxter-mole-idle-angry"], ["lwhack/daxter-highres-lod0.glb", "daxter-highres-mole-shock", "hj2-whack-daxter-mole-shock"], ["lwhack/daxter-highres-lod0.glb", "daxter-highres-mole-idle-shock", "hj2-whack-daxter-mole-idle-shock"], ["lwhack/daxter-highres-lod0.glb", "daxter-highres-mole-idle-shock-end", "hj2-whack-daxter-mole-idle-shock-end"]]},
+      {"model": "hj2-whack-bopper", "rip": "lwhack/big-bopper-lod0.glb", "prims": null, "collide": null, "anims": [["lwhack/big-bopper-lod0.glb", "big-bopper-mole-idle", "hj2-whack-bopper-mole-idle"], ["lwhack/big-bopper-lod0.glb", "big-bopper-mole-whack0", "hj2-whack-bopper-mole-whack0"], ["lwhack/big-bopper-lod0.glb", "big-bopper-mole-whack1", "hj2-whack-bopper-mole-whack1"], ["lwhack/big-bopper-lod0.glb", "big-bopper-mole-whack2", "hj2-whack-bopper-mole-whack2"], ["lwhack/big-bopper-lod0.glb", "big-bopper-mole-whack3", "hj2-whack-bopper-mole-whack3"], ["lwhack/big-bopper-lod0.glb", "big-bopper-mole-whack4", "hj2-whack-bopper-mole-whack4"], ["lwhack/big-bopper-lod0.glb", "big-bopper-mole-whack5", "hj2-whack-bopper-mole-whack5"], ["lwhack/big-bopper-lod0.glb", "big-bopper-mole-whack6", "hj2-whack-bopper-mole-whack6"], ["lwhack/big-bopper-lod0.glb", "big-bopper-mole-whack7", "hj2-whack-bopper-mole-whack7"], ["lwhack/big-bopper-lod0.glb", "big-bopper-mole-idle-crazy", "hj2-whack-bopper-mole-idle-crazy"], ["lwhack/big-bopper-lod0.glb", "big-bopper-mole-idle-tired", "hj2-whack-bopper-mole-idle-tired"], ["lwhack/big-bopper-lod0.glb", "big-bopper-mole-idle-angry", "hj2-whack-bopper-mole-idle-angry"], ["lwhack/big-bopper-lod0.glb", "big-bopper-mole-shock", "hj2-whack-bopper-mole-shock"], ["lwhack/big-bopper-lod0.glb", "big-bopper-mole-idle-shock", "hj2-whack-bopper-mole-idle-shock"], ["lwhack/big-bopper-lod0.glb", "big-bopper-mole-idle-shock-end", "hj2-whack-bopper-mole-idle-shock-end"]]}
+    ]},
     "hj2-hide-door-a": {"model": "hj2-hide-door-a", "rip": "ctysluma/hide-door-a-lod0.glb", "prims": null, "collide": [{"hull": null, "joint": "main"}]},
     "hj2-hide-door-b": {"model": "hj2-hide-door-b", "rip": "hideout/hide-door-b-lod0.glb", "prims": null, "collide": [{"hull": null, "joint": "top"}, {"hull": null, "joint": "bottom"}]},
     "hj2-oracle-door": {"model": "hj2-oracle-door", "rip": "oracle/oracle-door-lod0.glb", "prims": null, "collide": [{"hull": null, "joint": "Ldoor"}, {"hull": null, "joint": "Rdoor"}]},

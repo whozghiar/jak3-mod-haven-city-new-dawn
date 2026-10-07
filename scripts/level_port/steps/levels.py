@@ -835,7 +835,10 @@ def memory_modes(ctx):
     modes = dict(ctx.memory)
     for level in ctx.port.levels:
         if level.name not in fixed:
-            modes[level.name] = max((source_modes.get(lv, "small-edge") for lv in level.sources),
+            # a source loaded into another's heap (Jak 2's borrow levels: lwhack in hiphog's) has
+            # no mode of its own
+            modes[level.name] = max((source_modes.get(lv, "small-edge") for lv in level.sources
+                                     if source_modes.get(lv, "small-edge") in order),
                                     key=order.index)
     sets = sorted(load_sets(ctx))
 

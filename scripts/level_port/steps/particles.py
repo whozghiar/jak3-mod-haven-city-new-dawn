@@ -58,6 +58,8 @@ level's sprite page, so no two levels' particles ever share a slot or an id.
     "data": {"<source define>": ours}          data arrays copied (the neon signs' timings),
     "group_arrays": {"<source array>": ours}   group id arrays, their ids moved,
     "extra_groups": {"<source group>": our array}   groups the mod's code launches, with an array
+    "extra_parts": {"<source part id>": our define}   parts the mod's code launches by id (outside
+                   any group: the whack-a-metal's miss marks), our id as an int
     "sign_actors": {"<source etype>": ours}    actors with their own particle code, kept
     "skip_groups": [source groups whose part spawners aren't placed (a race's scoreboard)],
     "kiosks": {"<source etype>": {"group": source group, "suffix": name suffix,
@@ -611,6 +613,9 @@ def translate(port, level, page, ids):
             tr.group(defs.group_ids[int(gl.parse_int(i))])
     for group in extra_groups:
         tr.group(group)
+    extra_parts = cfg.get("extra_parts", {})
+    for pid in extra_parts:
+        tr.part(int(pid))
     # data arrays (the neon signs': bit masks and timings, no ids)
     data_text = [gl.pretty([Atom("define"), Atom(ours)] + defs.data[source_name][2:])
                  for source_name, ours in cfg.get("data", {}).items()]
@@ -621,6 +626,7 @@ def translate(port, level, page, ids):
     arrays = [group_array_text(defs, tr, src, ours) for src, ours in group_arrays.items()]
     arrays += [f"(define {ours} (new 'static 'boxed-array :type int32 {tr.group(group)[1]}))"
                for group, ours in extra_groups.items()]
+    arrays += [f"(define {ours} {tr.part(int(pid))})" for pid, ours in extra_parts.items()]
     drop_text = [port.pair.drop_func_text(n, launched, tr.part_map)
                  for n, launched in sorted(tr.drop_funcs.values())]
     source_dir = f"goal_src/{port.source.NAME}"
