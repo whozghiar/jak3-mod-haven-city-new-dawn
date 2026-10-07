@@ -736,6 +736,13 @@ nearest district within 50 m, nor a district shown or recently asked for with gr
                              (hj2-district-within? want (target-pos 0) 4)
                              )
                         )
+                   ;; never a place (not a district: no ground on the district map) shown or asked
+                   ;; for by a script in the last 5 s: its door is open on it (the Hip Hog, swapped
+                   ;; for the gardens as Jak reached its door, which closed and opened again)
+                   (not (and (!= (hj2-hub-of want) 'havenj2)
+                             (or (-> *load-state* want i display?) (hj2-recently-asked? want))
+                             )
+                        )
                    (or (< slot 0) (and slot-shown? (not (-> *load-state* want i display?))))
                    )
           (set! slot i)
