@@ -65,9 +65,12 @@ def continue_point(cont_name, level, trans, camera_trans, quat, camera_rot, flag
 
 def level_load_info(name, nick, index, memory_mode, flags, mood, continues, callbacks, ocean,
                     comment, draw_priority, outdoor, part_engine_max=0, music="#f",
-                    extra_sound_bank="#f"):
-    """A level-load-info, and its registration in *level-load-list*."""
+                    extra_sound_bank="#f", city_map_bits=0):
+    """A level-load-info, and its registration in *level-load-list*. city_map_bits: the squares of
+    the city's 5x7 minimap grid (bit 5 * row + column) whose map the level holds."""
     flags_line = f"    :level-flags (level-flags {flags})\n" if flags else ""
+    bits = " ".join(f"cmb{i}" for i in range(34) if city_map_bits >> i & 1)
+    map_line = f"    :city-map-bits (city-map-bits {bits})\n" if bits else ""
     if outdoor:
         # the weather of an outdoor level: clouds and fog anywhere in 0..1, rain when both are high
         weather = ("    :max-rain 1.0\n"
@@ -99,7 +102,7 @@ def level_load_info(name, nick, index, memory_mode, flags, mood, continues, call
     :ocean-alpha 1.0
     :priority 100
     :draw-priority {draw_priority}
-    :part-engine-max {part_engine_max}
+{map_line}    :part-engine-max {part_engine_max}
     :base-task-mask (task-mask task0)
     :bigmap-id (bigmap-id none)
     :continues '(

@@ -838,6 +838,14 @@ void gl_set_active_levels(const std::vector<std::string>& levels) {
   g_gfx_data->loader->set_active_levels(levels);
 }
 
+/*!
+ * og:jak2-haven-city added: is the level's geometry loaded and uploaded (it can be drawn)?
+ * Called from the game's thread; the loader locks.
+ */
+bool gl_level_ready(const std::string& level) {
+  return g_gfx_data && g_gfx_data->loader->is_level_ready(level);
+}
+
 void gl_force_reload_all() {
   g_gfx_data->loader->request_reload_all();
 }
@@ -865,6 +873,7 @@ const GfxRendererModule gRendererOpenGL = {
     gl_texture_relocate,     // texture_relocate
     gl_set_levels,           // set_levels
     gl_set_active_levels,    // set_active_levels
+    gl_level_ready,          // level_ready (og:jak2-haven-city added)
     gl_force_reload_all,     // force_reload_all
     gl_force_reload_level,   // force_reload_level
     gl_force_reload_common,  // force_reload_common

@@ -721,6 +721,13 @@
 ;; starts only once they're loaded and shows nothing for a while.
 (define *pc-renderer-early-level?* (the-as (function symbol symbol) #f))
 
+;; og:jak2-haven-city added: a predicate (level -> #t) called for a level asked to be shown but not
+;; shown yet (the load-state's update, "Displaying level"): #t holds it hidden for now, for the
+;; levels whose geometry the PC renderer hasn't uploaded yet (shown, their collision would be live
+;; with nothing drawn). The predicate itself decides whether Jak waits (the 'loading event). #f,
+;; none (Jak 3's own behavior). A mod sets it for its own levels.
+(define *pc-renderer-display-wait?* (the-as (function level symbol) #f))
+
 (define *print-login* #t)
 
 (defun load-buffer-resize ((arg0 level) (arg1 dgo-header))
@@ -3442,6 +3449,11 @@
                 (cond
                   ((not (-> s3-2 display?))
                    (cond
+                     ;; og:jak2-haven-city added: a mod's level waiting for the PC renderer stays
+                     ;; hidden, asked again next frame (*pc-renderer-display-wait?*)
+                     ((and *pc-renderer-display-wait?* (*pc-renderer-display-wait?* s3-2))
+                      #f
+                      )
                      ((or (= (-> s3-2 status) 'loaded) (= (-> s3-2 status) 'active))
                       (format 0 "Displaying level ~A [~A]~%" (-> this target s5-2 name) (-> this target s5-2 display?))
                       (level-get-for-use *level* (-> s3-2 info name) 'active)

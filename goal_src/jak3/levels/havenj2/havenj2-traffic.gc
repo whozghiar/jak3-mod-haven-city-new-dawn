@@ -224,18 +224,63 @@ parameter count, arg2: the event, arg3: its parameters. Returns Jak 3's answer."
     )
   )
 
+;; Minimap icons //////////////////////////////////////////////////////////////////////////////////
+;;
+;; Jak 2's guards and guard vehicles show on the minimap as blue icons with their view cone. Jak 3's
+;; guard does too (class 25 "guard-frustum", added by citizen-method-194 when the traffic sends it
+;; out), but only drops its icon when its process dies: a guard back in the traffic's pool (inactive)
+;; kept it, still drawn, and the field stayed set, so a guard sent out again got no new one. Jak 2's
+;; guard drops it on entering inactive (guard.gc there); havenj2's does too, below. The guard vehicles
+;; (Hellcats, guard bikes) get the same icon, larger (*hj2-guard-vehicle-minimap-class*, GAME). The
+;; view cones show while Jak is on foot or pilots (Jak 3 hides them while he pilots, except in
+;; havenj2: minimap.gc sub-draw-1-1).
+
+(defun hj2-minimap-icon-off ((icon connection-minimap))
+  "Fade out a minimap icon (icon: the connection, or #f) and let the minimap drop it, like Jak 2's
+guard and vehicle-guard do. Returns #f, for the field that held it."
+  (if icon
+      (logior! (-> icon flags) (minimap-flag fade-out))
+      )
+  (the-as connection-minimap #f)
+  )
+
+(defun hj2-guard-vehicle-icon-on ((veh vehicle) (icon connection-minimap))
+  "The minimap icon of a guard vehicle (veh) the traffic sends out: icon, its current one, if any,
+else a new one: Jak 3's guard-frustum (class 25), its class then pointed at
+*hj2-guard-vehicle-minimap-class* (the same blue dot and view cone, larger). Returns the icon, for
+the vehicle's minimap field (#f when the minimap has no free connection)."
+  (when (not icon)
+    (set! icon (add-icon! *minimap* veh (the-as uint 25) (the-as int #f) (the-as vector #t) 0))
+    (if icon
+        (set! (-> icon class) *hj2-guard-vehicle-minimap-class*)
+        )
+    )
+  icon
+  )
+
+;; Jak 3's guard go-inactive, as linked before this file (havenj2's DGO)
+(define *hj2-stock-guard-go-inactive* (method-of-type crimson-guard go-inactive))
+
+(defmethod go-inactive ((this crimson-guard))
+  "The guard goes back to the traffic's pool (or dies, cleanup-for-death): its minimap icon fades
+out (hj2-minimap-icon-off), so the next time it is sent out it gets a new one, then Jak 3's
+go-inactive. Returns nothing."
+  (set! (-> this minimap) (hj2-minimap-icon-off (-> this minimap)))
+  (*hj2-stock-guard-go-inactive* this)
+  (none)
+  )
+
 ;; Freedom League Hellcats ////////////////////////////////////////////////////////////////////////
 ;;
 ;; Jak 2's guard Hellcats in the city's traffic, while *mod-jak2-haven-city-hellcats* is on (Mods
-;; menu, off by default). They only fly the traffic lanes: unlike Breath of Peace's, they never
-;; chase Jak, and hitting one doesn't raise the alert (Jak 3's vehicle-method-130 does nothing).
-;; Jak 3 maps vehicle-type h-hellcat to traffic-type guard-car and ships *h-hellcat-constants* and
+;; menu, off by default). They fly the traffic lanes and, while *mod-jak2-haven-city-alert* is on,
+;; chase Jak like Jak 2's (see "Guard vehicle pursuit" below). Jak 3 maps vehicle-type h-hellcat to traffic-type guard-car and ships *h-hellcat-constants* and
 ;; skel-h-hellcat (car.gc), but only declares the class, never spawns it
 ;; in its city and never loads its art there. The class and its pilot come from the Jak 3 mod
 ;; Haven City: Breath of Peace (whozghiar/jak3-mod-haven-city-breath-of-peace); hellcat-ag is in
 ;; havenj2's DGO ("traffic" art of the port), so the Hellcats only ever fly in havenj2.
 
-;; How many Hellcats fly at once (Breath of Peace's number; 20 at most per traffic type)
+;; How many Hellcats fly at once, at most (Breath of Peace's number; 20 at most per traffic type)
 (defconstant HJ2_HELLCATS 3)
 
 ;; ---------------------------------------------------------------------------------------------
@@ -300,6 +345,233 @@ parameter count, arg2: the event, arg3: its parameters. Returns Jak 3's answer."
   )
 
 ;; ---------------------------------------------------------------------------------------------
+;; Guard vehicle pursuit: Jak 2's vehicle-guard AI (vehicle-guard.gc there), shared by the Hellcats
+;; and the guard bikes. Jak 3's hover vehicles have none. Ported from Breath of Peace's Hellcats:
+;; while *mod-jak2-haven-city-alert* is on, a guard vehicle arms when the alert reaches 2 or when Jak
+;; hits it, looks for him, chases and shoots him on sight, and gives up out of sight. Each vehicle
+;; keeps an hj2-pursuit and its front gun (turret-control); its rbody-event-handler,
+;; vehicle-method-130 and its active, hostile and player-control states call these helpers.
+;; ---------------------------------------------------------------------------------------------
+
+;; A guard vehicle's pursuit (Jak 2's vehicle-guard fields), inline in h-hellcat and hj2-guard-bike
+(deftype hj2-pursuit (structure)
+  ((target-status         squad-target-status  :inline)  ;; line of sight to the target, refreshed by squad-control-method-17
+   (pursuit-target        handle)                         ;; the process hunted (Jak), #f while not alerted
+   (target-in-sight-time  time-frame)                     ;; when the target was last seen
+   )
+  )
+
+
+(defun hj2-guard-vehicle-engage ((veh hvehicle) (p hj2-pursuit) (tgt process))
+  "Arm the guard vehicle veh against tgt (Jak 2's 'alert-begin), p: its pursuit. The chase starts
+once tgt is in sight (hj2-guard-vehicle-sight). Returns nothing. Side effects: veh's alert flag, p's
+target."
+  (logior! (-> veh v-flags) (vehicle-flag alert))
+  (set! (-> p pursuit-target) (process->handle tgt))
+  (set! (-> p target-status handle) (-> p pursuit-target))
+  (none)
+  )
+
+(defun hj2-guard-vehicle-stand-down ((veh hvehicle) (p hj2-pursuit))
+  "Jak 2's 'alert-end and 'end-pursuit: the guard vehicle veh (p: its pursuit) drops its alert and its
+chase and goes back to the traffic lanes. Returns nothing. Side effects: veh's flags, p's target,
+veh goes to its active state."
+  (logclear! (-> veh v-flags) (vehicle-flag persistent alert in-pursuit))
+  (set! (-> p pursuit-target) (the-as handle #f))
+  (vehicle-method-105 veh)
+  (go (method-of-object veh active))
+  (none)
+  )
+
+(defun hj2-guard-vehicle-sight ((veh hvehicle) (p hj2-pursuit))
+  "Jak 2's vehicle-guard-method-150 on Jak 3's squad: refresh veh's line of sight to its target (p:
+its pursuit; squad-control-method-17, staggered by traffic id), start the chase on first sight
+(vehicle-method-104), end it when the target is gone (vehicle-method-105). Returns nothing.
+Side effects: veh's target-in-sight and in-pursuit flags, p's sight time."
+  (cond
+    ((handle->process (-> p pursuit-target))
+     (let ((st (squad-control-method-17 (-> veh squad) (-> veh root trans) (-> veh traffic-priority-id) (-> p target-status))))
+       (when (logtest? (-> st flags) (squad-target-flag updated))
+         (logclear! (-> veh v-flags) (vehicle-flag target-in-sight))
+         (when (logtest? (-> st flags) (squad-target-flag visible-now))
+           (logior! (-> veh v-flags) (vehicle-flag target-in-sight))
+           (set-time! (-> p target-in-sight-time))
+           )
+         )
+       )
+     (if (and (not (logtest? (vehicle-flag in-pursuit) (-> veh v-flags)))
+              (logtest? (vehicle-flag target-in-sight) (-> veh v-flags))
+              )
+         (vehicle-method-104 veh)
+         )
+     )
+    ((logtest? (vehicle-flag in-pursuit) (-> veh v-flags))
+     (vehicle-method-105 veh)
+     )
+    )
+  (none)
+  )
+
+(defun hj2-guard-vehicle-steer ((veh hvehicle) (tgt process-focusable))
+  "Jak 2's vehicle-guard-method-152 on Jak 3's vehicle-controller: while tgt is in sight and coming at
+veh, fly straight (direct-mode) at where it will be when they meet, else turn toward it; then add up
+to twice the top speed while pointing at it. Returns nothing. Side effects: veh's controller flags
+and target speed."
+  (when (logtest? (vehicle-flag target-in-sight) (-> veh v-flags))
+    (let ((spos (-> veh root trans))
+          (tpos (new 'stack-no-clear 'vector))
+          (tvel (new 'stack-no-clear 'vector))
+          (dir (new 'stack-no-clear 'vector))
+          (tmp (new 'stack-no-clear 'vector))
+          )
+      (vector-copy! tpos (get-trans tgt 3))
+      (+! (-> tpos y) 4096.0)
+      (vector-copy! tvel (get-transv tgt))
+      (vector-! dir tpos spos)
+      (let ((dist (vector-length dir)))
+        (vector-normalize! dir 1.0)
+        (logclear! (-> veh controller flags) (vehicle-controller-flag direct-mode))
+        (when (and (< 4096.0 (vector-length tvel))
+                   (>= (- (vector-dot dir (vector-normalize-copy! tmp tvel 1.0))) (cos 21845.334))
+                   )
+          (logior! (-> veh controller flags) (vehicle-controller-flag direct-mode))
+          (vector-! tmp (-> veh root transv) tvel)
+          (let ((t (fmax 0.0 (fmin 1.0 (/ dist (fmax 4096.0 (vector-dot tmp dir)))))))
+            (vector+float*! tpos tpos tvel t)
+            (cond
+              ((or (< t 0.05) (vehicle-los-clear? tpos spos))
+               (vector-! dir tpos spos)
+               (vector-normalize! dir 1.0)
+               (vector-float*! tvel tvel -1.0)
+               )
+              (else
+                (vector-copy! tpos (get-trans tgt 3))
+                )
+              )
+            )
+          )
+        )
+      ;; #x43cccccd: 409.6 as float bits, the turn-speed floor Jak 2 passes here
+      (vehicle-controller-method-19 (-> veh controller) spos (the-as object #x43cccccd) tpos tvel)
+      (vector-normalize-copy! tmp (-> veh root transv) 1.0)
+      (let ((facing (fmax 0.0 (vector-dot tmp dir))))
+        (cond
+          ((< -12288.0 (- (-> tpos y) (-> spos y)))
+           (logior! (-> veh controller flags) (vehicle-controller-flag ignore-others no-slowing-for-turns))
+           (+! (-> veh controller target-speed) (* 2.0 (-> veh info handling max-xz-speed) facing facing))
+           )
+          (else
+            (logclear! (-> veh controller flags) (vehicle-controller-flag ignore-others no-slowing-for-turns))
+            (+! (-> veh controller target-speed) (* (-> veh info handling max-xz-speed) facing))
+            )
+          )
+        )
+      )
+    )
+  (none)
+  )
+
+(defun hj2-guard-vehicle-alert-event ((veh hvehicle) (p hj2-pursuit) (msg symbol) (block event-message-block))
+  "Jak 2's vehicle-guard alert events for the guard vehicle veh (p: its pursuit; msg: the event,
+block: its parameters). 'alert-begin (sent every frame of an alert, hj2-alert-notify) arms an
+AI-flown vehicle from alert level 2 up, like Jak 2 (vehicle-guard.gc), only while
+*mod-jak2-haven-city-alert* is on; 'alert-end and 'end-pursuit (also sent by Jak 3's
+ff-squad-control-method-46 to the farthest off-screen pursuer) stand an armed one down.
+Returns #t."
+  (case msg
+    (('alert-begin)
+     (when (and *mod-jak2-haven-city-alert*
+                (not (logtest? (vehicle-flag dead alert player-driving) (-> veh v-flags)))
+                (logtest? (vehicle-flag ai-driving) (-> veh v-flags))
+                (-> block param 0)
+                (-> veh squad)
+                (>= (get-alert-level (-> veh squad)) 2)
+                )
+       (hj2-guard-vehicle-engage veh p (the-as process (-> block param 0)))
+       )
+     )
+    (('alert-end 'end-pursuit)
+     (if (and (logtest? (vehicle-flag alert) (-> veh v-flags)) (not (logtest? (vehicle-flag dead) (-> veh v-flags))))
+         (hj2-guard-vehicle-stand-down veh p)
+         )
+     )
+    )
+  #t
+  )
+
+(defun hj2-guard-vehicle-active-post ((veh hvehicle) (p hj2-pursuit))
+  "The active state's post of a guard vehicle veh (p: its pursuit), Jak 2's vehicle-guard active: an
+armed vehicle looks for its target and chases it on sight; it disarms when it hasn't seen it 8 s
+after entering the state, or Jak is more than 100 m away (the alert arms it again while it lasts).
+Then the stock post (vehicle-method-129, hvehicle-method-159). Returns #t when veh must go hostile
+(the caller's go-virtual). Side effects: veh's flags."
+  (let ((chase #f))
+    (when (logtest? (vehicle-flag alert) (-> veh v-flags))
+      (hj2-guard-vehicle-sight veh p)
+      (cond
+        ((logtest? (vehicle-flag in-pursuit) (-> veh v-flags))
+         (logior! (-> veh v-flags) (vehicle-flag persistent))
+         (set! chase #t)
+         )
+        ((or (time-elapsed? (-> veh state-time) (seconds 8)) (< (square 409600.0) (-> veh player-dist2)))
+         (logclear! (-> veh v-flags) (vehicle-flag persistent alert))
+         )
+        )
+      )
+    (vehicle-method-129 veh)
+    (hvehicle-method-159 veh)
+    chase
+    )
+  )
+
+(defun hj2-guard-vehicle-hostile-post ((veh hvehicle) (p hj2-pursuit) (tc turret-control))
+  "The hostile state's post of a guard vehicle veh (p: its pursuit, tc: its front gun), Jak 2's
+vehicle-guard hostile: it gives up after 8 s without sight, or after 0.5 s when two other units
+already see the target; otherwise it fires on sight (turret-control-method-11, with the alert
+level's settings) and steers after the target (hj2-guard-vehicle-steer). With no target or chase
+left it stands down. Then the stock post. Returns nothing. Side effects: veh's flags and controller,
+shots fired, may change veh's state."
+  (hj2-guard-vehicle-sight veh p)
+  (if (and (logtest? (vehicle-flag in-pursuit) (-> veh v-flags))
+           (or (time-elapsed? (-> p target-in-sight-time) (seconds 8))
+               (and (-> veh squad)
+                    (>= (-> veh squad alert-state guards-in-sight-of-target) 2)
+                    (time-elapsed? (-> p target-in-sight-time) (seconds 0.5))
+                    )
+               )
+           )
+      (vehicle-method-105 veh)
+      )
+  (let ((tgt (as-type (handle->process (-> p pursuit-target)) process-focusable)))
+    (cond
+      ((and tgt (logtest? (vehicle-flag in-pursuit) (-> veh v-flags)))
+       (if (logtest? (vehicle-flag target-in-sight) (-> veh v-flags))
+           (turret-control-method-11 tc veh (get-trans tgt 3) (get-transv tgt))
+           )
+       (hj2-guard-vehicle-steer veh tgt)
+       )
+      (else
+        ;; `go` from a post takes effect next frame: the branches stay exclusive
+        (hj2-guard-vehicle-stand-down veh p)
+        )
+      )
+    )
+  (vehicle-method-129 veh)
+  (hvehicle-method-159 veh)
+  (none)
+  )
+
+(defun hj2-guard-vehicle-board ((veh hvehicle) (p hj2-pursuit))
+  "Jak takes the guard vehicle veh (p: its pursuit; the stock boarding code knocks its pilot off): it
+drops any alert or chase, so the alert no longer counts it as a hunter. Returns nothing. Side
+effects: veh's flags and controller flags, p's target."
+  (logclear! (-> veh v-flags) (vehicle-flag alert in-pursuit target-in-sight))
+  (set! (-> p pursuit-target) (the-as handle #f))
+  (logclear! (-> veh controller flags) (vehicle-controller-flag direct-mode ignore-others no-slowing-for-turns))
+  (none)
+  )
+
+;; ---------------------------------------------------------------------------------------------
 ;; The Hellcat
 ;; ---------------------------------------------------------------------------------------------
 
@@ -340,9 +612,14 @@ parameter count, arg2: the event, arg3: its parameters. Returns Jak 3's answer."
   )
 
 (deftype h-hellcat (h-car-base)
-  ((turret-jm  joint-mod-rotate-local  :inline)
-   (turret     turret-control          :inline)
+  ((turret-jm  joint-mod-rotate-local  :inline)  ;; turns the front gun (joint 4)
+   (turret     turret-control          :inline)  ;; the front gun
+   (pursuit    hj2-pursuit             :inline)  ;; Jak 2's pursuit of Jak (hj2-guard-vehicle-*)
+   (minimap    connection-minimap)               ;; its minimap icon while the traffic flies it, else #f
    )
+  (:state-methods
+    hostile
+    )
   )
 
 
@@ -412,7 +689,7 @@ parameter count, arg2: the event, arg3: its parameters. Returns Jak 3's answer."
 (defmethod init-rbody-control! ((this h-hellcat))
   "Skeleton (hellcat-ag, in havenj2's DGO), Jak 3's stock Hellcat physics (same pilot
    stance and vehicle type as the city cars, so Jak can steal and fly it), the front turret, and the
-   Freedom League mark: a guard, never targeted by guards."
+   Freedom League mark: a guard, never targeted by guards. No minimap icon yet."
   (initialize-skeleton
     this
     (the-as skeleton-group (art-group-get-by-name *level* "skel-h-hellcat" (the-as (pointer level) #f)))
@@ -431,6 +708,7 @@ parameter count, arg2: the event, arg3: its parameters. Returns Jak 3's answer."
                                             )
         )
   (logior! (-> this mask) (process-mask guard))
+  (set! (-> this minimap) #f)
   0
   (none)
   )
@@ -442,14 +720,92 @@ parameter count, arg2: the event, arg3: its parameters. Returns Jak 3's answer."
   (none)
   )
 
+(defmethod vehicle-method-123 ((this h-hellcat))
+  "The traffic sends the Hellcat out (Jak 2's vehicle-guard vehicle-method-128): its blue minimap icon
+(hj2-guard-vehicle-icon-on), then the stock method. Returns nothing."
+  (set! (-> this minimap) (hj2-guard-vehicle-icon-on this (-> this minimap)))
+  ((method-of-type h-car-base vehicle-method-123) this)
+  (none)
+  )
+
+(defmethod vehicle-method-122 ((this h-hellcat))
+  "The Hellcat goes back to the traffic's pool (Jak 2's vehicle-method-127): its minimap icon fades out
+(hj2-minimap-icon-off), then the stock method. Returns nothing."
+  (set! (-> this minimap) (hj2-minimap-icon-off (-> this minimap)))
+  ((method-of-type h-car-base vehicle-method-122) this)
+  (none)
+  )
+
+(defmethod vehicle-method-124 ((this h-hellcat))
+  "The Hellcat is destroyed (Jak 2's vehicle-method-129): its minimap icon fades out
+(hj2-minimap-icon-off), then the stock method. Returns nothing."
+  (set! (-> this minimap) (hj2-minimap-icon-off (-> this minimap)))
+  ((method-of-type h-car-base vehicle-method-124) this)
+  (none)
+  )
+
 (defmethod vehicle-method-130 ((this h-hellcat))
   "Jak hit the Hellcat while a guard flies it (vehicle's event handler; Jak 3's does nothing): like
-Jak 2's vehicle-guard, the alert goes to 2 while *mod-jak2-haven-city-alert* is on. Returns none."
-  (if (and *mod-jak2-haven-city-alert* *target*)
-      (vehicle-method-107 this 2 *target*)
-      )
+Jak 2's vehicle-guard, it goes after him and the alert goes to 2 while *mod-jak2-haven-city-alert*
+is on. Returns none."
+  (when (and *mod-jak2-haven-city-alert* *target*)
+    (hj2-guard-vehicle-engage this (-> this pursuit) *target*)
+    (vehicle-method-107 this 2 *target*)
+    )
   0
   (none)
+  )
+
+(defmethod rbody-event-handler ((this h-hellcat) (arg0 process) (arg1 int) (arg2 symbol) (arg3 event-message-block))
+  "Jak 2's guard vehicle alert events ('alert-begin, 'alert-end, 'end-pursuit:
+hj2-guard-vehicle-alert-event), every other event to the stock car handler. arg0: the sender, arg1:
+the parameter count, arg2: the event, arg3: its parameters. Returns the event's answer."
+  (case arg2
+    (('alert-begin 'alert-end 'end-pursuit)
+     (hj2-guard-vehicle-alert-event this (-> this pursuit) arg2 arg3)
+     )
+    (else
+      ((method-of-type h-car-base rbody-event-handler) this arg0 arg1 arg2 arg3)
+      )
+    )
+  )
+
+;; hvehicle's active state, with Jak 2's search for an armed Hellcat's target
+(defstate active (h-hellcat)
+  :virtual #t
+  :post (behavior ()
+    (if (hj2-guard-vehicle-active-post self (-> self pursuit))
+        (go-virtual hostile)
+        )
+    )
+  )
+
+;; Jak 2's vehicle-guard hostile: chase and shoot Jak (hj2-guard-vehicle-hostile-post)
+(defstate hostile (h-hellcat)
+  :virtual #t
+  :event vehicle-event-handler
+  :enter (behavior ()
+    (set-time! (-> self state-time))
+    )
+  :code sleep-code
+  :post (behavior ()
+    (hj2-guard-vehicle-hostile-post self (-> self pursuit) (-> self turret))
+    )
+  )
+
+;; hvehicle's player-control state, after dropping the Hellcat's alert and chase (Jak stole it)
+(defstate player-control (h-hellcat)
+  :virtual #t
+  :enter (behavior ()
+    (hj2-guard-vehicle-board self (-> self pursuit))
+    ;; no guard icon under Jak (it stays off: only the traffic gives one, hj2-guard-vehicle-icon-on)
+    (set! (-> self minimap) (hj2-minimap-icon-off (-> self minimap)))
+    (let ((t9-0 (-> (method-of-type hvehicle player-control) enter)))
+      (if t9-0
+          (t9-0)
+          )
+      )
+    )
   )
 
 (defun hj2-guard-gunnery ((veh vehicle) (tc turret-control))
@@ -490,14 +846,15 @@ Jak 2's vehicle-guard, the alert goes to 2 while *mod-jak2-haven-city-alert* is 
 ;;
 ;; Jak 2's Crimson Guard bikes (guard-bike, bike.gc there) in the city's traffic, while
 ;; *mod-jak2-haven-city-guard-bikes* is on (Mods menu, off by default), flown by the Hellcats' pilot
-;; (hj2-hellcat-pilot, in its bike stance). Like the Hellcats, they only fly the traffic lanes.
+;; (hj2-hellcat-pilot, in its bike stance). Like the Hellcats, they fly the traffic lanes and chase
+;; Jak while *mod-jak2-haven-city-alert* is on ("Guard vehicle pursuit").
 ;; Jak 3 keeps the traffic type guard-bike (the Freedom League squad's guard type 4) but has no
 ;; class, vehicle type or art for it: the model is rebuilt from Jak 2's rip (hj2-guard-bike-ag, in
 ;; havenj2's DGO: the port's "models" of havenj2), the class is Jak 3's hover bike with Jak 2's
 ;; collision, seats and front gun, and hj2-traffic-object-spawn spawns it with vehicle-spawn-hack
 ;; (no vehicle type: it takes the traffic's vehicle level, havenj2).
 
-;; How many guard bikes fly at once (Jak 2's number; 20 at most per traffic type)
+;; How many guard bikes fly at once, at most (Jak 2's number; 20 at most per traffic type)
 (defconstant HJ2_GUARD_BIKES 3)
 
 ;; The model rebuilt from Jak 2's crimson-bike, joints kept: 3 main_ (the origin, like Jak 3's
@@ -542,9 +899,14 @@ Jak 2's vehicle-guard, the alert goes to 2 while *mod-jak2-haven-city-alert* is 
   )
 
 (deftype hj2-guard-bike (h-bike-base)
-  ((turret-jm  joint-mod-rotate-local  :inline)
-   (turret     turret-control          :inline)
+  ((turret-jm  joint-mod-rotate-local  :inline)  ;; turns the nose and its gun (joint 4)
+   (turret     turret-control          :inline)  ;; the front gun
+   (pursuit    hj2-pursuit             :inline)  ;; Jak 2's pursuit of Jak (hj2-guard-vehicle-*)
+   (minimap    connection-minimap)               ;; its minimap icon while the traffic flies it, else #f
    )
+  (:state-methods
+    hostile
+    )
   )
 
 
@@ -606,7 +968,7 @@ Jak 2's vehicle-guard, the alert goes to 2 while *mod-jak2-haven-city-alert* is 
 (defmethod init-rbody-control! ((this hj2-guard-bike))
   "Skeleton (hj2-guard-bike-ag, in havenj2's DGO), physics (*hj2-guard-bike-constants*), the front
    gun (the Hellcat's turret settings: Jak 2's guard bike turret has the same, on joint 4), and the
-   Freedom League mark: a guard, never targeted by guards. Returns nothing."
+   Freedom League mark: a guard, never targeted by guards. No minimap icon yet. Returns nothing."
   (initialize-skeleton this *hj2-guard-bike-sg* (the-as pair 0))
   (alloc-rbody-control! this *hj2-guard-bike-constants*)
   (init (-> this turret-jm) this (the-as uint 4) (joint-mod-base-flags attached))
@@ -619,6 +981,7 @@ Jak 2's vehicle-guard, the alert goes to 2 while *mod-jak2-haven-city-alert* is 
                                             )
         )
   (logior! (-> this mask) (process-mask guard))
+  (set! (-> this minimap) #f)
   0
   (none)
   )
@@ -630,15 +993,92 @@ Jak 2's vehicle-guard, the alert goes to 2 while *mod-jak2-haven-city-alert* is 
   (none)
   )
 
+(defmethod vehicle-method-123 ((this hj2-guard-bike))
+  "The traffic sends the bike out (Jak 2's vehicle-guard vehicle-method-128): its blue minimap icon
+(hj2-guard-vehicle-icon-on), then the stock method. Returns nothing."
+  (set! (-> this minimap) (hj2-guard-vehicle-icon-on this (-> this minimap)))
+  ((method-of-type h-bike-base vehicle-method-123) this)
+  (none)
+  )
+
+(defmethod vehicle-method-122 ((this hj2-guard-bike))
+  "The bike goes back to the traffic's pool (Jak 2's vehicle-method-127): its minimap icon fades out
+(hj2-minimap-icon-off), then the stock method. Returns nothing."
+  (set! (-> this minimap) (hj2-minimap-icon-off (-> this minimap)))
+  ((method-of-type h-bike-base vehicle-method-122) this)
+  (none)
+  )
+
+(defmethod vehicle-method-124 ((this hj2-guard-bike))
+  "The bike is destroyed (Jak 2's vehicle-method-129): its minimap icon fades out
+(hj2-minimap-icon-off), then the stock method. Returns nothing."
+  (set! (-> this minimap) (hj2-minimap-icon-off (-> this minimap)))
+  ((method-of-type h-bike-base vehicle-method-124) this)
+  (none)
+  )
+
 (defmethod vehicle-method-130 ((this hj2-guard-bike))
   "Jak hit the bike while a guard flies it (vehicle's event handler, flag bit 2 of the constants):
-like Jak 2's vehicle-guard, the alert goes to 2 while *mod-jak2-haven-city-alert* is on. Returns
-nothing."
-  (if (and *mod-jak2-haven-city-alert* *target*)
-      (vehicle-method-107 this 2 *target*)
-      )
+like Jak 2's vehicle-guard, it goes after him and the alert goes to 2 while
+*mod-jak2-haven-city-alert* is on. Returns nothing."
+  (when (and *mod-jak2-haven-city-alert* *target*)
+    (hj2-guard-vehicle-engage this (-> this pursuit) *target*)
+    (vehicle-method-107 this 2 *target*)
+    )
   0
   (none)
+  )
+
+(defmethod rbody-event-handler ((this hj2-guard-bike) (arg0 process) (arg1 int) (arg2 symbol) (arg3 event-message-block))
+  "Jak 2's guard vehicle alert events ('alert-begin, 'alert-end, 'end-pursuit:
+hj2-guard-vehicle-alert-event), every other event to the stock bike handler. arg0: the sender,
+arg1: the parameter count, arg2: the event, arg3: its parameters. Returns the event's answer."
+  (case arg2
+    (('alert-begin 'alert-end 'end-pursuit)
+     (hj2-guard-vehicle-alert-event this (-> this pursuit) arg2 arg3)
+     )
+    (else
+      ((method-of-type h-bike-base rbody-event-handler) this arg0 arg1 arg2 arg3)
+      )
+    )
+  )
+
+;; hvehicle's active state, with Jak 2's search for an armed bike's target
+(defstate active (hj2-guard-bike)
+  :virtual #t
+  :post (behavior ()
+    (if (hj2-guard-vehicle-active-post self (-> self pursuit))
+        (go-virtual hostile)
+        )
+    )
+  )
+
+;; Jak 2's vehicle-guard hostile: chase and shoot Jak (hj2-guard-vehicle-hostile-post)
+(defstate hostile (hj2-guard-bike)
+  :virtual #t
+  :event vehicle-event-handler
+  :enter (behavior ()
+    (set-time! (-> self state-time))
+    )
+  :code sleep-code
+  :post (behavior ()
+    (hj2-guard-vehicle-hostile-post self (-> self pursuit) (-> self turret))
+    )
+  )
+
+;; hvehicle's player-control state, after dropping the bike's alert and chase (Jak stole it)
+(defstate player-control (hj2-guard-bike)
+  :virtual #t
+  :enter (behavior ()
+    (hj2-guard-vehicle-board self (-> self pursuit))
+    ;; no guard icon under Jak (it stays off: only the traffic gives one, hj2-guard-vehicle-icon-on)
+    (set! (-> self minimap) (hj2-minimap-icon-off (-> self minimap)))
+    (let ((t9-0 (-> (method-of-type hvehicle player-control) enter)))
+      (if t9-0
+          (t9-0)
+          )
+      )
+    )
   )
 
 (defmethod vehicle-method-94 ((this hj2-guard-bike))
@@ -655,6 +1095,433 @@ nothing."
 Returns nothing."
   (vehicle-rider-spawn this hj2-hellcat-pilot arg0)
   0
+  (none)
+  )
+
+;; Jak 2's alert: the state machine ///////////////////////////////////////////////////////////////
+;;
+;; Jak 3 kept Jak 2's alert state machine (ff-squad-control-method-45: Jak 2's traffic-engine
+;; update-alert-state), but not what made it work in Jak 2's city: its settings table has one level
+;; (levels 1 to 4 read past it), its guard count (ff-squad-control-method-48) returns nothing, so an
+;; alert never ends, its guards ignore 'alert-begin, and the alert music and alarm are gone. In
+;; havenj2 the alert doesn't even rise: squad-control-method-18 only raises it against the squad's
+;; primary target, which only Jak 3's ctywide sets (settings.gc, *city-mode* 'ctywide, not set here:
+;; level.gc would load ctywide's sounds). While *mod-jak2-haven-city-alert* is on, havenj2's
+;; method-45 makes Jak the primary target and runs Jak 2's update-alert-state, ported from Breath of
+;; Peace's; off, Jak 3's own (linked before this file). Toggling resets the alert.
+
+(define-extern *traffic-alert-level-force* symbol)
+
+;; Jak 2's *alert-level-settings* (traffic-engine.gc there), one per alert level 0 to 4, in Jak 3's
+;; squad-alert-state-settings layout (slots: 0 tazer, 1 rifle, 2 grenade, 3 waster, 4 guard bike,
+;; 5 Hellcat). Jak 2's roboguard slot sends none at any level: the waster slot stays empty. The bike
+;; and Hellcat counts are capped by hj2-guard-vehicle-caps.
+(define *hj2-alert-level-settings*
+  (new 'static 'inline-array squad-alert-state-settings 5
+    ;; level 0: 5 tazers, 1 guard bike, 1 Hellcat
+    (new 'static 'squad-alert-state-settings
+      :ped-tazer (new 'static 'squad-unit-settings :target-count 5 :shot-count 1 :inaccuracy 0.5
+                   :acquire-delay (seconds 1) :shot-delay (seconds 0.25) :burst-delay (seconds 2))
+      :ped-rifle (new 'static 'squad-unit-settings :shot-count 2 :rand-shot-count 1 :inaccuracy 0.5
+                   :acquire-delay (seconds 1) :shot-delay (seconds 0.25) :burst-delay (seconds 2))
+      :ped-grenade (new 'static 'squad-unit-settings :shot-count 1 :inaccuracy 0.5
+                     :acquire-delay (seconds 1) :shot-delay (seconds 0.25) :burst-delay (seconds 2))
+      :bike-turret (new 'static 'squad-unit-settings :target-count 1 :shot-count 2 :rand-shot-count 1 :inaccuracy 0.5
+                     :acquire-delay (seconds 1) :shot-delay (seconds 0.25) :burst-delay (seconds 5))
+      :hellcat-turret (new 'static 'squad-unit-settings :target-count 1 :shot-count 2 :rand-shot-count 1 :inaccuracy 0.5
+                        :acquire-delay (seconds 1) :shot-delay (seconds 0.25) :burst-delay (seconds 5))
+      )
+    ;; level 1: 5 tazers (arrest), no vehicle
+    (new 'static 'squad-alert-state-settings
+      :ped-tazer (new 'static 'squad-unit-settings :target-count 5 :shot-count 1 :inaccuracy 0.5
+                   :acquire-delay (seconds 1) :shot-delay (seconds 0.25) :burst-delay (seconds 2))
+      :ped-rifle (new 'static 'squad-unit-settings :shot-count 2 :rand-shot-count 1 :inaccuracy 0.5
+                   :acquire-delay (seconds 1) :shot-delay (seconds 0.25) :burst-delay (seconds 2))
+      :ped-grenade (new 'static 'squad-unit-settings :shot-count 1 :inaccuracy 0.5
+                     :acquire-delay (seconds 1) :shot-delay (seconds 0.25) :burst-delay (seconds 2))
+      :bike-turret (new 'static 'squad-unit-settings :shot-count 2 :rand-shot-count 1 :inaccuracy 0.5
+                     :acquire-delay (seconds 1) :shot-delay (seconds 0.25) :burst-delay (seconds 5))
+      :hellcat-turret (new 'static 'squad-unit-settings :shot-count 2 :rand-shot-count 1 :inaccuracy 0.5
+                        :acquire-delay (seconds 1) :shot-delay (seconds 0.25) :burst-delay (seconds 5))
+      )
+    ;; level 2: 3 tazers, 4 rifles, 2 guard bikes
+    (new 'static 'squad-alert-state-settings
+      :ped-tazer (new 'static 'squad-unit-settings :target-count 3 :shot-count 1 :inaccuracy 0.5
+                   :acquire-delay (seconds 1) :shot-delay (seconds 0.25) :burst-delay (seconds 2))
+      :ped-rifle (new 'static 'squad-unit-settings :target-count 4 :shot-count 2 :rand-shot-count 1 :inaccuracy 0.5
+                   :acquire-delay (seconds 1) :shot-delay (seconds 0.25) :burst-delay (seconds 2))
+      :ped-grenade (new 'static 'squad-unit-settings :shot-count 1 :inaccuracy 0.5
+                     :acquire-delay (seconds 1) :shot-delay (seconds 0.25) :burst-delay (seconds 2))
+      :bike-turret (new 'static 'squad-unit-settings :target-count 2 :shot-count 2 :rand-shot-count 1 :inaccuracy 0.5
+                     :acquire-delay (seconds 1) :shot-delay (seconds 0.25) :burst-delay (seconds 5))
+      :hellcat-turret (new 'static 'squad-unit-settings :shot-count 2 :rand-shot-count 1 :inaccuracy 0.5
+                        :acquire-delay (seconds 1) :shot-delay (seconds 0.25) :burst-delay (seconds 5))
+      )
+    ;; level 3: 2 tazers, 7 rifles with better aim, 3 guard bikes, 2 Hellcats, faster vehicle bursts
+    (new 'static 'squad-alert-state-settings
+      :ped-tazer (new 'static 'squad-unit-settings :target-count 2 :shot-count 1 :inaccuracy 0.5
+                   :acquire-delay (seconds 1) :shot-delay (seconds 0.25) :burst-delay (seconds 2))
+      :ped-rifle (new 'static 'squad-unit-settings :target-count 7 :shot-count 2 :rand-shot-count 1 :inaccuracy 0.25
+                   :acquire-delay (seconds 1) :shot-delay (seconds 0.25) :burst-delay (seconds 2))
+      :ped-grenade (new 'static 'squad-unit-settings :shot-count 1 :inaccuracy 0.5
+                     :acquire-delay (seconds 1) :shot-delay (seconds 0.25) :burst-delay (seconds 2))
+      :bike-turret (new 'static 'squad-unit-settings :target-count 3 :shot-count 2 :rand-shot-count 1 :inaccuracy 0.25
+                     :acquire-delay (seconds 0.75) :shot-delay (seconds 0.25) :burst-delay (seconds 4))
+      :hellcat-turret (new 'static 'squad-unit-settings :target-count 2 :shot-count 2 :rand-shot-count 1 :inaccuracy 0.25
+                        :acquire-delay (seconds 0.75) :shot-delay (seconds 0.25) :burst-delay (seconds 4))
+      )
+    ;; level 4: the same squad, sharpest aim and fastest fire
+    (new 'static 'squad-alert-state-settings
+      :ped-tazer (new 'static 'squad-unit-settings :target-count 2 :shot-count 1 :inaccuracy 0.125
+                   :acquire-delay (seconds 0.5) :shot-delay (seconds 0.25) :burst-delay (seconds 2))
+      :ped-rifle (new 'static 'squad-unit-settings :target-count 7 :shot-count 2 :rand-shot-count 2 :inaccuracy 0.125
+                   :acquire-delay (seconds 0.5) :shot-delay (seconds 0.15) :burst-delay (seconds 2))
+      :ped-grenade (new 'static 'squad-unit-settings :shot-count 1 :inaccuracy 0.125
+                     :acquire-delay (seconds 1) :shot-delay (seconds 0.25) :burst-delay (seconds 3))
+      :bike-turret (new 'static 'squad-unit-settings :target-count 3 :shot-count 2 :rand-shot-count 2 :inaccuracy 0.125
+                     :acquire-delay (seconds 0.5) :shot-delay (seconds 0.25) :burst-delay (seconds 3))
+      :hellcat-turret (new 'static 'squad-unit-settings :target-count 2 :shot-count 2 :rand-shot-count 2 :inaccuracy 0.125
+                        :acquire-delay (seconds 0.5) :shot-delay (seconds 0.25) :burst-delay (seconds 3))
+      )
+    )
+  )
+
+;; *mod-jak2-haven-city-alert* as the squad last saw it (a change resets the alert)
+(define *hj2-alert-was-on* #f)
+
+;; Jak 3's ff-squad-control-method-45, as linked before this file (havenj2's DGO)
+(define *hj2-stock-ff-squad-alert* (method-of-type ff-squad-control ff-squad-control-method-45))
+
+(defun hj2-guard-vehicle-caps ((this ff-squad-control))
+  "The activation caps (min and max target counts) of the squad's guard vehicles (this: the squad),
+set every frame before the alert settings: guard type 5 (Hellcats) and 4 (guard bikes) get none
+while their Mods-menu toggle is off; with it on, the alert table's count up to HJ2_HELLCATS or
+HJ2_GUARD_BIKES while *mod-jak2-haven-city-alert* is on, else that number (Jak 3's table gives them
+none). Returns nothing. Side effects: the squad's guard type info."
+  (let ((alert *mod-jak2-haven-city-alert*))
+    (ff-squad-control-method-56
+      this
+      5
+      (if (and *mod-jak2-haven-city-hellcats* (not alert)) HJ2_HELLCATS 0)
+      (if *mod-jak2-haven-city-hellcats* HJ2_HELLCATS 0)
+      )
+    (ff-squad-control-method-56
+      this
+      4
+      (if (and *mod-jak2-haven-city-guard-bikes* (not alert)) HJ2_GUARD_BIKES 0)
+      (if *mod-jak2-haven-city-guard-bikes* HJ2_GUARD_BIKES 0)
+      )
+    )
+  (none)
+  )
+
+(defun hj2-alert-hunter-count ((this ff-squad-control))
+  "Jak 2's guard-count for the alert's ending (this: the squad): the guards and guard vehicles still
+hunting. Jak 2 waited for every guard of the alert to be gone; Jak 3's guards keep patrolling, so
+only the hunters count (they stand down when the ending starts). Returns the count. No side effects."
+  (let ((n 0))
+    (let ((trk (-> this traffic tracker1)))
+      (dotimes (i (the-as int (-> trk active-object-count)))
+        (when (= (-> trk active-object-type-list i) (traffic-type guard-a))
+          (let ((g (the-as crimson-guard (handle->process (-> trk active-object-list i)))))
+            (if (and g
+                     (not (focus-test? g dead inactive))
+                     (logtest? (-> g flags) (citizen-flag in-pursuit hostile))
+                     )
+                (+! n 1)
+                )
+            )
+          )
+        )
+      )
+    (let ((trk (-> this traffic tracker0)))
+      (dotimes (i (the-as int (-> trk active-object-count)))
+        (when (or (= (-> trk active-object-type-list i) (traffic-type guard-car))
+                  (= (-> trk active-object-type-list i) (traffic-type guard-bike))
+                  )
+          (let ((v (the-as vehicle (handle->process (-> trk active-object-list i)))))
+            (if (and v
+                     (not (focus-test? v dead inactive))
+                     (logtest? (vehicle-flag alert) (-> v v-flags))
+                     (not (logtest? (vehicle-flag player-driving) (-> v v-flags)))
+                     )
+                (+! n 1)
+                )
+            )
+          )
+        )
+      )
+    n
+    )
+  )
+
+(defun hj2-alert-notify ((this ff-squad-control) (hunt symbol))
+  "Jak 2's send-alert-events (this: the squad). hunt #t: every guard turns on Jak (the hatred Jak 3
+gives a guard he attacks: 'member-attacked) and every guard vehicle gets 'alert-begin. hunt #f: the
+guards drop that hatred and their pursuit ('end-pursuit), the guard vehicles get 'alert-end.
+Jak 3's guards ignore 'alert-begin and 'alert-end, hence the other events. Returns nothing."
+  (let ((tgt (get-target-focus this)))
+    (let ((trk (-> this traffic tracker1)))
+      (dotimes (i (the-as int (-> trk active-object-count)))
+        (when (= (-> trk active-object-type-list i) (traffic-type guard-a))
+          (let ((g (the-as crimson-guard (handle->process (-> trk active-object-list i)))))
+            (when (and g (!= (-> g faction-mode) 1) (not (focus-test? g dead inactive)))
+              (cond
+                (hunt
+                  (send-event g 'member-attacked)
+                  )
+                (else
+                  (if (-> g attacker-info)
+                      (set! (-> g attacker-info hatred-map-callback) #f)
+                      )
+                  (send-event g 'end-pursuit)
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    (let ((trk (-> this traffic tracker0)))
+      (dotimes (i (the-as int (-> trk active-object-count)))
+        (when (or (= (-> trk active-object-type-list i) (traffic-type guard-car))
+                  (= (-> trk active-object-type-list i) (traffic-type guard-bike))
+                  )
+          (let ((v (handle->process (-> trk active-object-list i))))
+            (if v
+                (send-event v (if hunt 'alert-begin 'alert-end) tgt)
+                )
+            )
+          )
+        )
+      )
+    )
+  (none)
+  )
+
+(defun hj2-alarm-off ((this ff-squad-control))
+  "Jak 2's end of an alert (update-alert-state there), once, while the alarm is on (this: the squad):
+the minimap stops flashing, the music leaves its alert mode, the alarm stops, the guards and guard
+vehicles stand down, the target's sightings and the kill counts are cleared. Returns nothing.
+Side effects: the squad's alert state, *game-info* wanted-flash, the calling process's sound-mode
+setting."
+  (when (logtest? (-> this alert-state flags) (squad-alert-flag alarm-on))
+    (logclear! (-> this alert-state flags) (squad-alert-flag alarm-on))
+    (set! (-> *game-info* wanted-flash) #f)
+    (remove-setting! 'sound-mode)
+    (sound-stop (-> this alert-state alarm-sound-id))
+    (hj2-alert-notify this #f)
+    (logclear!
+      (-> this alert-state target-status-array 0 flags)
+      (squad-target-flag visible-now visible-recently visible-ever)
+      )
+    (dotimes (i 29)
+      (set! (-> this traffic object-type-info-array i killed-count) (the-as uint 0))
+      )
+    )
+  (none)
+  )
+
+(defun hj2-alert-update ((this ff-squad-control))
+  "Jak 2's update-alert-state on Jak 3's squad (this), Breath of Peace's port. Passes 1 and 2 are Jak
+3's method-45 (raw offsets kept as decompiled) with the settings of Jak 2's five levels
+(*hj2-alert-level-settings*). Pass 3 is Jak 2's: the alert lasts 30 s after the last offence (time
+drained twice as fast while Jak hides), then ends once no guard or guard vehicle hunts any more, and
+falls to 0 3 s later; no new guard or guard vehicle comes during the ending. While alerted: the
+minimap flashes, Jak 2's city music plays in its alert mode (sound-mode 1, MIDI register 3) or, when
+it isn't playing or is muted, the alarm sounds (city-alarm, Jak 2's CTYWIDE2 bank), the guards and
+guard vehicles hunt Jak, and every 8 kills raise the level. Returns nothing. Side effects: the
+squad's settings, target counts and alert state, the traffic's target counts, *game-info*
+wanted-flash, the calling process's sound-mode setting, the alarm sound, events to guards."
+  (let ((s5-0 (get-target-focus this)))
+    ;; pass 1: unit settings of the current level, per guard type, for the three faction modes
+    (mem-copy!
+      (the-as pointer (-> this settings))
+      (the-as pointer (-> *hj2-alert-level-settings* (min 4 (the-as int (-> this alert-state level)))))
+      320
+      )
+    (mem-copy! (the-as pointer (-> this settings-war)) (the-as pointer *ff-war-alert-state-settings*) 320)
+    (dotimes (v1-2 3)
+      (dotimes (a0-4 10)
+        (when (logtest? *ff-guard-type-mask* (ash 1 a0-4))
+          (let ((a2-7 (the-as squad-alert-state-settings (+ (+ (* a0-4 32) 820 (* 320 v1-2)) (the-as int this))))
+                (a1-13 (the-as traffic-guard-type-array (+ (+ (* v1-2 16) 1780 (* 48 a0-4)) (the-as int this))))
+                )
+            (set! (-> a2-7 ped-tazer inaccuracy)
+                  (fmax 0.0 (fmin 1.0 (* (-> a2-7 ped-tazer inaccuracy) (-> this alert-state guard-inaccuracy-factor))))
+                  )
+            ;; Jak piloting: shorter acquire, shot and burst delays (Jak 2 and Jak 3 alike)
+            (when (and s5-0 (= (-> s5-0 type) target) (focus-test? *target* pilot))
+              (set! (-> a2-7 ped-tazer acquire-delay)
+                    (the-as uint (the int (* 0.75 (the float (-> a2-7 ped-tazer acquire-delay)))))
+                    )
+              (set! (-> a2-7 ped-tazer shot-delay) (the-as uint (the int (* 0.6 (the float (-> a2-7 ped-tazer shot-delay))))))
+              (set! (-> a2-7 ped-tazer burst-delay)
+                    (the-as uint (the int (* 0.8 (the float (-> a2-7 ped-tazer burst-delay)))))
+                    )
+              )
+            (set! (-> a1-13 guard-info-normal target-count)
+                  (max
+                    (min
+                      (the int (* (the float (-> a2-7 ped-tazer target-count)) (-> this alert-state guard-target-level)))
+                      (-> a1-13 guard-info-normal max-target-count)
+                      )
+                    (-> a1-13 guard-info-normal min-target-count)
+                    )
+                  )
+            )
+          )
+        )
+      )
+    )
+  ;; pass 2: per traffic type, the sum of its guard types' target counts
+  (dotimes (v1-5 3)
+    (dotimes (a0-7 29)
+      (let ((a2-12 (-> this guard-type-mask-from-object-type a0-7)))
+        (when (nonzero? a2-12)
+          (let ((a3-20 0)
+                (a1-17 0)
+                )
+            (while (nonzero? a2-12)
+              (if (logtest? a2-12 1)
+                  (+! a1-17 (-> (the-as ff-squad-control (+ (the-as uint this) (* 48 a3-20) (* v1-5 16)))
+                                guard-type-info-array
+                                0
+                                guard-info-normal
+                                target-count
+                                )
+                      )
+                  )
+              (+! a3-20 1)
+              (set! a2-12 (shr a2-12 1))
+              )
+            (set! (-> this traffic object-type-info-array 0 target-counts (+ v1-5 (* a0-7 32))) a1-17)
+            )
+          )
+        )
+      )
+    )
+  ;; pass 3: Jak 2's alert state machine
+  (let ((alerted #f))
+    (when (not (logtest? (-> this alert-state flags) (squad-alert-flag war)))
+      (when *traffic-alert-level-force*
+        (set! (-> this alert-state level) (the-as uint 3))
+        (logclear! (-> this alert-state flags) (squad-alert-flag alert-ending))
+        (set-time! (-> this alert-state start-time))
+        )
+      (when (>= (-> this alert-state level) (the-as uint 1))
+        (set! alerted #t)
+        (cond
+          ((logtest? (-> this alert-state flags) (squad-alert-flag alert-ending))
+           (cond
+             ((> (hj2-alert-hunter-count this) 0)
+              (set-time! (-> this alert-state start-time))
+              )
+             ((time-elapsed? (-> this alert-state start-time) (seconds 3))
+              (set! alerted #f)
+              (set! (-> this alert-state level) (the-as uint 0))
+              (logclear! (-> this alert-state flags) (squad-alert-flag alert-ending))
+              )
+             )
+           )
+          (else
+            (let ((left (+ (- (-> this alert-state start-time) (current-time)) (the-as time-frame (-> this alert-state duration)))))
+              ;; hiding drains the remaining time twice as fast
+              (if (and *target* (-> *target* next-state) (= (-> *target* next-state name) 'target-hide))
+                  (set! left (- left (the-as time-frame (* (- (current-time) (-> *target* state-time)) 2))))
+                  )
+              (if (<= left 0)
+                  (logior! (-> this alert-state flags) (squad-alert-flag alert-ending))
+                  )
+              )
+            )
+          )
+        )
+      )
+    (cond
+      (alerted
+        (when (not (logtest? (-> this alert-state flags) (squad-alert-flag alarm-on)))
+          (logior! (-> this alert-state flags) (squad-alert-flag alarm-on))
+          (set! (-> *game-info* wanted-flash) #t)
+          )
+        ;; Jak 2's city music has an alert mode (MIDI register 3, which Jak 3's settings set from
+        ;; sound-mode); its alarm sounds instead when that music isn't playing or is muted
+        (if (= (-> *setting-control* user-current music) 'j2city1)
+            (set-setting! 'sound-mode #f 0.0 1)
+            )
+        (let ((pos (new 'stack-no-clear 'vector)))
+          (vector-copy! pos (target-pos 0))
+          (if (or (= (-> *setting-control* user-default music-volume) 0.0)
+                  (!= (-> *setting-control* user-current music) 'j2city1)
+                  )
+              (sound-play "city-alarm" :id (-> this alert-state alarm-sound-id) :position pos)
+              )
+          )
+        (cond
+          ((logtest? (-> this alert-state flags) (squad-alert-flag alert-ending))
+           ;; Jak 2: no new guard while the alert ends, and the hunters stand down
+           (dotimes (m 3)
+             (set! (-> this traffic object-type-info-array (traffic-type guard-a) target-counts m) 0)
+             (set! (-> this traffic object-type-info-array (traffic-type guard-car) target-counts m) 0)
+             (set! (-> this traffic object-type-info-array (traffic-type guard-bike) target-counts m) 0)
+             )
+           (hj2-alert-notify this #f)
+           )
+          (else
+            (hj2-alert-notify this #t)
+            )
+          )
+        ;; Jak 2's escalation: every 8 kills since the alert began raise it by one level
+        (let ((kills 0))
+          (dotimes (i 29)
+            (+! kills (-> this traffic object-type-info-array i killed-count))
+            )
+          (if (and (>= kills (the-as int (* (-> this alert-state level) 8)))
+                   (< (-> this alert-state level) (-> this alert-state max-level))
+                   )
+              (start-alert this (the-as int (+ (-> this alert-state level) 1)))
+              )
+          )
+        )
+      (else
+        (hj2-alarm-off this)
+        )
+      )
+    )
+  (none)
+  )
+
+(defmethod ff-squad-control-method-45 ((this ff-squad-control))
+  "The squad's (this) alert update, every frame (its update). A change of *mod-jak2-haven-city-alert*
+resets the alert (hj2-alarm-off, level 0; off also drops the primary target, as havenj2 has none
+without it). Then the guard vehicles' caps (hj2-guard-vehicle-caps). On: Jak is the squad's primary
+target (what Jak 3's ctywide does through set-ff-primary-target), Dark Jak raises the alert to 2
+(Jak 2 raised it when he transformed: target-darkjak.gc there), and Jak 2's update runs
+(hj2-alert-update). Off: Jak 3's method-45. Returns nothing."
+  (when (!= *mod-jak2-haven-city-alert* *hj2-alert-was-on*)
+    (set! *hj2-alert-was-on* *mod-jak2-haven-city-alert*)
+    (hj2-alarm-off this)
+    (set! (-> this alert-state level) (the-as uint 0))
+    (logclear! (-> this alert-state flags) (squad-alert-flag alert-ending))
+    (if (not *mod-jak2-haven-city-alert*)
+        (squad-control-method-27 this (the-as process #f) 1.0)
+        )
+    )
+  (hj2-guard-vehicle-caps this)
+  (cond
+    (*mod-jak2-haven-city-alert*
+      (when *target*
+        (squad-control-method-27 this *target* 1.0)
+        (if (focus-test? *target* dark)
+            (squad-control-method-18 this 2 *target*)
+            )
+        )
+      (hj2-alert-update this)
+      )
+    (else
+      (*hj2-stock-ff-squad-alert* this)
+      )
+    )
   (none)
   )
 
@@ -761,17 +1628,8 @@ guards and the city's vehicles after it."
           )
       (add-squad-to-traffic-engine *ff-squad-control* *traffic-engine*)
       (squad-control-method-10 *ff-squad-control*)
+      ;; the Hellcats' and guard bikes' activation caps are set every frame (hj2-guard-vehicle-caps)
       (restore-default-settings *traffic-engine*)
-      ;; the squad sets the Hellcats' activation cap (guard type 5) every frame from its alert
-      ;; settings, which give them none: hold its minimum at HJ2_HELLCATS, like Jak 3's missions do
-      ;; for guard type 1 (cty-protect.gc). After restore-default-settings, whose init-alert resets it
-      (if *mod-jak2-haven-city-hellcats*
-          (ff-squad-control-method-56 *ff-squad-control* 5 HJ2_HELLCATS HJ2_HELLCATS)
-          )
-      ;; the same for the guard bikes (guard type 4)
-      (if *mod-jak2-haven-city-guard-bikes*
-          (ff-squad-control-method-56 *ff-squad-control* 4 HJ2_GUARD_BIKES HJ2_GUARD_BIKES)
-          )
       )
     )
   (let ((info *traffic-info*))
@@ -815,10 +1673,11 @@ guards and the city's vehicles after it."
 
 (defun havenj2-logout ((lev level))
   "havenj2's logout callback (slot 34): the traffic engine, the squad and the attack controller go
-with havenj2's heap, and so does its sprite page (kept while it is only hidden: its districts use
-it, see hj2-sprite-page-used)."
+with havenj2's heap, and so do its sprite page (kept while it is only hidden: its districts use
+it, see hj2-sprite-page-used) and its minimap page."
   (havenj2-traffic-stop lev)
   (hj2-sprite-page-off lev)
+  (hj2-minimap-page-off lev)
   (set! *traffic-engine* #f)
   (set! *ff-squad-control* #f)
   (set! *cty-attack-controller* #f)

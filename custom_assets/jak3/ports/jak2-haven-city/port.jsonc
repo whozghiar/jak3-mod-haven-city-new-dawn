@@ -99,8 +99,9 @@
     "levels_var_comment": "every level of this mod (the clock stays as set while one of them is active)",
     "hubs_var": "*havenj2-hubs*",
     // which district holds each 25m square of the city's streets (the district loading guard,
-    // hj2-district-guard in jak2-haven-city-world.gc)
-    "district_map": {"var": "*havenj2-district", "cell": 25.0},
+    // hj2-district-guard in jak2-haven-city-world.gc), and the districts within "preload" meters of
+    // each square, loaded hidden before Jak gets there
+    "district_map": {"var": "*havenj2-district", "cell": 25.0, "preload": 130.0},
     "hubs_var_comment": "the city's districts and their hub, (district . hub): a district is loaded after its hub"
   },
   // the level-load-info of a level, unless it says otherwise: its level callbacks (GAME,
@@ -202,6 +203,9 @@
       "level_info": {
         "callbacks": [[6, "*security-texture-anim-array*"], [33, "havenj2-login"], [34, "havenj2-logout"], [35, "havenj2-activate"], [36, "havenj2-deactivate"]],
         "draw_priority": "9.0",
+        // the minimap's squares (bit 5 * row + column of Jak 3's 5x7 city grid, the same as Jak 2's)
+        // that have a Jak 2 map: all of them, its maps are in its texture page (source_textures)
+        "city_map_bits": "0x39d6f59cc",
         "comment": [
           "Jak 2's ctywide, the city-wide level of Jak 2's Haven City (custom_assets/jak3/levels/havenj2),",
           "loaded first with every district (hj2-slma...). Kept at Jak 2's world coordinates, so it",
@@ -267,6 +271,8 @@
       // pots, crops, the fruit stands' fruit), which Jak 3 takes from its own city levels' sprite
       // pages (hj2-prop-textures-on in jak2-haven-city-world.gc finds them by name), and the health
       // bar of the vehicle Jak drives (vehicle-hud.gc finds it by name).
+      // source_textures: Jak 2's minimap squares (its *-minimap pages), for havenj2's minimap page
+      // (hj2-minimap-page-on in jak2-haven-city-world.gc finds them by name).
       // The neon signs (neon-baron...) are hj2- types of havenj2-signs.gc, with their data arrays;
       // extra_groups: the Baron's hologram over his speakers (hj2-propa), the mission kiosks'
       // hologram (burning-bush, shown off), the farm crops bursting and the sprinklers' water, the
@@ -301,6 +307,7 @@
         ],
         "textures_from": ["GAME", "ctywide", "ctysluma", "ctyslumb", "ctyslumc", "ctyport", "ctymarka", "ctymarkb", "ctyinda", "ctyindb", "ctygena", "ctygenb", "ctygenc", "ctyfarma", "ctyfarmb", "ctypal", "stadium"],
         "target_textures": [["waswide", "waswide-sprite", ["wood-plain-debris", "clay-pot-debris-01", "rope-mesh-debris-01", "basket-debris-01", "straw-bit", "straw-ground", "cotton-wrap-debris", "cherry", "fruit1"]], ["ctyfarma", "ctyfarma-sprite", ["ctyfarm-cab-body", "ctyfarm-chili-leaf", "ctyfarm-chili-stem", "ctyfarm-eggplant-body", "ctyfarm-eggplant-leaf-1", "ctyfarm-eggplant-leaf-2"]], ["wasall", "wasall-minimap", ["hud-small-vehicle-health-bar-01"]]],
+        "source_textures": [["ctypal-minimap", ["map-ctypala", "map-ctypalb"]], ["ctygena-minimap", ["map-ctygena"]], ["ctygenb-minimap", ["map-ctygenb"]], ["ctygenc-minimap", ["map-ctygenc", "map-ctyfarma"]], ["ctyinda-minimap", ["map-ctyinda"]], ["ctyindb-minimap", ["map-ctyindb"]], ["stadium-minimap", ["map-stadium"]], ["ctymarka-minimap", ["map-ctymarka", "map-ctyfarmb"]], ["ctymarkb-minimap", ["map-ctymarkb"]], ["ctyport-minimap", ["map-ctyporta", "map-ctyportb", "map-ctyportc", "map-ctyportd", "map-ctyporte", "map-ctyportf"]], ["ctysluma-minimap", ["map-ctysluma"]], ["ctyslumb-minimap", ["map-ctyslumb"]], ["ctyslumc-minimap", ["map-ctyslumc"]]],
         "page": 1566,
         "parts": [1200, 2600], "groups": [300, 800],
         "base_aid": 45000,
@@ -1148,10 +1155,13 @@
   // Precursor stone head) and shows it at once; Jak 2 only shows it when the camera crosses the
   // small face 434, which the camera can miss. 489 (the port's corridor to the farm, a camera face
   // every way there crosses): also loads hj2-farmb (Jak 2's loading face 487 can be walked around,
-  // the farm then loaded too late).
+  // the farm then loaded too late). 317 (the stadium's race track, the camera face at its entrance):
+  // also makes the track Jak's level (want-vis, like Jak 2's garage region 776) and back: Jak 2
+  // never names it, and the track's tunnels run under the main town, on its street squares, so the
+  // district guard took Jak for being there and loaded the main town over the track.
   "region_id_offset": 1000,
   "region_open_tasks": {"528": ["palace-sneak-in-introduction"]},
-  "region_script_overrides": {"489": {"on-enter": "(begin (want-load 'havenj2 'hj2-port 'hj2-farmb) (want-display 'hj2-farmb 'display))"}, "436": {"on-enter": "(begin (want-load 'hj2-forest 'hj2-forstb) (want-display 'hj2-forstb 'display))"}, "429": {"on-enter": "(send-event \"pal-rot-gun-1\" 'trigger)", "on-exit": "(send-event \"pal-rot-gun-1\" 'untrigger)"}, "319": {"on-enter": "(begin (want-load 'havenj2 'hj2-stdm 'hj2-garage) (want-display 'hj2-garage 'display))"}, "894": {"on-enter": "(send-event \"mtn-aval-rocks-4\" 'draw #t)", "on-exit": "(begin (send-event \"mtn-aval-rocks-4\" 'draw #f) (want-continue \"hj2-mountain-top\"))"}, "177": {"on-enter": "(send-event \"gun-buoy-1\" 'kill-player)"}, "353": {"on-enter": "(send-event \"gun-buoy-1\" 'kill-player)"}, "873": {"on-enter": "(send-event \"gun-buoy-1\" 'kill-player)"}},
+  "region_script_overrides": {"489": {"on-enter": "(begin (want-load 'havenj2 'hj2-port 'hj2-farmb) (want-display 'hj2-farmb 'display))"}, "436": {"on-enter": "(begin (want-load 'hj2-forest 'hj2-forstb) (want-display 'hj2-forstb 'display))"}, "429": {"on-enter": "(send-event \"pal-rot-gun-1\" 'trigger)", "on-exit": "(send-event \"pal-rot-gun-1\" 'untrigger)"}, "319": {"on-enter": "(begin (want-load 'havenj2 'hj2-stdm 'hj2-garage) (want-display 'hj2-garage 'display))"}, "317": {"on-enter": "(begin (want-display 'hj2-stadd 'display) (want-vis 'hj2-stadd))", "on-exit": "(begin (want-display 'hj2-stadd #f) (want-vis 'hj2-stdm))"}, "894": {"on-enter": "(send-event \"mtn-aval-rocks-4\" 'draw #t)", "on-exit": "(begin (send-event \"mtn-aval-rocks-4\" 'draw #f) (want-continue \"hj2-mountain-top\"))"}, "177": {"on-enter": "(send-event \"gun-buoy-1\" 'kill-player)"}, "353": {"on-enter": "(send-event \"gun-buoy-1\" 'kill-player)"}, "873": {"on-enter": "(send-event \"gun-buoy-1\" 'kill-player)"}},
 
   // Continue points. Our names: hj2-<Jak 2 name>, but havenj2-start (ctysluma-start). The places
   // get all of Jak 2's continues of their levels (the respawn points, see havenj2-update-continue in

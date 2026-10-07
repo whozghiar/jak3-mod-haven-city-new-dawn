@@ -44,6 +44,8 @@ level's sprite page, so no two levels' particles ever share a slot or an id.
                                                              "auto"
     optional:
     "target_textures": [[target .fr3 level, tpage, [names]]]  added at the end of the page
+    "source_textures": [[source tpage, [names]]]  source game textures (from textures_from) added
+                   after them, for the mod's code to find by name (a city's minimap)
     "levels": [the source levels whose part spawners are placed, else the level's own],
     "max_vis_dist": [meters, [source levels kept as they are]]   how far from the camera a spawner
                    is born at most (the source game's vis-dist only mattered with its levels'
@@ -610,6 +612,9 @@ def translate(port, level, page, ids):
         ported_text = [open(port.port_file(cfg["callbacks_file"]), encoding="utf-8").read()]
     for target_level, tpage, names in cfg.get("target_textures", []):
         textures.add_target(target_level, tpage, names)
+    for tpage, names in cfg.get("source_textures", []):
+        for name in names:
+            textures.in_page(tpage, name)
     return dict(defs=defs, textures=textures, tr=tr, actors=actors, data_text=data_text,
                 parts_text=parts_text, groups_text=groups_text, arrays=arrays, drop_text=drop_text,
                 copied_text=copied_text, ported_text=ported_text, page=page)

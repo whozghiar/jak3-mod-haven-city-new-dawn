@@ -24,7 +24,8 @@ It needs:
 - both games' disc files in `iso_data/<game>`. The first step, `extract` ([steps/extract.py](steps/extract.py)),
   checks the extractions the port reads and runs the decompiler for what is missing: the source
   game's backgrounds, entity dumps and model rips (`rip_levels`; the whole game the first time,
-  then only the DGOs of the levels whose files are missing), the target game's backgrounds,
+  then only the DGOs of the levels whose files are missing or older than the newest PNG in
+  `custom_assets/<source game>/texture_replacements`), the target game's backgrounds,
 - the decompiler and `fr3_check` built (`cmake --build out/build/Release --target fr3_check`): the particle step lists
   the textures of `.fr3` files with it,
 - the C++ side: the decompiler's exports (fixed cameras, navigation data, TIE collision tags) and the
@@ -86,7 +87,7 @@ names (`callbacks_file`) are in the same folder. Top-level keys:
 | `paths` | `levels` (custom levels), `models` (build-actor models), `code` (the levels' GOAL code) |
 | `story` | The source game's story state the levels are ported in: `state` (`end`: every task done) and `open_tasks` |
 | `build` | The `goalc` build steps file (`file`), loaded by the target game's `game.gp`, and the dependencies of the level code (`default_deps`, `code_deps`) |
-| `level_info` | The GOAL file of the level-load-infos (`file`), its `comment`, `levels_var`: a list of every level of the port, and `hubs_var`: the list of `(level . hub)` pairs (each with a `..._comment`) |
+| `level_info` | The GOAL file of the level-load-infos (`file`), its `comment`, `levels_var`: a list of every level of the port, `hubs_var`: the list of `(level . hub)` pairs (each with a `..._comment`), and `district_map`: which district holds each square of the city's streets (`var`, `cell` in meters) and the two nearest other districts within `preload` meters of each square (130 by default), loaded ahead |
 | `level_defaults` | The `level_info` of a level unless it says otherwise (`callbacks`, `draw_priority`, `mood`: `update-mood-{name}` by default) |
 | `level_templates` | Named sets of level keys: a level with `template` takes the keys of that set it doesn't set itself (the districts of a city) |
 | `ocean_map` | The ocean map of the levels whose `ocean` is `true` |
@@ -120,10 +121,10 @@ A level:
 | `sky`, `ocean`, `ocean_source` | Its sky (and weather), its ocean map (`true`: `ocean_map`), where its own map comes from |
 | `collision_bounds` | `[xmin, ymin, zmin, xmax, ymax, zmax]` meters: the imported collision kept |
 | `ported_actors` | `false`: none of the `ported_*` actors (the default is `true`) |
-| `particles` (on a level) | [steps/particles.py](steps/particles.py): `"page"`, `"parts"`, `"groups"` can be `"auto"` (a free texture page and ids, chosen by the step), `skip_groups` (source groups whose spawners aren't placed), `levels` |
+| `particles` (on a level) | [steps/particles.py](steps/particles.py): `"page"`, `"parts"`, `"groups"` can be `"auto"` (a free texture page and ids, chosen by the step), `skip_groups` (source groups whose spawners aren't placed), `levels`, `target_textures` and `source_textures` (textures added at the end of its texture page, for the mod's code to find by name) |
 | `continues` | Its continues, as source names; without it, all its source levels' but the title, intro, demo and cutscene ones |
 | `code`, `models` | Objects of its DGO after the art groups; models built for it besides its actors' |
-| `level_info` | Its level-load-info: `callbacks`, `draw_priority`, `part_engine_max`, `comment`, `mood` |
+| `level_info` | Its level-load-info: `callbacks`, `draw_priority`, `part_engine_max`, `comment`, `mood`, `city_map_bits` (the squares of the city's minimap grid whose map it holds, a hex string) |
 | `water`, `mesh`, `ocean_source`, `nav` | [steps/water.py](steps/water.py), [steps/mesh.py](steps/mesh.py), [steps/ocean.py](steps/ocean.py), [steps/nav.py](steps/nav.py) (`nav.sources`: the source levels whose navigation it holds; one is kept as it is, several are merged; none: only the height map) |
 | `traffic` | The target game's traffic code taken from one of its DGOs (`code_from`, `skip`, `replace`), the level's own (`code`), the traffic's art groups (`art`) |
 | `props`, `custom_props` | [steps/props.py](steps/props.py) |

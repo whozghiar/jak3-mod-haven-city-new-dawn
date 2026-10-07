@@ -44,6 +44,16 @@ const LevelData* Loader::get_tfrag3_level(const std::string& level_name) {
   }
 }
 
+/*!
+ * og:jak2-haven-city added: is the level loaded and uploaded to the GPU (it can be drawn)?
+ * Unlike get_tfrag3_level, it doesn't count as a use of the level. Safe to call from the game's
+ * thread: the loaded levels are only added and removed with the loader mutex held.
+ */
+bool Loader::is_level_ready(const std::string& level_name) {
+  std::unique_lock<std::mutex> lk(m_loader_mutex);
+  return m_loaded_tfrag3_levels.find(level_name) != m_loaded_tfrag3_levels.end();
+}
+
 void Loader::debug_print_loaded_levels() {
   std::unique_lock<std::mutex> lk(m_loader_mutex);
   for (const auto& [name, _] : m_loaded_tfrag3_levels) {
@@ -589,6 +599,8 @@ void Loader::update(TexturePool& texture_pool) {
           mercs.erase(it);
         }
 
+        // og:jak2-haven-city added: the lock, for is_level_ready on the game's thread
+        std::unique_lock<std::mutex> loaded_lk(m_loader_mutex);
         m_loaded_tfrag3_levels.erase(*to_unload);
       }
     }
@@ -682,9 +694,10 @@ void Loader::do_reload_level(const std::string& name, TexturePool& texture_pool)
     return;
   }
   unload_level_data(name, *it->second, texture_pool);
+  // og:jak2-haven-city changed: erased with the lock held, for is_level_ready on the game's thread
+  std::unique_lock lk(m_loader_mutex);
   m_loaded_tfrag3_levels.erase(it);
 
-  std::unique_lock lk(m_loader_mutex);
   if (m_level_to_load.empty()) {
     m_level_to_load = name;
     lk.unlock();
@@ -726,7 +739,11 @@ void Loader::do_reload(TexturePool& texture_pool) {
   for (auto& [name, lev] : m_loaded_tfrag3_levels) {
     unload_level_data(name, *lev, texture_pool);
   }
-  m_loaded_tfrag3_levels.clear();
+  {
+    // og:jak2-haven-city added: the lock, for is_level_ready on the game's thread
+    std::unique_lock<std::mutex> lk(m_loader_mutex);
+    m_loaded_tfrag3_levels.clear();
+  }
 
   for (auto buf : m_garbage_buffers)
     glDeleteBuffers(1, &buf);

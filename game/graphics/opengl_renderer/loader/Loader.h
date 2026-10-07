@@ -21,6 +21,8 @@ class Loader {
   void update(TexturePool& tex_pool);
   void update_blocking(TexturePool& tex_pool);
   const LevelData* get_tfrag3_level(const std::string& level_name);
+  // og:jak2-haven-city added: is a level's geometry loaded and uploaded (safe from any thread)
+  bool is_level_ready(const std::string& level_name);
   std::optional<MercRef> get_merc_model(const char* model_name);
   const tfrag3::Level& load_common(TexturePool& tex_pool, const std::string& name);
   void set_want_levels(const std::vector<std::string>& levels);

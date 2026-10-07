@@ -8,7 +8,9 @@ missing.
   - the source game: each level's entity dumps and background (<level>-actors.json, <level>.fr3)
     and the model rips the manifest uses (rip_levels). With no rip at all, the whole game is
     extracted with its rips (once, long: Jak 2's take 11 GB); else only the DGOs of the levels
-    whose files are missing;
+    whose files are missing, or older than a texture replacement of the source game
+    (custom_assets/<game>/texture_replacements, which the decompiler applies when it extracts):
+    editing one re-extracts the levels and rips the port reads, once;
   - the target game: its backgrounds (the particles' textures, the levels the build borrows from).
 
 The games' disc files must be in iso_data/<game> (copied from the disc, like for `task extract`).
@@ -40,17 +42,30 @@ def decompile(game, overrides):
     subprocess.run(cmd, check=True)
 
 
+def newest_replacement(game):
+    """The modification time of the game's newest texture replacement PNG, 0 with none."""
+    root = f"custom_assets/{game}/texture_replacements"
+    return max((os.path.getmtime(os.path.join(d, f)) for d, _, fs in os.walk(root)
+                for f in fs if f.lower().endswith(".png")), default=0)
+
+
 def source_needs(port):
-    """The source game's files the port reads: source level -> its missing files."""
+    """The source game's files the port reads: source level -> its files missing or older than
+    the newest texture replacement (to extract again)."""
     src = port.source
+    newest = newest_replacement(src.NAME)
+
+    def stale(path):
+        return not os.path.exists(path) or os.path.getmtime(path) < newest
+
     levels = {s for lv in port.levels for s in lv.sources} | set(port.get("ported_levels", []))
     missing = {}
     for lv in sorted(levels):
         for path in (f"{src.ENTITIES}/{lv}-actors.json", f"{src.FR3}/{lv}.fr3"):
-            if not os.path.exists(path):
+            if stale(path):
                 missing.setdefault(lv, []).append(path)
     for model in port.get("models", {}).values():
-        if "rip" in model and not os.path.exists(port.rip(model["rip"])):
+        if "rip" in model and stale(port.rip(model["rip"])):
             missing.setdefault(model["rip"].split("/")[0], []).append(port.rip(model["rip"]))
     return missing
 
@@ -78,7 +93,9 @@ def run(port):
             print(f"  {src.TITLE} isn't extracted with its model rips: extracting it all")
         else:
             dgos = sorted({src.dgo_of(lv) for lv in missing})
-            print(f"  {src.TITLE}: {len(missing)} levels to extract again ({', '.join(dgos)})")
+            print(f"  {src.TITLE}: {len(missing)} levels to extract again (missing files or new "
+                  f"texture replacements: {', '.join(dgos)}); then build with "
+                  f"(make-group \"iso\" :force #t)")
             overrides["levels_to_extract"] = dgos
         decompile(src.NAME, overrides)
         still = source_needs(port)

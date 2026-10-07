@@ -79,11 +79,16 @@ dig site, all rebuilt from Jak 2's own extracted data and linked the way Jak 2 l
   crops are solid and burst when hit hard.
 - **Air trains:** the port's air train takes Jak to the dig site and back, in a short fade.
 - **City traffic:** Jak 3's citizens, Freedom League guards, hover bikes and cars, as many as in
-  Jak 2; Jak 2's Freedom League Hellcats as an option: they fly with the traffic without chasing
-  Jak, and Jak can steal one and fire its front gun; Jak 2's Crimson Guard bikes, ridden by
-  Freedom League guards, as another option.
-- **Jak 2's alert:** hitting a guard or a Hellcat raises the alert like in Jak 2, and the city's
-  guard turrets pop up and fire at Jak while he flies a vehicle near them.
+  Jak 2; Jak 2's Freedom League Hellcats as an option: they fly with the traffic, and Jak can
+  steal one and fire its front gun; Jak 2's Crimson Guard bikes, ridden by Freedom League guards,
+  as another option.
+- **Jak 2's alert:** Jak 2's five alert levels. Hitting a citizen or a guard, hitting a guard
+  vehicle or turning into Dark Jak raises the alert; the guards hunt Jak, the Hellcats and guard
+  bikes chase and shoot him from level 2, the city music plays its alert mode and the minimap
+  flashes. It ends 30 s after the last offence, once no guard hunts any more. The city's guard
+  turrets pop up and fire at Jak while he flies a vehicle near them.
+- **Minimap:** Jak 2's city maps on Jak 3's minimap, with the guards, Hellcats and guard bikes as
+  blue icons with their view cone.
 - **Jak 2's sound:** each place's Jak 2 music (with its variations when Jak draws his gun, rides
   the board, turns dark or drives), ambiences and object sounds, the Baron's speeches from his
   propaganda speakers, the citizens' and the guards' lines (the Freedom League guards speak like
@@ -117,7 +122,7 @@ The menu's entries:
 | City traffic | Switches the traffic on (default) or off |
 | Hellcats in the traffic | Adds Jak 2's Freedom League Hellcats to the traffic (off by default) |
 | Guard bikes in the traffic | Adds Jak 2's Crimson Guard bikes, ridden by Freedom League guards (off by default) |
-| Jak 2's alert (turrets) | Hitting guards raises the alert, the turrets fire at Jak's vehicle (on by default) |
+| Jak 2's alert (turrets) | Jak 2's alert: guards and guard vehicles hunt Jak, the turrets fire at Jak's vehicle (on by default; off: Jak 3's alert code) |
 
 ## Download & Play via OpenGOAL Launcher (Players)
 

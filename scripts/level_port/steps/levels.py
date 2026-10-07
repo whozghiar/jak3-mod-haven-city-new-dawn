@@ -1092,6 +1092,8 @@ def district_map(ctx, cfg):
         cells = grown
     var = cfg["var"]
     rows = [" ".join(str(c) for c in cells[i:i + 40]) for i in range(0, len(cells), 40)]
+    preload = nearest_districts(cells, nx, nz, cfg.get("preload", PRELOAD) / cfg["cell"])
+    preload_rows = [" ".join(str(c) for c in preload[i:i + 40]) for i in range(0, len(preload), 40)]
     return [
         f";; the city's districts, and which of them holds each {cfg['cell']}m square of the city's "
         "streets (1 + its",
@@ -1108,7 +1110,44 @@ def district_map(ctx, cfg):
         *["  " + r for r in rows],
         "  ))",
         "",
+        f";; for each square of {var}-cells*, two values: the nearest other districts (1 + index, 0: "
+        "none) within",
+        f";; {cfg.get('preload', PRELOAD)}m of it, nearest first: the districts loaded hidden "
+        "before Jak gets there.",
+        f"(define {var}-preload* (new 'static 'boxed-array :type uint8",
+        *["  " + r for r in preload_rows],
+        "  ))",
+        "",
     ]
+
+
+# meters: how far from a square of the district map the districts loaded ahead are (the
+# district_map's "preload"; Jak 2's loading faces are about that far before its display faces)
+PRELOAD = 130.0
+
+
+def nearest_districts(cells, nx, nz, reach):
+    """For each square of a district map (cells: nx * nz, 0 or 1 + a district index), the two
+    nearest other districts whose squares are within reach squares (center to center), nearest
+    first (ties: the lower value), 0 for none; as one list of 2 values per square."""
+    out = [0] * (2 * nx * nz)
+    r = math.floor(reach)
+    for iz in range(nz):
+        for ix in range(nx):
+            own = cells[ix + iz * nx]
+            if not own:
+                continue
+            best = {}
+            for jz in range(max(0, iz - r), min(nz, iz + r + 1)):
+                for jx in range(max(0, ix - r), min(nx, ix + r + 1)):
+                    other = cells[jx + jz * nx]
+                    d = (jx - ix) ** 2 + (jz - iz) ** 2
+                    if other and other != own and d <= reach * reach and d < best.get(other, d + 1):
+                        best[other] = d
+            near = sorted(best, key=lambda o: (best[o], o))[:2]
+            i = 2 * (ix + iz * nx)
+            out[i:i + len(near)] = near
+    return out
 
 
 def write_level_info(ctx, chosen):
@@ -1165,7 +1204,7 @@ def write_level_info(ctx, chosen):
             (ocean if isinstance(ocean, str) else port.get("ocean_map") if ocean else None),
             comment, info["draw_priority"], bool(level.get("sky")),
             info.get("part_engine_max", ctx.part_engine_max.get(level.name, 0)),
-            *level_sound(ctx, level)))
+            *level_sound(ctx, level), city_map_bits=int(info.get("city_map_bits", "0"), 0)))
     for spec in port["continues"].get("target_continues", []):
         out.append(target_continue(ctx, spec))
     write_if_changed(cfg["file"], "\n".join(out))
@@ -1255,3 +1294,10 @@ def run(port):
     write_level_info(ctx, chosen)
     if "build" in port.data:
         write_build_file(ctx, built_levels)
+
+
+if __name__ == "__main__":
+    # nearest_districts self-check, on a row of 5 squares: districts 1 1 2 0 3
+    near = nearest_districts([1, 1, 2, 0, 3], 5, 1, 2.0)
+    assert near == [2, 0, 2, 0, 1, 3, 0, 0, 2, 0], near
+    print("ok")

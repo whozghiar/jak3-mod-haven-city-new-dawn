@@ -231,6 +231,17 @@ inline u64 bool_to_symbol(const bool val) {
   return val ? static_cast<u64>(s7.offset) + true_symbol_offset(g_game_version) : s7.offset;
 }
 
+/*!
+ * og:jak2-haven-city added: __pc-level-ready? (GOAL string, a level's bsp name) -> #t once the PC
+ * renderer has loaded and uploaded the level's geometry (it can be drawn), else #f (also with no
+ * renderer).
+ */
+u64 pc_level_ready(u32 level_name) {
+  auto renderer = Gfx::GetCurrentRenderer();
+  return bool_to_symbol(renderer && renderer->level_ready &&
+                        renderer->level_ready(Ptr<String>(level_name).c()->data()));
+}
+
 inline bool symbol_to_bool(const u32 symptr) {
   return symptr != s7.offset;
 }

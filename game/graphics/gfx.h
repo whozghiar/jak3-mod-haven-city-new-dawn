@@ -45,6 +45,8 @@ struct GfxRendererModule {
   std::function<void(u32, u32, u32)> texture_relocate;
   std::function<void(const std::vector<std::string>&)> set_levels;
   std::function<void(const std::vector<std::string>&)> set_active_levels;
+  // og:jak2-haven-city added: is a level's geometry loaded by the renderer (it can be drawn)
+  std::function<bool(const std::string&)> level_ready;
   std::function<void()> force_reload_all;
   std::function<void(const std::string&)> force_reload_level;
   std::function<void()> force_reload_common;

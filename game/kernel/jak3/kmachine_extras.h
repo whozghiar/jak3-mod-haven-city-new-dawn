@@ -10,6 +10,7 @@ namespace kmachine_extras {
 void update_discord_rpc(u32 discord_info);
 void pc_set_levels(u32 lev_list);
 void pc_set_active_levels(u32 lev_list);
+u64 pc_level_ready(u32 level_name);  // og:jak2-haven-city added
 u32 alloc_vagdir_names(u32 heap_sym);
 inline u64 bool_to_symbol(const bool val);
 void init_autosplit_struct();

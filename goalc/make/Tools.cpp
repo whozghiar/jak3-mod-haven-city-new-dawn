@@ -551,6 +551,27 @@ u32 vag_header_field(const u8* header, int offset) {
   return ((u32)p[3] << 24) | ((u32)p[2] << 16) | ((u32)p[1] << 8) | p[0];
 }
 
+/*!
+ * End a mono line (VAG header + ADPCM data) the way Jak 3's lines end: a silent frame with the
+ * "end" flag (1), then Jak 3's closing frame (flag 7, 0x77 bytes), and the header's size grown to
+ * match. Jak 2's lines have no end flag (their data just stops), and the Jak 3 overlord counts on
+ * it: the flag stops the voice (game/sound/common/voice.cpp), else the voice runs into the other
+ * half of its stream buffer and replays the previous chunk in a loop whenever the overlord's end
+ * check (CheckVAGStreamProgress, game/overlord/jak3/spustreams.cpp) misses the voice in the last
+ * chunk's half. Modifies line in place; returns nothing.
+ */
+void add_vag_end_frames(std::vector<u8>& line) {
+  u8 end[32] = {0, 1};  // silent frame, flag 1: the voice stops here
+  end[17] = 7;
+  memset(end + 18, 0x77, 14);
+  line.insert(line.end(), end, end + 32);
+  u32 size = vag_header_field(line.data(), 12) + 32;
+  bool big_endian = memcmp(line.data(), "VAGp", 4) == 0;
+  for (int i = 0; i < 4; i++) {
+    line[12 + (big_endian ? i : 3 - i)] = (u8)(size >> (24 - 8 * i));
+  }
+}
+
 // size bytes of a file from offset (the wads are big: only the lines are read)
 std::vector<u8> read_file_range(const fs::path& path, size_t offset, size_t size) {
   std::vector<u8> out(size);
@@ -586,8 +607,9 @@ PackVagsTool::PackVagsTool() : Tool("pack-vags") {}
  * Jak 2's directory: a count, then {8 characters, start in 2048 byte sectors, stereo}. Jak 3's: a
  * header, then a 64-bit entry per line: name (42 bits), stereo, international, sample rate index,
  * start in 32 KB pages (the same in every language's wad: a line takes the pages of its longest
- * language). A line is its VAG header and its ADPCM data, the same in both games. A new name must
- * not be one of the Jak 3 directory's.
+ * language). A line is its VAG header and its ADPCM data, the same in both games, except that a
+ * Jak 3 line ends with an end flag Jak 2's lacks: a mono line gets it (add_vag_end_frames). A new
+ * name must not be one of the Jak 3 directory's.
  */
 bool PackVagsTool::run(const ToolInput& task, const PathMap&) {
   if (task.input.size() < 2 || task.input.size() > 3 || task.output.size() < 2) {
@@ -668,7 +690,10 @@ bool PackVagsTool::run(const ToolInput& task, const PathMap&) {
       rate = vag_header_field(header.data(), 16);
       size_t size = 0x30 + vag_header_field(header.data(), 12);
       datas.push_back(read_file_range(wad, start, size));
-      pages = std::max(pages, (size + kPage - 1) / kPage);
+      if (!stereo) {
+        add_vag_end_frames(datas.back());  // added: Jak 3's end of line (see add_vag_end_frames)
+      }
+      pages = std::max(pages, (datas.back().size() + kPage - 1) / kPage);
     }
     u64 rate_index = 12;
     for (u64 r = 0; r < 16; r++) {

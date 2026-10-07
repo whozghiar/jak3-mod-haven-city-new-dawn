@@ -430,6 +430,8 @@ void InitMachine_PCPort() {
   make_function_symbol_from_c("__pc-set-levels", (void*)kmachine_extras::pc_set_levels);
   make_function_symbol_from_c("__pc-set-active-levels",
                               (void*)kmachine_extras::pc_set_active_levels);
+  // og:jak2-haven-city added
+  make_function_symbol_from_c("__pc-level-ready?", (void*)kmachine_extras::pc_level_ready);
   make_function_symbol_from_c("__pc-get-tex-remap", (void*)lookup_jak3_texture_dest_offset);
   make_function_symbol_from_c("pc-init-autosplitter-struct",
                               (void*)kmachine_extras::init_autosplit_struct);

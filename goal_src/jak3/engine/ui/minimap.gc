@@ -2162,7 +2162,8 @@
           )
         )
       (else
-        (set! (-> this ctywide) (level-get *level* 'ctywide))
+        ;; og:jak2-haven-city added: the Jak 3 mod's Jak 2 Haven City (havenj2) is a city too
+        (set! (-> this ctywide) (the-as level (or (level-get *level* 'ctywide) (level-get *level* 'havenj2))))
         (let ((s5-1 (the int (* 0.0000006357829 (+ 3145728.0 (-> (target-pos 0) x)))))
               (s4-1 (the int (* 0.0000006357829 (+ 3145728.0 (-> (target-pos 0) z)))))
               )
@@ -2766,7 +2767,9 @@
           (set-vector! (-> sv-232 trans) f0-4 0.0 f1-3 1.0)
           )
         (matrix*! sv-232 sv-232 sv-228)
-        (let ((f0-7 12.0))
+        ;; og:jak2-haven-city added: the icon's size follows its class scale (1.0 for every stock frustum
+        ;; class), so the Jak 3 mod's guard vehicles (*hj2-guard-vehicle-minimap-class*) draw larger
+        (let ((f0-7 (* 12.0 (-> arg1 class scale))))
           (set-vector! (-> arg0 corner 0) (- f0-7) 0.0 0.0 1.0)
           (set-vector! (-> arg0 corner 1) 0.0 0.0 f0-7 1.0)
           (set-vector! (-> arg0 corner 2) 0.0 0.0 (- f0-7) 1.0)
@@ -2998,7 +3001,9 @@
     (&+! (-> s5-0 base) 176)
     (let ((f0-57 1.0))
       (when *target*
-        (if (focus-test? *target* pilot)
+        ;; og:jak2-haven-city added: the view cones stay shown while Jak pilots in the Jak 3 mod's Jak 2
+        ;; Haven City (havenj2), where the guard vehicles chase him in vehicles
+        (if (and (focus-test? *target* pilot) (not (level-get *level* 'havenj2)))
             (set! f0-57 0.0)
             )
         )
