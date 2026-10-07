@@ -42,10 +42,15 @@ dig site, all rebuilt from Jak 2's own extracted data and linked the way Jak 2 l
 
 > [!IMPORTANT]
 > **You need an official copy of both Jak 2 and Jak 3**: your own PS2 discs, or ISOs dumped
-> from them (the NTSC-U releases, which OpenGOAL calls `ntsc_v1`). The mod contains nothing of
+> from them. It is made and tested with the European Jak 2 (PAL, SCES-51608) and the American
+> Jak 3 (NTSC-U, SCUS-97330); other regions are untested. The mod contains nothing of
 > either game: its levels, models, textures, music, sounds and voices are all made on your machine
-> from your own Jak 2 and Jak 3. Owning Jak 3 alone is not enough. Both games must be **extracted
-> before the mod is built**:
+> from your own Jak 2 and Jak 3. Owning Jak 3 alone is not enough.
+>
+> - **From the OpenGOAL Launcher:** install Jak 2 and Jak 3 in the launcher first (each from your
+>   own ISO), then the mod. Its install makes the levels from your installed Jak 2 by itself
+>   ([Download & Play](#download--play-via-opengoal-launcher-players)).
+> - **From source:** both games must be **extracted before the mod is built**:
 >
 > 1. copy each disc's files (the content of the ISO) into `iso_data/jak2` and `iso_data/jak3`;
 > 2. run `task level-port -- custom_assets/jak3/ports/jak2-haven-city/port.jsonc`: it extracts
@@ -120,12 +125,15 @@ The menu's entries:
 ## Download & Play via OpenGOAL Launcher (Players)
 
 > [!WARNING]
-> Not available through the launcher yet: the launcher asks for one game's ISO only, and this mod
-> is built from both your Jak 2 and your Jak 3 extractions. See
-> [Developer Setup](#developer-setup--local-compilation).
+> Not published yet: this repository has no release of the mod, and the launcher only installs
+> releases of a public repository (this one is private). Until then, build it from source
+> ([Developer Setup](#developer-setup--local-compilation)).
 
-> [!TIP]
-> **No developer environment required!** Players can install and play this mod directly using the official OpenGOAL Launcher:
+**Install Jak 2 and Jak 3 in the OpenGOAL Launcher first**, each from your own ISO, and let each
+install finish. Then install the mod: nothing else to do. While the launcher compiles the mod, the
+mod's extractor reads your installed Jak 2 and makes its levels, models and sounds (a minute or two
+more than a usual mod). If Jak 2 isn't installed, the install stops with an error code (4060): the
+launcher's log says to install Jak 2, then to reinstall the mod.
 
 ### Option A — Add Custom Mod Source (Recommended)
 1. In the **OpenGOAL Launcher**, navigate to **Settings ▸ Mods ▸ Add Custom Mod Source**.
@@ -134,14 +142,15 @@ The menu's entries:
    https://raw.githubusercontent.com/whozghiar/jak-project/jak3/features/jak2-haven-city/index.json
    ```
 3. Go to the **Mods** tab, locate **Jak2 Haven City**, and click **Install**.
-4. Select your clean PS2 game ISO when prompted. The launcher will automatically extract assets and launch the game!
+4. If Jak 3 isn't installed yet, the launcher asks for your Jak 3 ISO. It then extracts, generates
+   the Jak 2 levels from your installed Jak 2 and compiles the mod.
 
 ### Option B — Manual Installation from GitHub Releases
 1. Download the pre-built package for your operating system from the [Releases](https://github.com/whozghiar/jak-project/releases) tab (`windows-v*.zip` or `linux-v*.zip`).
-2. Extract the archive into your OpenGOAL Launcher features directory:
-   - **Windows:** `%APPDATA%\OpenGOAL-Launcher\features\jak3\mods\_local\jak2_haven_city\`
-   - **Linux:** `~/.config/OpenGOAL-Launcher/features/jak3/mods/_local/jak2_haven_city/`
-3. Launch the game from the OpenGOAL Launcher.
+2. Extract the archive into the `features` folder of the launcher's installation folder (the one
+   chosen in its settings): `<installation folder>/features/jak3/mods/_local/jak2_haven_city/`.
+3. Run the mod's decompile and compile from the OpenGOAL Launcher (the compile generates the Jak 2
+   levels), then launch the game.
 
 ---
 
@@ -166,7 +175,7 @@ task build-release-decomp
 ```
 
 ### 3. Asset Extraction and Level Generation
-- **Status:** Required for **both** Jak 2 and Jak 3, from official copies (NTSC-U, `ntsc_v1`).
+- **Status:** Required for **both** Jak 2 and Jak 3, from official copies (tested: Jak 2 PAL SCES-51608, Jak 3 NTSC-U SCUS-97330).
 - **Details:** nothing of Jak 2 or Jak 3 is in the repository: the levels, models and level code
   are made on your machine from your own discs or ISOs. Copy each disc's files into `iso_data/jak2` and
   `iso_data/jak3`, then run the level port: it extracts what it needs (the first time, all of

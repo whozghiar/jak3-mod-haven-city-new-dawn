@@ -26,12 +26,23 @@ Unlike conventional mods that only touch LISP script files (`goal_src/`), some m
 When a player installs a mod from the Launcher:
 1. The Launcher downloads the matching archive (`windows-v*.zip` or `linux-v*.zip`) and extracts it into its internal folder:
    ```text
-   %APPDATA%/OpenGOAL-Launcher/features/<jak1|jak2|jak3>/mods/<source_name>/<mod_name>/
+   <installation folder>/features/<jak1|jak2|jak3>/mods/<source_name>/<mod_name>/
    ```
+   The installation folder is the one chosen in the launcher's settings (`installationDir` in its `settings.json`). The mod folder is deleted and unpacked again at every install or update. The vanilla games the launcher installed sit in `<installation folder>/active/<game>/data/`, their disc files in `iso_data/<game>` there: the mod's install shares them.
 2. **Absolute priority to the mod's own executables:** The Launcher does **not** run the vanilla OpenGOAL build. It runs the binaries sitting directly at the root of the extracted mod folder:
    - `extractor` to decompress the player's clean ISO, decompile the needed assets, and run the local LISP compile with your `goalc`.
    - `gk` to launch the game natively.
 3. **Fully static linking:** Thanks to the official CMake presets `Release-windows-clang-static` and `Release-linux-clang-static`, every C++ runtime and third-party library (`SDL3`, `zlib`, `lzokay`, `OpenSSL`) is merged into the binaries. The player needs no extra Visual C++ runtime or system library installed.
+
+### Mods made from another game's levels (level ports)
+
+A mod made with [`scripts/level_port`](../../../scripts/level_port/README.md) holds a port manifest, `custom_assets/<game>/ports/<port>/port.jsonc`, and ships nothing of its source game. Its levels are made on the player's machine during the launcher's install:
+
+1. The release workflow sees the manifest and adds `level_port` (a PyInstaller one-file build of the tool) and `fr3_check` next to the extractor, and `data/game/graphics/texture/<game>_tpage_dir.cpp`. A mod without a manifest is packaged as before.
+2. At the launcher's compile step, the extractor runs each port before compiling (`run_level_ports` in `decompiler/extractor/main.cpp`). It finds the source game's disc files in the launcher's installation (`<installation folder>/active/<source game>/data/iso_data/<source game>`), then runs `level_port` on them: it extracts the source game's levels it needs with the extractor itself and writes the levels into the mod's `data/`.
+3. If the source game isn't installed, the compile stops with code 4060 and the log asks the player to install it in the launcher, then reinstall the mod. A failed port stops it with code 4061.
+
+The player installs the source game in the launcher before the mod. Without `level_port` next to the extractor (a development checkout), the extractor skips the ports: developers run `task level-port`.
 
 ---
 
@@ -43,6 +54,7 @@ For the Launcher to hit zero extraction or local-compile errors, the ZIP archive
 ├── extractor.exe (or extractor on Linux)
 ├── gk.exe        (or gk on Linux)
 ├── goalc.exe     (or goalc on Linux)
+├── level_port.exe, fr3_check.exe         # Only for a mod with a port manifest (see above)
 └── data/
     ├── launcher/
     │   └── error-code-metadata.json
