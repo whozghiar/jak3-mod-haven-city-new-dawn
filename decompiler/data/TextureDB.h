@@ -33,7 +33,9 @@ struct TextureDB {
   std::unordered_map<u32, std::string> tpage_names;
   std::unordered_map<std::string, std::set<u32>> texture_ids_per_level;
   std::optional<fs::path> merge_texture_dir;
-  std::optional<fs::path> replace_texture_dir;
+  // og:jak2-haven-city changed: the texture replacement folders, searched in order (first match
+  // wins); replace_textures appends one
+  std::vector<fs::path> replace_texture_dirs;
 
   // special textures for animation.
   std::map<u32, tfrag3::IndexTexture> index_textures_by_combo_id;

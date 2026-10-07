@@ -501,7 +501,7 @@ void extract_all_levels(const ObjectFileDB& db,
   file_util::create_dir_if_needed(entities_dir);
 
   int num_workers = dgo_names.size();
-  if (tex_db.replace_texture_dir) {
+  if (!tex_db.replace_texture_dirs.empty()) {  // og:jak2-haven-city changed: a list
     num_workers = 1;
   }
 

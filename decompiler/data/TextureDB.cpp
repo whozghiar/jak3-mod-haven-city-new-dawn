@@ -103,8 +103,13 @@ void TextureDB::merge_textures(const fs::path& base_path) {
   merge_texture_dir = base_path;
 }
 
+/*!
+ * og:jak2-haven-city changed: add a texture replacement folder (<path>/<tpage>/<name>.png, then
+ * <path>/_all/<name>.png), searched after the ones added before it. A single call keeps the
+ * original behavior.
+ */
 void TextureDB::replace_textures(const fs::path& path) {
-  replace_texture_dir = path;
+  replace_texture_dirs.push_back(path);
 }
 
 void TextureDB::merge_texture(u32 id, std::vector<u32>& rgba) const {
@@ -149,24 +154,28 @@ void TextureDB::merge_texture(u32 id, std::vector<u32>& rgba) const {
 }
 
 std::optional<ResolvedTextureData> TextureDB::replace_texture(u32 id) const {
-  if (!replace_texture_dir) {
+  if (replace_texture_dirs.empty()) {
     return std::nullopt;
   }
 
   const auto& tex = textures.at(id);
   const auto& tpage_name = tpage_names.at(tex.page);
 
-  fs::path full_path = *replace_texture_dir / tpage_name / (tex.name + ".png");
-
-  if (!fs::exists(full_path)) {
-    full_path = *replace_texture_dir / "_all" / (tex.name + ".png");
-
-    if (!fs::exists(full_path)) {
-      return std::nullopt;
+  // og:jak2-haven-city changed: each folder in order, its <tpage>/ then its _all/ (first match)
+  fs::path full_path;
+  for (const auto& dir : replace_texture_dirs) {
+    for (const auto& candidate :
+         {dir / tpage_name / (tex.name + ".png"), dir / "_all" / (tex.name + ".png")}) {
+      if (full_path.empty() && fs::exists(candidate)) {
+        full_path = candidate;
+      }
     }
   }
+  if (full_path.empty()) {
+    return std::nullopt;
+  }
 
-  lg::info("Replacing {}", tpage_name + "/" + tex.name);
+  lg::info("Replacing {} with {}", tpage_name + "/" + tex.name, full_path.string());
 
   int w, h;
   auto data = stbi_load(full_path.string().c_str(), &w, &h, 0, 4);

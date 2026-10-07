@@ -32,7 +32,7 @@ It needs:
   (`--squares`, the district map),
 - the C++ side: the decompiler's exports (fixed cameras, navigation data, TIE collision tags) and the
   level builder's keys the generated `.jsonc` files use (`import_fr3`, `nav_data`, `cameras`,
-  `region_tree_files`, `sprite_textures`, `pair` and `string` lumps). Today they exist for Jak 3's
+  `region_tree_files`, `sprite_textures`, `texture_replacements`, `pair` and `string` lumps). Today they exist for Jak 3's
   level builder only (`goalc/build_level/jak3`).
 
 Then `(mi)` in `goalc` builds the levels. A generated file is only rewritten when its content
@@ -102,6 +102,7 @@ names (`callbacks_file`) are in the same folder. Top-level keys:
 | Key | Meaning |
 |---|---|
 | `name`, `source_game`, `target_game` | The port, and the games (`games/<game>.py`, `convert/<source>_<target>.py`) |
+| `texture_replacements` | Games whose `custom_assets/<game>/texture_replacements` the level builder also applies, after the target game's own, to the target game's art groups and textures it extracts for every level (written into each level's `.jsonc`, the builder's key of the same name). `["jak2"]`: a Jak 2 texture pack also retextures a Jak 3 model whose textures have the same names. What comes from the source game is replaced at its extraction instead |
 | `ignore_outputs` | The `.gitignore` in which a full run lists the generated files (between two lines naming the `tag`) |
 | `tag`, `prefix` | The mark of the mod's generated files (`og:<mod>`), and the prefix of what the port names: continues, particle groups and callbacks. The mod's GAME code defines `<prefix>sprite-page-new` and `<prefix>sprite-page-register` for the particles' texture pages |
 | `paths` | `levels` (custom levels), `models` (build-actor models), `code` (the levels' GOAL code) |

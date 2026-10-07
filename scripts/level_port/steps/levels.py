@@ -1047,6 +1047,9 @@ def write_full_level(ctx, level):
         "  ],",
         *([f"  // models of its custom actors, built by build-actor",
            '  "custom_models": ' + json.dumps(built["models"]) + ","] if built["models"] else []),
+        *([f"  // texture replacements of these games too, for the {port.target.TITLE} art groups",
+           '  "texture_replacements": ' + json.dumps(port["texture_replacements"]) + ","]
+          if port.get("texture_replacements") else []),
         '  "art_groups": ' + json.dumps(built["art"]) + ",",
         '  "actors": [',
         actors_json(built["actors"], 4),

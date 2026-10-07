@@ -377,6 +377,17 @@ bool run_build_level(const std::string& input_file,
     if (fs::exists(replacements_path)) {
       tex_db.replace_textures(replacements_path);
     }
+    // og:jak2-haven-city added: "texture_replacements": ["jak2", ...], other games' replacement
+    // folders (custom_assets/<game>/texture_replacements), searched after this game's: a model of
+    // this game in a level ported from another one takes that game's replacement of the same
+    // texture name (Jak 3's hellcat-ag in a Jak 2 level takes a Jak 2 pack's wing01.png)
+    for (const auto& game : level_json.value("texture_replacements", std::vector<std::string>{})) {
+      const auto path =
+          file_util::get_jak_project_dir() / "custom_assets" / game / "texture_replacements";
+      if (fs::exists(path)) {
+        tex_db.replace_textures(path);
+      }
+    }
 
     // add textures
     if (level_json.contains("textures") && !level_json.at("textures").empty()) {
