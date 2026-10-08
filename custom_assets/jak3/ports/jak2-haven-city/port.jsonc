@@ -8,10 +8,9 @@
   "name": "jak2-haven-city",
   "source_game": "jak2",
   "target_game": "jak3",
-  // Jak 2's texture pack (custom_assets/jak2/texture_replacements) also replaces the textures of
-  // the same name in the Jak 3 art groups the levels hold (the Hellcat's wing01, dash01...),
-  // after Jak 3's own folder: written into every level's .jsonc
-  "texture_replacements": ["jak2"],
+  // no "texture_replacements": the mod's texture pack is Jak 3's (custom_assets/jak3/
+  // texture_replacements), which the level builder applies to the Jak 3 art groups natively and
+  // the extract step to the Jak 2 levels it extracts
   // the mark of the mod's edits and generated files, and the prefix of what the port names
   // (continues, particle groups and callbacks; the GAME code defines <prefix>sprite-page-new and
   // <prefix>sprite-page-register, jak2-haven-city-world.gc)
