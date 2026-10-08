@@ -58,11 +58,13 @@ tickers turning around the Baron's hologram."
                                    (arg4 sparticle-launch-state)
                                    )
   "Jak 2's birth-func-race-poster (levels/city/ctywide-part.gc): the stadium race posters. Jak 2
-picks one of four textures from the race won last; here the first one, before any race. They fade
-out far away (always drawn on PC unless ps2-parts)."
+picks one of four textures (the part's userdata, entries 3-6: race-sign-01, -02, -03, -04) from the
+race won last: entry 5 (race-sign-03) before any race, entry 6 (race-sign-04) once
+stadium-race-class1-resolution is closed. The port is set at the end of Jak 2's story, every race
+won: always entry 6. They fade out far away (always drawn on PC unless ps2-parts)."
   (let ((s4-0 (the-as object (-> arg1 user-float))))
     (when (nonzero? (the-as float s4-0))
-      (let ((s4-1 (-> (the-as (array int32) s4-0) 5)))
+      (let ((s4-1 (-> (the-as (array int32) s4-0) 6)))
         (when (nonzero? s4-1)
           (let* ((f30-0 200.0)
                  (f28-0 (floor f30-0))

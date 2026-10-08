@@ -1016,7 +1016,8 @@ def write_full_level(ctx, level):
             '  "sprite_textures": ' + json.dumps(built["sprite_textures"]) + ",",
         ]
     mesh_lines = []
-    if "mesh" in level:
+    # the mesh step writes no mesh for a level with nothing in it
+    if "mesh" in level and os.path.exists(mesh_step.mesh_path(level)):
         mesh_lines = [
             f"  // {title}'s static props that aren't actors here, and its pools' surfaces, as one "
             "mesh (the mesh step)",

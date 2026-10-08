@@ -179,11 +179,12 @@
       // Not placed while the plaza is before Mar's tomb (story.level_open_tasks).
       // Not kept: the market props, farm crops and propaganda speakers, which are actors (props,
       // custom_props), the street lamps (hj2-ctyn-lamp, ported_everywhere), the force-field walls, the searchlights and the guard turrets (actors too:
-      // ported_everywhere, named_actors), and the cutscene or mission actors.
+      // ported_everywhere, named_actors), and the cutscene or mission actors, nor Jak 2's mission
+      // terminals (burning-bush, the "?" holograms): the port has no Jak 2 missions to give.
       // The palettes: the city's background palettes have their ambient around 110/255 and their
       // sun palettes up to about 100.
       "mesh": {
-        "props": {"burning-bush": [null, null], "lurker-pipe-lid": [null, null], "barons-ship-lores": [null, null], "ctypal-baron-statue-broken": [null, null], "ctypal-broke-wall": [null, null]},
+        "props": {"lurker-pipe-lid": [null, null], "barons-ship-lores": [null, null], "ctypal-baron-statue-broken": [null, null], "ctypal-broke-wall": [null, null]},
         "post_width": 0.6,
         "palette": {"ambient": 110.0, "sun": 100.0}
       },
@@ -264,11 +265,12 @@
       // only then.
       // Not kept: the market props, farm crops and propaganda speakers, which are actors (props,
       // custom_props), the street lamps (hj2-ctyn-lamp, ported_everywhere), the force-field walls, the searchlights and the guard turrets (actors too:
-      // ported_everywhere, named_actors), and the cutscene or mission actors.
+      // ported_everywhere, named_actors), and the cutscene or mission actors, nor Jak 2's mission
+      // terminals (burning-bush, the "?" holograms): the port has no Jak 2 missions to give.
       // The palettes: the city's background palettes have their ambient around 110/255 and their
       // sun palettes up to about 100.
       "mesh": {
-        "props": {"burning-bush": [null, null], "lurker-pipe-lid": [null, null], "barons-ship-lores": [null, null], "ctypal-baron-statue-broken": [null, null], "ctypal-broke-wall": [null, null], "baron-statue": [null, null]},
+        "props": {"lurker-pipe-lid": [null, null], "barons-ship-lores": [null, null], "ctypal-baron-statue-broken": [null, null], "ctypal-broke-wall": [null, null], "baron-statue": [null, null]},
         "post_width": 0.6,
         "palette": {"ambient": 110.0, "sun": 100.0}
       },
@@ -309,9 +311,12 @@
       // source_textures: Jak 2's minimap squares (its *-minimap pages), for havenj2's minimap page
       // (hj2-minimap-page-on in jak2-haven-city-world.gc finds them by name).
       // The neon signs (neon-baron...) are hj2- types of havenj2-signs.gc, with their data arrays;
-      // extra_groups: the Baron's hologram over his speakers (hj2-propa), the mission kiosks'
-      // hologram (burning-bush, shown off), the farm crops bursting and the sprinklers' water, the
-      // guard turrets' hits (ctywide-obs.gc).
+      // extra_groups: the Baron's hologram over his speakers (hj2-propa), the farm crops bursting
+      // and the sprinklers' water, the guard turrets' hits (ctywide-obs.gc). Jak 2's mission
+      // terminals (burning-bush) and their "?" hologram aren't placed (no "kiosks" entry): the
+      // port has no Jak 2 missions to give.
+      // The race posters (birth-func-race-poster, ported in particle-callbacks.gc) show
+      // race-sign-04, Jak 2's poster once its class 1 race is won (the end of its story).
       "particles": {
         // the part spawners of every district, each placed in its district's level
         // no max_vis_dist: every spawner keeps Jak 2's vis-dist (the city's signs 384m, the port's

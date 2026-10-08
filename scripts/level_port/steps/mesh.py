@@ -177,6 +177,14 @@ def write_level(port, level):
                           palettes(suns, ambient, sun, c, geo.normalize(n))))
         tris += [base + i for i in s["tris"]]
 
+    # nothing to draw nor collide (a district whose only props were dropped): no mesh at all, the
+    # level file then has no "gltf_file" (the builder fails on a mesh without primitives)
+    if not groups and not boxes:
+        if os.path.exists(mesh_path(level)):
+            os.remove(mesh_path(level))
+        print(f"  {level.name}: no props, no pool surfaces: no mesh")
+        return
+
     name = f"{level.name}-props"
     meshes = []
     nodes = []
