@@ -181,9 +181,9 @@ Then warp from the Mods menu (L3 + SELECT, Mods ▸ Haven City: New Dawn ▸ War
 
 ## Demonstration Video
 
-[![Demonstration Video](https://img.youtube.com/vi/YOUR_VIDEO_ID/maxresdefault.jpg)](https://youtu.be/YOUR_VIDEO_ID)
+[![Demonstration Video](https://img.youtube.com/vi/1_B4fGxRQZ0/maxresdefault.jpg)](https://youtu.be/1_B4fGxRQZ0)
 
-**[Watch the demonstration video on YouTube](https://youtu.be/YOUR_VIDEO_ID)**
+**[Watch the demonstration video on YouTube](https://youtu.be/1_B4fGxRQZ0)**
 
 > [!NOTE]
 > *Demonstration videos must be hosted externally on YouTube to prevent repository bloating. Replace `YOUR_VIDEO_ID` with your YouTube video ID (e.g. `MnqnybexhSA` from `https://youtu.be/MnqnybexhSA`).*
