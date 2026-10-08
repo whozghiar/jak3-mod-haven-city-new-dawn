@@ -357,8 +357,9 @@
         // part_specs: init-specs replaced in Jak 2's parts (by its part id). The halo around the
         // Baron's hologram over his speakers (819, a 10m glow) and the projector's flare (822),
         // red and orange in Jak 2, are blue; so is the Baron's logo (818 and its flicker 821): its
-        // texture is grey, Jak 2's red came from these colors, here Jak 2's with red and blue swapped
-        "part_specs": {"819": {":r": ["32.0", "64.0"], ":g": [":copy", "r"], ":b": ["255.0"]}, "822": {":r": ["0.0", "64.0"], ":g": ["64.0", "64.0"], ":b": ["255.0"]}, "818": {":r": ["0.0", "64.0"], ":g": [":copy", "r"], ":b": ["192.0"]}, "821": {":r": ["16.0"], ":g": ["32.0"], ":b": ["255.0"]}},
+        // texture is grey, Jak 2's red came from these colors; here a lighter blue (the user found
+        // Jak 2's colors with red and blue swapped too dark)
+        "part_specs": {"819": {":r": ["32.0", "64.0"], ":g": [":copy", "r"], ":b": ["255.0"]}, "822": {":r": ["0.0", "64.0"], ":g": ["64.0", "64.0"], ":b": ["255.0"]}, "818": {":r": ["48.0", "64.0"], ":g": [":copy", "r"], ":b": ["255.0"]}, "821": {":r": ["64.0"], ":g": ["96.0"], ":b": ["255.0"]}},
         "group_arrays": {"*city-baron-group-ids*": "*hj2-baron-group-ids*", "*city-neon-praxis-group-ids*": "*hj2-neon-praxis-group-ids*", "*hiphog-exterior-marquee-group-ids*": "*hj2-hiphog-marquee-group-ids*"},
         "extra_groups": {"group-ctywide-baron-propoganda-holo": "*hj2-propa-holo-group-ids*", "group-farm-marrow-explode": "*hj2-farm-marrow-explode-group-ids*", "group-farm-beetree-explode": "*hj2-farm-beetree-explode-group-ids*", "group-farm-cabbage-explode": "*hj2-farm-cabbage-explode-group-ids*", "group-farm-small-cabbage-explode": "*hj2-farm-small-cabbage-explode-group-ids*", "group-farm-chilirots-explode": "*hj2-farm-chilirots-explode-group-ids*", "group-farm-sprinkler-barrels-water": "*hj2-farm-sprinkler-water-group-ids*", "group-cty-guard-turret-hit": "*hj2-cty-guard-turret-hit-group-ids*"},
         "sign_actors": {"neon-baron": "hj2-neon-baron", "city-neon-praxis": "hj2-neon-praxis", "hiphog-exterior-marquee": "hj2-hiphog-marquee"}
