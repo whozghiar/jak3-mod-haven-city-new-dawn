@@ -54,7 +54,8 @@ itself (name): the city's districts and their hub make one group (respawn points
 
 (define *hj2-want-names* (new 'static 'boxed-array :type symbol :length 10 :allocated-length 10))
 
-;; the districts Jak 2's scripts (and doors, continues) asked to load lately, and when (hj2-now)
+;; the districts and places Jak 2's scripts (and doors, continues) asked to load lately, and when
+;; (hj2-now)
 (define *hj2-asked-names* (new 'static 'boxed-array :type symbol :length 16 :allocated-length 16))
 
 (define *hj2-asked-times* (new 'static 'boxed-array :type int64 :length 16 :allocated-length 16))
@@ -68,9 +69,11 @@ itself (name): the city's districts and their hub make one group (respawn points
   )
 
 (defun hj2-note-asked ((name symbol))
-  "Note that a script asked to load the city district name now (*hj2-asked-names*: its entry, else
-the oldest). Levels that aren't districts are ignored. Returns nothing."
-  (when (!= (hj2-hub-of name) name)
+  "Note that a script asked to load name now, a city district or a place of this mod
+(*hj2-asked-names*: its entry, else the oldest): hj2-load-ahead then leaves a place asked for but
+not shown yet (a door's on-activate loads it hidden) in its slot. The hub and Jak 3's levels are
+ignored. Returns nothing."
+  (when (and (!= name 'havenj2) (member name *havenj2-levels*))
     (let ((slot -1)
           (oldest 0)
           )

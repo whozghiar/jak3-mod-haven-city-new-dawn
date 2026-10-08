@@ -1231,8 +1231,11 @@
   // regions. Per region, tasks taken as not done yet, to pick another of Jak 2's branches: 528, the
   // palace pillar elevator goes to the roof first (elevators), so passing this plane on the way up
   // loads the roof, like before the sneak-in mission. Region script changes: Keira's garage has no
-  // doors (their on-enter showed it), the region that loads it shows it. 894 (the top of the
-  // mountain temple's gully): starts and stops the avalanche (the translator drops its 'draw events).
+  // doors (their on-enter showed it), the region that loads it shows it, and 776 (the camera volume
+  // around the garage, which makes it Jak's level) shows it too as the camera enters (the doors'
+  // on-enter: swapped in if a script dropped it) and makes the stadium grounds Jak's level again
+  // as the camera leaves (else the garage stayed Jak's level outside, the district guard off).
+  // 894 (the top of the mountain temple's gully): starts and stops the avalanche (the translator drops its 'draw events).
   // 436 (Haven Forest, the way to its far end): loads hj2-forstb (the mother tree and the
   // Precursor stone head) and shows it at once; Jak 2 only shows it when the camera crosses the
   // small face 434, which the camera can miss. 489 (the port's corridor to the farm, a camera face
@@ -1243,7 +1246,7 @@
   // district guard took Jak for being there and loaded the main town over the track.
   "region_id_offset": 1000,
   "region_open_tasks": {"528": ["palace-sneak-in-introduction"]},
-  "region_script_overrides": {"489": {"on-enter": "(begin (want-load 'havenj2 'hj2-port 'hj2-farmb) (want-display 'hj2-farmb 'display))"}, "436": {"on-enter": "(begin (want-load 'hj2-forest 'hj2-forstb) (want-display 'hj2-forstb 'display))"}, "429": {"on-enter": "(send-event \"pal-rot-gun-1\" 'trigger)", "on-exit": "(send-event \"pal-rot-gun-1\" 'untrigger)"}, "319": {"on-enter": "(begin (want-load 'havenj2 'hj2-stdm 'hj2-garage) (want-display 'hj2-garage 'display))"}, "317": {"on-enter": "(begin (want-display 'hj2-stadd 'display) (want-vis 'hj2-stadd))", "on-exit": "(begin (want-display 'hj2-stadd #f) (want-vis 'hj2-stdm))"}, "894": {"on-enter": "(send-event \"mtn-aval-rocks-4\" 'draw #t)", "on-exit": "(begin (send-event \"mtn-aval-rocks-4\" 'draw #f) (want-continue \"hj2-mountain-top\"))"}, "177": {"on-enter": "(send-event \"gun-buoy-1\" 'kill-player)"}, "353": {"on-enter": "(send-event \"gun-buoy-1\" 'kill-player)"}, "873": {"on-enter": "(send-event \"gun-buoy-1\" 'kill-player)"}},
+  "region_script_overrides": {"489": {"on-enter": "(begin (want-load 'havenj2 'hj2-port 'hj2-farmb) (want-display 'hj2-farmb 'display))"}, "436": {"on-enter": "(begin (want-load 'hj2-forest 'hj2-forstb) (want-display 'hj2-forstb 'display))"}, "429": {"on-enter": "(send-event \"pal-rot-gun-1\" 'trigger)", "on-exit": "(send-event \"pal-rot-gun-1\" 'untrigger)"}, "319": {"on-enter": "(begin (want-load 'havenj2 'hj2-stdm 'hj2-garage) (want-display 'hj2-garage 'display))"}, "776": {"on-enter": "(want-display 'hj2-garage 'display)", "on-exit": "(want-vis 'hj2-stdm)"},"317": {"on-enter": "(begin (want-display 'hj2-stadd 'display) (want-vis 'hj2-stadd))", "on-exit": "(begin (want-display 'hj2-stadd #f) (want-vis 'hj2-stdm))"}, "894": {"on-enter": "(send-event \"mtn-aval-rocks-4\" 'draw #t)", "on-exit": "(begin (send-event \"mtn-aval-rocks-4\" 'draw #f) (want-continue \"hj2-mountain-top\"))"}, "177": {"on-enter": "(send-event \"gun-buoy-1\" 'kill-player)"}, "353": {"on-enter": "(send-event \"gun-buoy-1\" 'kill-player)"}, "873": {"on-enter": "(send-event \"gun-buoy-1\" 'kill-player)"}},
 
   // Continue points. Our names: hj2-<Jak 2 name>, but havenj2-start (ctysluma-start). The places
   // get all of Jak 2's continues of their levels (the respawn points, see havenj2-update-continue in
