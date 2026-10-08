@@ -90,6 +90,9 @@ void extract(const std::string& name,
   }
 
   tfrag3::MercEffect e;
+  // the translucent draws (alpha blend on): an effect of their own, which the game draws in a
+  // translucent bucket, after the opaque geometry (build_actor's generate_merc_effects)
+  tfrag3::MercEffect blend_eff;
   tfrag3::MercEffect envmap_eff;
   envmap_eff.has_envmap = false;
   out.new_model.name = name;
@@ -101,6 +104,10 @@ void extract(const std::string& name,
     if (mat_idx < 0 || !gltf_util::material_has_envmap(model.materials[mat_idx]) ||
         !gltf_util::envmap_is_valid(model.materials[mat_idx])) {
       gltf_util::process_normal_merc_draw(model, out, tex_offset, e, mat_idx, d_);
+      if (e.all_draws.back().mode.get_ab_enable()) {
+        blend_eff.all_draws.push_back(e.all_draws.back());
+        e.all_draws.pop_back();
+      }
     } else {
       envmap_eff.has_envmap = true;
       gltf_util::process_envmap_merc_draw(model, out, tex_offset, envmap_eff, mat_idx, d_);
@@ -111,6 +118,9 @@ void extract(const std::string& name,
   if (!e.all_draws.empty()) {
     out.new_model.effects.push_back(e);
   }
+  if (!blend_eff.all_draws.empty()) {
+    out.new_model.effects.push_back(blend_eff);
+  }
   if (envmap_eff.has_envmap) {
     out.new_model.effects.push_back(envmap_eff);
   }
@@ -119,8 +129,9 @@ void extract(const std::string& name,
     out.new_model.max_draws += effect.all_draws.size();
   }
 
-  lg::info("total of {} unique materials ({} normal, {} envmap)", out.new_model.max_draws,
-           e.all_draws.size(), envmap_eff.all_draws.size());
+  lg::info("total of {} unique materials ({} normal, {} translucent, {} envmap)",
+           out.new_model.max_draws, e.all_draws.size(), blend_eff.all_draws.size(),
+           envmap_eff.all_draws.size());
   lg::info("Merged {} meshes and {} prims into {} vertices", mesh_count, prim_count,
            out.new_vertices.size());
 }

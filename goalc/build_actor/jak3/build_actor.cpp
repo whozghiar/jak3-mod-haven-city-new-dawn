@@ -1,5 +1,7 @@
 #include "build_actor.h"
 
+#include <algorithm>
+
 #include "common/log/log.h"
 #include "common/math/geometry.h"
 
@@ -453,13 +455,21 @@ void generate_merc_effects(DataObjectGenerator& gen, tfrag3::MercModel* mdl, int
   for (auto& e : mdl->effects) {
     EffectLocs loc{};
     auto envmap = (int)e.has_envmap;
+    // texture-index, the tpage category whose merc bucket draws the effect: tfrag (0, opaque), or
+    // alpha (3, after the opaque geometry) for an effect of translucent draws only (MercExtract)
+    int texture_index = 0;
+    if (!e.has_envmap && !e.all_draws.empty() &&
+        std::all_of(e.all_draws.begin(), e.all_draws.end(),
+                    [](const tfrag3::MercDraw& d) { return d.mode.get_ab_enable(); })) {
+      texture_index = 3;
+    }
     loc.frag_geo = gen.add_word(0);       // 112-140 (effect)
     loc.frag_ctrl = gen.add_word(0);      // 116 (frag-ctrl)
     gen.add_word(0x0);                    // 120 (blend-data)
     gen.add_word(0x0);                    // 124 (blend-ctrl)
     gen.add_word(0x10000);                // 128
     gen.add_word(0x140000);               // 132
-    gen.add_word((envmap << 24) + 0x1d);  // 136
+    gen.add_word((envmap << 24) + (texture_index << 16) + 0x1d);  // 136
     loc.extra_info = gen.add_word(0);     // 140 (extra-info)
     locs.push_back(loc);
   }

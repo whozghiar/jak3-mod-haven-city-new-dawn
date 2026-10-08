@@ -112,7 +112,9 @@ def source_needs(port):
         for path in (f"{src.ENTITIES}/{lv}-actors.json", f"{src.FR3}/{lv}.fr3"):
             if stale(path):
                 missing.setdefault(lv, []).append(path)
-    for model in port.get("models", {}).values():
+    # the models and their extra models (a lamp's cone of light...)
+    for model in [m for top in port.get("models", {}).values()
+                  for m in [top] + top.get("extras", [])]:
         if "rip" in model and stale(port.rip(model["rip"])):
             missing.setdefault(model["rip"].split("/")[0], []).append(port.rip(model["rip"]))
     return missing

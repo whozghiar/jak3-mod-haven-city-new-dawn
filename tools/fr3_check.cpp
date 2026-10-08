@@ -274,6 +274,17 @@ void print_draws(const tfrag3::Level& lev, const std::string& filter) {
           draw.num_triangles;
     }
   }
+  // merc draws (the actors' models), with their blend: ab = 0 opaque, else the DrawMode::AlphaBlend
+  // value (1 alpha, 2 additive, 3 additive without alpha...)
+  for (const auto& model : lev.merc_data.models) {
+    for (const auto& eff : model.effects) {
+      for (const auto& draw : eff.all_draws) {
+        tris[fmt::format("merc {} {} ab {}", model.name, tex_name(draw.tree_tex_id),
+                         draw.mode.get_ab_enable() ? (int)draw.mode.get_alpha_blend() : 0)] +=
+            draw.num_triangles;
+      }
+    }
+  }
   for (const auto& [what, n] : tris) {
     if (what.find(filter) != std::string::npos) {
       fmt::print("{:8} {}\n", n, what);

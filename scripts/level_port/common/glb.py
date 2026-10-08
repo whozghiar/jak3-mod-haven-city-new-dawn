@@ -107,9 +107,10 @@ class Glb:
         self.accessors.append(a)
         return len(self.accessors) - 1
 
-    def material(self, image, sampler, alpha, cutoff, name):
+    def material(self, image, sampler, alpha, cutoff, name, extras=None):
+        """extras: the rip material's, kept (its ps2_alpha_blend: an additive blend...)."""
         key = (hashlib.sha1(image.encode()).hexdigest(), json.dumps(sampler, sort_keys=True), alpha,
-               cutoff)
+               cutoff, json.dumps(extras, sort_keys=True))
         if key in self.materials:
             return self.materials[key]
         if image not in self.images:
@@ -127,6 +128,8 @@ class Glb:
             mat["alphaCutoff"] = cutoff
         if alpha == "BLEND":
             mat["doubleSided"] = True
+        if extras:
+            mat["extras"] = extras
         self.material_list.append(mat)
         self.materials[key] = len(self.material_list) - 1
         return self.materials[key]

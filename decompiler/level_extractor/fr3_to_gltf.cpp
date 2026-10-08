@@ -688,6 +688,14 @@ int add_material_for_tex(const tfrag3::Level& level,
       model, add_image_for_tex(level, model, tex_idx, tex_image_map, TexImageKind::RGBA),
       tex.debug_name, draw_mode);
   mat.alphaMode = draw_mode.get_ab_enable() ? "BLEND" : "MASK";
+  // glTF's BLEND is the usual alpha blend only: any other blend (additive light shafts, glows) is
+  // kept as its DrawMode::AlphaBlend value, which the importers (gltf_util::
+  // setup_alpha_from_material: build-actor, the level builder) apply back
+  if (draw_mode.get_ab_enable() &&
+      draw_mode.get_alpha_blend() != DrawMode::AlphaBlend::SRC_DST_SRC_DST) {
+    mat.extras = tinygltf::Value(tinygltf::Value::Object{
+        {"ps2_alpha_blend", tinygltf::Value((int)draw_mode.get_alpha_blend())}});
+  }
   // the foreground and background renderers both use this cutoff
   mat.alphaCutoff = (float)0x26 / 255.f;
   // metallic is reserved for the envmap strength below

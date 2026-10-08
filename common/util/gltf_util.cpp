@@ -736,6 +736,16 @@ void setup_alpha_from_material(const tinygltf::Material& material, DrawMode* mod
   } else if (material.alphaMode == "BLEND") {
     mode->enable_ab();
     mode->set_alpha_blend(DrawMode::AlphaBlend::SRC_DST_SRC_DST);
+    // another blend (DrawMode::AlphaBlend value), as the decompiler's rips write it: additive
+    // light shafts and glows
+    if (material.extras.Has("ps2_alpha_blend")) {
+      int blend = material.extras.Get("ps2_alpha_blend").GetNumberAsInt();
+      if (blend < (int)DrawMode::AlphaBlend::SRC_DST_SRC_DST ||
+          blend > (int)DrawMode::AlphaBlend::SRC_0_DST_DST) {
+        lg::die("Material {}: unknown ps2_alpha_blend {}", material.name, blend);
+      }
+      mode->set_alpha_blend((DrawMode::AlphaBlend)blend);
+    }
     mode->set_depth_write_enable(false);
   } else {
     lg::die("Unknown GLTF alphaMode {}", material.alphaMode);

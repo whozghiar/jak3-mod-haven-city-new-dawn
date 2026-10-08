@@ -87,7 +87,7 @@ def load_model(port, level, etype):
             image=gltf["images"][tex["source"]]["uri"],
             sampler=gltf["samplers"][tex["sampler"]] if "sampler" in tex else None,
             alpha=mat.get("alphaMode", "OPAQUE"), cutoff=mat.get("alphaCutoff", 0.5),
-            name=mat.get("name", "")))
+            name=mat.get("name", ""), extras=mat.get("extras")))
         all_used |= set(idx)
     pos = prims[0]["pos"]
     points = [pos[i] for i in all_used]
@@ -142,7 +142,7 @@ def write_level(port, level):
             point, normal = actor_transform(actor)
             for prim in model["prims"]:
                 mat = out.material(prim["image"], prim["sampler"], prim["alpha"], prim["cutoff"],
-                                   prim["name"])
+                                   prim["name"], prim["extras"])
                 verts, tris = group(mat)
                 remap = {}
                 for i in prim["idx"]:
