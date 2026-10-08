@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "1.0.0",
+  "sourceName": "Haven City New Dawn Source",
+  "lastUpdated": "2026-10-08T11:19:50Z",
+  "mods": {
+    "haven-city-new-dawn": {
+      "displayName": "Haven City New Dawn",
+      "description": "This mod recreates and integrates Haven City from Jak II directly into the Jak 3 engine.  Rediscover the original Haven City in its entirety: freely explore its iconic districts and over 30 key locations (the Hip Hog, the Pumping Station, the Fortress, the Palace, etc.), faithfully reproduced as they were at the end of Jak II. Enjoy Haven City with all its elements—lights, neon, soundscape, music, vehicles, traffic, and outdoor access, all while playing with the gameplay of Jak 3.  The game aims to place Haven City in a post-Jak 3 era, after the city's reconstruction. The Freedom Faction protects the citizens for lasting peace.",
+      "authors": [
+        "whozghiar"
+      ],
+      "tags": [
+        "gameplay",
+        "custom-engine"
+      ],
+      "supportedGames": [
+        "jak3"
+      ],
+      "websiteUrl": "https://github.com/whozghiar/jak3-mod-haven-city-new-dawn",
+      "versions": [
+        {
+          "version": "1.0.0",
+          "publishedDate": "2026-10-08T11:19:50Z",
+          "supportedGames": [
+            "jak3"
+          ],
+          "assets": {
+            "windows": "https://github.com/whozghiar/jak3-mod-haven-city-new-dawn/releases/download/haven-city-new-dawn-v1.0.0/windows-haven-city-new-dawn-v1.0.0.zip",
+            "linux": "https://github.com/whozghiar/jak3-mod-haven-city-new-dawn/releases/download/haven-city-new-dawn-v1.0.0/linux-haven-city-new-dawn-v1.0.0.zip"
+          },
+          "checksums": {
+            "windows": "cd9c1e4282a975d518a28ac9e5b4829806bfdc3d151e02ec26f2cf78b72e920c",
+            "linux": "7221ee23b9d96375ecb0a4192e2ec9c75891cb7f6f83e9a78cba4c2cec0cb724"
+          }
+        }
+      ],
+      "coverArtUrl": "https://raw.githubusercontent.com/whozghiar/jak3-mod-haven-city-new-dawn/main/docs/img/mod/mod_cover.png",
+      "thumbnailArtUrl": "https://raw.githubusercontent.com/whozghiar/jak3-mod-haven-city-new-dawn/main/docs/img/mod/mod_cover.png"
+    }
+  },
+  "texturePacks": {}
+}
