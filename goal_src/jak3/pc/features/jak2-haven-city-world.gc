@@ -1707,9 +1707,11 @@ While the game is paused (the Mods menu is open), the driver applies it on the f
 ;; so a district uses its hub's page, which stays in texture-page-dir while the hub is loaded (Jak
 ;; 2's airlocks hide the hub while the district next to them stays shown).
 
-(define *hj2-sprite-page-levels* (new 'static 'boxed-array :type symbol #f #f #f #f #f #f #f #f))
+;; the registered pages, by level name: one slot per level *level* can hold (11), so a loading level
+;; always finds one (a slot is reused once its level is unloaded, see hj2-sprite-page-register)
+(define *hj2-sprite-page-levels* (new 'static 'boxed-array :type symbol #f #f #f #f #f #f #f #f #f #f #f))
 
-(define *hj2-sprite-page-pages* (new 'static 'boxed-array :type texture-page #f #f #f #f #f #f #f #f))
+(define *hj2-sprite-page-pages* (new 'static 'boxed-array :type texture-page #f #f #f #f #f #f #f #f #f #f #f))
 
 (defun hj2-sprite-page-new ((id int) (names (array string)) (sizes (array uint32)))
   "A texture-page for a level's sprite textures, made in the loading level's heap. names and sizes
@@ -1777,10 +1779,21 @@ each texture takes one block (64 words) whatever its size."
   )
 
 (defun hj2-sprite-page-register ((level-name symbol) (page texture-page))
-  "Called by a level's code while it loads: its sprite page, taken in use when it is activated."
+  "Called by a level's code while it loads: its sprite page, taken in use when it is activated. It goes
+in the level's own slot, else in a free one: never used, or of a level no longer loaded (its page went
+with its heap). The 8 slots used to be kept by the first 8 levels visited for good, so a 9th level of
+the 25 with a page (Haven Forest after the city, the mountain and a few places) had none: its
+particles found no texture and were drawn as squares."
   (let ((slot -1))
-    (dotimes (i 8)
-      (if (and (< slot 0) (or (= (-> *hj2-sprite-page-levels* i) level-name) (not (-> *hj2-sprite-page-levels* i))))
+    (dotimes (i (-> *hj2-sprite-page-levels* length))
+      (if (= (-> *hj2-sprite-page-levels* i) level-name)
+          (set! slot i)
+          )
+      )
+    (dotimes (i (-> *hj2-sprite-page-levels* length))
+      (if (and (< slot 0)
+               (or (not (-> *hj2-sprite-page-levels* i)) (not (level-get *level* (-> *hj2-sprite-page-levels* i))))
+               )
           (set! slot i)
           )
       )
@@ -1794,7 +1807,7 @@ each texture takes one block (64 words) whatever its size."
 
 (defun hj2-sprite-page-of ((lev level))
   "The registered sprite page of a level, or #f."
-  (dotimes (i 8)
+  (dotimes (i (-> *hj2-sprite-page-levels* length))
     (if (= (-> *hj2-sprite-page-levels* i) (-> lev name))
         (return (-> *hj2-sprite-page-pages* i))
         )
