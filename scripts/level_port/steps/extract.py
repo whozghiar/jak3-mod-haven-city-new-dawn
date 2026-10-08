@@ -8,9 +8,11 @@ missing.
   - the source game: each level's entity dumps and background (<level>-actors.json, <level>.fr3)
     and the model rips the manifest uses (rip_levels). With no rip at all, the whole game is
     extracted with its rips (once, long: Jak 2's take 11 GB); else only the DGOs of the levels
-    whose files are missing, or older than a texture replacement of the source game
-    (custom_assets/<game>/texture_replacements, which the decompiler applies when it extracts):
-    editing one re-extracts the levels and rips the port reads, once;
+    whose files are missing, or older than a texture replacement of the source or target game
+    (custom_assets/<game>/texture_replacements: the decompiler applies the source game's, then
+    the target game's, passed as its extra_texture_replacement_dirs): editing one re-extracts the
+    levels and rips the port reads, once. A texture pack of the target game thus also retextures
+    what the port takes from the source game;
   - the target game: its backgrounds (the particles' textures, the levels the build borrows from),
     with the models its decompiler config bakes into its levels (extra_art_groups_by_dgo): a level
     whose .fr3 lacks one is extracted again. out/<game> is shared by every worktree of the
@@ -98,9 +100,9 @@ def manifest_levels(port):
 
 def source_needs(port):
     """The source game's files the port reads: source level -> its files missing or older than
-    the newest texture replacement (to extract again)."""
+    the newest texture replacement of the source or target game (to extract again)."""
     src = port.source
-    newest = newest_replacement(src.NAME)
+    newest = max(newest_replacement(src.NAME), newest_replacement(port.target.NAME))
 
     def stale(path):
         return not os.path.exists(path) or os.path.getmtime(path) < newest
@@ -158,8 +160,10 @@ def run(port):
     if missing:
         # (never with the extractor: the player's install extracts only what the port reads)
         whole = not EXTRACTOR and (not os.path.isdir(src.RIPS) or not os.listdir(src.RIPS))
+        # the target game's texture pack too, after the source game's own (first match wins)
         overrides = {"decompile_code": False, "levels_extract": True, "allowed_objects": [],
-                     "rip_levels": True}
+                     "rip_levels": True, "extra_texture_replacement_dirs":
+                     [f"custom_assets/{dst.NAME}/texture_replacements"]}
         if whole:
             print(f"  {src.TITLE} isn't extracted with its model rips: extracting it all")
         else:

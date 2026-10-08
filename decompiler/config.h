@@ -174,6 +174,10 @@ struct Config {
   std::unordered_set<int> common_tpages;
 
   std::vector<std::string> levels_to_extract;
+  // og:jak2-haven-city added: more texture replacement folders (paths relative to the project
+  // dir, laid out like custom_assets/<game>/texture_replacements), searched after the game's own,
+  // first match wins: a level port extracting the source game passes the target game's folder
+  std::vector<std::string> extra_texture_replacement_dirs;
   bool levels_extract;
   bool save_texture_pngs = false;
   bool rip_streamed_audio = false;

@@ -342,6 +342,11 @@ Config make_config_via_json(nlohmann::json& json) {
         json.at("extra_art_groups_by_dgo")
             .get<std::unordered_map<std::string, std::vector<std::string>>>();
   }
+  // og:jak2-haven-city added: optional texture replacement folders after the game's own
+  if (json.contains("extra_texture_replacement_dirs")) {
+    config.extra_texture_replacement_dirs =
+        json.at("extra_texture_replacement_dirs").get<std::vector<std::string>>();
+  }
   if (json.contains("save_texture_pngs")) {
     config.save_texture_pngs = json.at("save_texture_pngs").get<bool>();
   }

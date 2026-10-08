@@ -26,7 +26,10 @@ It needs:
   checks the extractions the port reads and runs the decompiler for what is missing: the source
   game's backgrounds, entity dumps and model rips (`rip_levels`; the whole game the first time,
   then only the DGOs of the levels whose files are missing or older than the newest PNG in
-  `custom_assets/<source game>/texture_replacements`), the target game's backgrounds,
+  `custom_assets/<source game>/texture_replacements` or `custom_assets/<target game>/texture_replacements`),
+  the target game's backgrounds. The source game's extraction applies its own replacement folder,
+  then the target game's (the decompiler config's `extra_texture_replacement_dirs`): a texture
+  pack of the target game also retextures what the port takes from the source game,
 - the decompiler and `fr3_check` built (`cmake --build out/build/Release --target fr3_check`): the particle step lists
   the textures of `.fr3` files with it, the levels step the collision ground of the districts
   (`--squares`, the district map),
@@ -102,7 +105,7 @@ names (`callbacks_file`) are in the same folder. Top-level keys:
 | Key | Meaning |
 |---|---|
 | `name`, `source_game`, `target_game` | The port, and the games (`games/<game>.py`, `convert/<source>_<target>.py`) |
-| `texture_replacements` | Games whose `custom_assets/<game>/texture_replacements` the level builder also applies, after the target game's own, to the target game's art groups and textures it extracts for every level (written into each level's `.jsonc`, the builder's key of the same name). `["jak2"]`: a Jak 2 texture pack also retextures a Jak 3 model whose textures have the same names. What comes from the source game is replaced at its extraction instead |
+| `texture_replacements` | Games whose `custom_assets/<game>/texture_replacements` the level builder also applies, after the target game's own, to the target game's art groups and textures it extracts for every level (written into each level's `.jsonc`, the builder's key of the same name). `["jak2"]`: a Jak 2 texture pack also retextures a Jak 3 model whose textures have the same names. Not needed for a pack of the target game, which the builder applies by itself and the `extract` step to the source game's levels. What comes from the source game is replaced at its extraction instead |
 | `ignore_outputs` | The `.gitignore` in which a full run lists the generated files (between two lines naming the `tag`) |
 | `tag`, `prefix` | The mark of the mod's generated files (`og:<mod>`), and the prefix of what the port names: continues, particle groups and callbacks. The mod's GAME code defines `<prefix>sprite-page-new` and `<prefix>sprite-page-register` for the particles' texture pages |
 | `paths` | `levels` (custom levels), `models` (build-actor models), `code` (the levels' GOAL code) |

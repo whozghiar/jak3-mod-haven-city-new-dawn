@@ -292,6 +292,14 @@ int run_decompilation_process(decompiler::Config config,
   if (fs::exists(replacements_path)) {
     tex_db.replace_textures(replacements_path);
   }
+  // og:jak2-haven-city added: the config's extra replacement folders, searched after the game's
+  // own (a level port passes its target game's when it extracts the source game)
+  for (const auto& dir : config.extra_texture_replacement_dirs) {
+    const auto path = file_util::get_jak_project_dir() / fs::path(dir).make_preferred();
+    if (fs::exists(path)) {
+      tex_db.replace_textures(path);
+    }
+  }
 
   if (config.process_game_count) {
     auto result = db.process_game_count_file();
