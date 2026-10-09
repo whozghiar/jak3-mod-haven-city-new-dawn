@@ -1,11 +1,11 @@
 {
   "schemaVersion": "1.0.0",
   "sourceName": "Haven City New Dawn Source",
-  "lastUpdated": "2026-10-09T04:00:59Z",
+  "lastUpdated": "2026-10-09T13:44:36Z",
   "mods": {
     "haven-city-new-dawn": {
       "displayName": "Haven City New Dawn",
-      "description": "This mod recreates and integrates Haven City from Jak II directly into the Jak 3 engine.  Rediscover the original Haven City in its entirety: freely explore its iconic districts and over 30 key locations (the Hip Hog, the Pumping Station, the Fortress, the Palace, etc.), faithfully reproduced as they were at the end of Jak II. Enjoy Haven City with all its elements—lights, neon, soundscape, music, vehicles, traffic, and outdoor access, all while playing with the gameplay of Jak 3.  The game aims to place Haven City in a post-Jak 3 era, after the city's reconstruction. The Freedom Faction protects the citizens for lasting peace.",
+      "description": "This mod recreates and integrates Haven City from Jak II directly into the Jak 3 engine. Rediscover the original Haven City in its entirety: freely explore its iconic districts and over 30 key locations (the Hip Hog, the Pumping Station, the Fortress, the Palace, etc.), faithfully reproduced as they were at the end of Jak II. Enjoy Haven City with all its elements—lights, neon, soundscape, music, vehicles, traffic, and outdoor access, all while playing with the gameplay of Jak 3. The game aims to place Haven City in a post-Jak 3 era, after the city's reconstruction. The Freedom Faction protects the citizens for lasting peace.",
       "authors": [
         "whozghiar"
       ],
@@ -18,6 +18,21 @@
       ],
       "websiteUrl": "https://github.com/whozghiar/jak3-mod-haven-city-new-dawn",
       "versions": [
+        {
+          "version": "1.0.1",
+          "publishedDate": "2026-10-09T13:44:36Z",
+          "supportedGames": [
+            "jak3"
+          ],
+          "assets": {
+            "windows": "https://github.com/whozghiar/jak3-mod-haven-city-new-dawn/releases/download/haven-city-new-dawn-v1.0.1/windows-haven-city-new-dawn-v1.0.1.zip",
+            "linux": "https://github.com/whozghiar/jak3-mod-haven-city-new-dawn/releases/download/haven-city-new-dawn-v1.0.1/linux-haven-city-new-dawn-v1.0.1.zip"
+          },
+          "checksums": {
+            "windows": "5f3bae8ab3f5308a01844ad8090c99785490f71055abd44e95e89eacda2a37ec",
+            "linux": "ed49ffa005785b8b5b9a7c1b89425d496bbb5ee61345f2f21ddb9d1d7439968b"
+          }
+        },
         {
           "version": "1.0.0",
           "publishedDate": "2026-10-08T11:19:50Z",
@@ -62,19 +77,14 @@
       "versions": [
         {
           "version": "1.0.0",
-          "publishedDate": "2026-10-09T04:00:59Z",
+          "publishedDate": "2026-10-09T13:44:36Z",
           "supportedGames": [
             "jak3"
           ],
           "assets": {
-            "windows": "https://github.com/whozghiar/jak3-mod-haven-city-new-dawn/releases/download/haven-city-new-dawn-v1.0.0/haven-city-new-dawn-textures-v1.0.0.zip",
-            "linux": "https://github.com/whozghiar/jak3-mod-haven-city-new-dawn/releases/download/haven-city-new-dawn-v1.0.0/haven-city-new-dawn-textures-v1.0.0.zip",
-            "jak3": "https://github.com/whozghiar/jak3-mod-haven-city-new-dawn/releases/download/haven-city-new-dawn-v1.0.0/haven-city-new-dawn-textures-v1.0.0.zip"
-          },
-          "checksums": {
-            "windows": "67737599c5b47042bb5ee9bd5f81e9fe3a0096813570f9b8524fd08b7b499cca",
-            "linux": "67737599c5b47042bb5ee9bd5f81e9fe3a0096813570f9b8524fd08b7b499cca",
-            "jak3": "67737599c5b47042bb5ee9bd5f81e9fe3a0096813570f9b8524fd08b7b499cca"
+            "windows": "https://github.com/whozghiar/jak3-mod-haven-city-new-dawn/releases/download/haven-city-new-dawn-v1.0.1/haven-city-new-dawn-textures-v1.0.0.zip",
+            "linux": "https://github.com/whozghiar/jak3-mod-haven-city-new-dawn/releases/download/haven-city-new-dawn-v1.0.1/haven-city-new-dawn-textures-v1.0.0.zip",
+            "jak3": "https://github.com/whozghiar/jak3-mod-haven-city-new-dawn/releases/download/haven-city-new-dawn-v1.0.1/haven-city-new-dawn-textures-v1.0.0.zip"
           }
         }
       ]
