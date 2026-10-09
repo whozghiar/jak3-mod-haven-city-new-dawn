@@ -62,9 +62,6 @@ node_modules/
 custom_assets/jak1/texture_replacements/*
 custom_assets/jak2/texture_replacements/*
 custom_assets/jak3/texture_replacements/*
-# Haven City: New Dawn ships its Jak 3 texture pack: the launcher install applies it to Jak 3
-# and to the Jak 2 levels its level port extracts
-!custom_assets/jak3/texture_replacements/_all/
 
 # merc replacements
 custom_assets/jak1/merc_replacements/*
