@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "sourceName": "Haven City New Dawn Source",
-  "lastUpdated": "2026-10-08T11:19:50Z",
+  "lastUpdated": "2026-10-09T04:00:59Z",
   "mods": {
     "haven-city-new-dawn": {
       "displayName": "Haven City New Dawn",
@@ -38,5 +38,46 @@
       "thumbnailArtUrl": "https://raw.githubusercontent.com/whozghiar/jak3-mod-haven-city-new-dawn/main/docs/img/mod/mod_cover.png"
     }
   },
-  "texturePacks": {}
+  "texturePacks": {
+    "haven-city-new-dawn-textures": {
+      "displayName": "Haven City: New Dawn Textures",
+      "description": "The texture pack of Haven City: New Dawn: Jak 2's Haven City rebuilt in Jak 3 (signs, fortress walls, guard turrets and bikes, the Hellcat, the Baron's blue logo...).",
+      "authors": [
+        "whozghiar"
+      ],
+      "tags": [
+        "jak3",
+        "retexture",
+        "haven",
+        "city",
+        "new",
+        "haven-city-new-dawn"
+      ],
+      "supportedGames": [
+        "jak3"
+      ],
+      "websiteUrl": "https://github.com/whozghiar/jak3-mod-haven-city-new-dawn/tree/main",
+      "coverArtUrl": "https://raw.githubusercontent.com/whozghiar/jak3-mod-haven-city-new-dawn/main/docs/img/mod/mod_cover.png",
+      "thumbnailArtUrl": "https://raw.githubusercontent.com/whozghiar/jak3-mod-haven-city-new-dawn/main/docs/img/mod/mod_cover.png",
+      "versions": [
+        {
+          "version": "1.0.0",
+          "publishedDate": "2026-10-09T04:00:59Z",
+          "supportedGames": [
+            "jak3"
+          ],
+          "assets": {
+            "windows": "https://github.com/whozghiar/jak3-mod-haven-city-new-dawn/releases/download/haven-city-new-dawn-v1.0.0/haven-city-new-dawn-textures-v1.0.0.zip",
+            "linux": "https://github.com/whozghiar/jak3-mod-haven-city-new-dawn/releases/download/haven-city-new-dawn-v1.0.0/haven-city-new-dawn-textures-v1.0.0.zip",
+            "jak3": "https://github.com/whozghiar/jak3-mod-haven-city-new-dawn/releases/download/haven-city-new-dawn-v1.0.0/haven-city-new-dawn-textures-v1.0.0.zip"
+          },
+          "checksums": {
+            "windows": "67737599c5b47042bb5ee9bd5f81e9fe3a0096813570f9b8524fd08b7b499cca",
+            "linux": "67737599c5b47042bb5ee9bd5f81e9fe3a0096813570f9b8524fd08b7b499cca",
+            "jak3": "67737599c5b47042bb5ee9bd5f81e9fe3a0096813570f9b8524fd08b7b499cca"
+          }
+        }
+      ]
+    }
+  }
 }
