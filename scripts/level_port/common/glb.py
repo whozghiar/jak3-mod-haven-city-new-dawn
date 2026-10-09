@@ -395,7 +395,10 @@ def rebuild_model(src, path, name, keep_prims, collide=None, anims=None, anim_fp
         out_anims = []
         for rip, anim_name, new_name in anims:
             anim_gltf, anim_read = load_glb(rip)
-            anim = next(a for a in anim_gltf["animations"] if a["name"] == anim_name)
+            anim = next((a for a in anim_gltf.get("animations", []) if a["name"] == anim_name), None)
+            if anim is None:
+                raise SystemExit(f"{name}: {rip} has no animation '{anim_name}': the rip was made "
+                                 "without its animations, extract the source level again")
             out_anims.append(copy_anim(anim, anim_gltf, anim_read, new_name))
     else:
         out_anims = [copy_anim(anim, gltf, read, f"{name}-idle")

@@ -1727,9 +1727,13 @@ void add_merc(const tfrag3::Level& level,
     model.nodes[node_idx].name = mmodel.name + "_blerc";
   }
 
-  if (art != art_data.end() && !art->second.anims.empty() && node.skin >= 0 &&
-      node.skin < model.skins.size()) {
-    const auto& skin = model.skins[node.skin];
+  // og:jak2-haven-city changed: `node` (a reference taken at the top) dangles here: model.nodes grew
+  // by one node per bone, and reading it was undefined behavior. On Linux it read freed memory,
+  // so a model such as Jak 2's wren was ripped without its animations. Read it by index.
+  const int node_skin = model.nodes[node_idx].skin;
+  if (art != art_data.end() && !art->second.anims.empty() && node_skin >= 0 &&
+      node_skin < (int)model.skins.size()) {
+    const auto& skin = model.skins[node_skin];
     for (const auto& ja : art->second.anims) {
       auto uncompressed = decompress_anim(ja);
       add_animation_to_gltf(uncompressed, skin, model, node_idx, (int)num_blend_targets);
