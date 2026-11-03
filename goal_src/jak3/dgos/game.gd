@@ -494,5 +494,7 @@
   "entity-debug.o" ;; added
   "havenj2-ocean.o" ;; added -- og:jak2-haven-city Jak 2's city ocean map (city, pumping station, forest)
   "jak2-haven-city-world.o" ;; added -- og:jak2-haven-city moods, weather, level callbacks, respawn points, elevators, air trains, time gate (after elevator.o)
+  "jak2-haven-city-war.o" ;; added -- og:jak2-haven-city the war mode: switch, looks of Jak 2's guards, hooks of the city's traffic
+  "jak2-haven-city-kg.o" ;; added -- og:jak2-haven-city the war mode's Krimzon Guards in the places around the city (hj2-kg-spawner, hj2-kg-soldier)
   "hj2-common-obs.o" ;; added -- og:jak2-haven-city decor classes of Jak 2's places shared by levels loaded together (windmills, flip steps...)
  ))

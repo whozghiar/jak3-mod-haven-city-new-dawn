@@ -130,6 +130,13 @@ def mat_from_gltf(m):
     return [[m[c * 4 + r] for c in range(4)] for r in range(4)]
 
 
+def mat_from_trs(trans, rot, scale):
+    """The affine matrix (rows) of a translation, rotation quaternion (x y z w) and scale."""
+    cols = [quat_rotate(rot, axis) for axis in ((1, 0, 0), (0, 1, 0), (0, 0, 1))]
+    return [[cols[c][r] * scale[c] for c in range(3)] + [trans[r]]
+            for r in range(3)] + [[0.0, 0.0, 0.0, 1.0]]
+
+
 def mat_mul(a, b):
     return [[sum(a[r][k] * b[k][c] for k in range(4)) for c in range(4)] for r in range(4)]
 

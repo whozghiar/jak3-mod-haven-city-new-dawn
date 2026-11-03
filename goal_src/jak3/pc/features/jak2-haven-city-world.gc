@@ -345,6 +345,9 @@ wanted)' or 'hj2: script hides <level>', with where Jak is). Returns Jak 3's res
     )
   )
 
+;; the war mode (jak2-haven-city-war.gc, linked after this file in GAME)
+(define-extern hj2-war-on? (function symbol))
+
 ;; the last district hj2-renderer-prefetch printed, so each is printed once when it starts
 (define *hj2-prefetch-printed* (the-as symbol #f))
 
@@ -390,6 +393,11 @@ loads a district in 1.5 to 2.5 s, the game in 0.05 to 0.3 s). The renderer keeps
 and unloads first those no longer named, so the districts Jak passed stay there for a while. The
 levels the game loads are moved first, as the renderer loads the first missing name first. Returns
 nothing."
+  ;; the war mode in Jak 3's own city: the meshes of the war's models (Jak 2's guards, jetpack guards,
+  ;; transport) are in hj2-war's .fr3, a level the game never loads (jak2-haven-city-war.gc)
+  (if (and (hj2-war-on?) (level-get *level* 'ctywide))
+      (hj2-prefetch-add names 'hj2-war)
+      )
   (when (and *target* (level-get *level* 'havenj2))
     (let ((i (hj2-district-square (target-pos 0))))
       (when (>= i 0)
@@ -1617,7 +1625,24 @@ shimmering on palette 6, palette 7 on."
 ;; the weather held last (-1: none yet)
 (define *hj2-weather-held* -1)
 
-(define *hj2-weather-driver* (the-as handle #f))
+(deftype hj2-process-handles (structure)
+  "Handles of the mod's own processes. A handle is 64 bits, its pid in the upper half, and a global
+symbol keeps 32: kept in a define'd global it lost the pid, handle->process never matched again, and
+each level activation started one more weather driver and respawn point process, each freehq
+activation one more time gate (GOAL wiki common 1.4.17). They live in this structure instead.
+  weather-driver: hj2-weather-driver-code's process. time-gate: the Freedom HQ's time gate.
+  continues: the respawn point process (havenj2-continues-code)."
+  ((weather-driver  handle)
+   (time-gate       handle)
+   (continues       handle)
+   )
+  )
+
+(define *hj2-handles* (new 'static 'hj2-process-handles))
+;; a zero handle names process 0, not "no process"
+(set! (-> *hj2-handles* weather-driver) (the-as handle #f))
+(set! (-> *hj2-handles* time-gate) (the-as handle #f))
+(set! (-> *hj2-handles* continues) (the-as handle #f))
 
 (defun hj2-weather-update ()
   "Hold the weather chosen in the Mods menu (see *mod-jak2-haven-city-weather*)."
@@ -1685,9 +1710,9 @@ While the game is paused (the Mods menu is open), the driver applies it on the f
   (if (not (paused?))
       (hj2-weather-update)
       )
-  (when (not (handle->process *hj2-weather-driver*))
+  (when (not (handle->process (-> *hj2-handles* weather-driver)))
     (let ((proc (process-spawn-function process hj2-weather-driver-code :name "hj2-weather")))
-      (set! *hj2-weather-driver* (if proc
+      (set! (-> *hj2-handles* weather-driver) (if proc
                                      (ppointer->handle proc)
                                      (the-as handle #f)
                                      )
@@ -2534,8 +2559,6 @@ hideout (on-notice, travel-name, distance), or the Freedom HQ's gate's (no entit
   (none)
   )
 
-(define *hj2-time-gate* (the-as handle #f))
-
 (defun hj2-level-has-art? ((lev level) (skel-name string))
   "Is the art group of the skeleton group named skel-name (a GAME defskelgroup) in lev's own art?"
   (let ((skel (the-as skeleton-group (art-group-get-by-name *level* skel-name (the-as (pointer level) #f)))))
@@ -2552,11 +2575,11 @@ hideout (on-notice, travel-name, distance), or the Freedom HQ's gate's (no entit
 freehq's fr3 by the decompiler's extra_art_groups_by_dgo): without it, no gate. No gate either
 while the mod is off (*mod-jak2-haven-city-enabled*)."
   (when (and *mod-jak2-haven-city-enabled*
-             (not (handle->process *hj2-time-gate*))
+             (not (handle->process (-> *hj2-handles* time-gate)))
              (hj2-level-has-art? lev "skel-warp-gate")
              )
     (let ((proc (process-spawn hj2-time-gate :init hj2-time-gate-init lev :name "hj2-time-gate" :to *entity-pool*)))
-      (set! *hj2-time-gate* (if proc
+      (set! (-> *hj2-handles* time-gate) (if proc
                                 (ppointer->handle proc)
                                 (the-as handle #f)
                                 )
@@ -2568,12 +2591,12 @@ while the mod is off (*mod-jak2-haven-city-enabled*)."
 
 (defun hj2-freehq-deactivate ((lev level))
   "freehq's deactivation callback (slot 36, added below): the time gate goes."
-  (let ((proc (handle->process *hj2-time-gate*)))
+  (let ((proc (handle->process (-> *hj2-handles* time-gate))))
     (if proc
         (deactivate proc)
         )
     )
-  (set! *hj2-time-gate* (the-as handle #f))
+  (set! (-> *hj2-handles* time-gate) (the-as handle #f))
   (none)
   )
 
@@ -2585,6 +2608,10 @@ while the mod is off (*mod-jak2-haven-city-enabled*)."
           )
     )
   )
+
+;; the war mode (jak2-haven-city-war.gc, linked after this file in GAME)
+(define-extern *mod-jak2-haven-city-war* symbol)
+(define-extern hj2-war-changed! (function none))
 
 (defun mod-jak2-haven-city-set-enabled ((on symbol))
   "Turn the mod on (on: #t) or off (#f) from the Mods menu, now: the Freedom HQ's time gate comes or
@@ -2600,8 +2627,12 @@ Returns nothing."
           )
       )
     )
-  (if (and (handle->process *hj2-weather-driver*) (not (paused?)))
+  (if (and (handle->process (-> *hj2-handles* weather-driver)) (not (paused?)))
       (hj2-weather-update)
+      )
+  ;; the war mode needs the mod: switching the mod switches it in the city loaded now
+  (if *mod-jak2-haven-city-war*
+      (hj2-war-changed!)
       )
   (none)
   )
@@ -2875,8 +2906,6 @@ nothing."
 ;; (hj2-district-at), so the engine picks the continue like Jak 2; in the places, Jak 2's own door
 ;; and region scripts set it (on-cross want-vis), like in Jak 2.
 
-(define *havenj2-continues* (the-as handle #f))
-
 (defun hj2-update-vis-nick ()
   "Make the city district holding the street under Jak (when it is active) the load-state's vis-nick,
 while Jak's level is the hub or one of its districts, unless a script put him in a place
@@ -2999,9 +3028,9 @@ and the Jak 2 banks of the level Jak is in (hj2-update-extra-sound-bank)."
 
 (defun hj2-continues-start ()
   "Start the respawn point process, if it isn't running."
-  (when (not (handle->process *havenj2-continues*))
+  (when (not (handle->process (-> *hj2-handles* continues)))
     (let ((proc (process-spawn-function process havenj2-continues-code :name "havenj2-continues")))
-      (set! *havenj2-continues* (if proc
+      (set! (-> *hj2-handles* continues) (if proc
                                     (ppointer->handle proc)
                                     (the-as handle #f)
                                     )
@@ -3014,12 +3043,12 @@ and the Jak 2 banks of the level Jak is in (hj2-update-extra-sound-bank)."
 (defun hj2-continues-stop ((lev level))
   "Stop the respawn point process once no level of this mod but lev (going away) is active."
   (when (not (hj2-world-level-active? lev))
-    (let ((proc (handle->process *havenj2-continues*)))
+    (let ((proc (handle->process (-> *hj2-handles* continues))))
       (if proc
           (deactivate proc)
           )
       )
-    (set! *havenj2-continues* (the-as handle #f))
+    (set! (-> *hj2-handles* continues) (the-as handle #f))
     )
   (none)
   )

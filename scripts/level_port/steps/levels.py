@@ -500,19 +500,85 @@ def ported_actors(ctx, level):
     return out
 
 
+def spawn_actors(ctx, level):
+    """(comment, actor) list of a level's "spawns": one actor of the mod's class at the place of each
+    actor of some source classes in the level's sources, whatever the story state (an enemy of a
+    mission long over still marks where a fight was). A mod's enemy spawner where the source game
+    put its enemies, for example:
+      "spawns": {
+        "etype": the class placed,
+        "from": [the source classes whose actors' places it takes],
+        "min_distance": meters (optional): a place this close to one already taken is skipped (the
+                        same enemy placed again for another mission),
+        "aid": the first actor id (optional, else after the level's other actors): ids of their own,
+               out of the other levels' ranges (an actor id shares its saved status with every
+               actor of that id),
+        "lumps": {source lump: kind}: copied from the source actor when it has it (lump_value),
+        "cycle": {lump: [kind, [values]]}: the i-th actor placed gets values[i % len], a
+                 deterministic mix (a look, 1 in 3 yellow: [0, 0, 1])
+      }"""
+    spec = level.get("spawns")
+    if not spec:
+        return []
+    kinds = set(spec["from"])
+    min_distance = spec.get("min_distance", 0.0)
+    taken = []
+    out = []
+    for src_level in level.sources:
+        for actor in ctx.port.source.dump_actors(src_level):
+            if actor["etype"] not in kinds:
+                continue
+            trans = [r4(x) for x in actor["trans"][:3]]
+            if any(math.dist(trans, t) < min_distance for t in taken):
+                continue
+            i = len(taken)
+            taken.append(trans)
+            src = actor["lump"]
+            name = src["name"]
+            lump = {"name": f"{spec['etype']}-{name}"}
+            for key, kind in spec.get("lumps", {}).items():
+                if key in src:
+                    lump[key] = lump_value(ctx, kind, src[key])
+            for key, (kind, values) in spec.get("cycle", {}).items():
+                lump[key] = lump_value(ctx, kind, values[i % len(values)])
+            out_actor = placed(actor, spec["etype"], lump, trans)
+            # not the source actor's special bit: a spawner lives while its level is shown, never in
+            # a backdrop
+            out_actor.pop("kill_mask", None)
+            if "aid" in spec:
+                out_actor["aid"] = spec["aid"] + i
+            out.append((f"{ctx.title}'s {name} ({src_level}, {actor['etype']}) "
+                        f"[as {spec['etype']}]", out_actor))
+    return out
+
+
 def model_spec(ctx, model):
-    return next(spec for spec in ctx.models.values() if spec["model"] == model)
+    """The manifest's spec of a model, one of "models" or of their "extras" (None: a prop's model,
+    custom_props)."""
+    return next((spec for top in ctx.models.values() for spec in [top, *top.get("extras", [])]
+                 if spec["model"] == model), None)
 
 
 def build_model(ctx, spec):
-    """<model>.glb for build-actor, rebuilt from the source game's rip."""
+    """<model>.glb for build-actor, rebuilt from the source game's rip. An "anims" entry is
+    [rip, animation, our name], or a clip of the model's own rip: "x" (the rip's <art group>-x,
+    named <model>-x) or [x, y] (the rip's <art group>-x, named <model>-y)."""
     port = ctx.port
-    anims = [(port.rip(rip), anim, ours) for rip, anim, ours in spec.get("anims", [])] or None
-    verts, lo, hi = glb.rebuild_model(port.rip(spec["rip"]),
-                                      f"{port.models_dir}/{spec['model']}.glb", spec["model"],
-                                      spec.get("prims"), spec.get("collide"), anims=anims,
-                                      anim_fps=spec.get("anim_fps"))
-    print(f"    {spec['model']}: {verts} vertices, bounds {lo} - {hi}")
+    model = spec["model"]
+    group = spec["rip"].rsplit("/", 1)[-1].removesuffix("-lod0.glb")
+    anims = []
+    for entry in spec.get("anims", []):
+        if isinstance(entry, str):
+            entry = [entry, entry]
+        if len(entry) == 2:
+            entry = [spec["rip"], f"{group}-{entry[0]}", f"{model}-{entry[1]}"]
+        anims.append((port.rip(entry[0]), entry[1], entry[2]))
+    verts, lo, hi = glb.rebuild_model(port.rip(spec["rip"]), f"{port.models_dir}/{model}.glb",
+                                      model, spec.get("prims"), spec.get("collide"),
+                                      anims=anims or None, anim_fps=spec.get("anim_fps"),
+                                      insert_joints=spec.get("insert_joints"),
+                                      recolor=spec.get("recolor"))
+    print(f"    {model}: {verts} vertices, bounds {lo} - {hi}")
 
 
 def custom_models(ctx, actor_list):
@@ -969,6 +1035,10 @@ def build_level(ctx, level):
         custom_props, prop_models = props_step.custom_prop_actors(port, level)
         actor_list += custom_props
         models += [m for m in prop_models if m not in models]
+    # the mod's class at the places of some source actors (enemy spawners; their models are the
+    # level's "models"), last: the actors before them keep their ids (the builder numbers them in
+    # order from base_id)
+    actor_list += spawn_actors(ctx, level)
     models += [m for m in custom_models(ctx, actor_list) if m not in models]
     trees = make_regions(ctx, level)
     return dict(actors=actor_list, art=art, code=code, models=models,
@@ -1028,6 +1098,11 @@ def write_full_level(ctx, level):
         nav_lines = [
             f"  // {title}'s navigation: its nav meshes and its traffic data (its city-level-info,",
             "  // the nav step)",
+            f'  "nav_data": "{nav_step.nav_path(level)}",',
+        ]
+    elif nav_step.nav_sources(port, level):
+        nav_lines = [
+            f"  // {title}'s nav meshes (the nav step)",
             f'  "nav_data": "{nav_step.nav_path(level)}",',
         ]
     what = level.what[0].upper() + level.what[1:]
@@ -1269,7 +1344,8 @@ def write_level_info(ctx, chosen):
             (ocean if isinstance(ocean, str) else port.get("ocean_map") if ocean else None),
             comment, info["draw_priority"], bool(level.get("sky")),
             info.get("part_engine_max", ctx.part_engine_max.get(level.name, 0)),
-            *level_sound(ctx, level), city_map_bits=int(info.get("city_map_bits", "0"), 0)))
+            *level_sound(ctx, level), city_map_bits=int(info.get("city_map_bits", "0"), 0),
+            borrow_sizes=info.get("borrow_sizes")))
     for spec in port["continues"].get("target_continues", []):
         out.append(target_continue(ctx, spec))
     write_if_changed(cfg["file"], "\n".join(out))
@@ -1311,7 +1387,10 @@ def write_build_file(ctx, built_levels):
         for model in built["models"]:
             if model not in declared:
                 declared.add(model)
-                lines.append(f'(build-actor "{model}" :gen-mesh #t)')
+                # the model's own build-actor options (GOAL values: :framerate 15.0...)
+                opts = "".join(f" :{key} {value}" for key, value in
+                               (model_spec(ctx, model) or {}).get("build_actor", {}).items())
+                lines.append(f'(build-actor "{model}" :gen-mesh #t{opts})')
         for obj in built["code"]:
             stem = obj[: -len(".o")] if obj.endswith(".o") else obj
             if stem in declared or not os.path.exists(f"{port.code_dir}/{stem}.gc"):

@@ -181,6 +181,11 @@ def _level_actor_dump(level):
         return json.load(f) or []
 
 
+def dump_actors(level):
+    """Every actor of a level's dump, whatever the story state (the enemies of its missions too)."""
+    return list(_level_actor_dump(level))
+
+
 class Story:
     """A state of Jak 2's story: the actors Jak 2 spawns then, the background it shows, and the
     answer of its scripts' story checks (task-closed?). Only the end of the game (every task

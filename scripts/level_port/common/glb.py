@@ -1,10 +1,13 @@
 """Binary glTF (.glb): reading the decompiler's model rips, writing meshes and models for the
 level builder and build-actor."""
 
+import base64
+import colorsys
 import hashlib
 import json
 import math
 import struct
+import zlib
 
 from . import geometry
 from . import hull
@@ -64,6 +67,76 @@ def load_glb(path):
                 for i in range(acc["count"])]
 
     return gltf, read
+
+
+def png_decode(data):
+    """(width, height, pixels) of an 8 bit RGB or RGBA PNG (the rips' textures): pixels is a
+    bytearray of RGBA, row after row."""
+    width, height, depth, color = struct.unpack(">IIBB", data[16:26])
+    channels = {2: 3, 6: 4}.get(color)
+    if depth != 8 or not channels:
+        raise ValueError(f"PNG of bit depth {depth}, color type {color}: only 8 bit RGB(A)")
+    pos, idat = 8, b""
+    while pos < len(data):
+        size, kind = struct.unpack(">I4s", data[pos:pos + 8])
+        if kind == b"IDAT":
+            idat += data[pos + 8:pos + 8 + size]
+        pos += 12 + size
+    raw = zlib.decompress(idat)
+    stride = width * channels
+    prev = bytearray(stride)
+    out = bytearray()
+    for y in range(height):
+        kind = raw[y * (stride + 1)]
+        row = bytearray(raw[y * (stride + 1) + 1:(y + 1) * (stride + 1)])
+        for i in range(stride):
+            a = row[i - channels] if i >= channels else 0
+            b = prev[i]
+            c = prev[i - channels] if i >= channels else 0
+            if kind == 1:
+                row[i] = (row[i] + a) & 255
+            elif kind == 2:
+                row[i] = (row[i] + b) & 255
+            elif kind == 3:
+                row[i] = (row[i] + (a + b) // 2) & 255
+            elif kind == 4:
+                p = a + b - c
+                pa, pb, pc = abs(p - a), abs(p - b), abs(p - c)
+                row[i] = (row[i] + (a if pa <= pb and pa <= pc else b if pb <= pc else c)) & 255
+        prev = row
+        if channels == 3:
+            for x in range(width):
+                out += row[3 * x:3 * x + 3] + b"\xff"
+        else:
+            out += row
+    return width, height, out
+
+
+def png_encode(width, height, pixels):
+    """An RGBA PNG (no filter) of pixels (RGBA, row after row)."""
+    def chunk(kind, body):
+        return struct.pack(">I", len(body)) + kind + body + struct.pack(
+            ">I", zlib.crc32(kind + body) & 0xFFFFFFFF)
+    stride = width * 4
+    raw = b"".join(b"\0" + bytes(pixels[y * stride:(y + 1) * stride]) for y in range(height))
+    return (b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", struct.pack(">IIBBBBB", width, height, 8, 6, 0, 0, 0))
+            + chunk(b"IDAT", zlib.compress(raw, 9)) + chunk(b"IEND", b""))
+
+
+def recolor_pixels(pixels, hues, rotate, min_saturation):
+    """Turns the hue of the texels whose hue is in hues ([lo, hi] degrees, lo may be negative: a
+    window around red) and whose saturation is at least min_saturation by rotate degrees, in
+    place (RGBA pixels). Returns the number of texels changed."""
+    lo, hi = hues
+    changed = 0
+    for i in range(0, len(pixels), 4):
+        h, s, v = colorsys.rgb_to_hsv(pixels[i] / 255, pixels[i + 1] / 255, pixels[i + 2] / 255)
+        deg = h * 360.0
+        if s >= min_saturation and (lo <= deg <= hi or lo <= deg - 360.0 <= hi):
+            r, g, b = colorsys.hsv_to_rgb(((deg + rotate) % 360.0) / 360.0, s, v)
+            pixels[i:i + 3] = bytes(int(round(c * 255)) for c in (r, g, b))
+            changed += 1
+    return changed
 
 
 def glb_bytes(gltf, blob):
@@ -177,7 +250,8 @@ class Glb:
 # a model for build-actor #########################################################################
 
 
-def rebuild_model(src, path, name, keep_prims, collide=None, anims=None, anim_fps=None):
+def rebuild_model(src, path, name, keep_prims, collide=None, anims=None, anim_fps=None,
+                  insert_joints=None, recolor=None):
     """<name>.glb for build-actor (written to path) from a model ripped by the decompiler: the kept
     primitives (None: all) with only the vertices they use (the rip shares one buffer), its first
     animation renamed <name>-idle (the name build-actor's def-actor looks up), no collision from
@@ -197,9 +271,41 @@ def rebuild_model(src, path, name, keep_prims, collide=None, anims=None, anim_fp
     anim_fps: the frames per second of the kept animations, instead of the rip's (its art group's
     speed): a model whose animations its game plays at another model's frames (Jak 2's big-bopper,
     cloning Daxter's frame numbers: his are 30 per second, the hammer's rip 60).
+    insert_joints: joints added to the skeleton, in order, each {"name", "after": the joint it
+    follows in the skeleton, "parent", "translation", "rotation" (x y z w), "scale" (default 1)}:
+    its bind pose relative to its parent. No vertex is bound to it, every animation holds it at
+    that pose: a model driven by code written for a skeleton with more joints (the vertices' joint
+    indices and the inverse bind matrices follow).
+    recolor: {"hues": [lo, hi], "rotate", "min_saturation"} (degrees, lo may be negative): the
+    texels of the model's textures whose hue is in the window turned by rotate degrees (a team's
+    color: Jak 2's red armor in Freedom League blue).
     Returns (vertex count, lo, hi) of the kept vertices."""
     gltf, read = load_glb(src)
     sizes = GLTF_TYPES
+    nodes = [dict(n) for n in gltf["nodes"]]
+    skin = dict(gltf["skins"][0])
+    skin["joints"] = list(skin["joints"])
+    ibms = read(skin["inverseBindMatrices"]) if "inverseBindMatrices" in skin else None
+    # the rip's joint index -> ours, and the (node, pose) of the inserted joints
+    joint_map = list(range(len(skin["joints"])))
+    inserted = []
+    for spec in insert_joints or []:
+        names = [nodes[j].get("name") for j in skin["joints"]]
+        at = names.index(spec["after"]) + 1
+        parent = names.index(spec["parent"])
+        assert parent < at, f"{name}: joint {spec['name']} must come after its parent"
+        pose = (spec["translation"], spec["rotation"], spec.get("scale", [1.0, 1.0, 1.0]))
+        local = geometry.mat_from_trs(*pose)
+        world = geometry.mat_mul(geometry.mat_inverse(geometry.mat_from_gltf(ibms[parent])), local)
+        nodes.append({"name": spec["name"],
+                      "matrix": [local[r][c] for c in range(4) for r in range(4)]})
+        parent_node = nodes[skin["joints"][parent]]
+        parent_node["children"] = parent_node.get("children", []) + [len(nodes) - 1]
+        skin["joints"].insert(at, len(nodes) - 1)
+        inv = geometry.mat_inverse(world)
+        ibms.insert(at, tuple(inv[r][c] for c in range(4) for r in range(4)))
+        joint_map = [j + (j >= at) for j in joint_map]
+        inserted.append((len(nodes) - 1, pose))
 
     views, accessors = [], []
     out_blob = bytearray()
@@ -231,6 +337,8 @@ def rebuild_model(src, path, name, keep_prims, collide=None, anims=None, anim_fp
     for key, (fmt, typ, comp) in kinds.items():
         values = read(attrs[key])
         columns[key] = [values[i] for i in used]
+        if key == "JOINTS_0" and inserted:
+            columns[key] = [tuple(joint_map[j] for j in v) for v in columns[key]]
         new_attrs[key] = add(columns[key], fmt, typ, comp, minmax=key == "POSITION")
     prims = []
     for prim, idx in zip(kept, all_idx):
@@ -263,8 +371,7 @@ def rebuild_model(src, path, name, keep_prims, collide=None, anims=None, anim_fp
             "indices": add(indices, "I", "SCALAR", 5125, target=34963),
             "mode": 4}]}
 
-    skin = dict(gltf["skins"][0])
-    joint_names = [gltf["nodes"][j].get("name") for j in skin["joints"]]
+    joint_names = [nodes[j].get("name") for j in skin["joints"]]
 
     def joint_vertices(joint):
         """The indices of the vertices mostly weighted to a joint."""
@@ -275,7 +382,7 @@ def rebuild_model(src, path, name, keep_prims, collide=None, anims=None, anim_fp
     def joint_points(joint):
         """The vertices of a joint, in its space (its inverse bind matrix, column major,
         applied)."""
-        m = read(skin["inverseBindMatrices"])[joint_names.index(joint)]
+        m = ibms[joint_names.index(joint)]
         return [tuple(m[r] * p[0] + m[4 + r] * p[1] + m[8 + r] * p[2] + m[12 + r] for r in range(3))
                 for p in (pts[v] for v in joint_vertices(joint))]
 
@@ -339,18 +446,18 @@ def rebuild_model(src, path, name, keep_prims, collide=None, anims=None, anim_fp
         needs one (def-actor looks up <name>-idle). A joint's pose relative to its parent is
         IBM(parent) x inverse(IBM(joint))."""
         joints = skin["joints"]
-        ibms = [geometry.mat_from_gltf(m) for m in read(skin["inverseBindMatrices"])]
+        mats = [geometry.mat_from_gltf(m) for m in ibms]
         parent = {}
         for j, node_idx in enumerate(joints):
-            for child in gltf["nodes"][node_idx].get("children", []):
+            for child in nodes[node_idx].get("children", []):
                 if child in joints:
                     parent[joints.index(child)] = j
         time = add([(0.0,)], "f", "SCALAR", 5126, minmax=True, target=None)
         channels, samplers = [], []
         for j, node_idx in enumerate(joints):
-            local = geometry.mat_inverse(ibms[j])
+            local = geometry.mat_inverse(mats[j])
             if j in parent:
-                local = geometry.mat_mul(ibms[parent[j]], local)
+                local = geometry.mat_mul(mats[parent[j]], local)
             trans, rot, scale = geometry.mat_decompose(local)
             for path_name, value, fmt, kind in (("translation", trans, "3f", "VEC3"),
                                                 ("rotation", rot, "4f", "VEC4"),
@@ -370,19 +477,16 @@ def rebuild_model(src, path, name, keep_prims, collide=None, anims=None, anim_fp
         main's pose in the first frame of the rip's first animation."""
         joints = skin["joints"]
         if (len(joints) < 3 or "inverseBindMatrices" not in skin or not gltf.get("animations")
-                or gltf["nodes"][joints[1]].get("name") != "prejoint"):
+                or nodes[joints[1]].get("name") != "prejoint"):
             return None
-        bind = geometry.mat_inverse(geometry.mat_from_gltf(read(skin["inverseBindMatrices"])[2]))
+        bind = geometry.mat_inverse(geometry.mat_from_gltf(ibms[2]))
         anim = gltf["animations"][0]
         pose = {"translation": (0.0, 0.0, 0.0), "rotation": (0.0, 0.0, 0.0, 1.0),
                 "scale": (1.0, 1.0, 1.0)}
         for c in anim["channels"]:
             if c["target"]["node"] == joints[2] and c["target"]["path"] in pose:
                 pose[c["target"]["path"]] = read(anim["samplers"][c["sampler"]]["output"])[0]
-        cols = [geometry.quat_rotate(pose["rotation"], axis)
-                for axis in ((1, 0, 0), (0, 1, 0), (0, 0, 1))]
-        local = [[cols[c][r] * pose["scale"][c] for c in range(3)] + [pose["translation"][r]]
-                 for r in range(3)] + [[0.0, 0.0, 0.0, 1.0]]
+        local = geometry.mat_from_trs(pose["translation"], pose["rotation"], pose["scale"])
         ratio = geometry.mat_mul(bind, geometry.mat_inverse(local))
         s = ratio[0][0]
         expected = [[s if r == c else 0.0 for c in range(3)] + [0.0] for r in range(3)]
@@ -417,10 +521,30 @@ def rebuild_model(src, path, name, keep_prims, collide=None, anims=None, anim_fp
             anim["channels"].append({"sampler": len(anim["samplers"]) - 1,
                                      "target": {"node": skin["joints"][1], "path": "scale"}})
 
+    # the inserted joints held at their bind pose in every animation
+    for anim in out_anims if inserted else []:
+        time = add([(0.0,)], "f", "SCALAR", 5126, minmax=True, target=None)
+        for node, pose in inserted:
+            for path_name, value, fmt, kind in zip(("translation", "rotation", "scale"), pose,
+                                                   ("3f", "4f", "3f"), ("VEC3", "VEC4", "VEC3")):
+                anim["samplers"].append({"input": time,
+                                         "output": add([tuple(value)], fmt, kind, 5126, target=None),
+                                         "interpolation": "LINEAR"})
+                anim["channels"].append({"sampler": len(anim["samplers"]) - 1,
+                                         "target": {"node": node, "path": path_name}})
+
+    images = gltf["images"]
+    if recolor:
+        images = [dict(im) for im in images]
+        for im in images:
+            width, height, pixels = png_decode(base64.b64decode(im["uri"].split(",", 1)[1]))
+            if recolor_pixels(pixels, recolor["hues"], recolor["rotate"],
+                              recolor.get("min_saturation", 0.0)):
+                im["uri"] = "data:image/png;base64," + base64.b64encode(
+                    png_encode(width, height, pixels)).decode()
+
     if "inverseBindMatrices" in skin:
-        skin["inverseBindMatrices"] = add(read(skin["inverseBindMatrices"]), "16f", "MAT4", 5126,
-                                          target=None)
-    nodes = [dict(n) for n in gltf["nodes"]]
+        skin["inverseBindMatrices"] = add(ibms, "16f", "MAT4", 5126, target=None)
     mesh_node = next(i for i, n in enumerate(nodes) if "mesh" in n)
     nodes[mesh_node]["name"] = f"{name}-lod0"
     nodes[mesh_node]["extras"] = {"set_collision": 1, "ignore": 1}
@@ -440,10 +564,21 @@ def rebuild_model(src, path, name, keep_prims, collide=None, anims=None, anim_fp
         "materials": gltf["materials"],
         "textures": gltf["textures"],
         "samplers": gltf.get("samplers", []),
-        "images": gltf["images"],
+        "images": images,
         "buffers": [{"byteLength": len(out_blob)}],
         "bufferViews": views,
         "accessors": accessors,
     }
     write_if_changed(path, glb_bytes(out, out_blob))
     return len(used), [round(v, 2) for v in lo], [round(v, 2) for v in hi]
+
+
+if __name__ == "__main__":
+    # PNG and recolor self-check (python -m level_port.common.glb, from scripts/): a red, a brown
+    # and a grey texel; only the red one turns blue
+    px = bytearray([255, 0, 0, 255, 120, 70, 30, 255, 128, 128, 128, 255, 0, 0, 0, 0])
+    w, h, back = png_decode(png_encode(2, 2, px))
+    assert (w, h, back) == (2, 2, px), back
+    assert recolor_pixels(back, [-8, 8], 217, 0.3) == 1 and back[4:] == px[4:], back
+    assert round(colorsys.rgb_to_hsv(*(c / 255 for c in back[:3]))[0] * 360) == 217, back
+    print("ok")

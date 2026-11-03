@@ -68,6 +68,16 @@ dig site, all rebuilt from Jak 2's own extracted data and linked the way Jak 2 l
   crops are solid and burst when hit hard.
 - **Air trains:** the port's air train takes Jak to the dig site and back, in a short fade.
 - **Whack-a-Metal-Head:** Jak 2's arcade game in the Hip Hog, with Daxter, Tess and the session's best score: press triangle at the cabinet.
+- **Onin's bubble game:** Jak 2's game in Onin's tent, with Onin, Pecker's comments and the
+  session's best score: press triangle in front of Onin (war mode off).
+- **Vin's game:** Jak 3's game from Vin's room (Daxter clears its board, wave after wave), in
+  Jak 2's Vin room: press triangle at the console (war mode off).
+- **War mode, KG-Guard vs Freedom Fighters:** Jak 2's red and yellow Krimzon Guards fight the
+  Freedom League's blue guards, in Jak 2's city and in Jak 3's own. Troop transports bring guards
+  of either side, jetpack guards fly in, the citizens flee and are fewer, no Hellcat or guard bike
+  flies, and crimson bikes wait parked for Jak (Jak 2's city). Around the city (Dead Town, the
+  pumping station, the mountain, Haven Forest, the dig, the fortress and the prison's way out),
+  Krimzon Guards stand where Jak 2 put its enemies.
 - **City traffic:** Jak 3's citizens, Freedom League guards, hover bikes and cars, as many as in
   Jak 2; Jak 2's Freedom League Hellcats: they fly with the traffic, and Jak can steal one and fire
   its front gun; Jak 2's Crimson Guard bikes, ridden by Freedom League guards.
@@ -75,13 +85,14 @@ dig site, all rebuilt from Jak 2's own extracted data and linked the way Jak 2 l
   vehicle or turning into Dark Jak raises the alert; the guards hunt Jak, the Hellcats and guard
   bikes chase and shoot him from level 2, the city music plays its alert mode and the minimap
   flashes. It ends 30 s after the last offence, once no guard hunts any more. The city's guard
-  turrets pop up and fire at Jak while he flies a vehicle near them.
+  turrets pop up as soon as the alert starts near Jak and fire at him while he drives a vehicle.
 - **Minimap:** Jak 2's city maps on Jak 3's minimap, with the guards, Hellcats and guard bikes as
   blue icons with their view cone.
 - **Jak 2's sound:** each place's Jak 2 music (with its variations when Jak draws his gun, rides
   the board, turns dark or drives), ambiences and object sounds, the Baron's speeches from his
-  propaganda speakers, the citizens' and the guards' lines (the Freedom League guards speak like
-  Jak 2's Crimson Guards), taken from your Jak 2 extraction.
+  propaganda speakers (Torn's lines instead when the game is in French and the war mode is off),
+  the citizens' and the guards' lines (the Freedom League guards speak like Jak 2's Crimson
+  Guards), taken from your Jak 2 extraction.
 - **Time and weather:** a fixed hour or Jak 2's day and night; Jak 3's changing weather or a fixed
   one (sunny, cloudy, foggy, light rain, rain, thunderstorm, snow) in the whole game.
 - **Travelling:** warps to every district, key places and places outside the city; two time gates,
@@ -96,12 +107,14 @@ dig site, all rebuilt from Jak 2's own extracted data and linked the way Jak 2 l
 |---|---|
 | Open the mod's menu | L3 + SELECT, then Mods ▸ Haven City: New Dawn (retail and debug boots) |
 | Take an air train or a time gate | Triangle, when the prompt shows |
+| Play Whack-a-Metal-Head, Onin's game, Vin's game | Triangle, when the prompt shows; R3 quits a game |
 
 The menu's entries:
 
 | Entry | Does |
 |---|---|
 | Mod enabled | Switches the mod on or off (off by default). On: the time gate stands in Jak 3's Freedom HQ, and the entries below can be used. Off: Jak 3 as it is |
+| KG-Guard vs Freedom Fighters | Switches the war mode on or off (off by default), in Jak 2's city and its places and in Jak 3's city |
 | Warp to Haven City (Jak 2) | Warps to the underground hideout |
 | Warp to a district | Warps to a spot in each district (slums, port, bazaar, industrial section, main town, gardens, palace plaza and roof, stadium grounds) or to a place in it (the Hip Hog, the gun course, the port's air train, Vin's power station, the construction site gate, the cable pillar, the fortress gate, the Oracle, Keira's garage) |
 | Warp outside the city | Warps to Dead Town, the Sage's hut, the inside of the fortress, its prison, the stadium's race track, the construction site, the pumping station, the mountain top, Haven Forest, the castle pad, the dig site, or back to Jak 3's Freedom HQ |

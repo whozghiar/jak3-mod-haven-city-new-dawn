@@ -1,0 +1,628 @@
+;;-*-Lisp-*-
+(in-package goal)
+
+;; name: jak2-haven-city-kg.gc
+;; name in dgo: jak2-haven-city-kg
+;; dgos: GAME
+
+#|
+
+  jak2-haven-city-kg.gc -- the war mode's Krimzon Guards in the places around Jak 2's city (GAME).
+
+  While the war is on (hj2-war-on?, jak2-haven-city-war.gc), red and yellow Krimzon Guards stand
+  where Jak 2 put its enemies in Dead Town, the pumping station, the mountain temple, Haven Forest,
+  the dig, the fortress and its way out. With the war off, nothing of this file runs.
+
+  - hj2-kg-spawner: an actor the level port places at each of those Jak 2 enemies (the manifest's
+    "spawns", lumps: nav-mesh-actor, the Jak 2 enemy's nav mesh; look, 0 red, 1 yellow). Once Jak
+    comes near it spawns one hj2-kg-soldier, as its child, on a nav mesh of the loaded levels (its
+    own, else the nearest one); none where there is no nav mesh. A soldier killed isn't replaced
+    until its level loads again; a soldier Jak left far behind, or one of a war switched off, is
+    removed (and the war, on again, brings it back).
+  - hj2-kg-soldier: a Jak 3 nav-enemy drawn with Jak 2's Krimzon Guard (skel-hj2-kg-red or
+    skel-hj2-kg-yellow, jak2-haven-city-war.gc; their clips are in crimson-guard-ag's order, so the
+    clip numbers below are Jak 3's guard's). It stands or patrols by its spawner, notices Jak, runs
+    after him on the nav mesh, and fires bursts of Jak 3's guard shots (guard-shot) when he is in
+    range and in sight. Hit, it is knocked back; killed, it plays its death and is gone. Yellow (Jak
+    2's dark guard): 1.1 times bigger, twice the hit points. Its art groups are in its spawner's level
+    (the place's DGO), which is the level a child process looks its art up in.
+
+  Modeled on Jak 3's marauder (levels/desert/chase/marauder.gc: a nav-enemy that shoots guard shots)
+  and on the Krimzon Guard's enemy settings (levels/city/traffic/citizen/guard.gc, CWI: copied here,
+  GAME can't use them).
+
+|#
+
+;; DECOMP BEGINS
+
+;; the war switch (jak2-haven-city-war.gc)
+(define-extern hj2-war-on? (function symbol))
+
+;; Tuning ////////////////////////////////////////////////////////////////////////////////////////
+
+;; a spawner spawns its soldier when Jak comes this close to it
+(define *hj2-kg-spawn-distance* (meters 60))
+
+;; a soldier this far from Jak is removed (its spawner may spawn it again when Jak comes back)
+(define *hj2-kg-forget-distance* (meters 150))
+
+;; at most this many soldiers at once (the process pool and the frame rate: the dig has 70 spawners)
+(define *hj2-kg-max-soldiers* 12)
+
+;; the soldiers alive now (hj2-kg-soldier-init-by-other adds one, its deactivate removes it)
+(define *hj2-kg-soldier-count* 0)
+
+;; a soldier fires at Jak from this close
+(define *hj2-kg-fire-range* (meters 40))
+
+;; how far from Jak's body a shot may aim (not every shot hits)
+(define *hj2-kg-spread* (meters 1.2))
+
+;; Clips of the soldier's art group (crimson-guard-ag's order, art-elts.gc), and its gun's joints
+;; (node-list indices, as guard-rifle.gc fires from them: the muzzle, and the point behind it the shot
+;; flies away from).
+(defconstant HJ2_KG_AIM 19)     ;; idle-to-stab-idle: raises the rifle
+(defconstant HJ2_KG_FIRE 26)    ;; gun-attack: one shot
+(defconstant HJ2_KG_LOWER 24)   ;; stab-idle-to-idle: lowers it
+(defconstant HJ2_KG_MUZZLE 14)
+(defconstant HJ2_KG_GUN_BACK 15)
+
+;; Soldier ///////////////////////////////////////////////////////////////////////////////////////
+
+;; los: Jak in sight; kg-mesh: the nav mesh given by its spawner; yellow?: Jak 2's dark guard;
+;; next-burst: no burst before this time.
+(deftype hj2-kg-soldier (nav-enemy)
+  ((los         los-control  :inline)
+   (kg-mesh     nav-mesh)
+   (yellow?     symbol)
+   (next-burst  time-frame)
+   )
+  (:state-methods
+    shoot
+    )
+  )
+
+
+;; What its spawner gives it: the enemy's (place, rotation, entity: the spawner's), and its nav mesh
+;; and look.
+(deftype hj2-kg-soldier-init-params (enemy-init-by-other-params)
+  ((mesh     nav-mesh)
+   (yellow?  symbol)
+   )
+  )
+
+
+;; Jak 3's Krimzon Guard's enemy settings (guard.gc *crimson-guard-nav-enemy-info*), with Jak 2's
+;; guard's pace: it notices Jak from 60m (not 100m), runs at 9m/s (not 12m/s), has a run clip
+;; (hostile-anim 6) and a notice clip (7), and isn't knocked by a mere touch. nav-mesh is set by
+;; init-enemy! for each soldier, before setup-enemy! reads it.
+(define *hj2-kg-soldier-nav-enemy-info*
+  (new 'static 'nav-enemy-info
+    :use-die-falling #f
+    :use-victory #f
+    :use-jump-blocked #f
+    :debug-draw-neck #f
+    :jump-debug-draw #f
+    :move-to-ground #t
+    :hover-if-no-ground #f
+    :idle-anim-script (new 'static 'inline-array idle-control-frame 2
+      (new 'static 'idle-control-frame
+        :command (idle-control-cmd play)
+        :anim #x4
+        :param0 1
+        :param1 1
+        :param2 '((new 'static 'bfloat :data 1.0) (new 'static 'bfloat :data 1.0))
+        )
+      (new 'static 'idle-control-frame)
+      )
+    :idle-anim 4
+    :notice-anim 7
+    :hostile-anim 6
+    :hit-anim 4
+    :knocked-anim 8
+    :knocked-land-anim 9
+    :die-anim 17
+    :die-falling-anim 39
+    :victory-anim 4
+    :jump-wind-up-anim 4
+    :jump-in-air-anim 38
+    :jump-land-anim 4
+    :neck-joint 30
+    :look-at-joint 6
+    :bullseye-joint 5
+    :sound-hit (static-sound-name "guard-hit")
+    :sound-die (static-sound-name "guard-die")
+    :notice-distance (meters 60)
+    :notice-distance-delta (meters 10)
+    :proximity-notice-distance (meters 30)
+    :default-hit-points 4.0
+    :gnd-collide-with (collide-spec backgnd)
+    :overlaps-others-collide-with-filter (collide-spec jak bot player-list)
+    :penetrate-knocked (penetrate
+      generic-attack
+      lunge
+      flop
+      punch
+      spin
+      roll
+      uppercut
+      bonk
+      tube
+      vehicle
+      flut-attack
+      board
+      mech
+      mech-punch
+      mech-bonk
+      dark-skin
+      dark-punch
+      dark-bomb
+      dark-smack
+      flut
+      shield
+      explode
+      jak-yellow-shot
+      jak-red-shot
+      jak-blue-shot
+      jak-dark-shot
+      enemy-yellow-shot
+      enemy-dark-shot
+      eco-yellow
+      eco-red
+      eco-blue
+      eco-green
+      knocked
+      jak-red-shockwave
+      jak-dark-nuke
+      jak-dark-blackhole
+      emp-blast
+      )
+    :movement-gravity (meters -100)
+    :friction 0.5
+    :attack-shove-back (meters 3)
+    :attack-shove-up (meters 2)
+    :attack-mode 'generic
+    :attack-damage 2
+    :recover-gnd-collide-with (collide-spec backgnd crate obstacle hit-by-others-list pusher)
+    :knocked-can-land-timeout (seconds 0.1)
+    :knocked-recover-timeout (seconds 4.5)
+    :ragdoll-blend-out-time (seconds 0.25)
+    :ragdoll-rotate-velocity-mult 1.0
+    :jump-height-min (meters 0.5)
+    :jump-height-factor 0.1
+    :knocked-seek-ry-clamp 6371.5557
+    :knocked-soft-vxz-lo (meters 8)
+    :knocked-soft-vxz-hi (meters 13)
+    :knocked-soft-vy-lo (meters 15)
+    :knocked-soft-vy-hi (meters 15)
+    :knocked-medium-vxz-lo (meters 36)
+    :knocked-medium-vxz-hi (meters 48)
+    :knocked-medium-vy-lo (meters 33)
+    :knocked-medium-vy-hi (meters 37)
+    :knocked-hard-vxz-lo (meters 10)
+    :knocked-hard-vxz-hi (meters 15)
+    :knocked-hard-vy-lo (meters 24)
+    :knocked-hard-vy-hi (meters 26)
+    :knocked-huge-vxz-lo (meters 40.2)
+    :knocked-huge-vxz-hi (meters 60.8)
+    :knocked-huge-vy-lo (meters 44.8)
+    :knocked-huge-vy-hi (meters 53.2)
+    :knocked-yellow-vxz-lo (meters 5)
+    :knocked-yellow-vxz-hi (meters 6)
+    :knocked-yellow-vy-lo (meters 7)
+    :knocked-yellow-vy-hi (meters 10)
+    :knocked-red-vxz-lo (meters 16)
+    :knocked-red-vxz-hi (meters 20)
+    :knocked-red-vy-lo (meters 15)
+    :knocked-red-vy-hi (meters 15)
+    :knocked-blue-vxz-lo (meters 8)
+    :knocked-blue-vxz-hi (meters 16)
+    :knocked-blue-vy-lo (meters 4)
+    :knocked-blue-vy-hi (meters 8)
+    :ragdoll-info #f
+    :shadow-size (meters 2)
+    :shadow-max-y (meters 1)
+    :shadow-min-y (meters -1)
+    :shadow-locus-dist (meters 150)
+    :gem-joint -1
+    :gem-offset (new 'static 'sphere :r 163840.0)
+    :knocked-off #t
+    :callback-info #f
+    :use-momentum #f
+    :use-frustration #t
+    :use-stop-chase #f
+    :use-circling #f
+    :use-pacing #f
+    :walk-anim 5
+    :turn-anim 5
+    :run-anim 6
+    :taunt-anim -1
+    :run-travel-speed (meters 9)
+    :run-acceleration (meters 2)
+    :run-turning-acceleration (meters 30)
+    :walk-travel-speed (meters 3)
+    :walk-acceleration (meters 1)
+    :walk-turning-acceleration (meters 8)
+    :maximum-rotation-rate (degrees 720)
+    :notice-nav-radius (meters 3)
+    :frustration-distance (meters 8)
+    :frustration-time (seconds 4)
+    :blocked-time (seconds 0.3)
+    :circle-dist-lo 20480.0
+    :circle-dist-hi 61440.0
+    :nav-mesh #f
+    )
+  )
+
+(set! (-> *hj2-kg-soldier-nav-enemy-info* fact-defaults) *fact-info-enemy-defaults*)
+
+(defmethod init-enemy-collision! ((this hj2-kg-soldier))
+  "The soldier's collision (marauder's, with the guard's two body spheres): an enemy that Jak's blows
+and shots hit (usually-hit-by-player: the hit-by-others list), solid, 1.5m wide. Sets root."
+  (let ((cshape (new 'process 'collide-shape-moving this (collide-list-enum usually-hit-by-player))))
+    (set! (-> cshape dynam) (copy *standard-dynamics* 'process))
+    (set! (-> cshape reaction) cshape-reaction-default)
+    (set! (-> cshape no-reaction)
+          (the-as (function collide-shape-moving collide-query vector vector object) nothing)
+          )
+    (set! (-> cshape penetrated-by) (penetrate
+                                      generic-attack
+                                      lunge
+                                      flop
+                                      punch
+                                      spin
+                                      roll
+                                      uppercut
+                                      bonk
+                                      tube
+                                      flut-attack
+                                      board
+                                      mech-punch
+                                      dark-punch
+                                      dark-smack
+                                      flut
+                                      )
+          )
+    (let ((group (new 'process 'collide-shape-prim-group cshape (the-as uint 2) 0)))
+      (set! (-> cshape total-prims) (the-as uint 3))
+      (set! (-> group prim-core collide-as) (collide-spec enemy))
+      (set! (-> group prim-core collide-with)
+            (collide-spec backgnd jak crate civilian enemy obstacle vehicle-sphere hit-by-others-list player-list pusher)
+            )
+      (set! (-> group prim-core action) (collide-action solid no-standon))
+      (set-vector! (-> group local-sphere) 0.0 8192.0 0.0 10240.0)
+      (set! (-> cshape root-prim) group)
+      )
+    ;; legs, then chest
+    (let ((prim (new 'process 'collide-shape-prim-sphere cshape (the-as uint 0))))
+      (set! (-> prim prim-core collide-as) (collide-spec enemy))
+      (set! (-> prim prim-core collide-with)
+            (collide-spec backgnd jak crate civilian enemy obstacle vehicle-sphere hit-by-others-list player-list pusher)
+            )
+      (set! (-> prim prim-core action) (collide-action solid))
+      (set-vector! (-> prim local-sphere) 0.0 6144.0 0.0 6144.0)
+      )
+    (let ((prim (new 'process 'collide-shape-prim-sphere cshape (the-as uint 0))))
+      (set! (-> prim prim-core collide-as) (collide-spec enemy))
+      (set! (-> prim prim-core collide-with)
+            (collide-spec backgnd jak crate civilian enemy obstacle vehicle-sphere hit-by-others-list player-list pusher)
+            )
+      (set! (-> prim prim-core action) (collide-action solid no-standon))
+      (set-vector! (-> prim local-sphere) 0.0 9830.4 0.0 6144.0)
+      )
+    (set! (-> cshape nav-radius) 6144.0)
+    (let ((root-prim (-> cshape root-prim)))
+      (set! (-> cshape backup-collide-as) (-> root-prim prim-core collide-as))
+      (set! (-> cshape backup-collide-with) (-> root-prim prim-core collide-with))
+      )
+    (set! (-> cshape max-iteration-count) (the-as uint 3))
+    (set! (-> this root) cshape)
+    )
+  0
+  (none)
+  )
+
+(defmethod init-enemy! ((this hj2-kg-soldier))
+  "The soldier's model (red, or yellow: 1.1 times bigger and twice the hit points), its enemy settings
+on its spawner's nav mesh, and its line of sight to Jak. Called by enemy-init-by-other, after
+init-enemy-collision!. Side effect: sets the shared settings' nav-mesh (read by setup-enemy! now)."
+  (initialize-skeleton
+    this
+    (the-as skeleton-group (art-group-get-by-name
+                             *level*
+                             (if (-> this yellow?)
+                                 "skel-hj2-kg-yellow"
+                                 "skel-hj2-kg-red"
+                                 )
+                             (the-as (pointer level) #f)
+                             )
+            )
+    (the-as pair 0)
+    )
+  (set! (-> *hj2-kg-soldier-nav-enemy-info* nav-mesh) (-> this kg-mesh))
+  (setup-enemy! this *hj2-kg-soldier-nav-enemy-info*)
+  (when (-> this yellow?)
+    (set! (-> this hit-points) (* 2.0 (-> this hit-points)))
+    (set-vector! (-> this root scale) 1.1 1.1 1.1 1.0)
+    )
+  (init-los! (-> this los) this (seconds 0.2) (meters 80) (collide-spec backgnd hit-by-others-list los-blocker))
+  (set! (-> this next-burst) 0)
+  (none)
+  )
+
+(defmethod deactivate ((this hj2-kg-soldier))
+  "Counts the soldier out of *hj2-kg-soldier-count* (once: a dead process is deactivated no more),
+then the stock clean-up. Returns nothing."
+  (if (!= (-> this status) 'dead)
+      (+! *hj2-kg-soldier-count* -1)
+      )
+  ((method-of-type nav-enemy deactivate) this)
+  (none)
+  )
+
+(defbehavior hj2-kg-soldier-init-by-other hj2-kg-soldier ((spawner process) (params hj2-kg-soldier-init-params))
+  "Init of a soldier spawned by its spawner (process-spawn): its nav mesh and look from params, then
+Jak 3's enemy init (the place, the model, the settings), and its first state (idle). Side effect:
+counts it in *hj2-kg-soldier-count*."
+  ;; the suspend stack of a nav-enemy spawned by another process (marauder.gc does the same)
+  (stack-size-set! (-> self main-thread) 512)
+  (set! (-> self kg-mesh) (-> params mesh))
+  (set! (-> self yellow?) (-> params yellow?))
+  (+! *hj2-kg-soldier-count* 1)
+  (enemy-init-by-other (the-as process-drawable spawner) params)
+  )
+
+(defun hj2-kg-soldier-fire ((this hj2-kg-soldier))
+  "One guard shot from the rifle's muzzle at Jak's body (its focus), up to *hj2-kg-spread* off in x
+and y. Side effect: spawns the shot (guard-projectile.gc), which plays its own sound. Returns nothing."
+  (let ((foe (as-type (handle->process (-> this focus handle)) process-focusable)))
+    (when foe
+      (let ((muzzle (vector<-cspace! (new 'stack-no-clear 'vector) (-> this node-list data HJ2_KG_MUZZLE)))
+            (back (vector<-cspace! (new 'stack-no-clear 'vector) (-> this node-list data HJ2_KG_GUN_BACK)))
+            (aim (new 'stack-no-clear 'vector))
+            )
+        (vector-copy! aim (get-trans foe 3))
+        (+! (-> aim x) (rand-vu-float-range (- *hj2-kg-spread*) *hj2-kg-spread*))
+        (+! (-> aim y) (rand-vu-float-range (- *hj2-kg-spread*) *hj2-kg-spread*))
+        (spawn-guard-projectile this back aim (meters 200) muzzle)
+        )
+      )
+    )
+  (none)
+  )
+
+(defbehavior hj2-kg-soldier-try-shoot hj2-kg-soldier ()
+  "From the trans of hostile and stare: updates the line of sight to Jak (its focus), and goes to shoot
+when he is alive, in range, in sight and the last burst is over. Returns nothing (or doesn't return)."
+  (let ((foe (as-type (handle->process (-> self focus handle)) process-focusable)))
+    (when (and foe (not (logtest? (-> foe focus-status) (focus-status disable dead ignore grabbed))))
+      (los-control-method-9 (-> self los) foe (get-trans foe 3) 819.2 4096.0)
+      (if (and (>= (current-time) (-> self next-burst))
+               (< (vector-vector-distance (get-trans foe 0) (-> self root trans))
+                  *hj2-kg-fire-range*
+                  )
+               (should-check-los? (-> self los) 0)
+               )
+          (go-virtual shoot)
+          )
+      )
+    )
+  (none)
+  )
+
+;; Running after Jak (nav-enemy's hostile: the run clip, chasing on the nav mesh), shooting when it can.
+(defstate hostile (hj2-kg-soldier)
+  :virtual #t
+  :trans (behavior ()
+    (hj2-kg-soldier-try-shoot)
+    (let ((t9-0 (-> (method-of-type nav-enemy hostile) trans)))
+      (if t9-0
+          (t9-0)
+          )
+      )
+    )
+  )
+
+;; Standing, facing Jak where it can't reach him (nav-enemy's stare: blocked, or Jak off its mesh),
+;; shooting when it can.
+(defstate stare (hj2-kg-soldier)
+  :virtual #t
+  :trans (behavior ()
+    (hj2-kg-soldier-try-shoot)
+    (let ((t9-0 (-> (method-of-type nav-enemy stare) trans)))
+      (if t9-0
+          (t9-0)
+          )
+      )
+    )
+  )
+
+;; A burst: stops, turns to Jak, raises the rifle, fires 2 to 4 shots (one per gun-attack clip),
+;; lowers it, then chases again; the next burst comes 1.5 to 3s later. Hits still knock it out of here.
+(defstate shoot (hj2-kg-soldier)
+  :virtual #t
+  :event enemy-event-handler
+  :enter (behavior ()
+    (set-time! (-> self state-time))
+    (logior! (-> self enemy-flags) (enemy-flag lock-focus))
+    ;; stand still (no speed, no nav callbacks), turning to Jak (nav-enemy-face-focus-post)
+    (nav-enemy-method-178 self)
+    (nav-enemy-method-182 self)
+    (nav-enemy-method-183 self)
+    )
+  :exit (behavior ()
+    (logclear! (-> self enemy-flags) (enemy-flag lock-focus))
+    (set! (-> self next-burst) (+ (current-time) (rnd-time-frame self (seconds 1.5) (seconds 3))))
+    )
+  :code (behavior ()
+    (ja-channel-push! 1 (seconds 0.1))
+    (ja-no-eval :group! (-> self draw art-group data HJ2_KG_AIM) :num! (seek!) :frame-num 0.0)
+    (until (ja-done? 0)
+      (suspend)
+      (ja :num! (seek!))
+      )
+    (dotimes (i (+ 2 (rnd-int self 3)))
+      (ja-no-eval :group! (-> self draw art-group data HJ2_KG_FIRE) :num! (seek!) :frame-num 0.0)
+      (hj2-kg-soldier-fire self)
+      (until (ja-done? 0)
+        (suspend)
+        (ja :num! (seek!))
+        )
+      )
+    (ja-no-eval :group! (-> self draw art-group data HJ2_KG_LOWER) :num! (seek!) :frame-num 0.0)
+    (until (ja-done? 0)
+      (suspend)
+      (ja :num! (seek!))
+      )
+    (go-hostile self)
+    )
+  :post nav-enemy-face-focus-post
+  )
+
+;; Spawner ///////////////////////////////////////////////////////////////////////////////////////
+
+;; soldier: its soldier (#f: none); pos, quat: the Jak 2 enemy's place and rotation; yellow?: its
+;; soldier's look (lump look: 1); done?: its soldier was killed, no other until its level loads again;
+;; next-try: no spawn before this time (there was no nav mesh to put it on).
+(deftype hj2-kg-spawner (process)
+  ((soldier   handle)
+   (pos       vector      :inline)
+   (quat      quaternion  :inline)
+   (yellow?   symbol)
+   (done?     symbol)
+   (next-try  time-frame)
+   )
+  (:state-methods
+    idle
+    )
+  )
+
+
+(defun hj2-kg-ground! ((pos vector))
+  "Puts pos on the background ground below it: a 0.1m sphere dropped from 2m above pos, 60m down (a
+Jak 2 enemy that flew: a jetpack guard, a pegasus). Returns #t and sets pos's y when there is
+ground, #f (pos unchanged) when there is none. Needs the collision loaded around pos."
+  (let ((cq (new 'stack-no-clear 'collide-query)))
+    (vector-copy! (-> cq start-pos) pos)
+    (+! (-> cq start-pos y) (meters 2))
+    (set-vector! (-> cq move-dist) 0.0 (meters -60) 0.0 1.0)
+    (set! (-> cq radius) 409.6)
+    (set! (-> cq collide-with) (collide-spec backgnd))
+    (set! (-> cq ignore-process0) #f)
+    (set! (-> cq ignore-process1) #f)
+    (set! (-> cq ignore-pat)
+          (new 'static 'pat-surface :noentity #x1 :nojak #x1 :probe #x1 :noendlessfall #x1 :board #x1)
+          )
+    (set! (-> cq action-mask) (collide-action solid))
+    (let ((u (fill-and-probe-using-line-sphere *collide-cache* cq)))
+      (when (>= u 0.0)
+        (set! (-> pos y) (- (+ (-> cq start-pos y) (* u (-> cq move-dist y))) 409.6))
+        #t
+        )
+      )
+    )
+  )
+
+(defun hj2-kg-spawn-soldier ((this hj2-kg-spawner))
+  "Spawns the spawner's soldier, as its child, on the ground below its place, on a nav mesh of the
+loaded levels: the Jak 2 enemy's (its nav-mesh-actor lump), else the nearest one within 10m (the
+place then moved onto it). Without a nav mesh, spawns none and tries again in 1s. Side effects:
+soldier, next-try. Returns nothing."
+  (let ((pos (new 'stack-no-clear 'vector)))
+    (vector-copy! pos (-> this pos))
+    (hj2-kg-ground! pos)
+    (let ((mesh (nav-mesh-from-res-tag (-> this entity) 'nav-mesh-actor 0)))
+      (when (not mesh)
+        (set! mesh (find-nearest-nav-mesh pos (meters 10)))
+        ;; the closest point of that mesh (pos in, pos out)
+        (if mesh
+            (nav-mesh-method-10 mesh pos pos (the-as nav-poly #f))
+            )
+        )
+      (cond
+        (mesh
+          (let ((params (new 'stack-no-clear 'hj2-kg-soldier-init-params)))
+            (vector-copy! (-> params trans) pos)
+            (quaternion-copy! (-> params quat) (-> this quat))
+            (set! (-> params entity) (-> this entity))
+            (set! (-> params directed?) #f)
+            (set! (-> params no-initial-move-to-ground?) #f)
+            (set! (-> params art-level) #f)
+            (set! (-> params mesh) mesh)
+            (set! (-> params yellow?) (-> this yellow?))
+            (let ((proc (process-spawn hj2-kg-soldier this params :name "hj2-kg-soldier" :to this)))
+              (if proc
+                  (set! (-> this soldier) (ppointer->handle proc))
+                  )
+              )
+            )
+          )
+        (else
+          (set! (-> this next-try) (+ (current-time) (seconds 1)))
+          )
+        )
+      )
+    )
+  (none)
+  )
+
+(defun hj2-kg-spawner-update ((this hj2-kg-spawner))
+  "Once a frame: with the war on, spawns the soldier when Jak comes within *hj2-kg-spawn-distance*
+(and fewer than *hj2-kg-max-soldiers* are alive), notes a soldier killed (done?), removes one Jak
+left *hj2-kg-forget-distance* behind; with the war off, removes the soldier. Returns nothing."
+  (let ((soldier (the-as hj2-kg-soldier (handle->process (-> this soldier)))))
+    (cond
+      ((not (hj2-war-on?))
+       (when soldier
+         (deactivate soldier)
+         (set! (-> this soldier) (the-as handle #f))
+         )
+       )
+      ((not *target*)
+       )
+      (soldier
+        (when (< *hj2-kg-forget-distance* (vector-vector-distance (target-pos 0) (-> soldier root trans)))
+          (deactivate soldier)
+          (set! (-> this soldier) (the-as handle #f))
+          )
+        )
+      ((-> this soldier)
+       ;; a soldier was spawned and is gone without us: killed
+       (set! (-> this done?) #t)
+       (set! (-> this soldier) (the-as handle #f))
+       )
+      ((and (not (-> this done?))
+            (>= (current-time) (-> this next-try))
+            (< *hj2-kg-soldier-count* *hj2-kg-max-soldiers*)
+            (< (vector-vector-distance (target-pos 0) (-> this pos)) *hj2-kg-spawn-distance*)
+            )
+       (hj2-kg-spawn-soldier this)
+       )
+      )
+    )
+  (none)
+  )
+
+;; Watching for Jak and the war switch, every frame.
+(defstate idle (hj2-kg-spawner)
+  :virtual #t
+  :code (behavior ()
+    (until #f
+      (hj2-kg-spawner-update self)
+      (suspend)
+      )
+    #f
+    )
+  )
+
+(defmethod init-from-entity! ((this hj2-kg-spawner) (arg0 entity-actor))
+  "Setup from the entity the level port placed: the Jak 2 enemy's place and rotation, the look (lump
+look: 1 yellow, else red), no soldier yet."
+  (vector-copy! (-> this pos) (-> arg0 extra trans))
+  (quaternion-copy! (-> this quat) (-> arg0 quat))
+  (set! (-> this yellow?) (= (res-lump-value arg0 'look int :time -1000000000.0) 1))
+  (set! (-> this done?) #f)
+  (set! (-> this next-try) 0)
+  (set! (-> this soldier) (the-as handle #f))
+  (go (method-of-object this idle))
+  )

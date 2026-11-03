@@ -18,7 +18,9 @@ Block keys: "prefix" (the new names' start), "extra_banks" (source bank -> targe
 with it, while a hub is loaded: Jak 3's traffic sounds with Jak 2's city banks), "music" (source
 musics the mod's code plays itself, copied like the levels'), "voice_prefix",
 "voices" (GOAL variable -> its lines: the level-info file defines each as an array of the lines'
-new names, for the mod's code to play).
+new names, for the mod's code to play), "voice_files" (GOAL variable -> {line name: .vag file}:
+lines of the mod's own, packed the same in every language's wad, named voice_prefix + line name;
+see custom_assets/jak3/ports/jak2-haven-city/voices/encode_vag.py).
 """
 
 import re
@@ -49,6 +51,7 @@ class Sound:
         self.extra_banks = cfg.get("extra_banks", {})
         self.voice_prefix = cfg.get("voice_prefix", "")
         self.voices = cfg.get("voices", {})
+        self.voice_files = cfg.get("voice_files", {})
         self.build_file = port["build"]["file"]
         self.source = port.source.NAME
         # its extracted disc: iso_data/<game>, or the absolute path of a launcher install (--iso)
@@ -90,7 +93,7 @@ class Sound:
     def voice_defines(self):
         """GOAL text: the "voices" variables, each an array of its lines' new names."""
         out = []
-        for var, lines in self.voices.items():
+        for var, lines in list(self.voices.items()) + list(self.voice_files.items()):
             out += [f"(define {var} (new 'static 'boxed-array :type string",
                     *[f'  "{self.voice(x)}"' for x in lines], "  ))", ""]
         return out
@@ -116,11 +119,13 @@ class Sound:
         disc has its VAG files. This build file is its third input: it runs again when the file
         changes (its line list)."""
         lines = list(dict.fromkeys(x for v in self.voices.values() for x in v))
-        if not lines:
+        files = {x: path for v in self.voice_files.values() for x, path in v.items()}
+        if not lines and not files:
             return []
         src = f"{self.iso}/VAG/VAGDIR.AYB"
         outs = ["$OUT/iso/VAGDIRM.AYB"] + [f"$OUT/iso/VAGWADM.{lang}" for lang in VOICE_LANGUAGES]
         pairs = [f"({x} {self.voice(x)})" for x in lines]
+        pairs += [f'(file "{path}" {self.voice(x)})' for x, path in files.items()]
         arg = ["    " + " ".join(pairs[i:i + 6]) for i in range(0, len(pairs), 6)]
         return ["", f";; {self.source_title}'s voice lines, packed for the {self.target_title} overlord "
                 "(VAGDIRM.AYB, VAGWADM.<language>)",

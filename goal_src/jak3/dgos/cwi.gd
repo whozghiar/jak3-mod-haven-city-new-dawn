@@ -85,6 +85,8 @@
   "krimson-wall.o"
   "trail.o"
   "searchlight.o"
+  "hj2-transport.o" ;; added -- og:jak2-haven-city the war mode's troop transport (also linked in havenj2's DGO)
+  "hj2-war-city.o" ;; added -- og:jak2-haven-city the war mode's city part (also linked in havenj2's DGO)
   "jak-pilot+0-ag.go"
   "jak-pilot-hcar+0-ag.go"
   "jak-pilot-gun+0-ag.go"

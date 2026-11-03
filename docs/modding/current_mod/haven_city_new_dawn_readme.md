@@ -39,6 +39,9 @@ Players only need the root [`README.md`](../../../README.md).
 | Time and weather | A fixed hour or Jak 2's day and night; Jak 3's changing weather or a fixed one (sunny to thunderstorm, snow) in the whole game | [8](#8-moods-time-of-day-and-weather) |
 | Travelling | Mods menu warps to every district, key places and places outside the city; two time gates between Jak 3's Freedom HQ and Jak 2's underground hideout; respawn at Jak 2's continue points, picked by Jak 2's own rule | [9](#9-travelling) |
 | Saves | Saving anywhere in the mod's levels; the save screen names Jak 2's world on the slot | [9.4](#94-saves) |
+| War mode | Mods menu, KG-Guard vs Freedom Fighters: Jak 2's red and yellow Krimzon Guards fight the Freedom League's blue guards in Jak 2's city and in Jak 3's own, troop transports bring guards of either side, jetpack guards fly in, the citizens flee and are fewer, crimson bikes wait on the ground; in the places around the city, Krimzon Guards stand where Jak 2 put its enemies | [7.5](#75-war-mode-kg-guard-vs-freedom-fighters) |
+| Mini-games | The Hip Hog's Whack-a-Metal-Head, Onin's bubble game in her tent (Jak 2), Vin's game in Vin's room (Jak 3) | [6.14](#614-the-hip-hogs-whack-a-metal-head), [6.15](#615-onins-bubble-game), [6.16](#616-vins-game) |
+| Speakers in French | With the war mode off and the game in French, the propaganda speakers say Torn's lines (the user's recordings) instead of the Baron's | [5.5](#55-palace-gate-propaganda-speakers-neon-signs) |
 
 ## 2. How it is built
 
@@ -78,8 +81,9 @@ out/jak3/obj/*.go, out/jak3/fr3/*.fr3, out/jak3/iso/HJ*.DGO, GAME.CGO
 | Level data | `custom_assets/jak3/levels/havenj2/` and 45 `hj2-*/` folders (15 districts, 30 places) | Generated `.jsonc`, `.gd`, mesh, navigation and region files, nothing written by hand |
 | Models | `custom_assets/jak3/models/custom_levels/hj2-*.glb` (94) | Jak 2 models rebuilt for `build-actor` ([6.7](#67-rebuilding-jak-2s-models)) |
 | Level code | `goal_src/jak3/levels/havenj2/` | Code linked into one level's DGO (table below; of the districts only `hj2-port` has some); `jak2-haven-city.gp`, the levels' build steps (generated) |
-| Game code | `goal_src/jak3/pc/features/jak2-haven-city-*.gc`, `levels/havenj2/havenj2-ocean.gc` | In GAME.CGO: what several levels share, and the Mods menu |
-| Vanilla edits | `goal_src/jak3/game.gp` (one `load-file` of `jak2-haven-city.gp`), `goal_src/jak3/dgos/game.gd` (the mod's GAME objects, `hj2-common-obs.o` last), `goal_src/jak3/dgos/freehq.gd`, `goal_src/jak3/levels/city/traffic/citizen/guard.gc`, `goal_src/jak3/engine/level/level.gc`, `decompiler/config/jak3/jak3_config.jsonc`, `decompiler/config/jak2/jak2_config.jsonc` | Build steps, GAME objects, the Freedom HQ's time gate model ([9.2](#92-time-gates)), one guard check ([7.2](#72-traffic)), the level heaps' size ([11](#11-memory-and-performance)), the PC renderer told of a mod's loading levels (`*pc-renderer-early-level?*`, [6.1](#61-how-jak-2-loads-its-levels)), Daxter's model in Jak 2's `LWHACK` rip ([6.14](#614-the-hip-hogs-whack-a-metal-head)) |
+| Game code | `goal_src/jak3/pc/features/jak2-haven-city-*.gc`, `levels/havenj2/havenj2-ocean.gc` | In GAME.CGO: what several levels share, the Mods menu, the war mode's switch and its Krimzon Guards of the places ([7.5](#75-war-mode-kg-guard-vs-freedom-fighters)) |
+| City code | `goal_src/jak3/levels/city/war/` (`hj2-war-city.gc`, `hj2-transport.gc`) | The war mode's part of a city: linked after the traffic in Jak 3's city (`cwi.gd`) and, through CWI's list, in the hub HJ2 ([7.5](#75-war-mode-kg-guard-vs-freedom-fighters)) |
+| Vanilla edits | `goal_src/jak3/game.gp` (one `load-file` of `jak2-haven-city.gp`), `goal_src/jak3/dgos/game.gd` (the mod's GAME objects, `hj2-common-obs.o` last), `goal_src/jak3/dgos/freehq.gd`, `goal_src/jak3/levels/city/traffic/citizen/guard.gc`, `goal_src/jak3/engine/level/level.gc`, `decompiler/config/jak3/jak3_config.jsonc`, `decompiler/config/jak2/jak2_config.jsonc`; for the war mode `guard.gc`, `flying-turret.gc`, `kg-squad-member.gc`, `traffic-manager.gc`, `traffic-engine.gc`, `cwi.gd`, `ctypesa.gd`, `ctypesc.gd` and `game.gp` | Build steps, GAME objects, the Freedom HQ's time gate model ([9.2](#92-time-gates)), one guard check ([7.2](#72-traffic)), the level heaps' size ([11](#11-memory-and-performance)), the PC renderer told of a mod's loading levels (`*pc-renderer-early-level?*`, [6.1](#61-how-jak-2-loads-its-levels)), Daxter's model in Jak 2's `LWHACK` rip ([6.14](#614-the-hip-hogs-whack-a-metal-head)); the war mode's hooks, each giving the stock answer while the war is off, its city code in CWI and its art in Jak 3's city levels ([7.5](#75-war-mode-kg-guard-vs-freedom-fighters)) |
 
 The level port runs its steps in this order, in about 15 seconds:
 
@@ -139,6 +143,12 @@ place with particles also links its generated `hj2-<place>-part.gc` ([5.3](#53-p
 | `pc/features/jak2-haven-city-levels.gc` (generated) | GAME | 46 level-load-infos, 113 continue points, the Freedom HQ's time gate arrival point, `*havenj2-levels*`, `*havenj2-hubs*` (each district and its hub) and the district map (`*havenj2-district-names*`, `-grid*`, `-cells*`, [6.1](#61-how-jak-2-loads-its-levels)) |
 | `pc/features/jak2-haven-city-world.gc` | GAME | Moods, time of day, weather driver, sprite pages, elevators, fortress gate, air trains, time gates, level callbacks, the district guard, the city's current level (respawn), saves, traffic and Hellcats switches |
 | `pc/features/jak2-haven-city-menu.gc` | GAME | Mods menu |
+| `pc/features/jak2-haven-city-war.gc` | GAME | The war mode: its switch, the looks and sides of the guards and jetpack guards, the hooks of Jak 3's traffic code ([7.5](#75-war-mode-kg-guard-vs-freedom-fighters)) |
+| `pc/features/jak2-haven-city-kg.gc` | GAME | The war mode's Krimzon Guards in the places: `hj2-kg-spawner`, `hj2-kg-soldier` ([7.5](#75-war-mode-kg-guard-vs-freedom-fighters)) |
+| `levels/city/war/hj2-transport.gc`, `hj2-war-city.gc` | CWI, HJ2 | The war mode's troop transport and its director ([7.5](#75-war-mode-kg-guard-vs-freedom-fighters)) |
+| Jak 3's `flying-turret.o` | HJ2 | The war mode's jetpack guards |
+| `levels/havenj2/hj2-onin-obs.gc` | HKI | Onin, Pecker and the bubble game ([6.15](#615-onins-bubble-game)) |
+| Jak 3's `power-game.o`, `levels/havenj2/hj2-vin-game.gc` | HJV | Vin's game ([6.16](#616-vins-game)) |
 
 ### 2.3 Design decisions
 
@@ -214,11 +224,12 @@ about this mod; its comments say why each choice was made. What each key means:
 | `named_actors`, `ported_levels`, `ported_etypes`, `ported_everywhere`, `teleporters`, `new_teleporters` | The other actors: warp gates, platforms, hazards and props, the city's actors, air trains, the time gate. A lump is kept with its kind (`path`, `float`, `int32`, `uint32`, `vector`, `string`, `symbol`, `type`) |
 | `art_groups` | Jak 3 art groups of the mod's classes; a ported actor's goes into its level's DGO (force-field walls, searchlights, barges) |
 | `models` | The models rebuilt from Jak 2's rips, their collision and animations ([6.7](#67-rebuilding-jak-2s-models)) |
+| `spawns` (on a level) | A class placed at the positions of its Jak 2 actors of some classes: the war mode's `hj2-kg-spawner` where Jak 2 put its enemies ([7.5](#75-war-mode-kg-guard-vs-freedom-fighters)) |
 | `region_open_tasks`, `region_script_overrides` | A region's story branch, or its scripts replaced: the garage (319), the rotating gun (429), the avalanche (894), the gun buoy (177, 353, 873) |
 | `continues` | Continue names, the ones kept or added ([9.3](#93-respawn-points)) |
 | `ignore_outputs` | The `.gitignore` whose block lists the generated files, kept out of git ([3](#3-rebuilding-it-step-by-step)) |
 | `texture_replacements` | Not set: the mod's texture pack is Jak 3's, which the level builder applies to the Jak 3 art groups by itself ([3](#3-rebuilding-it-step-by-step)) |
-| `sound` | Jak 2's sound banks and music, renamed `j2*`; Jak 3's banks loaded with the city's (`extra_banks`); the voice lines packed for Jak 3 (`voice_prefix`, `voices`) ([8.4](#84-sound-and-music)) |
+| `sound` | Jak 2's sound banks and music, renamed `j2*`; Jak 3's banks loaded with the city's (`extra_banks`); the voice lines packed for Jak 3 (`voice_prefix`, `voices`), the mod's own lines (`voice_files`: Torn's) ([8.4](#84-sound-and-music)) |
 | `level_info`, `build` | Where the level-load-infos and the levels' build steps are written; `level_info.hubs_var` names the generated `*havenj2-hubs*`, `level_info.district_map` the district map (25 m squares, [6.1](#61-how-jak-2-loads-its-levels)) |
 
 To port one more place (one of [14](#14-not-done-yet)):
@@ -463,7 +474,7 @@ what Jak 3 plays: each part only acts on files Jak 3 doesn't have.
 | A sound bank whose `.SBK` isn't in `out/jak3/iso` is skipped, with a warning | Loading it asserts. Only the copied Jak 2 banks can be missing (no Jak 2 extraction) | `srpc.cpp` |
 | Two fixes of the decompiled bank records (phase 20): `LookupBank` finds only a loaded record (`in_use`), as Jak 1 and 2's; a half bank goes next to a loaded half bank of the same mode in any pair of level records, not only the first | An unloaded bank keeps its name in its record, so its next load was skipped; the half bank search never moved past records 2 and 3, so a half bank whose partner was elsewhere wasn't loaded when no pair was empty. Both silently: the game thinks the bank is loaded. Jak 3's own banks are affected too | `game/overlord/jak3/sbank.cpp` |
 | `VAGDIRM.AYB`, when there, is added after the game's VAG directory; its lines are read from `VAGWADM.<language>` (the English one for a language Jak 2 doesn't have) | Jak 2's voice lines, in Jak 3's format, apart from Jak 3's files | `iso.cpp`, `iso_api.cpp`, `iso_cd.cpp`, `iso_cd.h` |
-| `goalc` tool `pack-vags` | Packs Jak 2 voice lines in Jak 3's format: a 64-bit entry per line (its packed name, start in 32 KB pages, sample rate index), each line taking the pages of its longest language in every wad. A name already in Jak 3's directory is refused. It reads only the lines from Jak 2's wads (470 MB each) | `goalc/make/Tools.cpp`, `Tools.h`, `MakeSystem.cpp` |
+| `goalc` tool `pack-vags` | Packs Jak 2 voice lines in Jak 3's format: a 64-bit entry per line (its packed name, start in 32 KB pages, sample rate index), each line taking the pages of its longest language in every wad. A name already in Jak 3's directory is refused. It reads only the lines from Jak 2's wads (470 MB each). A `file` line (a `.vag` path and a name) is a line of one's own (Torn's speaker lines), the same in every language's wad | `goalc/make/Tools.cpp`, `Tools.h`, `MakeSystem.cpp` |
 | GOOS `file-exists?` | The build copies Jak 2's audio only when Jak 2 is extracted: without it, no audio, and the build still works | `common/goos/Interpreter.cpp`, `Interpreter.h` |
 
 ### 4.6 Launcher install
@@ -727,7 +738,14 @@ while the next district loads, as in Jak 2.
   looks with mesh masks, which build-actor's models don't have: the damaged and broken looks are
   models of their own (`hj2-propa-damaged`, `hj2-propa-broken`), drawn by a child process
   (`hj2-propa-look`) while the intact model is hidden. The Baron speaks from it like in Jak 2
-  (`hj2-propa-speech`, [8.4](#84-sound-and-music)).
+  (`hj2-propa-speech`, [8.4](#84-sound-and-music)). With the war mode off and the game in French
+  (its audio language or the PC settings' text language, `hj2-french?`), Torn speaks instead:
+  `hj2-propa-sound-name` picks from `*hj2-torn-sounds*`, the user's four recordings
+  (`TORN_SPEAKER2.mp3` to `5`), encoded to PS-ADPCM by
+  `custom_assets/jak3/ports/jak2-haven-city/voices/encode_vag.py` (ffmpeg, mono 22050 Hz,
+  -15 dBFS RMS like Jak 2's lines) and committed as `TORN2.vag` to `TORN5.vag` next to it: the
+  launcher's install has no ffmpeg. The manifest's `sound.voice_files` names them; `pack-vags` packs
+  such a `file` line (a `.vag` path and a name) the same in every language's wad (`goalc/make/Tools.cpp`).
 - **Blue hologram (phases 20 and 24).** The hologram's halo (Jak 2's part 819, a 10 m
   `glow-soft`) and the projector's flare (part 822, a `glow`) are blue instead of Jak 2's red and
   orange. They are particles, not textures: the colors are set in the manifest
@@ -750,7 +768,7 @@ Jak 2's actors of the districts at the end of the game, placed by class (`ported
 | Parked hover bikes and cars, 49 spots | `parking-spot` | `hj2-parking-spot`, a copy of Jak 3's class (its file isn't linked in the hub): the spot spawns a vehicle of the traffic when the camera is 40 to 250 m away, keeps it while Jak is near; nothing while the traffic is off |
 | Force-field walls, 8 | `security-wall` | `hj2-security-wall`, Jak 3's art and color animation (`*security-texture-anim-array*`, the hub's level callback 6, from Jak 3's `ctywide-texture.o`, no longer skipped). Jak owns the red, green and yellow passes at the end of the game: the 7 walls with a path are open, fading as Jak comes near; `ctymarka`'s wall without a path shows nothing, as in Jak 2 |
 | Searchlights, 10 in the hub | `searchlight` | Jak 3's class (`searchlight-ag` in the hub's DGO) |
-| Guard turrets, 9 | `cty-guard-turret` | `hj2-cty-guard-turret`, under their lids until the Freedom League squad's alert is at least 1 while Jak drives a vehicle within 100 m; bursts of guard shots, 6 hit points, its head blows apart (`joint-exploder`), back 3 s later |
+| Guard turrets, 9 | `cty-guard-turret` | `hj2-cty-guard-turret`, under their lids until the Freedom League squad's alert is at least 1 with Jak within 100 m (on foot too: Jak 2 also wanted him in a vehicle); it tracks him and fires bursts of guard shots while he is in a vehicle; 6 hit points, its head blows apart (`joint-exploder`), back 3 s later |
 | Barges in the port's canals | `boat-manager` | `hj2-boat-manager`, `hj2-barge` (`hj2-port-obs.gc`, HPT): Jak 3's classes (`ctyport-obs.o` linked before it), with Jak 2's 4 loops as static data (the builder writes one sample of the `path` lump) and every barge sailing; they steer on the port's water nav mesh (aid 26081) |
 | Daxter's mech, 2 in the port | `farthy` | `hj2-farthy` (GAME, `hj2-common-obs.gc`), its idle in a loop |
 | Street lamps, 42 in `hj2-gena` and 42 in `hj2-genc` (by the palace and by the stadium) | `ctyn-lamp` | `hj2-ctyn-lamp` (phase 20, `ported_everywhere`; baked into the district mesh before): Jak 2's pole and its 4-piece explode model rebuilt by `build-actor` (`models`: `hj2-ctyn-lamp`, extra `hj2-ctyn-lamp-explode`; collision two boxes, the pole and its head). Any attack of Jak snaps it, as do the vehicles: Jak 2's vehicles sent `attack` to what they touched, Jak 3's send `impact-impulse` (`rigid-body.gc`), and the lamp breaks on both. The pieces fly from the hitter (`joint-exploder`, Jak 2's tuning), `lamp-hit` plays; gone until the district reloads |
@@ -1174,6 +1192,24 @@ model:
   texture `hidelight-ramp`: a brown ramp, alpha 128, added to the scene). The searchlights and the
   force-field walls are Jak 3's art groups; the others (the precursor stone, Kor, the mech, Keira's
   mask, the bomb blast, the stadium barrier) aren't in the port.
+- **Jak 3's skeleton and clips (war mode):** Jak 3's `crimson-guard` code drives Jak 2's Krimzon
+  Guard unchanged when the model has Jak 3's skeleton and clip order. Jak 3's guard is Jak 2's 38
+  joints with `back`, `right_wrist` and `left_wrist` inserted after `dirblast`: `insert_joints`
+  adds them (parent `swivelMe`, their bind pose read once from Jak 3's rip and written in the
+  manifest, no vertex bound, held still in every clip) and remaps the skin. Jak 3's first 40 clips
+  are Jak 2's 40 in the same order; `anims` lists them in Jak 3's `crimson-guard-ag` order after
+  two padding clips (build-actor puts clip k at art index 2 + k: idle at 4), with a Jak 2 stand-in
+  for each of Jak 3's 12 others (grenade-reload: notice, cock-gun: stab-idle-to-idle, the shield
+  clips: idle, walk, gun-attack... no Jak 3 code plays those). The primitives follow Jak 2's mesh
+  segments (its art group's seg table): rifle, grenade launcher and tazer, red armor, the dark
+  guard's yellow armor, body. `build_actor` adds `build-actor` options (`:framerate 15.0
+  :joint-channel 8`, Battlefront's: the rips run at 15 frames per second).
+- **Recolored textures:** `recolor` turns the texels of a hue window by some degrees (pure Python
+  PNG decode and encode): the blue jetpack guard is the red one with its armor turned to Jak 3's
+  Freedom League blue (hue 217).
+- **An art-only level:** `hj2-war` (`HKW`, no geometry, no continue, never loaded by the game)
+  holds the war's 8 models, for its `.fr3`: the PC renderer finds a merc model in any loaded
+  `.fr3`, and in Jak 3's city the mod names `hj2-war` to it ([7.5](#75-war-mode-kg-guard-vs-freedom-fighters)).
 
 ### 6.8 The end of the game
 
@@ -1403,6 +1439,46 @@ is done), Daxter's face (blend shapes and eye animation: the level port drops th
 shape weights). Jak 2's frame numbers (its `ja-aframe` values) are doubled: build-actor resamples
 the 30 frames per second animations at 60 (`HJ2_WHACK_FRAMES`).
 
+### 6.15 Onin's bubble game
+
+Jak 2's game in Onin's tent (`levels/city/onintent/onin-game.gc` there), in `hj2-onin-obs.gc` (HKI),
+offered while the war mode is off. To play: stand in front of Onin (within 4 m of her actor) and
+press triangle at the prompt, which shows the session's best score. Jak hides, the camera turns to
+the pot, and Onin throws bubbles out of it: triangle, circle, x and square pop the oldest bubble of
+that shape, 1 point doubled for each pop of the same shape in a row (up to 16); a button with no
+bubble of its shape and a bubble that lands are misses. The game ends at 20 misses, won at 1000
+points. R3 quits (not in Jak 2).
+
+| Jak 2 | Here |
+|---|---|
+| `onin-npc`, Pecker (process-taskables, not placed before) | `hj2-onin-npc` placed from Jak 2's actor (`ported_etypes`, its `camera-name` lump), Jak 2's three 1 m collision spheres; Pecker (`hj2-onin-pecker`) is its child. Both loop `idle-sleep`, `idle-game` during a game. Models rebuilt from the rips (`models`: `hj2-onin-npc` and its extra) |
+| `onin-game`, `onin-game-bubble` | `hj2-onin-game`, `hj2-onin-bubble` (drawn by particles only): Jak 2's rules, waves, physics and scoring; only Jak 2's replay table, so every game is a replay |
+| Bubbles, births, pops, landings | `onin-game.gc`'s particles in `hj2-onin-part.gc` (`extra_groups`; `birth-func-onin-bubble-pop` and `-birth-pop` copied). The pot's sparks and the tiki's drips stop during a game as in Jak 2 (`extra_parts` 3429, 3437) |
+| HUD, camera, music | Jak 3's `hud-big-score`, `hud-goal`, `hud-miss` (the same classes and `*game-info*` fields); `camera-235`; `danger3` (the whack's `J2DANGE3.MUS`) |
+| Sounds, Pecker's lines | `onin-*` in Jak 2's `ONIN2`: the sound check adds `j2onin2` to the tent's extra banks. Pecker's lines (talker speeches 141 to 169) packed like Tess's (`*hj2-onin-*-sounds*`), on the `daxter` channel |
+| Task, reward, save | None; the session's best score (`*hj2-onin-high-score*`) |
+
+Not ported: the first game's rules and its skill (400 points), Jak 2's cheat-mode shortcuts,
+subtitles, Pecker's wakeup animation, the faces' blend shapes, the shadows. Jak 2 to Jak 3:
+`talker-spawn-func` became the packed voices' `add-process *gui-control*`; Jak 3's own
+`skel-onin-highres` lacks `idle-game`; Jak 3's `defpartgroup` defines no global (the game reaches
+its groups through `extra_groups`).
+
+### 6.16 Vin's game
+
+Jak 3's Vin game (`power-game`, `levels/city/vinroom/power-game.gc`, task `city-power-game`) in
+Vin's room, `hj2-vin-game.gc` (HJV), offered while the war mode is off. To play: stand within 10 m
+of the room's console and press triangle at the prompt (the session's best score); R3 quits. Every
+game is Jak 3's replay: the board cleared, the next wave starts, harder; Daxter's death ends it.
+
+| Jak 3 | Here |
+|---|---|
+| `power-game-1` in vinroom, its task's prompt | `hj2-power-game` (Jak 3's class, subclassed) at Jak 2's `scene-stage-42`, the room's center, 0.13 m from Jak 3's (`named_actors`); the prompt is the air trains' |
+| The board: `powergd`, a borrow level of vinroom (slot 0, 3000 KB), 225 m under the room | The same level, borrowed by hj2-vin (`level_info.borrow_sizes`, a new level port key), asked for only during a game: Jak waits behind "Loading Vin's game..." |
+| Sounds: `POWERGD1` with `VINROOMH` | `POWERGD1` in the doors' extra bank slot (`*hj2-door-sound-bank*`) |
+| Particles 907-912, 3231-3247 | Reserved for `power-game.o` (`particles.reserved`) |
+| Task manager, rewards (skills at bronze, silver, gold), auto-save, high score table | None: `update-score-and-give-orbs`, `lose` and `win` overridden; Jak 3's task manager, spawned when the save has the task open, is deactivated |
+
 ## 7. Navigation and traffic
 
 ### 7.1 Navigation data
@@ -1471,9 +1547,11 @@ method 45 there (Jak 3's city links its own):
 | Switch | Turning it on or off resets the alert. Off: Jak 3's own method 45, no primary target |
 
 The guard vehicles chase Jak like Jak 2's `vehicle-guard` ([7.3](#73-hellcats)). The city's guard
-turrets (`hj2-cty-guard-turret`) follow Jak 2's rule: they pop up and fire at Jak while he flies a
-vehicle within 100 m and the alert is at least 1, and sink once he is 120 m away or both on foot and
-forgiven. Jak 2 has no height rule: "in the air" is in a vehicle. Off, the turrets stay down.
+turrets (`hj2-cty-guard-turret`) pop up as soon as the alert is at least 1 with Jak within 100 m
+(Jak 2 also wanted him in a vehicle; the user's request: the turrets come out when the alert
+starts), track him, and fire Jak 2's bursts while he is in a vehicle; they sink once he is 120 m away
+or both on foot and forgiven. Jak 2 has no height rule: "in the air" is in a vehicle. Off, the
+turrets stay down.
 
 **Guards' lines.** The guards speak Jak 2's Crimson Guards' lines: each of Jak 3's `guard-*` speech
 types (and its second voice, the next type) gets the Jak 2 type said at the same moment of Jak 2's
@@ -1545,6 +1623,33 @@ it as blue icons with their view cone (phase 19). Always on: Jak 3's own levels 
 | Guard vehicles | The Hellcats and guard bikes get a `minimap` field, added when the traffic sends the vehicle out (`vehicle-method-123`, Jak 2's 128), faded out when it goes back to the pool (122, Jak 2's 127), is destroyed (124, Jak 2's 129) or is stolen by Jak (`player-control`). Its class is `*hj2-guard-vehicle-minimap-class*` (`jak2-haven-city-world.gc`, in GAME so that an icon still fading after havenj2 unloads never reads freed memory): Jak 3's `guard-frustum` at scale 1.4, set on the connection right after `add-icon!` (which only takes an index into `*minimap-class-list*`) |
 | Sizes | Jak 2 drew a guard vehicle with its plain `guard` class (14): a dot drawn on the screen at 20 units, while a foot guard's `guard-frustum` dot is drawn into the 128-texel map texture (a diamond of half-diagonal 12), which shows at 112 screen units: the vehicle about 1.4 times larger. Jak 3's `draw-frustum-2` ignored the class `scale`, so a vehicle given `guard-frustum` looked exactly like a guard. A one-line vanilla edit (`og:jak2-haven-city added`) scales that diamond by the class `scale`; every stock frustum class has 1.0 |
 | Cones | `draw-frustum-1` draws each frustum class's view cone (texture `map-guard-frustum`, 80 m long) at `frustum-alpha`, which Jak 2 and Jak 3 fade to 0 while Jak pilots a vehicle: in the guard vehicles' chases the cones were never seen. A vanilla edit in `sub-draw-1-1` (`og:jak2-haven-city added`) keeps them while `havenj2` is loaded; elsewhere they still fade out. The guard vehicles show a cone too (Jak 2's had none), at its usual length |
+
+### 7.5 War mode: KG-Guard vs Freedom Fighters
+
+Mods menu, Haven City: New Dawn, KG-Guard vs Freedom Fighters (`*mod-jak2-haven-city-war*`, off at
+every boot, greyed out while the mod is off). In Jak 2's city and in Jak 3's own: Jak 2's Krimzon
+Guards, red and yellow (Jak 2's dark guards), fight the Freedom League's blue guards; troop
+transports bring guards of either side; jetpack guards of either side fly in; the citizens flee and
+are fewer, and so are the vehicles; no Hellcat or guard bike flies the lanes, but crimson bikes wait
+on the ground (Jak 2's city only). In the places around the city, red and yellow Krimzon Guards
+stand where Jak 2 put its enemies. The method is the Jak 3 mod Battlefront's (its red guard and
+jetpack guard on Jak 3's stock code), with the models made at install from Jak 2's data alone.
+
+| Part | How |
+|---|---|
+| Switch | `jak2-haven-city-war.gc` (GAME): `hj2-war-on?` is the war switch and the mod's. Switching either rebuilds the traffic of the city loaded now (`hj2-war-changed!`; a guard's look is chosen when its process is made): havenj2 restarts its own (`hj2-traffic-refresh`), Jak 3's city runs ctywide's activation again, as a death does (`*hj2-war-city-hook*`, set by `hj2-war-city.gc` at each link) |
+| Models | `hj2-kg-red`, `hj2-kg-red-gl`, `hj2-kg-yellow`, `hj2-kg-yellow-gl` (rifle, or grenade launcher and tazer; 255 KB each), `hj2-hover-red`, `hj2-hover-blue` (78 KB), `hj2-transport`, `hj2-vehicle-turret`: the level port's `models` ([6.7](#67-rebuilding-jak-2s-models)), in the hub's DGO, in the places with Krimzon Guards (red and yellow rifles), in Jak 3's CTYPESA (guards, transport) and CTYPESC (jetpacks; their art groups by decreasing size, the borrow levels' load buffer rule), and in `hj2-war` for their meshes in Jak 3's city |
+| Guards | Jak 3's `crimson-guard`. A marked line of `guard.gc` asks `hj2-war-guard-skel-name` for the skeleton group: during the war, the look furthest below its share of the pool (`*hj2-war-look-share*`: 10 blue, 4 red rifles, 3 red launchers, 2 yellow rifles, 1 yellow launcher, of the 20 guards) whose art is in the guard's level (`hj2-war-look-has-art?`, the GAME skeleton groups read directly: a citizen's init runs on a 512-byte stack). The director recounts the live looks every 0.5 s (`hj2-war-count-looks!`, in its own process). The weapon drawn is the look's, the weapon used the squad's: a red rifleman can throw grenades (Battlefront's limit too) |
+| Sides | A Krimzon Guard registers in the city's attack controller as a roboguard (city target type 9, `hj2-war-attacker-type`): Jak 3's stock hatred table already sends guards against roboguards, and roboguards against guards and Jak. It gets the `enemy` process mask back (Jak's aim), loses the blue minimap icon (the minimap has no red guard class), and a yellow one is a dark guard (`citizen-flag dark-guard`, `hj2-war-guard-flags`: twice the hit points, 1.1 times the size). Hitting one raises no Freedom League alert in havenj2 |
+| Jetpack guards | Jak 3's Krimzon Guard flying turret (`flying-turret.gc`) drawn with Jak 2's jetpack guard, blue or red, at its own size (`hj2-war-unit-scale`), its idle and forward clips looped by speed (`hj2-war-hover-animate`). Blue registers as a rifle guard (4), red as a turret (10). The turret is a `kg-squad-member`, which hates every process with the `guard` mask: a marked line of `kg-squad-member.gc` sends a war jetpack at the other side only (`hj2-war-hover-hatred`). havenj2 links `flying-turret.o`, Jak 3's `kg-debris-ag` (its death debris), and allocates the Krimzon Guard's squad (`havenj2-login`). Silent in havenj2: their sounds are in Jak 3's Krimzon Guard banks |
+| Counts | `hj2-war-want-count`: 20 guards, 3 jetpack guards, no Krimzon Guard robot nor Metal Head, at most 4 of each citizen and 2 of each hover vehicle. havenj2 applies it at its traffic start; Jak 3's city through marked lines of `traffic-manager.gc` (method 22, the faction manager's spawn levels) and `traffic-engine.gc` (`activate-one-vehicle`, the squads' count per territory) |
+| Panic | Every 2 s, a danger sphere (`add-danger`, level 1, 15 m) on a Krimzon Guard picked at random within 80 m of Jak: the citizens within 40 m flee (`'panic`), and the traffic spawns none there for 5 s (each danger holds one of the traffic engine's 16 suppression boxes: every 0.5 s kept 10 of them busy). Guards ignore this danger type |
+| Guard vehicles | During the war the Hellcats' pool is empty and the squad's guard vehicle caps are 0 (`hj2-guard-vehicle-caps`): nothing flies. The guard bikes' pool stays: one parking spot in two parks a crimson bike (`hj2-parking-spot-random-type`) for Jak to take. Jak 3's city has no guard bike class: no parked crimson bike there |
+| Transports | `hj2-transport.gc` (CWI, HJ2): Jak 2's troop transport and its chin turret, ported. The director sends one 20 s after the war starts, then every 45 to 90 s while none flies, its side at random (`hj2-transport-spawn`): it lands 10 to 18 m from Jak on a spot with ground and a nav mesh, opens its hatch, drops up to 8 guards of its side one by one through Jak 3's own transport behavior (the guard's `exit-transport` state, kept from Jak 2: traffic behavior 6), picking a pooled guard of its side; it leaves after its last guard, or after 8 s without one. A Krimzon Guard ship's turret fires at Jak. It takes hits like the city's guard turret (40 hit points, a guess) |
+| Jak 3's city | The director holds the factions at war every 2 s (`*hj2-war-faction-commands*`: both sides strong, Metal Heads out, the guards at `combat`, the Krimzon Guard at `war`, which loads CTYPESC, the turrets' code). The art groups are in CTYPESA and CTYPESC (vanilla `.gd`, pre-marked in `game.gp`); their meshes in `hj2-war.fr3`, which `hj2-renderer-prefetch` names to the PC renderer while the war is on there (in a free slot of its 10: none free, the war's models aren't drawn) |
+| Director | `hj2-war-director` (`hj2-war-city.gc`): a child of the traffic manager, started by a wrapper of `traffic-manager-method-16` while the war is switched on; it dies with the traffic, and its transport with it |
+| Jak 3's missions | A mission sets its own factions and units (some need Krimzon Guard robots): while a `task-manager` process runs in Jak 3's city, the war steps aside (`hj2-war-on?` is #f: every hook gives the stock answer, no faction command, no transport). The director checks every 0.5 s (`hj2-war-update-mission!`, a walk of the process tree, never run on a unit's small stack). Switching the war during a mission doesn't rebuild the traffic (that would kill the mission's units without its own fail or reset): the looks come with the city's next activation |
+| Places | `jak2-haven-city-kg.gc` (GAME). The level port places an `hj2-kg-spawner` (`spawns`) at each Jak 2 enemy of 10 places, 374 in all (Dead Town 63, the pumping station's outside 72 and inside 31, the mountain's outside 42, Haven Forest 35 and its lower part 11, the dig 70, the fortress 26 and 9, the prison's way out 15), one in three yellow, and keeps those places' Jak 2 nav meshes (`nav.sources`: the nav step now writes a level's nav meshes alone). While the war is on and Jak is within 60 m, a spawner puts one `hj2-kg-soldier` on its nav mesh (its `nav-mesh-actor` lump, else the nearest within 10 m; none: no soldier), 12 at most at once; a killed soldier comes back when the level loads again. The soldier is a `nav-enemy` with the guard's clips: it notices Jak at 60 m, runs to him, and fires bursts of guard shots within 40 m in line of sight; 4 hit points (yellow: 8, 1.1 times the size) |
 
 ## 8. Moods, time of day and weather
 
@@ -1627,7 +1732,7 @@ Nothing of it is committed.
 | Sound banks | 3 per place: the continues' and region scripts' `want-sound` | The same, renamed (`ctywide1`: `'j2ctywi1`, `J2CTYWI1.SBK`), taken for Jak 3 half banks (`hj2-sound-bank-name->mode`; on PC a bank's size doesn't matter). The free half bank slots (Jak 3 loads 6 at most) take extra banks, loaded with the wanted ones (`hj2-update-extra-sound-bank`): in the city, Jak 3's traffic banks `cityffh`, `citycarh`, `citypedh`, then the Jak 2 banks the sound check lists for the level Jak is in (`*hj2-level-sound-banks*`); in a place, its own first. See "Every level's sounds" below |
 | Ambiences | The region scripts' `sound-play-loop` (`city-amb1`, `hiphog-amb`, `forest-amb-1`, `dig-lava`...), and the part spawners' looped sounds (`effect-name` lumps: the fountains, steam vents, barrel fires, water sprays, consoles: 380 spawners in 15 levels) | Kept by the translator; the part spawners' `effect-name`, `effect-param` and `cycle-speed` lumps copied (`effect_lumps`, the particle step): Jak 3's `part-spawner` plays them the same way (`ambient-sound`, `effect-param->sound-spec` are the same in both games) |
 | Object sounds | In each class | In the `hj2-*` classes, by Jak 2's names, when a bank loaded where the object stands has them: Jak 3's stand-ins (airlock and lift sounds on Jak 2's doors and elevators, `explosion`, `guard-shot`) replaced by Jak 2's. The particles' `:sound` (the neon signs' zaps, the barrel fires' pops, Vin's screens, the Hip Hog's) kept by the particle step (it dropped them before phase 20). The speakers' hits keep Jak 3's iron crate (Jak 2's play none). What is left out: [14](#14-not-done-yet) |
-| Speeches | The propaganda speakers' 54 lines (`*propa-sounds*`) | `hj2-propa-speech`: once the camera is within 55 m, heard from 40 to 55 m, stopped beyond 60 m |
+| Speeches | The propaganda speakers' 54 lines (`*propa-sounds*`) | `hj2-propa-speech`: once the camera is within 55 m, heard from 40 to 55 m, stopped beyond 60 m; Torn's 4 lines instead in French with the war mode off ([5.5](#55-palace-gate-propaganda-speakers-neon-signs)) |
 | Guards | The Crimson Guards' lines (speech types 1 to 14) | Given to Jak 3's `guard-*` speech types ([7.2](#72-traffic)) |
 | Citizens | Their lines (speech types 16 to 28) | Given to Jak 3's `civ-*` speech types, which Jak 3's city leaves empty (`hj2-restore-city-speeches`, the traffic's speech callback; the traffic manager clears them when it stops) |
 
@@ -1764,6 +1869,7 @@ continue's districts).
 | Warp to a district | Each district (one of Jak 2's continues in each) and the places in it: the hideout's street, the fortress gate, the Oracle (outside and inside), the port, the Hip Hog, the gun course, the port's air train, the bazaar (Brutter's stall, the east side), the Industrial Section (Vin's side, Vin's power station, the construction site gate, the south side), Main Town (west side, cable pillar, east side, pillar to the palace), the gardens (mountain airlock, north side), the palace plaza and roof, the stadium grounds, Keira's garage |
 | Warp outside the city | Dead Town, the Sage's hut, inside the fortress, the prison, the stadium race track, the construction site, the pumping station, the mountain top, Haven Forest, the castle pad, the dig site, and `freehq-start` (Jak 3's Freedom HQ, by the time gate) |
 | Weather | [8.3](#83-weather), with a Time of day submenu ([8.2](#82-time-of-day)) |
+| KG-Guard vs Freedom Fighters | The war mode, `*mod-jak2-haven-city-war*`, off at every boot, greyed out while the mod is off; switching it (or the mod) rebuilds the traffic of the city loaded now ([7.5](#75-war-mode-kg-guard-vs-freedom-fighters)) |
 
 The cable pillar's continue (`hj2-cable-pillar`) is one Jak 2 doesn't have (`door_continues`): 8 m
 in front of the door, facing it, the camera behind Jak.
@@ -2023,6 +2129,7 @@ the audio copied and packed) but not played yet.
 | 13 | Generic, reusable tools instead of the scripts of the havenj2 folder (Jak 2 → Jak 3 now, Jak 1 → Jak 3 and other directions later), with as little mod-specific code as possible; the level editor's submodule removed | The level port (`scripts/level_port`: games, game pairs, steps) and this mod's manifest (`custom_assets/jak3/ports/jak2-haven-city`); the levels' build steps generated (`jak2-haven-city.gp`, loaded by `game.gp`); the submodule link removed on branch `tools/open-goal-level-editor` | Every generated file compared with phase 12's: the same data, but for the order of two models in `hj2-dig`'s DGO, the order of lump keys in `hj2-forest` and `hj2-ruins` (the level builder sorts them) and the name of the palace gate's collision mesh (build-actor only prints it). One file had Windows line ends, now the same as the others |
 | 14 | The city split like Jak 2's (the low-res city seen from the palace lobby); Jak 2's Hellcats in the traffic | The hub `havenj2` (Jak 2's `ctywide`, `small-center`, `not-physical`) and 15 district levels from the template `city-district` (`small-edge`, `display-wait`), Jak 2's load sets ([5](#5-the-city-levels), [6.2](#62-the-levels-and-their-memory)); the level port's `level_templates`, `hub`, `level_flags`, `nav.sources`, `particles.levels`, `hubs_var`, the hub first in every level list (`with_hubs`), Jak 2's district display scripts kept, the hub's `.jsonc` generated in full (the `section` mode and the `shown` key removed), the water step folded into `levels`, `part-engine-max` per level; districts drawing with the hub's sprite page, released at the hub's logout; respawn by hub group (`hj2-hub-of`); the Hellcats ([7.3](#73-hellcats)) | The low-res city in the palace lobby: the pillar-top airlocks, born 420 m below with the default 10 km `vis-dist`, opened and showed `hj2-pcab` and `hj2-proof`; doors copy Jak 2's `vis-dist`. A district's actors need the hub's code: the hub loads first and unloads last, and stays loaded with Dead Town and the mountain (Jak 2 drops `ctywide` there). Jak 2's airlocks hide the hub while a district stays shown: the hub's sprite page is kept until it unloads. The Freedom League squad rewrites the `guard-car` target count every frame from its alert settings, which give the Hellcats none: its guard type 5 is held at 3 |
 | 15 | After the first phase-14 test: districts never shown, traffic floating over the void, Hellcats chasing Jak. Every level complete like Jak 2's, with the same levels loaded: every hazard that hurts Jak, no enemies, the palace's inside as the low-res throne seen from the roof, the small places (kiosk, Onin's tent, the canyon), no orbs, the garage doors still removed | `hj2-swap-in-district` ([6.1](#61-how-jak-2-loads-its-levels)); each district's own navigation (nav step `write_district`), the hub only the height map ([7.1](#71-navigation-data)); the Hellcats' pursuit removed ([7.3](#73-hellcats)); particles in 20 more places and the garage, `"auto"` pages and ids (`Allocator`), `skip_groups`, `defbehavior` callbacks copied ([5.3](#53-particles-and-sprite-textures)); static decor in meshes, `hj2-common-obs.gc`, the palace cable's hazards, the city's actors (parking spots, force-field walls, searchlights, guard turrets, barges), the places' end states, hazards and decor ([5.6](#56-city-actors), [6.12](#612-hazards-and-decor-of-the-places)); the mountain's iris doors open on `hj2-mincan`, and `hj2-kiosk`, `hj2-onin` ([6.13](#613-small-places)); the level port's lump kinds `string`, `symbol`, `type`, a ported actor's `art_groups` in its DGO, `ported_actors`, `region_script_overrides` for regions 429, 894, 177, 353 and 873; Jak 2's `GGA.DGO` and `ATE.DGO` extracted again with `rip_levels` | Districts never shown: some of Jak 2's loading faces can be walked around, and showing a level that isn't wanted is lost: the district asked is swapped in for a hidden one. The void traffic: the hub's merged navigation spawned it over districts not loaded; each district keeps Jak 2's own, and the engine links the 2 displayed ones. A crash going down the palace pillar (`h-bike-c`, `nav-branch` method 15): the traffic start unlinked a graph never linked, which corrupted it; only patched graphs are unlinked. Classes placed by levels loaded together (the windmills of the mountain and the cable, the flip steps of the cable and the roof) can't be linked by both: they moved to GAME |
+| 29 | "A war mode in the mod's menu, KG-Guard vs Freedom Fighters, in Jak 2's world and Jak 3's: red and yellow Krimzon Guards from Jak 2 against the blue guards, the troop transport delivering guards of either side at times, the citizens frightened and fewer on foot and in vehicles, jetpack guards of either side at times, no Freedom League or Krimzon Guard ships but crimson bikes on the ground; in the places around the city, red and yellow Krimzon Guards on Jak 2's nav meshes in place of the entities Jak 2 put there. In Jak 2's city with the war off: Torn's voice on the speakers in French (the user's recordings), the defense turrets coming out when the alert starts and attacking Jak in a vehicle, Onin's game from her tent, Vin's game (Jak 3)" | The war mode ([7.5](#75-war-mode-kg-guard-vs-freedom-fighters)): GAME switch and looks (`jak2-haven-city-war.gc`), marked hooks in `guard.gc`, `flying-turret.gc`, `kg-squad-member.gc`, `traffic-manager.gc`, `traffic-engine.gc`, its city director and Jak 2's transport ported (`levels/city/war/`, CWI and HJ2), the Krimzon Guards of the places (`jak2-haven-city-kg.gc`, the level port's `spawns`, places' nav meshes), the models built from Jak 2's data alone (`insert_joints`, `recolor`, `build_actor`, the art-only level `hj2-war`), CTYPESA and CTYPESC carrying the art in Jak 3's city. Torn's lines ([5.5](#55-palace-gate-propaganda-speakers-neon-signs): `encode_vag.py`, `voice_files`, `pack-vags` file lines). The turrets' rule ([7.2](#72-traffic)). Onin's game ([6.15](#615-onins-bubble-game)), Vin's game ([6.16](#616-vins-game): `borrow_sizes`). Built (`(mi)` clean, 3161 targets), not played | The mod's handles of its weather driver, time gate and respawn process were kept in `define`d globals, which keep 32 bits of a 64-bit handle (GOAL wiki common 1.4.17): each level activation started another weather driver and respawn process, each Freedom HQ activation another time gate. Now in a structure (`*hj2-handles*`). The level port wrote a build step for every `.gc` of the levels' code folder, so a file also in CWI was built twice: the war's city files are in `levels/city/war/`. A code review before the test: jetpack guards frozen after their first burst (the hover clip loop skipped the firing clip forever), `kg-squad-member` reading the absent faction manager in havenj2 (marked check), a war switch during a Jak 3 mission (now steps aside), parked crimson bikes without their pool, the panic's suppression boxes, Vin's game leaving Jak grabbed if killed while loading: fixed |
 | 28 | "Delete the textures of the `_all` folder of custom assets to clean up the repository" | The 23 PNGs of `custom_assets/jak3/texture_replacements/_all` removed (`git rm`), with the `.gitignore` exception added for them in change 26; the pack stays in `docs/modding/current_mod/texture_packs/haven-city-new-dawn-textures-v1.0.0.zip` (sha256 `67737599…cca`, the `index.json` entry) and in the v1.0.0 release | By design, a launcher install of the mod no longer retextures anything (the guard bike, the turrets, the Hellcat, the fort and the signs keep the game's own textures); the PNGs stay in the git history (`2767c4b27` and earlier) and in the zip |
 | 27 | The first launcher install of a player on Linux (a Steam Deck, Jak 2 and Jak 3 PAL) failed at the level port: `KeyError: 'animations'`, exit code 221 (4061 on 8 bits) | The decompiler's model rip no longer reads a dangling reference (`add_merc`, `fr3_to_gltf.cpp`: `node.skin` read by index); `glb.py` names the model, the rip and the animation when a borrowed animation is missing | `add_merc` kept `auto& node = model.nodes.emplace_back()` while adding one node per bone to the same vector: reading `node.skin` afterwards was undefined behavior. It worked on Windows (the freed memory kept its value) and failed on Linux for Jak 2's wren (`forest/wren-lod0.glb` ripped with no animation, then `rebuild_model` found none). Reproduced with the release's Linux extractor in an Ubuntu 22.04 container (834,356 bytes, 0 animations, against 870,256 and 7 on Windows), then fixed: the same build, patched, gives the Windows file. The Windows rips are byte-identical before and after the fix. Fixed in a release after v1.0.0 |
 | 26 | "When I build the texture pack and link it to the mod, it seems tied to Jak 2 rather than Jak 3; it should be considered a Jak 3 texture pack" | The 23 PNGs moved to `custom_assets/jak3/texture_replacements/_all` (the `.gitignore` exception with them); decompiler config key `extra_texture_replacement_dirs`, folders searched after the game's own ([4.1](#41-decompiler)); the level port's `extract` step passes the target game's folder when it extracts the source game, with the decompiler and with the extractor's `--decomp-config-override` (same config reader), and extracts again the source levels older than the newest PNG of either game's folder; the manifest's `texture_replacements` removed, the level builder applying Jak 3's folder by itself (the builder key stays, generic); `task modding-package-texture-pack -- --from-source` zips the Jak 3 folder (`supportedGames: ["jak3"]`) ([3](#3-rebuilding-it-step-by-step)) | Extracting the 51 Jak 2 DGOs again logs every replacement from `custom_assets\jak3\texture_replacements\_all` (`city-fort-*`, `sign-crimson`, `sign-praxis-banner`, the guard bike's, the turret's `kgt-gun05`, the Hellcat's in Jak 2's atoll pages); the forced build replaces the 8 Hellcat textures of `hellcat-ag` (`desoasis-pris`) from the same folder. Side effect, by design: every Jak 3 extraction (the launcher's Decompile of this mod, `task extract`) applies the pack to Jak 3's own levels, so a texture of the same name (the Hellcat's in Jak 3's cars, `sign-crimson`, `city-fort-*` in Jak 3's slums) changes in Jak 3's own city too; `out/jak3` is shared by the Jak 3 worktrees, so Jak 3 wasn't extracted again here |
@@ -2039,6 +2146,26 @@ the audio copied and packed) but not played yet.
 | 15b | After the user's second test: death riding up the palace pillar, the mountain missing from Haven Forest, black props in the Hip Hog and Onin's tent, a crash entering the Hip Hog, the void from the port to the palace, black areas and lag while districts load, respawn points like Jak 2's, the tanker crash place removed, living yakows, Jak 2's original doors. Jak 2's music and sounds researched, pending a decision ([14](#14-not-done-yet)) | Doors' height slice (`door_height`, `base_lumps`) and no `vis-dist` copied ([6.3](#63-doors-and-elevators)); `'special` kept ([6.1](#61-how-jak-2-loads-its-levels), [6.4](#64-pumping-station-mountain-and-haven-forest)); `"sun": null` mesh palettes, `update-mood-hj2-onin` ([6.12](#612-hazards-and-decor-of-the-places), [8.1](#81-moods)); particle `data` copied for copied callbacks ([5.3](#53-particles-and-sprite-textures)); the district guard with the generated district map and its 1.5 s look-ahead, the PC renderer told of loading levels (vanilla `level.gc` edit, off by default) ([6.1](#61-how-jak-2-loads-its-levels)); `hj2-update-vis-nick` in place of the continue manager ([9.3](#93-respawn-points)); spawn distance caps for the city's spawners and props ([11](#11-memory-and-performance)); `hj2-yakow` ([5.6](#56-city-actors)); 8 door classes from Jak 2's models for 42 doors ([6.3](#63-doors-and-elevators)) | Pillar death: phase 14's copied `vis-dist` (200 m) made the pillar-top airlocks be born on the way up, and their `on-inside` loaded the bottom set: the top unloaded under Jak. Jak 3's airlock tests distance on x and z only; Jak 2 paused unseen doors through its visibility data: a height lump bounds it. The mountain: the translator turned `'special` into `#f`. Black props: their light was in palette 0 only, and interior moods light others. Hip Hog crash: `hj2-hiphog-mirror-sheen-func` read Jak 2's `*hiphog-mirror-sheen-waveform*`, never copied. The void: no loading face covers that street. Black areas: the renderer heard of a level only once it was loaded. The district map puts 46 of the 48 city continues in their own district, the other 2 in alleys outside it, none in another Then: Haven Forest's far end (`hj2-forstb`: the mother tree and the Precursor stone head) shown as soon as region 436 loads it (`region_script_overrides`; Jak 2 shows it only when the camera crosses the small face 434); `hj2-anim-loop` steps its animation once per frame like Jak 2's `med-res-level` (a seek-until-done loop never yields on a one-frame animation such as the low-res throne's); swingpoles (Dead Town, the palace cable, the fortress exit) and the dig's trapezes grabbable: Jak 3's target only takes `'pole-grab` while `jakb-pole-cycle-ja` is loaded, an animation of `jak-pole+0-ag` that its own levels with poles carry (halfpipe, precc, tema): the manifest's `art_groups` give it to `swingpole` and `hj2-dig-balloon-lurker` |
 
 ## 14. Not done yet
+
+- **Not played in game yet (change 29):** on a cold boot (`task boot-game`) after the level port and
+  `(make-group "iso" :force #t)`, with the mod and the war mode on:
+  - in Jak 2's city: red, yellow and blue guards fighting, Krimzon Guards shooting Jak, the minimap
+    without icons on Krimzon Guards; a transport landing near Jak within 20 s, then every 45 to 90 s,
+    dropping guards of one side; jetpack guards of both colors flying and animated (idle, forward,
+    firing); citizens fleeing near the Krimzon Guards, few citizens and vehicles; no Hellcat nor
+    guard bike in the air, crimson bikes parked; switching the war off: the city back to Jak 2's
+    traffic at once;
+  - in Jak 3's city (outside a mission): the same, the war's models drawn (`hj2-war.fr3` in a free
+    renderer slot), no robot; during a mission, the war steps aside;
+  - in Dead Town, the pumping station, the mountain, Haven Forest, the dig, the fortress and the
+    prison's way out: Krimzon Guards appearing within 60 m, chasing and shooting Jak;
+  - with the war off: Torn's lines on the speakers with the game in French; the turrets rising when
+    the alert starts near Jak and firing while he drives; Onin's game in her tent; Vin's game at the
+    console of Vin's room (the board loading under the room).
+- **Known limits (change 29):** the weapon a war guard holds is its look's, the one it uses the
+  squad's (a red rifleman can throw grenades); the jetpack guards are silent in havenj2; no parked
+  crimson bike in Jak 3's city; the transport's 40 hit points and its landing spot (not checked for
+  room for its hull) are guesses to tune.
 
 - **Not played in game yet (phase 12):** everything in its row of [13](#13-change-history) but
   the Freedom HQ crash fix.

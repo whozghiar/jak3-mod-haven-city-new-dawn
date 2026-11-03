@@ -5,6 +5,10 @@
 ;; name in dgo: kg-squad-member
 ;; dgos: CWI
 
+;; og:jak2-haven-city added: the war mode's jetpack guards (pc/features/jak2-haven-city-war.gc, GAME)
+(define-extern hj2-war-hover? (function process symbol))
+(define-extern hj2-war-hover-hatred (function process process float))
+
 ;; DECOMP BEGINS
 
 ;; WARN: Return type mismatch symbol vs none.
@@ -77,6 +81,10 @@
   )
 
 (defmethod enemy->hatred-val ((this kg-squad-member) (arg0 process))
+  ;; og:jak2-haven-city added: a jetpack guard of the war hates the other side only
+  (if (hj2-war-hover? this)
+      (return (hj2-war-hover-hatred this arg0))
+      )
   (cond
     ((logtest? (process-mask guard) (-> arg0 mask))
      0.5
@@ -145,7 +153,8 @@
     ((logtest? (-> this flags) (citizen-flag in-mission))
      (set! (-> this faction-mode) (the-as uint 2))
      )
-    ((nonzero? (-> this controller branch))
+    ;; og:jak2-haven-city added the faction manager check: Jak 2's city (havenj2) runs without one
+    ((and *cty-faction-manager* (nonzero? (-> this controller branch)))
      (let ((v1-15 (get-city-mode (-> this squad))))
        0
        (cond

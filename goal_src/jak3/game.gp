@@ -91,6 +91,19 @@
   )
 (hash-table-set! *file-entry-map* "dir-tpages.go" #f)
 
+;; og:jak2-haven-city added: the war mode's art groups in Jak 3's own city (ctypesa.gd: the Krimzon
+;; Guards and the transport, ctypesc.gd: the jetpack guards), built by build-actor from the level
+;; port's models (levels/havenj2/jak2-haven-city.gp): pre-marked so that cgo-file doesn't look for
+;; them in the decompiler's output
+(hash-table-set! *file-entry-map* "hj2-kg-red-ag.go" #f)
+(hash-table-set! *file-entry-map* "hj2-kg-red-gl-ag.go" #f)
+(hash-table-set! *file-entry-map* "hj2-kg-yellow-ag.go" #f)
+(hash-table-set! *file-entry-map* "hj2-kg-yellow-gl-ag.go" #f)
+(hash-table-set! *file-entry-map* "hj2-transport-ag.go" #f)
+(hash-table-set! *file-entry-map* "hj2-vehicle-turret-ag.go" #f)
+(hash-table-set! *file-entry-map* "hj2-hover-red-ag.go" #f)
+(hash-table-set! *file-entry-map* "hj2-hover-blue-ag.go" #f)
+
 (cgo-file "game.gd" '("$OUT/obj/gcommon.o" "$OUT/obj/gstate.o" "$OUT/obj/gstring.o" "$OUT/obj/gkernel.o"))
 
 ;; note: some of these dependencies are slightly wrong because cgo-file doesn't really handle

@@ -126,7 +126,7 @@ names (`callbacks_file`) are in the same folder. Top-level keys:
 | `named_actors`, `named_etypes` | Source actors placed by name, and their classes and lumps (`path`, `float`, `int32`, `uint32`, `vector`, `string`, `symbol`, `type`) |
 | `teleporters`, `new_teleporters` | A source actor replaced by a teleporter class; a teleporter at a position. Their `dest` is a continue |
 | `ported_levels`, `ported_etypes`, `ported_everywhere` | Source actors placed by class: in these source levels, or everywhere. Crates always are (the pair's `CRATES`). A placed class's `art_groups` entry goes into the level's DGO |
-| `models` | Models rebuilt from source rips for `build-actor`, by the class using them: `rip`, `prims`, `collide`, `anims`, `anim_fps`, `extras` ([common/glb.py](common/glb.py) `rebuild_model`) |
+| `models` | Models rebuilt from source rips for `build-actor`, by the class using them: `rip`, `prims`, `collide`, `anims` (`[rip, clip, our name]`, or a clip of the model's own rip: `"x"` or `[x, y]`, named `<model>-x` or `<model>-y`), `anim_fps`, `insert_joints` (joints added to the skeleton for code written for more joints), `recolor` (a hue window of its textures turned), `build_actor` (its `build-actor` options, e.g. `{"framerate": 15.0}`), `extras` ([common/glb.py](common/glb.py) `rebuild_model`) |
 | `region_id_offset`, `region_open_tasks`, `region_script_overrides` | Our region ids; per source region, tasks taken as open, scripts replaced |
 | `continues` | Our continue names (`prefix`, `names`), the source continues `kept` anyway, level lists (`wants`), and continues added: in front of a door (`door_continues`), at a position in a source level (`new_continues`), in a target game level (`target_continues`) |
 | `sound` | The source game's sound ([steps/sound.py](steps/sound.py)): the scripts' sound banks and ambiences, the continues' banks and the levels' music are kept, renamed with `prefix`; `extra_banks` (target game banks loaded with a source bank while a hub is loaded), `music` (source musics the mod's code plays itself), `voice_prefix` and `voices` (GOAL arrays of voice lines, packed by `goalc`'s `pack-vags`); `game_code` (the mod's GAME files holding classes the levels place) and `level_banks_var` (the GOAL list of the source banks each level's content needs besides its wanted ones, from the sound check: [steps/sound_check.py](steps/sound_check.py)). Without the block, the levels are silent |
@@ -148,8 +148,9 @@ A level:
 | `particles` (on a level) | [steps/particles.py](steps/particles.py): `"page"`, `"parts"`, `"groups"` can be `"auto"` (a free texture page and ids, chosen by the step), `skip_groups` (source groups whose spawners aren't placed), `levels`, `target_textures` and `source_textures` (textures added at the end of its texture page, for the mod's code to find by name) |
 | `continues` | Its continues, as source names; without it, all its source levels' but the title, intro, demo and cutscene ones |
 | `code`, `models` | Objects of its DGO after the art groups; models built for it besides its actors' |
-| `level_info` | Its level-load-info: `callbacks`, `draw_priority`, `part_engine_max`, `comment`, `mood`, `city_map_bits` (the squares of the city's minimap grid whose map it holds, a hex string) |
-| `water`, `mesh`, `ocean_source`, `nav` | [steps/water.py](steps/water.py), [steps/mesh.py](steps/mesh.py), [steps/ocean.py](steps/ocean.py), [steps/nav.py](steps/nav.py) (`nav.sources`: the source levels whose navigation it holds; one is kept as it is, several are merged; none: only the height map) |
+| `level_info` | Its level-load-info: `callbacks`, `draw_priority`, `part_engine_max`, `comment`, `mood`, `city_map_bits` (the squares of the city's minimap grid whose map it holds, a hex string), `borrow_sizes` (the sizes in KB of the borrow heaps it hosts, at most 5: where the game loads a borrow level, like Jak 3's Vin room for its power game) |
+| `water`, `mesh`, `ocean_source`, `nav` | [steps/water.py](steps/water.py), [steps/mesh.py](steps/mesh.py), [steps/ocean.py](steps/ocean.py), [steps/nav.py](steps/nav.py) (`nav.sources`: the source levels whose navigation it holds; one is kept as it is, several are merged; none: only the height map; sources with nav meshes but no traffic data: their nav meshes alone) |
+| `spawns` | One actor of the mod's class (`etype`) at the place of each source actor of some classes (`from`) of its sources, whatever the story state: `min_distance` (meters between two), `aid` (first actor id), `lumps` (copied from the source actor), `cycle` (`{lump: [kind, [values]]}`, the i-th actor gets `values[i % n]`) ([steps/levels.py](steps/levels.py) `spawn_actors`) |
 | `traffic` | The target game's traffic code taken from one of its DGOs (`code_from`, `skip`, `replace`), the level's own (`code`), the traffic's art groups (`art`) |
 | `props`, `custom_props` | [steps/props.py](steps/props.py) |
 | `particles` | [steps/particles.py](steps/particles.py) (`particles.levels`: the part spawners of other levels' sources go to those levels) |
@@ -158,7 +159,7 @@ A level:
 
 - **A source game**: `games/<game>.py` with what `games/jak2.py` gives: `NAME`, `TITLE`, `METER`,
   the extraction paths (`ENTITIES`, `RIPS`), `SUN_DIRECTIONS`, a `Story` class (`closed`,
-  `level_actors`, `all_actors`, `hidden_prototypes`), `level_names`, `memory_modes`, `continues`,
+  `level_actors`, `all_actors`, `hidden_prototypes`), `dump_actors`, `level_names`, `memory_modes`, `continues`,
   `regions`, `cameras`. The decompiler must export the data the steps read for that game.
 - **A target game**: `games/<game>.py` with what `games/jak3.py` gives: its level heap (`CHUNKS`,
   `CHUNK_COUNT`, `MEMORY_ORDER`, `fits`), `continue_point` and `level_load_info`. Its level builder

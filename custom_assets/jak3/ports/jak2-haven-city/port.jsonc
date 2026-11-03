@@ -47,6 +47,11 @@
     "file": "goal_src/jak3/levels/havenj2/jak2-haven-city.gp",
     "default_deps": ["jak2-haven-city-world"],
     "code_deps": {
+      // Onin's bubble game (hj2-onin-obs.gc) launches the particles of hj2-onin-part.gc by the ids
+      // it defines (extra_groups, extra_parts)
+      "hj2-onin-obs": ["jak2-haven-city-world", "hj2-onin-part"],
+      // Vin's game subclasses Jak 3's power-game (power-game.o, linked before it in HJV)
+      "hj2-vin-game": ["jak2-haven-city-world", "power-game"],
       "havenj2-signs": ["havenj2-part"],
       "havenj2-obs": ["havenj2-signs"],
       "havenj2-farm": ["havenj2-obs"],
@@ -85,6 +90,13 @@
     // the speakers' speeches (havenj2-obs.gc), the citizens' and the guards' lines (Jak 2's
     // ctywide-speech.gc, given to Jak 3's civ-* and guard-* speech types in havenj2-traffic.gc).
     "voice_prefix": "j",
+    // the mod's own lines (encode_vag.py next to this file): Torn's speaker lines, the user's
+    // recordings, which the propaganda speakers say instead of the Baron's when the game is in
+    // French and the war mode is off (hj2-propa-speech, havenj2-obs.gc)
+    "voice_files": {
+      "*hj2-torn-sounds*": {"torn2": "custom_assets/jak3/ports/jak2-haven-city/voices/TORN2.vag", "torn3": "custom_assets/jak3/ports/jak2-haven-city/voices/TORN3.vag",
+                            "torn4": "custom_assets/jak3/ports/jak2-haven-city/voices/TORN4.vag", "torn5": "custom_assets/jak3/ports/jak2-haven-city/voices/TORN5.vag"}
+    },
     "voices": {
       "*hj2-propa-sounds*": ["prop009", "prop010", "prop011", "prop012", "prop013", "prop014", "prop015", "prop016", "prop017", "prop018", "prop019", "prop020", "prop021", "prop022", "prop023", "prop024", "prop025", "prop026", "prop028", "prop027", "prop029", "prop030", "prop031", "prop032", "prop033", "prop034", "prop035", "prop036", "prop037", "prop038", "prop039", "prop040", "prop041", "prop042", "prop043", "prop008", "prop006", "prop005", "prop004", "prop002", "prop003", "bar001", "prop044", "prop045", "prop046", "prop047", "prop048", "prop049", "prop051", "prop052", "prop053", "prop054", "prop055", "prop056"],
       "*hj2-civ-m-alert-sounds*": ["cit099", "cit099a", "cit099b", "cit100", "cit100a", "cit101", "cit101a", "cit101b"],
@@ -111,6 +123,16 @@
       "*hj2-whack-hit-sounds*": ["tswm005", "tswm006", "tswm008"],
       "*hj2-whack-wrong-sounds*": ["tswm019", "tswm020", "tswm021", "tswm039", "tswm040", "tswm041", "tswm042", "tswm043", "tswm046", "tswm051", "tswm052", "tswm053"],
       "*hj2-whack-win-sounds*": ["tswm050", "tswm054", "tswm055", "tswm056", "tswm023", "tswm024", "tswm025", "tswm026"],
+      // Pecker at Onin's bubble game (Jak 2's talker speeches 141 to 169, onin-game.gc there;
+      // hj2-onin-obs.gc): the start, a wave played well (1 miss at most) or badly (more than 4), a
+      // button with no bubble of its shape, a bubble landed, the end of a game won or lost
+      "*hj2-onin-start-sounds*": ["pek015"],
+      "*hj2-onin-good-wave-sounds*": ["pek011", "pek012", "pek013", "pek020", "pek027", "pek030", "pek031"],
+      "*hj2-onin-bad-wave-sounds*": ["pek018", "pek023", "pek024", "pek028", "pek029"],
+      "*hj2-onin-wrong-sounds*": ["pek014", "pek016", "pek017", "pek019"],
+      "*hj2-onin-splat-sounds*": ["pek021", "pek022"],
+      "*hj2-onin-win-sounds*": ["pek033", "pek034"],
+      "*hj2-onin-lose-sounds*": ["pek035", "pek036", "pek037", "pek038", "pek039", "pek040", "pek041"],
       "*hj2-whack-lose-sounds*": ["tswm030", "tswm031", "tswm032", "tswm033", "tswm034", "tswm036", "tswm037", "tswm038"]
     }
   },
@@ -230,8 +252,10 @@
       "continues": [],
       // the code of its districts' props, signs, palace gate, speakers and crops, after the traffic
       "code": ["ctymark-obs-h.o", "ctymark-obs.o", "ctyfarm-obs.o", "havenj2-part.o", "havenj2-signs.o", "havenj2-obs.o", "havenj2-farm.o"],
-      // the traffic's guard bikes (hj2-guard-bike, havenj2-traffic.gc), rebuilt from Jak 2's model
-      "models": ["hj2-guard-bike"],
+      // the traffic's guard bikes (hj2-guard-bike, havenj2-traffic.gc), rebuilt from Jak 2's model,
+      // and the war mode's models (the "models" block): its Krimzon Guards, jetpack guards and
+      // troop transport with its turret
+      "models": ["hj2-guard-bike", "hj2-kg-red", "hj2-kg-red-gl", "hj2-kg-yellow", "hj2-kg-yellow-gl", "hj2-hover-red", "hj2-hover-blue", "hj2-transport", "hj2-vehicle-turret"],
       "level_info": {
         "callbacks": [[6, "*security-texture-anim-array*"], [33, "havenj2-login"], [34, "havenj2-logout"], [35, "havenj2-activate"], [36, "havenj2-deactivate"]],
         "draw_priority": "9.0",
@@ -291,8 +315,10 @@
         "code_from": "goal_src/jak3/dgos/cwi.gd",
         "skip": ["ctyport-obs", "ctywide-obs", "ctywide-part", "ctywide-scenes", "ctywide-tasks", "krimson-wall", "mhcity-obs", "mhcity-obs2", "mhcity-part", "traffic-height-map", "trail", "trail-graph"],
         "replace": {"traffic-height-map": "havenj2-height-map"},
-        "code": ["havenj2-traffic.o"],
-        "art": ["citizen-norm-ag", "citizen-fat-ag", "citizen-chick-ag", "crimson-guard-ag", "shield-sphere-ag", "shield-sphere-distort-ag", "shield-sphere-explode-ag", "cara-ag", "carb-ag", "carc-ag", "bikea-ag", "bikeb-ag", "bikec-ag", "citizen-norm-rider-ag", "vehicle-explosion-ag", "jak-pilot+0-ag", "jak-pilot-hcar+0-ag", "jak-pilot-gun+0-ag", "hellcat-ag"]
+        // flying-turret.o: the war mode's jetpack guards (jak2-haven-city-war.gc), Jak 3's Krimzon
+        // Guard flying turret drawn with Jak 2's jetpack guard; kg-debris-ag below: its death debris
+        "code": ["flying-turret.o", "havenj2-traffic.o"],
+        "art": ["citizen-norm-ag", "citizen-fat-ag", "citizen-chick-ag", "crimson-guard-ag", "shield-sphere-ag", "shield-sphere-distort-ag", "shield-sphere-explode-ag", "cara-ag", "carb-ag", "carc-ag", "bikea-ag", "bikeb-ag", "bikec-ag", "citizen-norm-rider-ag", "vehicle-explosion-ag", "jak-pilot+0-ag", "jak-pilot-hcar+0-ag", "jak-pilot-gun+0-ag", "hellcat-ag", "kg-debris-ag"]
       },
       // Jak 2's particle effects of the city: signs and posters, neon signs, street lights and
       // glows, chimney smoke, steam, fountains, drips, fires, the Baron's propaganda holograms...
@@ -497,8 +523,14 @@
       "what": "Vin's power station room",
       "sources": ["vinroom"],
       "sky": false,
-      // its turbines' lightning
-      "code": ["hj2-vin-obs.o"]
+      // its turbines' lightning (hj2-vin-obs.o); Jak 3's Vin game: Jak 3's power-game.o (built by
+      // the stock game.gp for VIN.DGO) and its glue, hj2-vin-game.o (no task, a prompt at the
+      // console, replays only; levels/havenj2/hj2-vin-game.gc)
+      "code": ["hj2-vin-obs.o", "power-game.o", "hj2-vin-game.o"],
+      // the game is played on Jak 3's board level powergd (POWERGD.DGO), a borrow level loaded
+      // into slot 0 of this level's borrow heap: Jak 3's vinroom's size (#xbb8 KB, times
+      // BORROW_MULT on PC: 29 MB of this small-edge level's 59 MB)
+      "level_info": {"borrow_sizes": [3000]}
     },
     {
       "name": "hj2-hide", "nick": "hjd", "iso": "HJ2HIDE", "index": "0x12D", "base_id": 21800,
@@ -535,6 +567,12 @@
       // (shown 'special: drawn, not a level Jak is in), so they're one level here. Its sea is
       // Jak 2's own ocean map (hj2-ruins-ocean.gc), its beams Jak 2's (hj2-ruins-obs.gc)
       "name": "hj2-ruins", "nick": "hjr", "iso": "HJ2RUINS", "index": "0x131", "base_id": 22200,
+      // the war mode (jak2-haven-city-war.gc, jak2-haven-city-kg.gc): Jak 2's nav meshes, and a
+      // Krimzon Guard spawner (hj2-kg-spawner) where Jak 2 put each enemy ("spawns", the level port)
+      "nav": {"sources": ["ruins"]},
+      "spawns": {"etype": "hj2-kg-spawner", "from": ["grunt", "flitter", "fodder", "grenadier", "shield-gunner", "rapid-gunner", "amphibian", "grunt-mech"], "min_distance": 4.0, "aid": 90000, "lumps": {"nav-mesh-actor": "uint32"}, "cycle": {"look": ["int32", [0, 0, 1]]}},
+      // the war mode's Krimzon Guards (red and yellow, with rifles)
+      "models": ["hj2-kg-red", "hj2-kg-yellow"],
       // Jak 2's static props kept as background (the stone blocks of Dead Town): one mesh, the mesh step
       "mesh": {"props": {"pushblock": ["box", 0], "throwblock": ["box", 0]}, "post_width": 0.6, "palette": {"ambient": 110.0, "sun": 100.0}},
       "what": "Dead Town and the Sage's hut, through the slums airlock",
@@ -591,12 +629,19 @@
       // the pumping station: the slums airlock opens on atollext (the way to it, loaded next to
       // the city), whose far airlock leads to atoll (the station itself, loaded without the city)
       "name": "hj2-atollx", "nick": "hja", "iso": "HJ2ATOLX", "index": "0x138", "base_id": 22800,
+      "spawns": {"etype": "hj2-kg-spawner", "from": ["amphibian", "metalmonk", "juicer", "spyder", "battle"], "min_distance": 4.0, "aid": 91000, "lumps": {"nav-mesh-actor": "uint32"}, "cycle": {"look": ["int32", [0, 0, 1]]}},
+      // the war mode's Krimzon Guards (red and yellow, with rifles)
+      "models": ["hj2-kg-red", "hj2-kg-yellow"],
       "what": "the way to the pumping station, from the slums airlock",
       "sources": ["atollext"],
       "sky": true
     },
     {
       "name": "hj2-atoll", "nick": "hjl", "iso": "HJ2ATOLL", "index": "0x139", "base_id": 22900,
+      "nav": {"sources": ["atoll"]},
+      "spawns": {"etype": "hj2-kg-spawner", "from": ["fodder", "battle"], "min_distance": 4.0, "aid": 92000, "lumps": {"nav-mesh-actor": "uint32"}, "cycle": {"look": ["int32", [0, 0, 1]]}},
+      // the war mode's Krimzon Guards (red and yellow, with rifles)
+      "models": ["hj2-kg-red", "hj2-kg-yellow"],
       "particles": {"files": ["goal_src/jak2/levels/atoll/atoll-part.gc"], "textures_from": ["GAME", "atoll"], "page": "auto", "parts": "auto", "groups": "auto"},
       "what": "the pumping station",
       "sources": ["atoll"],
@@ -627,6 +672,10 @@
     },
     {
       "name": "hj2-mtnx", "nick": "hjx", "iso": "HJ2MTNX", "index": "0x13B", "base_id": 23100,
+      "nav": {"sources": ["mtnext", "mountain"]},
+      "spawns": {"etype": "hj2-kg-spawner", "from": ["hopper", "metalmonk", "centurion", "rhino", "battle"], "min_distance": 4.0, "aid": 93000, "lumps": {"nav-mesh-actor": "uint32"}, "cycle": {"look": ["int32", [0, 0, 1]]}},
+      // the war mode's Krimzon Guards (red and yellow, with rifles)
+      "models": ["hj2-kg-red", "hj2-kg-yellow"],
       "what": "the outside of the mountain temple, seen from the mountain top",
       "sources": ["mtnext"],
       "sky": true,
@@ -641,6 +690,10 @@
     },
     {
       "name": "hj2-forest", "nick": "hjf", "iso": "HJ2FORST", "index": "0x13C", "base_id": 23200,
+      "nav": {"sources": ["forest"]},
+      "spawns": {"etype": "hj2-kg-spawner", "from": ["predator", "spyder", "pegasus"], "min_distance": 4.0, "aid": 94000, "lumps": {"nav-mesh-actor": "uint32"}, "cycle": {"look": ["int32", [0, 0, 1]]}},
+      // the war mode's Krimzon Guards (red and yellow, with rifles)
+      "models": ["hj2-kg-red", "hj2-kg-yellow"],
       "what": "Haven Forest",
       "sources": ["forest"],
       "sky": true, "ocean": true,
@@ -650,6 +703,9 @@
     },
     {
       "name": "hj2-forstb", "nick": "hjn", "iso": "HJ2FORSB", "index": "0x13D", "base_id": 23300,
+      "spawns": {"etype": "hj2-kg-spawner", "from": ["crimson-guard-hover", "transport-level"], "min_distance": 4.0, "aid": 95000, "lumps": {"nav-mesh-actor": "uint32"}, "cycle": {"look": ["int32", [0, 0, 1]]}},
+      // the war mode's Krimzon Guards (red and yellow, with rifles)
+      "models": ["hj2-kg-red", "hj2-kg-yellow"],
       "what": "the far end of Haven Forest",
       "sources": ["forestb"],
       "sky": true, "ocean": true
@@ -669,6 +725,10 @@
     {
       // the lava platforms are Jak 3's rigid-body-platform (rigid-body-plat.o, the volcano's)
       "name": "hj2-dig", "nick": "hjt", "iso": "HJ2DIG", "index": "0x13F", "base_id": 23500,
+      "nav": {"sources": ["dig3a"]},
+      "spawns": {"etype": "hj2-kg-spawner", "from": ["flitter", "metalmonk", "grenadier", "battle"], "min_distance": 4.0, "aid": 96000, "lumps": {"nav-mesh-actor": "uint32"}, "cycle": {"look": ["int32", [0, 0, 1]]}},
+      // the war mode's Krimzon Guards (red and yellow, with rifles)
+      "models": ["hj2-kg-red", "hj2-kg-yellow"],
       "particles": {"files": ["goal_src/jak2/levels/dig/dig-part.gc"], "textures_from": ["GAME", "dig3a", "dig3b"], "page": "auto", "parts": "auto", "groups": "auto", "levels": ["dig3a", "dig3b"]},
       "what": "the dig",
       "sources": ["dig3a"],
@@ -685,6 +745,10 @@
       // the fortress: its gate in the slums opens on forresca (the way of Jak 2's rescue of his
       // friends, loaded next to the city), whose far end loads forrescb without the city
       "name": "hj2-forta", "nick": "hji", "iso": "HJ2FORRA", "index": "0x142", "base_id": 23800,
+      "nav": {"sources": ["forresca"]},
+      "spawns": {"etype": "hj2-kg-spawner", "from": ["crimson-guard-level", "crimson-guard-hover", "hover-formation", "battle"], "min_distance": 4.0, "aid": 97000, "lumps": {"nav-mesh-actor": "uint32"}, "cycle": {"look": ["int32", [0, 0, 1]]}},
+      // the war mode's Krimzon Guards (red and yellow, with rifles)
+      "models": ["hj2-kg-red", "hj2-kg-yellow"],
       "particles": {"files": ["goal_src/jak2/levels/fortress/rescue/forresca-part.gc"], "textures_from": ["GAME", "forresca"], "page": "auto", "parts": "auto", "groups": "auto"},
       "what": "the fortress, behind its gate in the slums",
       "sources": ["forresca"],
@@ -692,6 +756,10 @@
     },
     {
       "name": "hj2-fortb", "nick": "hjj", "iso": "HJ2FORRB", "index": "0x143", "base_id": 23900,
+      "nav": {"sources": ["forrescb"]},
+      "spawns": {"etype": "hj2-kg-spawner", "from": ["spydroid", "battle"], "min_distance": 4.0, "aid": 98000, "lumps": {"nav-mesh-actor": "uint32"}, "cycle": {"look": ["int32", [0, 0, 1]]}},
+      // the war mode's Krimzon Guards (red and yellow, with rifles)
+      "models": ["hj2-kg-red", "hj2-kg-yellow"],
       "particles": {"files": ["goal_src/jak2/levels/fortress/rescue/forrescb-part.gc"], "textures_from": ["GAME", "forrescb"], "page": "auto", "parts": "auto", "groups": "auto"},
       "what": "the far end of the fortress",
       "sources": ["forrescb"],
@@ -714,6 +782,10 @@
     },
     {
       "name": "hj2-fexa", "nick": "hkf", "iso": "HJ2FEXA", "index": "0x146", "base_id": 51000,
+      "nav": {"sources": ["forexita"]},
+      "spawns": {"etype": "hj2-kg-spawner", "from": ["crimson-guard-level"], "min_distance": 4.0, "aid": 99000, "lumps": {"nav-mesh-actor": "uint32"}, "cycle": {"look": ["int32", [0, 0, 1]]}},
+      // the war mode's Krimzon Guards (red and yellow, with rifles)
+      "models": ["hj2-kg-red", "hj2-kg-yellow"],
       "particles": {"files": ["goal_src/jak2/levels/fortress/exit/forexita-part.gc"], "textures_from": ["GAME", "forexita"], "page": "auto", "parts": "auto", "groups": "auto"},
       "what": "the way out of the fortress, from the prison",
       "sources": ["forexita"],
@@ -753,14 +825,23 @@
       "particles": {"files": ["goal_src/jak2/levels/city/kiosk/kiosk-part.gc"], "textures_from": ["GAME", "kiosk"], "page": "auto", "parts": "auto", "groups": "auto"}
     },
     {
-      // Onin's tent, in the market (ctymarkb loads and shows it)
+      // Onin's tent, in the market (ctymarkb loads and shows it), and Onin's bubble game
+      // (hj2-onin-obs.gc): Onin and Pecker are an actor (ported_etypes onin-npc, models
+      // hj2-onin-npc); the game's bubbles are onin-game.gc's particles (extra_groups), the pot's
+      // sparks and the tiki's drips are turned off during a game by part id (extra_parts)
       "name": "hj2-onin", "nick": "hki", "iso": "HJ2ONIN", "index": "0x158", "base_id": 69000,
       "what": "Onin's tent, in the market",
       "sources": ["onintent"],
       "sky": false,
       "level_info": {"mood": "update-mood-hj2-onin"},
       "mesh": {"props": {"onin-brain": [null, null]}, "post_width": 0.6, "palette": {"ambient": 128.0, "sun": null}},
-      "particles": {"files": ["goal_src/jak2/levels/city/onintent/onintent-part.gc"], "textures_from": ["GAME", "onintent"], "page": "auto", "parts": "auto", "groups": "auto"}
+      "particles": {"files": ["goal_src/jak2/levels/city/onintent/onintent-part.gc", "goal_src/jak2/levels/city/onintent/onin-game.gc"], "textures_from": ["GAME", "onintent"], "page": "auto", "parts": "auto", "groups": "auto",
+                    "extra_groups": {"group-onin-bubble-triangle": "*hj2-onin-bubble-triangle-ids*", "group-onin-bubble-circle": "*hj2-onin-bubble-circle-ids*", "group-onin-bubble-x": "*hj2-onin-bubble-x-ids*", "group-onin-bubble-square": "*hj2-onin-bubble-square-ids*",
+                                     "group-onin-bubble-birth-triangle": "*hj2-onin-birth-triangle-ids*", "group-onin-bubble-birth-circle": "*hj2-onin-birth-circle-ids*", "group-onin-bubble-birth-x": "*hj2-onin-birth-x-ids*", "group-onin-bubble-birth-square": "*hj2-onin-birth-square-ids*",
+                                     "group-onin-bubble-pop-triangle": "*hj2-onin-pop-triangle-ids*", "group-onin-bubble-pop-circle": "*hj2-onin-pop-circle-ids*", "group-onin-bubble-pop-x": "*hj2-onin-pop-x-ids*", "group-onin-bubble-pop-square": "*hj2-onin-pop-square-ids*",
+                                     "group-onin-bubble-land-triangle": "*hj2-onin-land-triangle-ids*", "group-onin-bubble-land-circle": "*hj2-onin-land-circle-ids*", "group-onin-bubble-land-x": "*hj2-onin-land-x-ids*", "group-onin-bubble-land-square": "*hj2-onin-land-square-ids*"},
+                    "extra_parts": {"3429": "*hj2-onin-heatpot-spark-part-id*", "3437": "*hj2-onin-tiki-drip-part-id*"}},
+      "code": ["hj2-onin-obs.o"]
     },
     {
       // the canyon behind the mountain's iris doors (the mountain loads and shows it)
@@ -770,6 +851,23 @@
       "sky": true,
       "level_info": {"mood": "update-mood-hj2-mount"},
       "mesh": {"props": {"mincan-lighthouse": [null, null], "mincan-cogs": [null, null], "mincan-lens": [null, null]}, "post_width": 0.6, "palette": {"ambient": 110.0, "sun": 100.0}}
+    },
+    {
+      // The war mode's art, no place: the PC renderer loads its .fr3 (the merc models of its
+      // "models") while Jak 3's own city is at war, so they draw there; the game never loads its
+      // DGO (its art groups go into Jak 3's city DGOs, game.gp). No source level, so no geometry,
+      // actor, region, continue or sound (the level builder makes an empty level: no drawable
+      // tree, an empty collide hash); in no level list. Its level-load-info exists (every level of
+      // the port has one) and nothing loads it; its memory is fixed (none to take from a source)
+      "name": "hj2-war", "nick": "hkw", "iso": "HJ2WAR", "index": "0x15B", "base_id": 72000,
+      "what": "the war mode's models, for Jak 3's own city (art only, never loaded)",
+      "sources": [],
+      "memory": "small-edge",
+      "continues": [],
+      "ported_actors": false,
+      "sky": false,
+      "level_info": {"mood": "update-mood-havenj2"},
+      "models": ["hj2-kg-red", "hj2-kg-red-gl", "hj2-kg-yellow", "hj2-kg-yellow-gl", "hj2-hover-red", "hj2-hover-blue", "hj2-transport", "hj2-vehicle-turret"]
     }
     // Not ported: the inside of the palace (palent, throne), only reached in Jak 2's missions.
   ],
@@ -779,12 +877,13 @@
   // sprite-vec-data-2d), the callbacks of Jak 3's level code the levels include (ctyfarm-obs, in
   // havenj2), and ids never taken (Jak 3's level code in havenj2)
   "particles": {
-    "copied_callbacks": ["check-drop-level-ruins-rubble", "check-drop-level-ruins-tower-userdata", "ruins-bird-bob-func", "sparticle-ruins-bird-moon", "palcab-bird-bob-func", "sparticle-palcab-bird-moon", "check-drop-level-atoll-drop", "check-drop-level-dig-lava-bloops", "check-drop-level-forexitb-drop-water-userdata", "check-drop-level-hide-fireplace-sparks", "birth-func-rotate-hour", "birth-func-rotate-minute", "hiphog-mirror-sheen-func", "birth-func-vinroom-sphere", "check-drop-level-kiosk-fire-sparks", "check-bubble-surface-onintent", "check-onintent-bugs", "birth-func-whack-score"],
+    "copied_callbacks": ["birth-func-onin-bubble-pop", "birth-func-onin-bubble-birth-pop", "check-drop-level-ruins-rubble", "check-drop-level-ruins-tower-userdata", "ruins-bird-bob-func", "sparticle-ruins-bird-moon", "palcab-bird-bob-func", "sparticle-palcab-bird-moon", "check-drop-level-atoll-drop", "check-drop-level-dig-lava-bloops", "check-drop-level-forexitb-drop-water-userdata", "check-drop-level-hide-fireplace-sparks", "birth-func-rotate-hour", "birth-func-rotate-minute", "hiphog-mirror-sheen-func", "birth-func-vinroom-sphere", "check-drop-level-kiosk-fire-sparks", "check-bubble-surface-onintent", "check-onintent-bugs", "birth-func-whack-score"],
     "level_callbacks": ["birth-func-ctyfarma-drip", "birth-func-ctyfarmb-drip", "check-farm-piece-ground"],
     // ids of the target game's level code linked with the levels: ctymark-obs (parts 1117-1162,
-    // groups 248-253), ctyfarm-obs (parts 4001-4047, groups 1134-1145); "auto" ids start past the
-    // fixed ranges of the city and its places
-    "reserved": {"parts": [[1117, 1162], [4001, 4047]], "groups": [[248, 253], [1134, 1145]]},
+    // groups 248-253), power-game (Vin's game in hj2-vin: parts 3231-3247, groups 907-912),
+    // ctyfarm-obs (parts 4001-4047, groups 1134-1145); "auto" ids start past the fixed ranges of
+    // the city and its places
+    "reserved": {"parts": [[1117, 1162], [3231, 3247], [4001, 4047]], "groups": [[248, 253], [907, 912], [1134, 1145]]},
     "auto_start": {"parts": 3000, "groups": 880}
   },
 
@@ -912,7 +1011,7 @@
   // a swingpole while a level of his has them, like its own levels with poles (halfpipe, precc,
   // tema); the levels placing swingpoles or the dig's trapezes carry them. Jak's slide animations
   // (jak-tube+0-ag, the target's jakb-tube-turn-ja...) the same way, with the slides
-  "art_groups": {"swingpole": "jak-pole+0-ag", "slide-control": "jak-tube+0-ag", "hj2-dig-balloon-lurker": "jak-pole+0-ag", "hj2-air-train": "air-train-ag", "hj2-time-gate": "warp-gate-ag", "hj2-security-wall": "security-wall-ag", "searchlight": "searchlight-ag", "hj2-boat-manager": "barge-ag"},
+  "art_groups": {"hj2-power-game": null, "swingpole": "jak-pole+0-ag", "slide-control": "jak-tube+0-ag", "hj2-dig-balloon-lurker": "jak-pole+0-ag", "hj2-air-train": "air-train-ag", "hj2-time-gate": "warp-gate-ag", "hj2-security-wall": "security-wall-ag", "searchlight": "searchlight-ag", "hj2-boat-manager": "barge-ag"},
 
   // Actors ported by Jak 2 level and name. The mountain's: the warp gates between its foot (the
   // gardens airlock) and its top, Jak 2's only way up; the trans-plat riding from the top down to
@@ -922,10 +1021,12 @@
   // to Vin's room. The temple's return platform (mtn-plat-return-5, in mtnext; its -6 is only
   // spawned while mtnext is a backdrop). The city's 9 guard turrets (hj2-cty-guard-turret,
   // havenj2-obs.gc), hidden under their lids until the alert rises near a vehicle Jak drives.
-  "named_actors": [["mountain", "warp-gate-10"], ["mountain", "warp-gate-11"], ["mountain", "trans-plat-1"], ["mountain", "mtn-iris-door-2"], ["mountain", "mtn-iris-door-3"], ["mountain", "mtn-plat-elevator-1"], ["dig3a", "warp-gate-28"], ["vinroom", "warp-gate-21"], ["mtnext", "mtn-plat-return-5"], ["ctygena", "cty-guard-turret-6"], ["ctyinda", "cty-guard-turret-3"], ["ctyindb", "cty-guard-turret-4"], ["ctyindb", "cty-guard-turret-7"], ["ctysluma", "cty-guard-turret-8"], ["ctysluma", "cty-guard-turret-9"], ["ctysluma", "cty-guard-turret-10"], ["ctyslumb", "cty-guard-turret-1"], ["stadium", "cty-guard-turret-2"]],
+  // Vin's room's scene-stage-42 (the room's center, where Jak 3 places its Vin game, power-game-1)
+  // is hj2-power-game (hj2-vin-game.gc): Jak 3's Vin game
+  "named_actors": [["vinroom", "scene-stage-42"], ["mountain", "warp-gate-10"], ["mountain", "warp-gate-11"], ["mountain", "trans-plat-1"], ["mountain", "mtn-iris-door-2"], ["mountain", "mtn-iris-door-3"], ["mountain", "mtn-plat-elevator-1"], ["dig3a", "warp-gate-28"], ["vinroom", "warp-gate-21"], ["mtnext", "mtn-plat-return-5"], ["ctygena", "cty-guard-turret-6"], ["ctyinda", "cty-guard-turret-3"], ["ctyindb", "cty-guard-turret-4"], ["ctyindb", "cty-guard-turret-7"], ["ctysluma", "cty-guard-turret-8"], ["ctysluma", "cty-guard-turret-9"], ["ctysluma", "cty-guard-turret-10"], ["ctyslumb", "cty-guard-turret-1"], ["stadium", "cty-guard-turret-2"]],
   // their classes (warp gates are Jak 3's), and the lumps kept ("path": points rounded, w = 1): the
   // trans-plat's ride, Jak 2's curve knots and speed (the return platform has no speed lump)
-  "named_etypes": {"trans-plat": {"etype": "hj2-trans-plat", "lumps": {"path": "path", "path-k": "float", "speed": "float"}}, "mtn-iris-door": {"etype": "hj2-iris-door"}, "mtn-plat-elevator": {"etype": "hj2-mtn-elevator"}, "mtn-plat-return": {"etype": "hj2-mtn-plat-return", "lumps": {"path": "path", "path-k": "float"}}, "cty-guard-turret": {"etype": "hj2-cty-guard-turret"}},
+  "named_etypes": {"scene-stage": {"etype": "hj2-power-game"}, "trans-plat": {"etype": "hj2-trans-plat", "lumps": {"path": "path", "path-k": "float", "speed": "float"}}, "mtn-iris-door": {"etype": "hj2-iris-door"}, "mtn-plat-elevator": {"etype": "hj2-mtn-elevator"}, "mtn-plat-return": {"etype": "hj2-mtn-plat-return", "lumps": {"path": "path", "path-k": "float"}}, "cty-guard-turret": {"etype": "hj2-cty-guard-turret"}},
   // Jak 2's air trains between the port and the castle pad, as hj2-air-train (Jak 3's air train, in
   // GAME: jak2-haven-city-world.gc). Riding one is a teleport, a short fade to the continue next to
   // the other air train (dest, a Jak 2 continue). Jak 2 hides the port's once the game is over:
@@ -955,8 +1056,10 @@
   // as in Jak 2's escape (it then marks them dead). Its lifts are Jak 3's plat (the user18 option raises the deck in
   // place). The log is raised and the buttons down, like once Jak 2's dig is done; the mtn-plat-gap
   // stands at the top of its path, raised over the gap ("trans": "path_start").
-  "ported_levels": ["atoll", "caspad", "consite", "ctyfarmb", "ctyport", "dig3a", "forest", "forexita", "forexitb", "forresca", "forrescb", "garage", "hideout", "hiphog", "mountain", "mtnext", "oracle", "palcab", "palroof", "prison", "ruins", "vinroom"],
+  "ported_levels": ["atoll", "caspad", "consite", "ctyfarmb", "ctyport", "dig3a", "forest", "forexita", "forexitb", "forresca", "forrescb", "garage", "hideout", "hiphog", "mountain", "mtnext", "onintent", "oracle", "palcab", "palroof", "prison", "ruins", "vinroom"],
   "ported_etypes": {
+    // Onin in her tent (hj2-onin-obs.gc): Pecker, her bubble game and its fixed camera (camera-235)
+    "onin-npc": {"etype": "hj2-onin-npc", "lumps": {"camera-name": "string"}},
     "piston": {"etype": "hj2-piston", "lumps": {"move-range": "float", "sync": "float"}},
     "turbine": {"etype": "hj2-turbine", "lumps": {"rotspeed": "float", "rise-height": "float"}},
     "liftcat": {"etype": "hj2-liftcat", "lumps": {"trans-offset": "vector", "scale-mult": "vector"}},
@@ -1090,6 +1193,17 @@
   // falling between it and the shaft. The cpad-elevator (castle pad down to the dig): 24 x 24m, the
   // same way. The palace gate: a box around its sliding door, bound to the door joint.
   "models": {
+    // Onin's tent (hj2-onin-obs.gc): Onin (onin-highres) and, drawn with her by a child process,
+    // Pecker (pecker-highres), each asleep (idle-sleep) or at the bubble game (idle-game, Jak 2's
+    // art 6). Their offset from the actor is in their main joint's animation (Onin 4.4 m behind it,
+    // Pecker 3.9 m behind and 1.7 m up). The box collide mesh is unused: the class collides with
+    // Jak 2's process-taskable spheres on Onin's main joint
+    "hj2-onin-npc": {"model": "hj2-onin-npc", "rip": "onintent/onin-highres-lod0.glb", "prims": null, "collide": null,
+                     "anims": [["onintent/onin-highres-lod0.glb", "onin-highres-idle-sleep", "hj2-onin-npc-idle-sleep"], ["onintent/onin-highres-lod0.glb", "onin-highres-idle-game", "hj2-onin-npc-idle-game"]],
+                     "extras": [
+      {"model": "hj2-onin-pecker", "rip": "onintent/pecker-highres-lod0.glb", "prims": null, "collide": null,
+       "anims": [["onintent/pecker-highres-lod0.glb", "pecker-highres-idle-sleep", "hj2-onin-pecker-idle-sleep"], ["onintent/pecker-highres-lod0.glb", "pecker-highres-idle-game", "hj2-onin-pecker-idle-game"]]}
+    ]},
     // Jak 2's doors (hj2-common-obs.gc)
     "hj2-airlock-outer": {"model": "hj2-airlock-outer", "rip": "ctyslumb/com-airlock-outer-lod0.glb", "prims": null, "collide": [{"hull": null, "joint": "Ldoor"}, {"hull": null, "joint": "Rdoor"}]},
     "hj2-airlock-inner": {"model": "hj2-airlock-inner", "rip": "ctyslumb/com-airlock-inner-lod0.glb", "prims": null, "collide": [{"hull": null, "joint": "Ldoormove"}, {"hull": null, "joint": "Rdoormove"}]},
@@ -1224,7 +1338,69 @@
     // seat (0-1 and 2-4: the broken rear and front, 11-13 and 14-17: the damaged ones; Jak 2 swaps
     // them with setup-masks, build-actor models have no mask table). Its collision is the class's
     // spheres
-    "hj2-guard-bike": {"model": "hj2-guard-bike", "rip": "lwideb/crimson-bike-lod0.glb", "prims": [5, 6, 7, 8, 9, 10, 18, 19, 20, 21], "collide": null}
+    "hj2-guard-bike": {"model": "hj2-guard-bike", "rip": "lwideb/crimson-bike-lod0.glb", "prims": [5, 6, 7, 8, 9, 10, 18, 19, 20, 21], "collide": null},
+    // The war mode (jak2-haven-city-war.gc, skelgroups there): no actor places these models, the
+    // levels' "models" lists bring them (havenj2: all; the outer places: hj2-kg-red and
+    // hj2-kg-yellow; hj2-war: all, for Jak 3's own city). More model keys:
+    //   build_actor:   build-actor's options (GOAL values) besides :gen-mesh #t
+    //   insert_joints: joints added to the rip's skeleton (name, the joint it follows, parent, bind
+    //                  pose relative to the parent), no vertex bound, held at that pose
+    //   recolor:       the texels whose hue is in [lo, hi] degrees (and saturation >= min) turned
+    //                  by rotate degrees
+    //   anims "x" / [x, y]: the rip's own clip <art group>-x, named <model>-x / <model>-y
+    // Jak 2's Krimzon Guard on Jak 3's 41-joint guard skeleton, for Jak 3's stock crimson-guard code
+    // (guard.gc, guard-rifle.gc, guard-grenade.gc): Jak 2's 38 joints with back, right_wrist and
+    // left_wrist after dirblast, children of swivelMe (their bind pose read once from Jak 3's rip,
+    // ctypesa/crimson-guard-lod0.glb; Jak 3 animates them, the stock code doesn't read them; the 38
+    // shared joints have the same bind pose in both games). Clips in crimson-guard-ag's order
+    // (art-elts.gc): build-actor puts clip k at art group index 2 + k, two short padding clips put
+    // idle at 4 (Jak 3's 2 and 3 are its lod2 and shadow meshes). Jak 3's first 40 clips are Jak 2's
+    // 40 in the same order; its 12 others are stand-ins: grenade-reload <- notice (18 frames, Jak
+    // 3's 21: the grenade guard's prop events at frames 4-13 still fire, the rifle reload loops it),
+    // cock-gun <- stab-idle-to-idle (5 frames, Jak 3's 7, ends in the idle pose), and the shield
+    // clips the stock code never plays (no index above 43 in guard.gc): pull-out <-
+    // idle-to-stab-idle, idle <- stab-idle-loop, fire and fire-loop <- gun-attack, walk and advance
+    // <- walk, shuffle and sidle <- stab-shuffle, hit-knock <- yellow-hit1, flinch <- blue-hit.
+    // Primitives, from the lod0 seg-table of Jak 2's crimson-guard-ag (setup-masks of Jak 2's
+    // guard.gc): 0-3 the dark guard's yellow armor (segment 2: helmet, scarf, shoulder and arm
+    // plates, darkguard-*), 4-12 the rifle (segment 4), 13-17 the grenade launcher / tazer (segment
+    // 3), 18-20 the chest and back plates (segment 0, the base), 21-24 the red armor (segment 1:
+    // shoulder and arm plates, helmet, scarf), 25-36 the body (segment 0). Red: base and red armor
+    // (Jak 2's mask 3), yellow: base and dark armor (mask 5), with the rifle (16) or the other
+    // weapon (8). Jak 2 also scales a dark guard by 1.1: its code's, not the model's.
+    // The rips run at 15 frames per second; joint-channel 8: the joint channels the stock guard code
+    // blends (build-actor's default is 6). Rips of levels the port extracts anyway (forresca:
+    // hj2-forta; forestb: hj2-forstb), the same as Jak 2's other guard and transport rips.
+    "hj2-kg-red": {"model": "hj2-kg-red", "rip": "forresca/crimson-guard-lod0.glb", "prims": [4, 5, 6, 7, 8, 9, 10, 11, 12, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36], "collide": null, "build_actor": {"framerate": 15.0, "joint-channel": 8},
+                   "insert_joints": [{"name": "back", "after": "dirblast", "parent": "swivelMe", "translation": [0.0, 2.067394733428955, 0.0], "rotation": [1.0, 0.0, 0.0, 0.0]}, {"name": "right_wrist", "after": "back", "parent": "swivelMe", "translation": [0.0, 2.067394733428955, 0.0], "rotation": [1.0, 0.0, 0.0, 0.0]}, {"name": "left_wrist", "after": "right_wrist", "parent": "swivelMe", "translation": [0.0, 2.067394733428955, 0.0], "rotation": [1.0, 0.0, 0.0, 0.0]}],
+                   "anims": [["stab-attack", "pad0"], ["stab-attack", "pad1"], "idle", "walk", "run", "notice", "knocked", "knocked-land", "blue-hit", "blue-hit-land", "blue-hit-land-death", "yellow-hit0", "yellow-hit0-land", "yellow-hit1", "yellow-hit1-land", "die", "rifle-butt", "idle-to-stab-idle", "stab-idle-loop", "stab-idle-to-attack", "stab-attack", "stab-attack-to-stab-idle", "stab-idle-to-idle", "stab-shuffle", "gun-attack", "attack-shoot-knee-start", "attack-shoot-knee-loop", "attack-shoot-knee", "attack-shoot-knee-end", "knocked-back", "knocked-back-land", "get-up-front", "get-up-back", "bike-stance", "car-stance", "grenade-attack", "jump-high", "die-falling", "jump-right", "jump-left", "knocked-from-car", "knocked-from-bike", ["notice", "grenade-reload"], ["stab-idle-to-idle", "cock-gun"], ["idle-to-stab-idle", "shield-pull-out"], ["stab-idle-loop", "shield-idle"], ["gun-attack", "shield-fire"], ["gun-attack", "shield-fire-loop"], ["walk", "shield-walk"], ["stab-shuffle", "shield-shuffle"], ["yellow-hit1", "shield-hit-knock"], ["blue-hit", "shield-flinch"], ["walk", "shield-advance"], ["stab-shuffle", "shield-sidle"]]},
+    "hj2-kg-red-gl": {"model": "hj2-kg-red-gl", "rip": "forresca/crimson-guard-lod0.glb", "prims": [13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36], "collide": null, "build_actor": {"framerate": 15.0, "joint-channel": 8},
+                      "insert_joints": [{"name": "back", "after": "dirblast", "parent": "swivelMe", "translation": [0.0, 2.067394733428955, 0.0], "rotation": [1.0, 0.0, 0.0, 0.0]}, {"name": "right_wrist", "after": "back", "parent": "swivelMe", "translation": [0.0, 2.067394733428955, 0.0], "rotation": [1.0, 0.0, 0.0, 0.0]}, {"name": "left_wrist", "after": "right_wrist", "parent": "swivelMe", "translation": [0.0, 2.067394733428955, 0.0], "rotation": [1.0, 0.0, 0.0, 0.0]}],
+                      "anims": [["stab-attack", "pad0"], ["stab-attack", "pad1"], "idle", "walk", "run", "notice", "knocked", "knocked-land", "blue-hit", "blue-hit-land", "blue-hit-land-death", "yellow-hit0", "yellow-hit0-land", "yellow-hit1", "yellow-hit1-land", "die", "rifle-butt", "idle-to-stab-idle", "stab-idle-loop", "stab-idle-to-attack", "stab-attack", "stab-attack-to-stab-idle", "stab-idle-to-idle", "stab-shuffle", "gun-attack", "attack-shoot-knee-start", "attack-shoot-knee-loop", "attack-shoot-knee", "attack-shoot-knee-end", "knocked-back", "knocked-back-land", "get-up-front", "get-up-back", "bike-stance", "car-stance", "grenade-attack", "jump-high", "die-falling", "jump-right", "jump-left", "knocked-from-car", "knocked-from-bike", ["notice", "grenade-reload"], ["stab-idle-to-idle", "cock-gun"], ["idle-to-stab-idle", "shield-pull-out"], ["stab-idle-loop", "shield-idle"], ["gun-attack", "shield-fire"], ["gun-attack", "shield-fire-loop"], ["walk", "shield-walk"], ["stab-shuffle", "shield-shuffle"], ["yellow-hit1", "shield-hit-knock"], ["blue-hit", "shield-flinch"], ["walk", "shield-advance"], ["stab-shuffle", "shield-sidle"]]},
+    "hj2-kg-yellow": {"model": "hj2-kg-yellow", "rip": "forresca/crimson-guard-lod0.glb", "prims": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 18, 19, 20, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36], "collide": null, "build_actor": {"framerate": 15.0, "joint-channel": 8},
+                      "insert_joints": [{"name": "back", "after": "dirblast", "parent": "swivelMe", "translation": [0.0, 2.067394733428955, 0.0], "rotation": [1.0, 0.0, 0.0, 0.0]}, {"name": "right_wrist", "after": "back", "parent": "swivelMe", "translation": [0.0, 2.067394733428955, 0.0], "rotation": [1.0, 0.0, 0.0, 0.0]}, {"name": "left_wrist", "after": "right_wrist", "parent": "swivelMe", "translation": [0.0, 2.067394733428955, 0.0], "rotation": [1.0, 0.0, 0.0, 0.0]}],
+                      "anims": [["stab-attack", "pad0"], ["stab-attack", "pad1"], "idle", "walk", "run", "notice", "knocked", "knocked-land", "blue-hit", "blue-hit-land", "blue-hit-land-death", "yellow-hit0", "yellow-hit0-land", "yellow-hit1", "yellow-hit1-land", "die", "rifle-butt", "idle-to-stab-idle", "stab-idle-loop", "stab-idle-to-attack", "stab-attack", "stab-attack-to-stab-idle", "stab-idle-to-idle", "stab-shuffle", "gun-attack", "attack-shoot-knee-start", "attack-shoot-knee-loop", "attack-shoot-knee", "attack-shoot-knee-end", "knocked-back", "knocked-back-land", "get-up-front", "get-up-back", "bike-stance", "car-stance", "grenade-attack", "jump-high", "die-falling", "jump-right", "jump-left", "knocked-from-car", "knocked-from-bike", ["notice", "grenade-reload"], ["stab-idle-to-idle", "cock-gun"], ["idle-to-stab-idle", "shield-pull-out"], ["stab-idle-loop", "shield-idle"], ["gun-attack", "shield-fire"], ["gun-attack", "shield-fire-loop"], ["walk", "shield-walk"], ["stab-shuffle", "shield-shuffle"], ["yellow-hit1", "shield-hit-knock"], ["blue-hit", "shield-flinch"], ["walk", "shield-advance"], ["stab-shuffle", "shield-sidle"]]},
+    "hj2-kg-yellow-gl": {"model": "hj2-kg-yellow-gl", "rip": "forresca/crimson-guard-lod0.glb", "prims": [0, 1, 2, 3, 13, 14, 15, 16, 17, 18, 19, 20, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36], "collide": null, "build_actor": {"framerate": 15.0, "joint-channel": 8},
+                         "insert_joints": [{"name": "back", "after": "dirblast", "parent": "swivelMe", "translation": [0.0, 2.067394733428955, 0.0], "rotation": [1.0, 0.0, 0.0, 0.0]}, {"name": "right_wrist", "after": "back", "parent": "swivelMe", "translation": [0.0, 2.067394733428955, 0.0], "rotation": [1.0, 0.0, 0.0, 0.0]}, {"name": "left_wrist", "after": "right_wrist", "parent": "swivelMe", "translation": [0.0, 2.067394733428955, 0.0], "rotation": [1.0, 0.0, 0.0, 0.0]}],
+                         "anims": [["stab-attack", "pad0"], ["stab-attack", "pad1"], "idle", "walk", "run", "notice", "knocked", "knocked-land", "blue-hit", "blue-hit-land", "blue-hit-land-death", "yellow-hit0", "yellow-hit0-land", "yellow-hit1", "yellow-hit1-land", "die", "rifle-butt", "idle-to-stab-idle", "stab-idle-loop", "stab-idle-to-attack", "stab-attack", "stab-attack-to-stab-idle", "stab-idle-to-idle", "stab-shuffle", "gun-attack", "attack-shoot-knee-start", "attack-shoot-knee-loop", "attack-shoot-knee", "attack-shoot-knee-end", "knocked-back", "knocked-back-land", "get-up-front", "get-up-back", "bike-stance", "car-stance", "grenade-attack", "jump-high", "die-falling", "jump-right", "jump-left", "knocked-from-car", "knocked-from-bike", ["notice", "grenade-reload"], ["stab-idle-to-idle", "cock-gun"], ["idle-to-stab-idle", "shield-pull-out"], ["stab-idle-loop", "shield-idle"], ["gun-attack", "shield-fire"], ["gun-attack", "shield-fire-loop"], ["walk", "shield-walk"], ["stab-shuffle", "shield-shuffle"], ["yellow-hit1", "shield-hit-knock"], ["blue-hit", "shield-flinch"], ["walk", "shield-advance"], ["stab-shuffle", "shield-sidle"]]},
+    // Jak 2's jetpack guard (crimson-guard-hover, 34 joints) for Jak 3's stock flying-turret code: its
+    // 17 clips with the three that code plays first (2 idle, 3 fly-forward for its hover, 4 shoot0
+    // for its fire), then the others. 15 frames per second. Blue: the Freedom League's, its red
+    // armor (cguardgame-metalered-01 and -shouldershield, hues -5 to 5 degrees; the leather is 10
+    // to 20) turned to the blue of Jak 3's guard textures (217 degrees)
+    "hj2-hover-red": {"model": "hj2-hover-red", "rip": "forresca/crimson-guard-hover-lod0.glb", "prims": null, "collide": null, "build_actor": {"framerate": 15.0},
+                      "anims": ["idle", "fly-forward", "shoot0", "fly-right", "fly-left", "fly-back", "knocked0", "knocked0-recover", "knocked1", "knocked1-recover", "death-right", "death-left", "death-left-fall", "death-right-fall", "death-instant", "death-land", "explode-idle"]},
+    "hj2-hover-blue": {"model": "hj2-hover-blue", "rip": "forresca/crimson-guard-hover-lod0.glb", "prims": null, "collide": null, "build_actor": {"framerate": 15.0},
+                       "recolor": {"hues": [-8, 8], "rotate": 217, "min_saturation": 0.3},
+                       "anims": ["idle", "fly-forward", "shoot0", "fly-right", "fly-left", "fly-back", "knocked0", "knocked0-recover", "knocked1", "knocked1-recover", "death-right", "death-left", "death-left-fall", "death-right-fall", "death-instant", "death-land", "explode-idle"]},
+    // Jak 2's Krimzon Guard troop transport (hj2-transport.gc): all its clips in the rip's order
+    // (2 idle, 3 hatch-open, 4 hatch-close; 60 frames per second, build-actor's default). Its
+    // collision is the class's spheres (the box made here is unused)
+    "hj2-transport": {"model": "hj2-transport", "rip": "forestb/transport-lod0.glb", "prims": null, "collide": null, "anims": ["idle", "hatch-open", "hatch-close"]},
+    // its chin turret (vehicle-turret, spawned by hj2-transport.gc): 2 idle (one frame); joints
+    // align, prejoint, main (node-list index 3, Jak 2's turret-control-info joint-index: the gun
+    // turns it); about 0.7 x 1.2 x 2.1 m. Its collision is the class's (the box made here is unused)
+    "hj2-vehicle-turret": {"model": "hj2-vehicle-turret", "rip": "ctywide/vehicle-turret-lod0.glb", "prims": null, "collide": null, "anims": ["idle"]}
   },
 
   // Regions: Jak 2 region ids are unique over the whole game; ours are offset past the water

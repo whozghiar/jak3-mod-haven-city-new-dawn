@@ -210,10 +210,15 @@ Returns nothing."
 
 (defmethod event-handler ((this crimson-guard) (arg0 process) (arg1 int) (arg2 symbol) (arg3 event-message-block))
   "Jak 3's guard event handler, then, like Jak 2's (guard.gc there), a hit from Jak (or what he
-fires) raises the alert to 1 while *mod-jak2-haven-city-alert* is on. arg0: the sender, arg1: the
-parameter count, arg2: the event, arg3: its parameters. Returns Jak 3's answer."
+fires) raises the alert to 1 while *mod-jak2-haven-city-alert* is on; not a Krimzon Guard of the war
+mode (hj2-war-kg?, jak2-haven-city-war.gc): the Freedom League doesn't hunt Jak for fighting its
+enemy. arg0: the sender, arg1: the parameter count, arg2: the event, arg3: its parameters. Returns
+Jak 3's answer."
   (let ((answer (*hj2-stock-guard-event-handler* this arg0 arg1 arg2 arg3)))
-    (when (and *mod-jak2-haven-city-alert* (or (= arg2 'hit) (= arg2 'hit-flinch) (= arg2 'hit-knocked)))
+    (when (and *mod-jak2-haven-city-alert*
+               (or (= arg2 'hit) (= arg2 'hit-flinch) (= arg2 'hit-knocked))
+               (not (hj2-war-kg? this))
+               )
       (let ((attacker (as-type (handle->process (-> this incoming attacker-handle)) process-focusable)))
         (if (and attacker (logtest? (-> attacker mask) (process-mask target)))
             (citizen-method-210 this 1 attacker)
@@ -1199,19 +1204,23 @@ Returns nothing."
 set every frame before the alert settings: guard type 5 (Hellcats) and 4 (guard bikes) get none
 while their Mods-menu toggle is off; with it on, the alert table's count up to HJ2_HELLCATS or
 HJ2_GUARD_BIKES while *mod-jak2-haven-city-alert* is on, else that number (Jak 3's table gives them
-none). Returns nothing. Side effects: the squad's guard type info."
-  (let ((alert *mod-jak2-haven-city-alert*))
+none). During the war mode (hj2-war-on?) neither flies: their caps are 0 (the guard bikes' pool
+stays, for the crimson bikes parked on the ground, see hj2-parking-spot-random-type). Returns
+nothing. Side effects: the squad's guard type info."
+  (let ((alert *mod-jak2-haven-city-alert*)
+        (war (hj2-war-on?))
+        )
     (ff-squad-control-method-56
       this
       5
-      (if (and *mod-jak2-haven-city-hellcats* (not alert)) HJ2_HELLCATS 0)
-      (if *mod-jak2-haven-city-hellcats* HJ2_HELLCATS 0)
+      (if (and *mod-jak2-haven-city-hellcats* (not alert) (not war)) HJ2_HELLCATS 0)
+      (if (and *mod-jak2-haven-city-hellcats* (not war)) HJ2_HELLCATS 0)
       )
     (ff-squad-control-method-56
       this
       4
-      (if (and *mod-jak2-haven-city-guard-bikes* (not alert)) HJ2_GUARD_BIKES 0)
-      (if *mod-jak2-haven-city-guard-bikes* HJ2_GUARD_BIKES 0)
+      (if (and *mod-jak2-haven-city-guard-bikes* (not alert) (not war)) HJ2_GUARD_BIKES 0)
+      (if (and *mod-jak2-haven-city-guard-bikes* (not war)) HJ2_GUARD_BIKES 0)
       )
     )
   (none)
@@ -1554,11 +1563,15 @@ type goes to the stock function. Returns the spawned process, or #f."
 (set! traffic-object-spawn hj2-traffic-object-spawn)
 
 (defun havenj2-login ((lev level))
-  "havenj2's login callback (slot 33): the traffic engine, the Freedom League's squad and the attack
-controller, in havenj2's heap."
+  "havenj2's login callback (slot 33): the traffic engine, the Freedom League's and the Krimzon
+Guard's squads and the attack controller, in havenj2's heap. The Krimzon Guard's squad is the war
+mode's (jak2-haven-city-war.gc): its jetpack guards are Jak 3's flying turrets, kg-squad-members,
+which take it as their squad; empty otherwise."
   (set! *traffic-engine* (new 'loading-level 'traffic-engine))
   (set! *ff-squad-control* (new 'loading-level 'ff-squad-control))
+  (set! *kg-squad-control* (new 'loading-level 'kg-squad-control))
   (initialize *ff-squad-control* (the-as process #f))
+  (initialize *kg-squad-control* (the-as process #f))
   (initialize-cty-attack-controller)
   (none)
   )
@@ -1618,11 +1631,17 @@ guards and the city's vehicles after it."
       (if *cty-attack-controller*
           (cty-attack-reset #t #f #f)
           )
-      ;; before restore-default-settings, which sets the target and reserve counts from them
+      ;; the war mode's looks are chosen again for the new pools (jak2-haven-city-war.gc)
+      (hj2-war-reset-looks!)
+      ;; before restore-default-settings, which sets the target and reserve counts from them; during
+      ;; the war mode, the war's (hj2-war-want-count: more guards, jetpack guards, fewer citizens
+      ;; and vehicles) and no Hellcat (the guard bikes' pool stays for the parked crimson bikes)
       (dotimes (i 29)
-        (set! (-> *traffic-engine* object-type-info-array i want-count) (-> *havenj2-traffic-want-counts* i))
+        (set! (-> *traffic-engine* object-type-info-array i want-count)
+              (hj2-war-want-count i (-> *havenj2-traffic-want-counts* i))
+              )
         )
-      (if *mod-jak2-haven-city-hellcats*
+      (if (and *mod-jak2-haven-city-hellcats* (not (hj2-war-on?)))
           (set! (-> *traffic-engine* object-type-info-array (traffic-type guard-car) want-count) HJ2_HELLCATS)
           )
       (if *mod-jak2-haven-city-guard-bikes*
@@ -1630,6 +1649,8 @@ guards and the city's vehicles after it."
           )
       (add-squad-to-traffic-engine *ff-squad-control* *traffic-engine*)
       (squad-control-method-10 *ff-squad-control*)
+      (add-squad-to-traffic-engine *kg-squad-control* *traffic-engine*)
+      (squad-control-method-10 *kg-squad-control*)
       ;; the Hellcats' and guard bikes' activation caps are set every frame (hj2-guard-vehicle-caps)
       (restore-default-settings *traffic-engine*)
       )
@@ -1642,6 +1663,9 @@ guards and the city's vehicles after it."
     (set! (-> info traffic-object-levels (traffic-type civilian-pilot)) 'havenj2)
     (set! (-> info traffic-object-levels (traffic-type guard-pilot)) 'havenj2)
     (set! (-> info traffic-object-levels (traffic-type guard-a)) 'havenj2)
+    ;; the war mode's jetpack guards (Jak 3's flying turrets: flying-turret.o in havenj2's DGO); none
+    ;; is kept while the war is off (want-count 0)
+    (set! (-> info traffic-object-levels (traffic-type flying-turret)) 'havenj2)
     ;; the city's hover bikes and cars (vehicle types h-bike-a to h-car-c), and their traffic types
     (dotimes (i 6)
       (set! (-> info vehicle-levels i) 'havenj2)
@@ -1682,6 +1706,7 @@ it, see hj2-sprite-page-used) and its minimap page."
   (hj2-minimap-page-off lev)
   (set! *traffic-engine* #f)
   (set! *ff-squad-control* #f)
+  (set! *kg-squad-control* #f)
   (set! *cty-attack-controller* #f)
   (none)
   )

@@ -19,8 +19,11 @@
 ;; by a child process (hj2-propa-look). Each hit rings like an iron crate (Jak 3's sounds, kept:
 ;; Jak 2's propa plays no hit sound). The
 ;; Baron speaks from it like in Jak 2 (hj2-propa-speech): his speeches are Jak 2's voice files,
-;; packed for Jak 3 by the build (*hj2-propa-sounds*, see "voices" in the port).
+;; packed for Jak 3 by the build (*hj2-propa-sounds*, see "voices" in the port). When the game is in
+;; French and the war mode is off, Torn speaks instead: the user's recordings (*hj2-torn-sounds*,
+;; "voice_files" in the port).
 (define-extern *hj2-propa-sounds* (array string))
+(define-extern *hj2-torn-sounds* (array string))
 
 (deftype hj2-propa (process-focusable)
   ((sound-id            sound-id)
@@ -179,6 +182,16 @@
   (none)
   )
 
+(defun hj2-propa-sound-name ((index uint))
+  "The speech a speaker says at index (its sound-index, into *hj2-propa-sounds*): the Baron's, or
+Torn's (*hj2-torn-sounds*, index modulo their count) while the game is in French and the war mode
+is off (hj2-french?, hj2-war-on?: jak2-haven-city-war.gc). No side effects."
+  (if (and (hj2-french?) (not (hj2-war-on?)) (> (-> *hj2-torn-sounds* length) 0))
+      (-> *hj2-torn-sounds* (mod (the-as int index) (-> *hj2-torn-sounds* length)))
+      (-> *hj2-propa-sounds* index)
+      )
+  )
+
 (defbehavior hj2-propa-speech hj2-propa ()
   "Jak 2's propa speeches (its idle post): once the camera is within 55m, one of *hj2-propa-sounds*,
 then the next, from the speaker (heard from 40m, gone at 55m); stopped beyond 60m or when the
@@ -209,7 +222,7 @@ speeches are off (speech-control setting). Returns nothing."
                                    self
                                    (gui-channel alert)
                                    (gui-action play)
-                                   (-> *hj2-propa-sounds* (-> self sound-index))
+                                   (hj2-propa-sound-name (-> self sound-index))
                                    -99.0
                                    0
                                    )
@@ -428,10 +441,12 @@ bank, 'j2palca1: the gate asks for it before opening, *hj2-door-sound-banks*)."
 
 ;; Jak 2's cty-guard-turret (levels/city/ctywide-obs.gc there): a twin gun hidden under two lids in
 ;; the street (9 of them in the slums, the industrial and generic districts and by the stadium).
-;; At the end of the game (the power station mission done, so no mission id counts), it pops up
-;; when Jak drives a vehicle within 100m of it while the city's alert is at least 1, aims at him
-;; (leading his speed) and fires bursts of 5 double guard shots, and sinks back once he is 120m
-;; away, or out of his vehicle with the alert back at 0. Jak 2's alert is its traffic engine's;
+;; At the end of the game (the power station mission done, so no mission id counts), Jak 2 pops it
+;; up when Jak drives a vehicle within 100m of it while the city's alert is at least 1. Here it
+;; rises as soon as the alert starts with Jak within 100m, on foot too (the user's request: the
+;; turrets come out when the alert starts), tracks him (leading his speed) and fires bursts of 5
+;; double guard shots while he is in a vehicle, like Jak 2's; it sinks back once he is 120m away,
+;; or out of his vehicle with the alert back at 0. Jak 2's alert is its traffic engine's;
 ;; here it is the Freedom League squad's (*ff-squad-control*, havenj2-traffic.gc), the one Jak 3's
 ;; city guards react to. Popped up, it takes hits: 6 hit points (a strong hit, a red or dark shot
 ;; or an explosion takes 10); then its head blows apart (joint-exploder with its explode model),
@@ -600,8 +615,8 @@ root's position. Returns a vector (mode 3: a static one, overwritten by the next
   0.01
   )
 
-;; hidden under its lids, ignored by Jak's aim. Pops up (hostile) when Jak is within 100m in a
-;; vehicle and the city's alert is at least 1.
+;; hidden under its lids, ignored by Jak's aim. Pops up (hostile) when Jak is within 100m and the
+;; city's alert is at least 1 (Jak 2 also wanted him in a vehicle).
 (defstate idle (hj2-cty-guard-turret)
   :virtual #t
   :event hj2-cty-guard-turret-event-handler
@@ -628,7 +643,6 @@ root's position. Returns a vector (mode 3: a static one, overwritten by the next
                  (< (vector-vector-xz-distance-squared (get-trans (the-as process-focusable gp-0) 0) (-> self root trans))
                     (square 409600.0)
                     )
-                 (focus-test? (the-as process-focusable gp-0) pilot)
                  (>= (hj2-city-alert-level) 1)
                  *mod-jak2-haven-city-alert*
                  )
@@ -753,9 +767,9 @@ and num-shots."
   (none)
   )
 
-;; popped up: rises, then aims and fires bursts of 5 double shots 0.1 s apart (aiming between
-;; bursts); sinks back and goes idle once Jak is 120m away, or out of his vehicle with the alert
-;; at 0
+;; popped up: rises, then aims and fires bursts of 5 double shots 0.1 s apart while Jak is in a
+;; vehicle (aiming between bursts; on foot it only tracks him); sinks back and goes idle once Jak is
+;; 120m away, or out of his vehicle with the alert at 0
 (defstate hostile (hj2-cty-guard-turret)
   :virtual #t
   :event hj2-cty-guard-turret-event-handler
@@ -782,6 +796,12 @@ and num-shots."
         (cond
           ((zero? (-> self next-time-shot))
            (aim-at-focus self)
+           )
+          ;; Jak on foot: no shot, back to aiming
+          ((let ((tgt (the-as process-focusable (handle->process (-> self focus handle)))))
+             (not (and tgt (focus-test? tgt pilot)))
+             )
+           (set! (-> self next-time-shot) 0)
            )
           ((>= (current-time) (-> self next-time-shot))
            (fire-shots self)
@@ -1005,16 +1025,26 @@ effects: all of the turret's fields. Returns nothing."
 (defun hj2-parking-spot-random-type ()
   "A random traffic type for a parked vehicle, or (traffic-type max) for none: Jak 3's pick among
 the active traffic types with a parking chance. Never a Hellcat (guard-car, Mods menu): Jak 2 parks
-only the citizens' vehicles. No traffic engine (havenj2 logged out): none."
-  (if *traffic-engine*
+only the citizens' vehicles. During the war mode (hj2-war-on?, jak2-haven-city-war.gc), one spot in
+two parks a crimson bike instead (Jak 2's guard bike, hj2-guard-bike: none flies during the war,
+hj2-guard-vehicle-caps), for Jak to take. No traffic engine (havenj2 logged out): none."
+  (cond
+    ((not *traffic-engine*)
+     (traffic-type max)
+     )
+    ;; the guard bikes' pool exists only with their switch on (havenj2-traffic-start)
+    ((and (hj2-war-on?) *mod-jak2-haven-city-guard-bikes* (zero? (rand-vu-int-count 2)))
+     (traffic-type guard-bike)
+     )
+    (else
       (let ((type (get-random-parking-spot-type *traffic-engine*)))
         (if (= type (traffic-type guard-car))
             (traffic-type max)
             type
             )
         )
-      (traffic-type max)
       )
+    )
   )
 
 (defmethod can-spawn? ((this hj2-parking-spot) (at-init symbol))

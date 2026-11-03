@@ -1,0 +1,303 @@
+;;-*-Lisp-*-
+(in-package goal)
+
+;; name: hj2-war-city.gc
+;; name in dgo: hj2-war-city
+;; dgos: CWI, HJ2
+
+#|
+
+  The city's part of the war mode of Haven City: New Dawn ("KG-Guard vs Freedom Fighters",
+  pc/features/jak2-haven-city-war.gc, GAME). Linked after the traffic code in Jak 3's city
+  (goal_src/jak3/dgos/cwi.gd, an added line) and in Jak 2's city hub (havenj2's DGO takes CWI's
+  objects in their order), so it only exists while one of the two cities is loaded.
+
+  While the war is on, a director process, child of the traffic manager (it dies with the traffic),
+  every frame:
+  - counts the live looks of the guards and jetpack guards (the shares of jak2-haven-city-war.gc);
+  - in Jak 3's city, holds the factions at war (Jak 3's faction commands, as a death or a task
+    change restores the stock ones): Freedom League and Krimzon Guard both strong, Metal Heads out;
+    the Krimzon Guard's spawn level loads CTYPESC, the jetpack guards' code;
+  - frightens the citizens near the fighting: a danger sphere on a Krimzon Guard near Jak sends
+    the citizens around fleeing (the traffic engine's 'panic) and keeps new ones from walking in;
+  - sends a troop transport now and then, landing near Jak with guards of one side (hj2-transport.gc).
+
+  Switching the war on or off rebuilds the city's traffic (a guard's look is chosen when its
+  process is made): in Jak 3's city by running ctywide's activation again, as a death does
+  (*hj2-war-city-hook*); havenj2 restarts its own (jak2-haven-city-war.gc hj2-war-changed!).
+
+|#
+
+;; in hj2-transport.gc, linked before this file
+(define-extern hj2-transport-spawn (function process int level process))
+
+;; DECOMP BEGINS
+
+(deftype hj2-war-city-state (structure)
+  "The war director's handle, in a structure: a handle kept in a global symbol loses its pid (GOAL
+wiki common 1.4.17)."
+  ((director  handle)
+   )
+  )
+
+(define *hj2-war-city* (new 'static 'hj2-war-city-state))
+
+(set! (-> *hj2-war-city* director) (the-as handle #f))
+
+;; Jak 3's city at war (cty-faction.gc cty-faction-evaluate-commands): both sides strong
+;; everywhere, no Metal Head; the guards at the "combat" spawn level and the Krimzon Guard at "war"
+;; (it loads CTYPESC with the flying turrets' code, the jetpack guards'); the citizens and their
+;; vehicles at "war" (the war's counts cap them further, hj2-war-want-count). Battlefront's, with
+;; the citizens and vehicles kept.
+(define *hj2-war-faction-commands*
+  '((faction-strength ff 20)
+    (faction-strength kg 20)
+    (faction-strength mh -20)
+    (faction-spawn ff-guard combat)
+    (faction-spawn kg-guard war)
+    (faction-spawn mh-guard off)
+    (faction-spawn ff-ped war)
+    (faction-spawn ff-vehicle war)
+    (faction-spawn kg-ambient off)
+    (faction-spawn mh-ambient off)
+    )
+  )
+
+;; how often a transport comes: the first one this long after the war starts, then one every 45 to
+;; 90 s while none flies
+(defconstant HJ2_WAR_FIRST_TRANSPORT (seconds 20))
+(defconstant HJ2_WAR_TRANSPORT_MIN (seconds 45))
+(defconstant HJ2_WAR_TRANSPORT_MAX (seconds 90))
+
+;; the citizens' panic: around a Krimzon Guard this close to Jak, a danger sphere of this radius whose
+;; alarm reaches this far
+(defconstant HJ2_WAR_PANIC_RANGE (meters 80))
+(defconstant HJ2_WAR_PANIC_RADIUS (meters 15))
+(defconstant HJ2_WAR_PANIC_NOTIFY (meters 40))
+
+;; The director //////////////////////////////////////////////////////////////////////////////////
+;;   count-time, mission-time, faction-time, panic-time: the last looks count, mission check,
+;;   faction commands, danger sphere.
+;;   transport-time: when the next transport may come. transport: the transport flying now.
+(deftype hj2-war-director (process)
+  ((count-time      time-frame)
+   (mission-time    time-frame)
+   (faction-time    time-frame)
+   (panic-time      time-frame)
+   (transport-time  time-frame)
+   (transport       handle)
+   )
+  (:state-methods
+    active
+    )
+  )
+
+
+(defun hj2-war-city-level ()
+  "The level the war's city art is in (the transport's): havenj2 in Jak 2's city, CTYPESA (Jak 3's
+guards' borrow level) in Jak 3's, #f when neither is active. No side effects."
+  (let ((hub (level-get *level* 'havenj2))
+        (pes (level-get *level* 'ctypesa))
+        )
+    (cond
+      ((and hub (= (-> hub status) 'active)) hub)
+      ((and pes (= (-> pes status) 'active)) pes)
+      (else (the-as level #f))
+      )
+    )
+  )
+
+(defun hj2-war-panic ()
+  "Frighten the citizens near the fighting: a danger sphere (Jak 3's traffic engine add-danger,
+level 1: 'panic, they flee) on one Krimzon Guard picked at random among those within
+HJ2_WAR_PANIC_RANGE of Jak. The traffic engine also keeps citizens from spawning in it for a few
+seconds. Guards ignore this danger type. Returns nothing."
+  (let ((te *traffic-engine*)
+        (picked (the-as process-drawable #f))
+        (n 0)
+        )
+    (when (and te *target*)
+      (let ((trk (-> te tracker1)))
+        (dotimes (i (the-as int (-> trk active-object-count)))
+          (when (= (-> trk active-object-type-list i) (traffic-type guard-a))
+            (let ((g (the-as process-drawable (handle->process (-> trk active-object-list i)))))
+              (when (and g
+                         (hj2-war-kg? g)
+                         (< (vector-vector-distance (-> g root trans) (target-pos 0)) HJ2_WAR_PANIC_RANGE)
+                         )
+                ;; one at random: the n-th candidate replaces the pick with a chance of 1 in n
+                (+! n 1)
+                (if (zero? (rand-vu-int-count n))
+                    (set! picked g)
+                    )
+                )
+              )
+            )
+          )
+        )
+      (when picked
+        (let ((d (new 'stack-no-clear 'traffic-danger-info)))
+          (set! (-> d sphere quad) (-> picked root trans quad))
+          (set! (-> d sphere r) HJ2_WAR_PANIC_RADIUS)
+          (vector-reset! (-> d velocity))
+          (set! (-> d handle) (the-as handle #f))
+          (set! (-> d notify-radius) HJ2_WAR_PANIC_NOTIFY)
+          (set! (-> d danger-level) 1.0)
+          (set! (-> d decay-rate) 0.0)
+          (set! (-> d flags) (the-as uint 1))
+          (set! (-> d danger-type) (the-as uint 0))
+          (add-danger te d)
+          )
+        )
+      )
+    )
+  (none)
+  )
+
+(defun hj2-war-kg-icons-off ()
+  "The Krimzon Guards on the street lose the blue minimap icon Jak 3 gives every guard as it goes
+out (citizen-method-194): the minimap has no red guard class, and a blue dot would say Freedom
+League. The icon fades out (Jak 2's way of dropping one). Returns nothing."
+  (let ((te *traffic-engine*))
+    (when te
+      (let ((trk (-> te tracker1)))
+        (dotimes (i (the-as int (-> trk active-object-count)))
+          (when (= (-> trk active-object-type-list i) (traffic-type guard-a))
+            (let ((g (the-as crimson-guard (handle->process (-> trk active-object-list i)))))
+              (when (and g (-> g minimap) (hj2-war-kg? g))
+                (logior! (-> g minimap flags) (minimap-flag fade-out))
+                (set! (-> g minimap) #f)
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+  (none)
+  )
+
+(defbehavior hj2-war-transports hj2-war-director ()
+  "Send a troop transport when it's time and none flies: one side at random, landing near Jak
+(hj2-transport-spawn), then the next one 45 to 90 s later; a failed spawn (no landing spot, no
+process) is tried again 5 s later. Returns nothing. Side effects: transport, transport-time."
+  (when (and *target*
+             (not (handle->process (-> self transport)))
+             (>= (current-time) (-> self transport-time))
+             )
+    (let* ((lev (hj2-war-city-level))
+           (proc (if lev
+                     (hj2-transport-spawn self (rand-vu-int-count 2) lev)
+                     (the-as process #f)
+                     )
+                 )
+           )
+      (cond
+        (proc
+          (set! (-> self transport) (process->handle proc))
+          (set! (-> self transport-time)
+                (+ (current-time) (rand-vu-int-range HJ2_WAR_TRANSPORT_MIN HJ2_WAR_TRANSPORT_MAX))
+                )
+          )
+        (else
+          (set! (-> self transport-time) (+ (current-time) (seconds 5)))
+          )
+        )
+      )
+    )
+  (none)
+  )
+
+(defbehavior hj2-war-director-update hj2-war-director ()
+  "One frame of the war in the city: every 0.5 s whether a Jak 3 mission runs (the war then steps
+aside, hj2-war-on?), and while the war is on its counts, faction state, panic and transports.
+Returns nothing."
+  (when (time-elapsed? (-> self mission-time) (seconds 0.5))
+    (set-time! (-> self mission-time))
+    (hj2-war-update-mission!)
+    )
+  (when (hj2-war-on?)
+    (when (time-elapsed? (-> self count-time) (seconds 0.5))
+      (set-time! (-> self count-time))
+      (hj2-war-count-looks!)
+      (hj2-war-kg-icons-off)
+      )
+    ;; Jak 3's city only (havenj2 has no faction manager)
+    (when (and *cty-faction-manager*
+               (nonzero? *cty-faction-manager*)
+               (time-elapsed? (-> self faction-time) (seconds 2))
+               )
+      (set-time! (-> self faction-time))
+      (cty-faction-evaluate-commands *hj2-war-faction-commands*)
+      )
+    ;; every 2 s: each danger also holds one of the traffic engine's 16 suppression boxes for 5 s
+    (when (time-elapsed? (-> self panic-time) (seconds 2))
+      (set-time! (-> self panic-time))
+      (hj2-war-panic)
+      )
+    (hj2-war-transports)
+    )
+  (none)
+  )
+
+(defstate active (hj2-war-director)
+  :virtual #t
+  :code (behavior ()
+    (loop
+      (hj2-war-director-update)
+      (suspend)
+      )
+    )
+  )
+
+(defbehavior hj2-war-director-init-by-other hj2-war-director ()
+  "Start the director: counts at once, the first transport HJ2_WAR_FIRST_TRANSPORT later. Returns
+nothing (goes active)."
+  (set! (-> self count-time) 0)
+  (set! (-> self mission-time) 0)
+  (set! (-> self faction-time) 0)
+  (set! (-> self panic-time) 0)
+  (set! (-> self transport) (the-as handle #f))
+  (set! (-> self transport-time) (+ (current-time) HJ2_WAR_FIRST_TRANSPORT))
+  (go-virtual active)
+  )
+
+;; The traffic manager's frame (traffic-manager-method-16, its active state's post), as linked before
+;; this file in this DGO, wrapped: while the war is on, it keeps a director among its children.
+(define *hj2-war-stock-traffic-update* (method-of-type traffic-manager traffic-manager-method-16))
+
+(defmethod traffic-manager-method-16 ((this traffic-manager))
+  "Jak 3's traffic frame, then the war's director started if the war is on and none runs (it is a
+child of the traffic manager: it dies with the traffic). Returns nothing."
+  (*hj2-war-stock-traffic-update* this)
+  ;; switched on, not hj2-war-on?: the director also tells when a Jak 3 mission ends
+  (when (and (hj2-war-switched-on?) (not (handle->process (-> *hj2-war-city* director))))
+    (let ((proc (process-spawn hj2-war-director :name "hj2-war-director" :to this)))
+      (set! (-> *hj2-war-city* director) (if proc
+                                             (ppointer->handle proc)
+                                             (the-as handle #f)
+                                             )
+            )
+      )
+    )
+  (none)
+  )
+
+(defun hj2-war-city-command ((cmd int))
+  "*hj2-war-city-hook* (jak2-haven-city-war.gc), in Jak 3's city: HJ2_WAR_CITY_CHANGED (the war was
+switched) runs ctywide's activation again, as a death does: the faction state back to Jak 3's, the
+traffic rebuilt (its guards take their looks again), the squads and the attack controller reset.
+Returns nothing."
+  (when (= cmd HJ2_WAR_CITY_CHANGED)
+    (let ((city (level-get *level* 'ctywide)))
+      (if (and city (= (-> city status) 'active))
+          (ctywide-activate city 'life)
+          )
+      )
+    )
+  (none)
+  )
+
+;; at every link of this file (Jak 3's city, or havenj2): the previous value pointed into the
+;; previous link
+(set! *hj2-war-city-hook* hj2-war-city-command)

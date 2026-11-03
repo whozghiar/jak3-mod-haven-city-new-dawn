@@ -71,9 +71,12 @@ def continue_point(cont_name, level, trans, camera_trans, quat, camera_rot, flag
 
 def level_load_info(name, nick, index, memory_mode, flags, mood, continues, callbacks, ocean,
                     comment, draw_priority, outdoor, part_engine_max=0, music="#f",
-                    extra_sound_bank="#f", city_map_bits=0):
+                    extra_sound_bank="#f", city_map_bits=0, borrow_sizes=None):
     """A level-load-info, and its registration in *level-load-list*. city_map_bits: the squares of
-    the city's 5x7 minimap grid (bit 5 * row + column) whose map the level holds."""
+    the city's 5x7 minimap grid (bit 5 * row + column) whose map the level holds. borrow_sizes:
+    the sizes (KB, at most 5) of the borrow heaps the level hosts at the top of its heap, where the
+    game loads a borrow level (Jak 3's vinroom: one of 3000, for its power game's board, powergd);
+    none: no borrow heap."""
     flags_line = f"    :level-flags (level-flags {flags})\n" if flags else ""
     bits = " ".join(f"cmb{i}" for i in range(34) if city_map_bits >> i & 1)
     map_line = f"    :city-map-bits (city-map-bits {bits})\n" if bits else ""
@@ -84,6 +87,12 @@ def level_load_info(name, nick, index, memory_mode, flags, mood, continues, call
     else:
         weather = "    :max-rain 0.0\n    :mood-range (new 'static 'mood-range)\n"
     ocean_value = f"'{ocean}" if ocean else "#f"
+    if borrow_sizes:
+        sizes = " ".join(str(int(x)) for x in (list(borrow_sizes) + [0] * 5)[:5])
+        borrow = ("(new 'static 'level-borrow-info :alias #f :borrow-size (new 'static 'array uint16 5 "
+                  f"{sizes}) :borrow-info (new 'static 'array object 5 #f #f #f #f #f))")
+    else:
+        borrow = "#f"
     callback_list = (
         "'(" + " ".join(f"({slot} . {fn})" for slot, fn in callbacks) + ")" if callbacks else "'()"
     )
@@ -115,7 +124,7 @@ def level_load_info(name, nick, index, memory_mode, flags, mood, continues, call
 {chr(10).join(continues)}
       )
     :callback-list {callback_list}
-    :borrow #f
+    :borrow {borrow}
     :bottom-height (meters -100)
     :fog-height (meters 80)
 {weather}    :fog-mult 1.0

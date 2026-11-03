@@ -5,6 +5,9 @@
 ;; name in dgo: traffic-engine
 ;; dgos: DESRESC, WWD, CWI
 
+;; og:jak2-haven-city added: the war mode's unit counts (pc/features/jak2-haven-city-war.gc, GAME)
+(define-extern hj2-war-want-count (function int int int))
+
 (deftype traffic-engine-stack-var0 (structure)
   ((params traffic-object-spawn-params :inline :offset 0)
    (vec0   vector                      :inline :offset 128)
@@ -727,11 +730,15 @@
           (when (and (> (-> v1-15 inactive-count) 0) (> (-> v1-15 reserve-count) 0))
             (let ((s1-0 (-> this object-type-info-array s2-0)))
               (when (-> s1-0 level)
+                ;; og:jak2-haven-city added: the squads' count for the territory, or the war's
                 (let ((s0-0
-                        (-> s1-0
-                            target-counts
-                            (cty-faction-manager-method-10 *cty-faction-manager* (the-as int (-> arg0 branch clock-type)) (-> s1-0 level))
-                            )
+                        (hj2-war-want-count
+                          s2-0
+                          (-> s1-0
+                              target-counts
+                              (cty-faction-manager-method-10 *cty-faction-manager* (the-as int (-> arg0 branch clock-type)) (-> s1-0 level))
+                              )
+                          )
                         )
                       )
                   (when (< (-> s1-0 active-count) s0-0)

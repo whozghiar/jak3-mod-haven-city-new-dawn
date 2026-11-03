@@ -602,8 +602,10 @@ PackVagsTool::PackVagsTool() : Tool("pack-vags") {}
 /*!
  * in: (Jak 2's VAGDIR.AYB, the Jak 3 VAGDIR.AYB the game uses, optionally the file listing the
  * lines, only so that its change packs again), the wads next to the first (VAGWAD.<language>).
- * arg: the lines, each a name or (name new-name). out: the directory, then a wad per language
- * (from Jak 2's English one when Jak 2's disc lacks the language).
+ * arg: the lines, each a name or (name new-name), or (file "path.vag" new-name) for a line of
+ * one's own (a .vag file, "VAGp" header and PS-ADPCM data, the same in every language's wad: see
+ * custom_assets/jak3/ports/jak2-haven-city/voices/encode_vag.py). out: the directory, then a wad
+ * per language (from Jak 2's English one when Jak 2's disc lacks the language).
  * Jak 2's directory: a count, then {8 characters, start in 2048 byte sectors, stereo}. Jak 3's: a
  * header, then a 64-bit entry per line: name (42 bits), stereo, international, sample rate index,
  * start in 32 KB pages (the same in every language's wad: a line takes the pages of its longest
@@ -641,10 +643,16 @@ bool PackVagsTool::run(const ToolInput& task, const PathMap&) {
     taken.insert(e & ((1ull << 42) - 1));
   }
 
-  // the lines: (Jak 2 name, new name)
+  // the lines: (Jak 2 name, new name), and the .vag file of a line of one's own (name empty)
   std::vector<std::pair<std::string, std::string>> lines;
+  std::map<std::string, std::string> files;
   goos::for_each_in_list(task.arg, [&](const goos::Object& o) {
-    if (o.is_pair()) {
+    if (o.is_pair() && o.as_pair()->car.is_symbol("file")) {
+      auto rest = o.as_pair()->cdr.as_pair();
+      auto new_name = upper_trimmed(rest->cdr.as_pair()->car.print());
+      files[new_name] = rest->car.as_string()->data;
+      lines.push_back({"", new_name});
+    } else if (o.is_pair()) {
       lines.push_back({upper_trimmed(o.as_pair()->car.print()),
                        upper_trimmed(o.as_pair()->cdr.as_pair()->car.print())});
     } else {
@@ -672,28 +680,45 @@ bool PackVagsTool::run(const ToolInput& task, const PathMap&) {
   std::vector<std::vector<u8>> out_wads(src_wads.size());
   size_t page = 0;
   for (auto& [name, new_name] : lines) {
-    auto it = src_lines.find(name);
-    if (it == src_lines.end()) {
-      throw std::runtime_error(fmt::format("[pack-vags] {} isn't in {}", name, src_dir_path));
-    }
     u64 packed = pack_vag_name(new_name);
     if (!taken.insert(packed).second) {
       throw std::runtime_error(fmt::format("[pack-vags] {} is already a VAG name", new_name));
     }
-    auto [start, stereo] = it->second;
     // the line in each language, and the pages of the longest
     size_t pages = 1;
     std::vector<std::vector<u8>> datas;
     u32 rate = 0;
-    for (auto& wad : src_wads) {
-      auto header = read_file_range(wad, start, 0x30);
-      rate = vag_header_field(header.data(), 16);
-      size_t size = 0x30 + vag_header_field(header.data(), 12);
-      datas.push_back(read_file_range(wad, start, size));
-      if (!stereo) {
-        add_vag_end_frames(datas.back());  // added: Jak 3's end of line (see add_vag_end_frames)
+    u32 stereo = 0;
+    if (name.empty()) {
+      // a line of one's own: its .vag file (mono), in every language's wad
+      auto vag = file_util::read_binary_file(file_util::get_file_path({files.at(new_name)}));
+      if (vag.size() < 0x30 || memcmp(vag.data(), "VAGp", 4) != 0) {
+        throw std::runtime_error(fmt::format("[pack-vags] {} isn't a .vag", files.at(new_name)));
       }
-      pages = std::max(pages, (datas.back().size() + kPage - 1) / kPage);
+      rate = vag_header_field(vag.data(), 16);
+      vag.resize(0x30 + vag_header_field(vag.data(), 12));
+      add_vag_end_frames(vag);
+      for (size_t i = 0; i < src_wads.size(); i++) {
+        datas.push_back(vag);
+      }
+      pages = std::max(pages, (vag.size() + kPage - 1) / kPage);
+    } else {
+      auto it = src_lines.find(name);
+      if (it == src_lines.end()) {
+        throw std::runtime_error(fmt::format("[pack-vags] {} isn't in {}", name, src_dir_path));
+      }
+      size_t start = it->second.first;
+      stereo = it->second.second;
+      for (auto& wad : src_wads) {
+        auto header = read_file_range(wad, start, 0x30);
+        rate = vag_header_field(header.data(), 16);
+        size_t size = 0x30 + vag_header_field(header.data(), 12);
+        datas.push_back(read_file_range(wad, start, size));
+        if (!stereo) {
+          add_vag_end_frames(datas.back());  // added: Jak 3's end of line (see add_vag_end_frames)
+        }
+        pages = std::max(pages, (datas.back().size() + kPage - 1) / kPage);
+      }
     }
     u64 rate_index = 12;
     for (u64 r = 0; r < 16; r++) {

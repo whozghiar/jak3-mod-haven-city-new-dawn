@@ -33,6 +33,8 @@ Manifest, on the level:
     "sources": [the source levels whose navigation it holds, else the level's own; none: only the
                 height map (a city's hub: its districts hold their own)]
   }
+A level whose sources have nav meshes but no traffic data (a place outside the city) gets their
+nav meshes alone, as they are (write_meshes): where the mod's actors walk.
 Inputs: decompiler_out/<game>/entities/<level>-city.json and <level>-nav.json of the level's
 sources (see decompiler/level_extractor/extract_nav.h).
 """
@@ -333,11 +335,19 @@ def nav_path(level):
 
 
 def city_sources(port, level):
-    """The source levels of a level's "nav" that have navigation data (empty: no nav_data)."""
+    """The source levels of a level's "nav" that have traffic data (a city-level-info)."""
+    return [src for src in nav_sources(port, level)
+            if os.path.exists(os.path.join(port.source.ENTITIES, src + "-city.json"))]
+
+
+def nav_sources(port, level):
+    """The source levels of a level's "nav" that have navigation data: a city-level-info or nav
+    meshes (empty: no nav_data)."""
     if "nav" not in level:
         return []
     return [src for src in sorted(level["nav"].get("sources", level.sources))
-            if os.path.exists(os.path.join(port.source.ENTITIES, src + "-city.json"))]
+            if any(os.path.exists(os.path.join(port.source.ENTITIES, f"{src}-{kind}.json"))
+                   for kind in ("city", "nav"))]
 
 
 def write_district(port, level, src):
@@ -378,6 +388,25 @@ def write_district(port, level, src):
           f"{len(mesh_aids)} nav meshes, {len(w.blob.words) * 4 // 1024} KB")
 
 
+def write_meshes(port, level, sources):
+    """The nav meshes alone of source levels without traffic data (a place's, where its enemies
+    walked), as they are, with their ids: an actor finds its own by id (its nav-mesh-actor lump,
+    entity-nav-mesh-by-aid: a binary search over the bsp's nav meshes, which the level builder
+    sorts by id), or the nearest one (find-nearest-nav-mesh)."""
+    w = data_blob.Writer()
+    aids = []
+    for src in sources:
+        blob = data_blob.Blob(os.path.join(port.source.ENTITIES, src + "-nav.json"))
+        base = w.append_blob(blob)
+        for root, byte in blob.roots.items():
+            w.blob.roots[f"nav-mesh-{src}-{root}"] = byte + base
+            aids.append(blob.u32(byte + 44))
+    assert len(set(aids)) == len(aids), f"{level.name}: two nav meshes with the same id"
+    write_if_changed(nav_path(level), json.dumps(w.blob.to_json(), separators=(",", ":")))
+    print(f"  {level.name}: the nav meshes of {', '.join(sources)}: {len(aids)} nav meshes, "
+          f"{len(w.blob.words) * 4 // 1024} KB")
+
+
 def write_level(port, level):
     cfg = level["nav"]
     meter = port.source.METER
@@ -390,6 +419,8 @@ def write_level(port, level):
         write_district(port, level, sources[0])
         return
     if not sources:
+        if nav_sources(port, level):
+            write_meshes(port, level, nav_sources(port, level))
         return
     districts, meshes = {}, {}
     for src in sources:

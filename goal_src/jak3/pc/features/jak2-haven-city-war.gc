@@ -1,0 +1,527 @@
+;;-*-Lisp-*-
+(in-package goal)
+
+#|
+
+  jak2-haven-city-war.gc -- "KG-Guard vs Freedom Fighters", the war mode of Haven City: New Dawn (GAME).
+
+  A Mods menu switch (*mod-jak2-haven-city-war*, off by default, usable only while the mod is on):
+  in Jak 2's city (havenj2) as in Jak 3's own, Jak 2's Krimzon Guards (red, and yellow: Jak 2's
+  dark guards) fight the Freedom League's blue guards; troop transports bring guards of either side;
+  jetpack guards of either side fly in; the citizens flee and are fewer, and so are the vehicles; no
+  Hellcat or guard bike flies the lanes, but crimson bikes wait on the ground. In the places around
+  the city (Dead Town, the pumping station, Haven Forest, the fortress and its prison...), red and
+  yellow Krimzon Guards stand where Jak 2 put its enemies (jak2-haven-city-kg.gc).
+
+  How: the guards and jetpack guards are Jak 3's own traffic units (`crimson-guard`, and
+  `flying-turret` for the jetpacks), drawn with Jak 2's models (build-actor, made by the level port:
+  hj2-kg-red, hj2-kg-red-gl, hj2-kg-yellow, hj2-kg-yellow-gl, hj2-hover-red, hj2-hover-blue). A few
+  marked lines in Jak 3's guard.gc, flying-turret.gc and traffic-manager.gc call the functions below,
+  each of which gives back the stock answer while the war is off. A Krimzon Guard registers in the
+  city's attack controller as a Krimzon Guard robot (roboguard), so Jak 3's own hatred table sends
+  both sides at each other. The war's city part (counts, transports, panic, crimson bikes) is
+  levels/city/war/hj2-war-city.gc, linked with the traffic in Jak 3's city (CWI) and in havenj2 (HJ2).
+
+  The method follows the Jak 3 mod Battlefront (its battlefront-h.gc), with Jak 2's models built at
+  install from Jak 2's data alone.
+
+|#
+
+;; DECOMP BEGINS
+
+;; Switch ////////////////////////////////////////////////////////////////////////////////////////
+
+;; The war mode, set by the Mods menu (jak2-haven-city-menu.gc). Off at every boot, like the mod.
+(define *mod-jak2-haven-city-war* #f)
+
+(deftype hj2-war-state (structure)
+  "What the war mode knows of the game. mission?: a Jak 3 mission runs in Jak 3's city (a
+task-manager process), set by hj2-war-update-mission!."
+  ((mission?  symbol)
+   )
+  )
+
+(define *hj2-war-state* (new 'static 'hj2-war-state))
+
+(defun hj2-war-switched-on? ()
+  "#t while the war's switch and the mod's (*mod-jak2-haven-city-enabled*) are on. No side effects."
+  (and *mod-jak2-haven-city-enabled* *mod-jak2-haven-city-war*)
+  )
+
+(defun hj2-war-on? ()
+  "#t while the war is on: switched on (hj2-war-switched-on?), and no Jak 3 mission runs in Jak 3's
+city (a mission sets its own factions and units: the war steps aside until it ends). No side
+effects."
+  (and (hj2-war-switched-on?) (not (-> *hj2-war-state* mission?)))
+  )
+
+(defun hj2-war-update-mission! ()
+  "Set *hj2-war-state* mission?: Jak 3's city is loaded and a task-manager process (a Jak 3
+mission) runs. Walks the process tree: call it only from a process with a large stack (the war
+director, the Mods menu), never from a unit's init. Returns nothing."
+  (set! (-> *hj2-war-state* mission?)
+        (if (and (level-get *level* 'ctywide)
+                 (search-process-tree *active-pool* (lambda ((p process-tree)) (type? p task-manager)))
+                 )
+            #t
+            #f
+            )
+        )
+  (none)
+  )
+
+;; Commands of *hj2-war-city-hook*, the city's part of the war (hj2-war-city.gc).
+(defconstant HJ2_WAR_CITY_CHANGED 0) ;; the war was switched on or off: rebuild the traffic
+
+;; Set by hj2-war-city.gc each time its DGO (Jak 3's CWI, or havenj2's HJ2) links: the function
+;; running a command in the city loaded now, #f before. Called only while a city's traffic exists.
+(define *hj2-war-city-hook* (the-as (function int none) #f))
+
+;; below in this file
+(define-extern hj2-war-reset-looks! (function none))
+
+(defun hj2-war-changed! ()
+  "The war (or the mod) was switched on or off: the city loaded now rebuilds its traffic, so that its
+guards take the right looks (a guard's look is chosen when its process is made). havenj2 restarts
+its own (hj2-traffic-refresh); Jak 3's city runs ctywide's activation again (*hj2-war-city-hook*).
+Returns nothing."
+  (hj2-war-reset-looks!)
+  (hj2-war-update-mission!)
+  (let ((hub (level-get *level* 'havenj2))
+        (city (level-get *level* 'ctywide))
+        )
+    (cond
+      ((and hub (= (-> hub status) 'active))
+       (hj2-traffic-refresh hub 'life)
+       )
+      ;; not during a Jak 3 mission: rebuilding the traffic there would kill its units without its
+      ;; own fail or reset; the war's looks then come with the city's next activation (a death, a
+      ;; return to the city)
+      ((and city (= (-> city status) 'active) *hj2-war-city-hook* (not (-> *hj2-war-state* mission?)))
+       (*hj2-war-city-hook* HJ2_WAR_CITY_CHANGED)
+       )
+      )
+    )
+  (none)
+  )
+
+(defun mod-jak2-haven-city-set-war ((on symbol))
+  "Switch the war on (on: #t) or off (#f) from the Mods menu; the city loaded now follows at once.
+Returns nothing."
+  (set! *mod-jak2-haven-city-war* on)
+  (hj2-war-changed!)
+  (none)
+  )
+
+(defun hj2-french? ()
+  "#t when the game speaks or writes French: its audio language, or the text language of the PC
+settings. No side effects."
+  (or (= (-> *setting-control* user-current audio-language) (language-enum french))
+      (= (-> *pc-settings* text-language) (pc-language french))
+      )
+  )
+
+;; Models ////////////////////////////////////////////////////////////////////////////////////////
+;;
+;; Jak 2's Krimzon Guard on Jak 3's guard skeleton and clips (the level port inserts Jak 3's three
+;; extra joints and orders the clips like crimson-guard-ag: idle 4 ... shield-sidle 55), so Jak 3's
+;; crimson-guard code drives it unchanged. A build-actor model draws all its primitives: each weapon
+;; is its own model (rifle; grenade launcher and tazer). Yellow: Jak 2's dark guard armor. The art
+;; groups are in the levels whose processes draw them: the hub havenj2, the places with Krimzon
+;; Guards, and Jak 3's CTYPESA (guards) and CTYPESC (jetpacks); their meshes in those levels' .fr3,
+;; and in Jak 3's city in hj2-war's (jak2-haven-city-world.gc hj2-renderer-prefetch names it to the PC renderer).
+
+(def-art-elt hj2-kg-red-ag hj2-kg-red-lod0-jg 0)
+(def-art-elt hj2-kg-red-ag hj2-kg-red-lod0-mg 1)
+(def-art-elt hj2-kg-red-gl-ag hj2-kg-red-gl-lod0-jg 0)
+(def-art-elt hj2-kg-red-gl-ag hj2-kg-red-gl-lod0-mg 1)
+(def-art-elt hj2-kg-yellow-ag hj2-kg-yellow-lod0-jg 0)
+(def-art-elt hj2-kg-yellow-ag hj2-kg-yellow-lod0-mg 1)
+(def-art-elt hj2-kg-yellow-gl-ag hj2-kg-yellow-gl-lod0-jg 0)
+(def-art-elt hj2-kg-yellow-gl-ag hj2-kg-yellow-gl-lod0-mg 1)
+
+(defskelgroup skel-hj2-kg-red hj2-kg-red hj2-kg-red-lod0-jg -1
+              ((hj2-kg-red-lod0-mg (meters 999999)))
+              :bounds (static-spherem 0 0 0 5)
+              :origin-joint-index 3
+              )
+
+(defskelgroup skel-hj2-kg-red-gl hj2-kg-red-gl hj2-kg-red-gl-lod0-jg -1
+              ((hj2-kg-red-gl-lod0-mg (meters 999999)))
+              :bounds (static-spherem 0 0 0 5)
+              :origin-joint-index 3
+              )
+
+(defskelgroup skel-hj2-kg-yellow hj2-kg-yellow hj2-kg-yellow-lod0-jg -1
+              ((hj2-kg-yellow-lod0-mg (meters 999999)))
+              :bounds (static-spherem 0 0 0 5)
+              :origin-joint-index 3
+              )
+
+(defskelgroup skel-hj2-kg-yellow-gl hj2-kg-yellow-gl hj2-kg-yellow-gl-lod0-jg -1
+              ((hj2-kg-yellow-gl-lod0-mg (meters 999999)))
+              :bounds (static-spherem 0 0 0 5)
+              :origin-joint-index 3
+              )
+
+;; Jak 2's jetpack guard, on the code of Jak 3's Krimzon Guard flying turret: the level port puts the
+;; three clips that code plays first (2 idle, 3 hover = fly-forward, 4 fire = shoot0).
+(def-art-elt hj2-hover-red-ag hj2-hover-red-lod0-jg 0)
+(def-art-elt hj2-hover-red-ag hj2-hover-red-lod0-mg 1)
+(def-art-elt hj2-hover-red-ag hj2-hover-red-idle-ja 2)
+(def-art-elt hj2-hover-blue-ag hj2-hover-blue-lod0-jg 0)
+(def-art-elt hj2-hover-blue-ag hj2-hover-blue-lod0-mg 1)
+(def-art-elt hj2-hover-blue-ag hj2-hover-blue-idle-ja 2)
+
+(defskelgroup skel-hj2-hover-red hj2-hover-red hj2-hover-red-lod0-jg hj2-hover-red-idle-ja
+              ((hj2-hover-red-lod0-mg (meters 999999)))
+              :bounds (static-spherem 0 0 0 4)
+              :origin-joint-index 3
+              )
+
+(defskelgroup skel-hj2-hover-blue hj2-hover-blue hj2-hover-blue-lod0-jg hj2-hover-blue-idle-ja
+              ((hj2-hover-blue-lod0-mg (meters 999999)))
+              :bounds (static-spherem 0 0 0 4)
+              :origin-joint-index 3
+              )
+
+;; clips of the jetpack guards (both share the order)
+(defconstant HJ2_HOVER_IDLE 2)
+(defconstant HJ2_HOVER_FLY_FORWARD 3)
+(defconstant HJ2_HOVER_SHOOT 4)
+
+;; Looks ////////////////////////////////////////////////////////////////////////////////////////
+;;
+;; A traffic unit's look is chosen when its process is made (the traffic keeps its processes in
+;; pools and wakes them again and again): each new guard or jetpack guard takes the look furthest
+;; below its share of its pool (*hj2-war-look-share*). The war director counts the live looks every
+;; half second (hj2-war-count-looks!, in its own process: a walk of the process tree on the traffic
+;; manager's small stack crashed Battlefront).
+
+(defconstant HJ2_LOOK_BLUE 0)       ;; Freedom League guard (Jak 3's crimson-guard art)
+(defconstant HJ2_LOOK_RED 1)        ;; Krimzon Guard, rifle
+(defconstant HJ2_LOOK_RED_GL 2)     ;; Krimzon Guard, grenade launcher / tazer
+(defconstant HJ2_LOOK_YELLOW 3)     ;; Krimzon Guard dark guard, rifle
+(defconstant HJ2_LOOK_YELLOW_GL 4)  ;; Krimzon Guard dark guard, grenade launcher / tazer
+(defconstant HJ2_LOOK_JET_BLUE 5)   ;; Freedom League jetpack guard
+(defconstant HJ2_LOOK_JET_RED 6)    ;; Krimzon Guard jetpack guard
+(defconstant HJ2_LOOK_COUNT 7)
+
+;; the sides
+(defconstant HJ2_SIDE_NONE -1)
+(defconstant HJ2_SIDE_FF 0)         ;; Freedom League (blue)
+(defconstant HJ2_SIDE_KG 1)         ;; Krimzon Guard (red, yellow)
+
+;; Live units of each look, and each look's share of its pool. The guards' pool (traffic type guard-a,
+;; HJ2_WAR_GUARDS) is half Freedom League, half Krimzon Guard, of which a third are yellow dark
+;; guards; the jetpacks' (flying-turret, HJ2_WAR_JETPACKS) half and half.
+(define *hj2-war-looks* (new 'static 'array int32 7 0 0 0 0 0 0 0))
+(define *hj2-war-look-share* (new 'static 'array int32 7 10 4 3 2 1 2 2))
+
+;; the art group of each look, and its skeleton group
+(define *hj2-war-look-art* (new 'static 'boxed-array :type string
+  "crimson-guard" "hj2-kg-red" "hj2-kg-red-gl" "hj2-kg-yellow" "hj2-kg-yellow-gl" "hj2-hover-blue" "hj2-hover-red"
+  ))
+(define *hj2-war-look-skel* (new 'static 'boxed-array :type string
+  "skel-crimson-guard" "skel-hj2-kg-red" "skel-hj2-kg-red-gl" "skel-hj2-kg-yellow" "skel-hj2-kg-yellow-gl"
+  "skel-hj2-hover-blue" "skel-hj2-hover-red"
+  ))
+
+(defun hj2-war-art-name ((proc process))
+  "Name of the art group proc draws, \"\" when it has no draw-control yet. No side effects."
+  (let ((pd (the-as process-drawable proc)))
+    (if (and (type? proc process-drawable) (nonzero? (-> pd draw)) (-> pd draw) (-> pd draw art-group))
+        (-> pd draw art-group name)
+        ""
+        )
+    )
+  )
+
+(defun hj2-war-look ((proc process))
+  "The look (HJ2_LOOK_*) of a guard or jetpack guard, -1 for anything else (a stock flying turret, a
+citizen...). No side effects."
+  (let ((name (hj2-war-art-name proc))
+        (look -1)
+        )
+    (dotimes (i HJ2_LOOK_COUNT)
+      (if (string= name (-> *hj2-war-look-art* i))
+          (set! look i)
+          )
+      )
+    look
+    )
+  )
+
+(defun hj2-war-guard-side ((proc process))
+  "The side of a unit of the war: HJ2_SIDE_FF for a Freedom League guard or jetpack guard,
+HJ2_SIDE_KG for a Krimzon Guard (red, yellow, red jetpack), HJ2_SIDE_NONE for anything else. No side
+effects."
+  (case (hj2-war-look proc)
+    ((HJ2_LOOK_BLUE HJ2_LOOK_JET_BLUE) HJ2_SIDE_FF)
+    ((HJ2_LOOK_RED HJ2_LOOK_RED_GL HJ2_LOOK_YELLOW HJ2_LOOK_YELLOW_GL HJ2_LOOK_JET_RED) HJ2_SIDE_KG)
+    (else HJ2_SIDE_NONE)
+    )
+  )
+
+(defun hj2-war-kg? ((proc process))
+  "#t for a Krimzon Guard of the war (red or yellow guard, red jetpack guard). No side effects."
+  (= (hj2-war-guard-side proc) HJ2_SIDE_KG)
+  )
+
+(defun hj2-war-yellow? ((proc process))
+  "#t for a yellow Krimzon Guard (Jak 2's dark guard). No side effects."
+  (let ((look (hj2-war-look proc)))
+    (or (= look HJ2_LOOK_YELLOW) (= look HJ2_LOOK_YELLOW_GL))
+    )
+  )
+
+(defun hj2-war-reset-looks! ()
+  "No live unit of any look: the pools are about to be made again (war switched, traffic restarted).
+Returns nothing."
+  (dotimes (i HJ2_LOOK_COUNT)
+    (set! (-> *hj2-war-looks* i) 0)
+    )
+  (none)
+  )
+
+(defun hj2-war-count-looks! ()
+  "Count the live guards and jetpack guards of each look into *hj2-war-looks*. Called by the war
+director in its own process (hj2-war-city.gc), never from a unit's init. Returns nothing."
+  (dotimes (i HJ2_LOOK_COUNT)
+    (set! (-> *hj2-war-looks* i) 0)
+    )
+  (iterate-process-tree
+    *active-pool*
+    (lambda ((p process))
+      (let ((sym (-> p type symbol)))
+        (when (or (= sym 'crimson-guard) (= sym 'flying-turret))
+          (let ((look (hj2-war-look p)))
+            (if (>= look 0)
+                (+! (-> *hj2-war-looks* look) 1)
+                )
+            )
+          )
+        )
+      #t
+      )
+    *null-kernel-context*
+    )
+  (none)
+  )
+
+(defun hj2-war-look-gap ((look int))
+  "How many units look lacks to reach its share of its pool (negative: too many). No side effects."
+  (- (-> *hj2-war-look-share* look) (-> *hj2-war-looks* look))
+  )
+
+(defun hj2-war-look-has-art? ((lev level) (look int))
+  "Is the art group of look (a war model, not the stock blue guard) in lev's own art, where a unit of
+lev looks it up? Reads the GAME skeleton group directly (a unit's init runs on a small stack). No
+side effects."
+  (let ((skel (case look
+                ((HJ2_LOOK_RED) skel-hj2-kg-red)
+                ((HJ2_LOOK_RED_GL) skel-hj2-kg-red-gl)
+                ((HJ2_LOOK_YELLOW) skel-hj2-kg-yellow)
+                ((HJ2_LOOK_YELLOW_GL) skel-hj2-kg-yellow-gl)
+                ((HJ2_LOOK_JET_BLUE) skel-hj2-hover-blue)
+                ((HJ2_LOOK_JET_RED) skel-hj2-hover-red)
+                (else (the-as skeleton-group #f))
+                )
+              )
+        )
+    (and skel
+         lev
+         (load-to-heap-by-name (-> lev art-group) (-> skel art-group-name) 'test global (-> skel version))
+         #t
+         )
+    )
+  )
+
+(defun hj2-war-pick-look ((proc process-drawable) (first int) (last int))
+  "The look, between first and last (HJ2_LOOK_*), a new unit proc takes: the one furthest below its
+share whose art is in proc's level (first, the stock look, needs none), counted as live at once (a
+pool makes several units in one frame). Returns the look."
+  (let ((look first)
+        (lev (-> proc level))
+        (i (+ first 1))
+        )
+    (while (<= i last)
+      (if (and (< (hj2-war-look-gap look) (hj2-war-look-gap i)) (hj2-war-look-has-art? lev i))
+          (set! look i)
+          )
+      (+! i 1)
+      )
+    (+! (-> *hj2-war-looks* look) 1)
+    look
+    )
+  )
+
+;; Hooks of Jak 3's stock code ///////////////////////////////////////////////////////////////////
+;; Each is called by a line marked "og:jak2-haven-city added" and answers like the stock code while
+;; the war is off.
+
+(defun hj2-war-guard-skel-name ((this process-drawable))
+  "Skeleton group of a new crimson-guard process (guard.gc init-enemy!): \"skel-crimson-guard\", or
+during the war the look furthest below its share (blue, red, yellow; hj2-war-pick-look)."
+  (if (hj2-war-on?)
+      (-> *hj2-war-look-skel* (hj2-war-pick-look this HJ2_LOOK_BLUE HJ2_LOOK_YELLOW_GL))
+      "skel-crimson-guard"
+      )
+  )
+
+(defun hj2-war-turret-skel-name ((this process-drawable))
+  "Skeleton group of a new flying-turret process (flying-turret.gc init-enemy!): \"skel-flying-turret\",
+or during the war a jetpack guard, blue or red (hj2-war-pick-look; the stock turret when neither
+model is in the level)."
+  (if (and (hj2-war-on?) (hj2-war-look-has-art? (-> this level) HJ2_LOOK_JET_BLUE))
+      (-> *hj2-war-look-skel* (hj2-war-pick-look this HJ2_LOOK_JET_BLUE HJ2_LOOK_JET_RED))
+      "skel-flying-turret"
+      )
+  )
+
+(defun hj2-war-hover? ((proc process))
+  "#t for a jetpack guard (a flying-turret drawn with a jetpack guard model). No side effects."
+  (let ((look (hj2-war-look proc)))
+    (or (= look HJ2_LOOK_JET_BLUE) (= look HJ2_LOOK_JET_RED))
+    )
+  )
+
+(defun hj2-war-unit-scale ((proc process) (stock float))
+  "Root scale of a flying-turret (flying-turret.gc init-enemy!): the turret is drawn at stock (2.0), a
+jetpack guard at its own size (1.0)."
+  (if (hj2-war-hover? proc) 1.0 stock)
+  )
+
+(defun hj2-war-attacker-type ((proc process) (stock int))
+  "City attack-controller type (city-target-type) a unit registers with (guard.gc, flying-turret.gc):
+a Krimzon Guard registers as a roboguard (9), a blue jetpack guard as a rifle guard (4), so Jak 3's
+hatred table sends each side against the other; stock otherwise."
+  (cond
+    ((hj2-war-hover? proc) (if (= (hj2-war-look proc) HJ2_LOOK_JET_BLUE) 4 10))
+    ((hj2-war-kg? proc) 9)
+    (else stock)
+    )
+  )
+
+(defun hj2-war-guard-flags ((this process) (flags uint) (dark uint))
+  "Called by crimson-guard citizen-method-194 (guard.gc) as a guard is put on the street, before
+Jak 3 reads its dark-guard flag. flags: the guard's citizen flags, dark: the dark-guard bit (the
+citizen-flag enum is CWI's, unknown here). A yellow Krimzon Guard is a dark guard (Jak 2's: twice
+the hit points, 1.1 times the size), a red one never; other guards keep the traffic's flag. Returns
+the flags to set."
+  (cond
+    ((hj2-war-yellow? this) (logior flags dark))
+    ((hj2-war-kg? this) (logclear flags dark))
+    (else flags)
+    )
+  )
+
+(defun hj2-war-guard-activated ((this process))
+  "Tail of crimson-guard citizen-method-194 (guard.gc), each time a guard is put on the street: a
+Krimzon Guard gets the enemy process mask back (Jak's aim and lock-on only consider processes with
+it), which Jak 3's guards drop. Returns nothing."
+  (if (hj2-war-kg? this)
+      (logior! (-> this mask) (process-mask enemy))
+      )
+  (none)
+  )
+
+(defun hj2-war-hover-hatred ((this process) (other process))
+  "How much a jetpack guard of the war hates other (kg-squad-member.gc enemy->hatred-val, which
+otherwise hates every process with the guard mask, red guards included): a unit of the other side
+0.5, of its own side -1 (never); Jak 0.3 for a Krimzon Guard, -1 for a Freedom League one; Krimzon
+Guard robots 0.5 for a Freedom League one; anything else -1. No side effects."
+  (let ((mine (hj2-war-guard-side this))
+        (theirs (hj2-war-guard-side other))
+        )
+    (cond
+      ((>= theirs 0) (if (= theirs mine) -1.0 0.5))
+      ((= (-> other type) target) (if (= mine HJ2_SIDE_KG) 0.3 -1.0))
+      ((logtest? (process-mask kg-robot) (-> other mask)) (if (= mine HJ2_SIDE_FF) 0.5 -1.0))
+      (else -1.0)
+      )
+    )
+  )
+
+(defun hj2-war-hover-animate ((this process-drawable) (speed float))
+  "Called by flying-turret enemy-common-post (flying-turret.gc): a jetpack guard loops its idle or
+forward-flight clip by its speed (units per second); the turret code only holds its idle pose. The
+firing clip, when the turret code plays it, is left alone. Returns nothing."
+  (when (and (hj2-war-hover? this) (nonzero? (-> this skel)) (> (-> this skel active-channels) 0))
+    (let ((chan (-> this skel root-channel 0))
+          (fire (the-as art-joint-anim (-> this draw art-group data HJ2_HOVER_SHOOT)))
+          )
+      ;; the firing clip is left alone while it plays (the turret code's fire state); once it ended
+      ;; (the turret code sets no other clip after it) the loop takes over again
+      (when (or (!= (-> chan frame-group) fire)
+                (>= (-> chan frame-num) (the float (+ (-> fire frames num-frames) -1)))
+                )
+        (let ((want (the-as art-joint-anim (-> this draw art-group data (if (< speed (meters 4))
+                                                                            HJ2_HOVER_IDLE
+                                                                            HJ2_HOVER_FLY_FORWARD
+                                                                            )
+                                                  )
+                            )
+                    )
+              )
+          (when (!= (-> chan frame-group) want)
+            (joint-control-channel-group! chan want num-func-identity)
+            (set! (-> chan frame-num) 0.0)
+            )
+          (let ((last (the float (+ (-> want frames num-frames) -1))))
+            (set! (-> chan frame-num) (+ (-> chan frame-num) (* 0.5 (-> this clock time-adjust-ratio))))
+            (if (>= (-> chan frame-num) last)
+                (set! (-> chan frame-num) 0.0)
+                )
+            )
+          )
+        )
+      )
+    )
+  (none)
+  )
+
+;; Unit counts ///////////////////////////////////////////////////////////////////////////////////
+
+;; The war's pools: guards (blue, red, yellow), jetpack guards; the citizens and the city's vehicles
+;; at most these.
+(defconstant HJ2_WAR_GUARDS 20)
+(defconstant HJ2_WAR_JETPACKS 3)
+(defconstant HJ2_WAR_WALKERS 4)
+(defconstant HJ2_WAR_VEHICLES 2)
+
+(defun hj2-war-want-count ((kind int) (stock int))
+  "How many units of traffic type kind the city keeps (Jak 3's city: traffic-manager.gc
+traffic-manager-method-22, from the faction manager's spawn levels; havenj2 sets its counts itself,
+hj2-war-city.gc): stock while the war is off; during it the war's guards and jetpack guards, no
+Krimzon Guard robot nor Metal Head, and at most HJ2_WAR_WALKERS of each citizen and
+HJ2_WAR_VEHICLES of each hover vehicle."
+  (if (hj2-war-on?)
+      (case (the-as traffic-type kind)
+        (((traffic-type guard-a)) HJ2_WAR_GUARDS)
+        (((traffic-type flying-turret)) HJ2_WAR_JETPACKS)
+        (((traffic-type roboguard)
+          (traffic-type spydroid)
+          (traffic-type metalhead-grunt)
+          (traffic-type metalhead-flitter)
+          (traffic-type metalhead-predator)
+          )
+         0
+         )
+        (((traffic-type civilian-male) (traffic-type civilian-female) (traffic-type civilian-fat))
+         (min stock HJ2_WAR_WALKERS)
+         )
+        (((traffic-type civilian-bike-a)
+          (traffic-type civilian-bike-b)
+          (traffic-type civilian-bike-c)
+          (traffic-type civilian-car-a)
+          (traffic-type civilian-car-b)
+          (traffic-type civilian-car-c)
+          )
+         (min stock HJ2_WAR_VEHICLES)
+         )
+        (else stock)
+        )
+      stock
+      )
+  )
