@@ -676,7 +676,8 @@ Returns #t with pos's y on the ground, #f (pos unchanged) when nothing is there.
 (defun hj2-transport-spawn ((parent process) (side int) (lev level))
   "Send a troop transport of side `side` (0 Freedom League, blue guards; 1 Krimzon Guard, red
 guards) next to Jak, like the transport-ag alert mod: up to 8 random spots 10 to 18 m around him,
-the first with ground under it (hj2-transport-ground) and a nav mesh within 2 m of that ground.
+the first on his far side from the camera (a hull landing between them hid Jak behind it), with
+ground under it (hj2-transport-ground) and a nav mesh within 2 m of that ground.
 parent: the process it becomes a child of (it dies with it), lev: the level holding the
 hj2-transport and hj2-vehicle-turret art groups ('havenj2 in Jak 2's city, 'ctypesa in Jak 3's).
 Returns the ship, or #f: no Jak, no level, no traffic, no spot found, no free process, or its art
@@ -684,6 +685,7 @@ missing (that process is killed). Keep its handle in a process field or a struct
 symbol drops a handle's pid); the ship is gone once handle->process gives #f."
   (when (and *target* lev *traffic-manager*)
     (let ((jak (target-pos 0))
+          (cam (camera-pos))
           (pos (new 'stack-no-clear 'vector))
           )
       (dotimes (i 8)
@@ -691,7 +693,14 @@ symbol drops a handle's pid); the ship is gone once handle->process gives #f."
               (dist (rand-vu-float-range 40960.0 73728.0))
               )
           (set-vector! pos (+ (-> jak x) (* dist (cos angle))) (-> jak y) (+ (-> jak z) (* dist (sin angle))) 1.0)
-          (when (and (hj2-transport-ground pos) (find-nearest-nav-mesh pos 8192.0))
+          (when (and (< (+ (* (- (-> pos x) (-> jak x)) (- (-> cam x) (-> jak x)))
+                           (* (- (-> pos z) (-> jak z)) (- (-> cam z) (-> jak z)))
+                           )
+                        0.0
+                        )
+                     (hj2-transport-ground pos)
+                     (find-nearest-nav-mesh pos 8192.0)
+                     )
             (let ((ptr (process-spawn hj2-transport pos side lev :to parent)))
               (when ptr
                 (let ((proc (ppointer->process ptr)))
