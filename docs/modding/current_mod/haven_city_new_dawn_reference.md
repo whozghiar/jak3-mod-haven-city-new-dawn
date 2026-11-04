@@ -489,8 +489,7 @@ guard vehicles larger ones. Three one-line changes of `minimap.gc` (marked): dra
 ### 8.6 War mode
 
 How the war works is in the [guide, 5](haven_city_new_dawn_readme.md#5-the-war-mode-step-by-step).
-It stays in Jak 2's world; Jak 3's city has Praxis KG invasion instead
-([guide, 5.9](haven_city_new_dawn_readme.md#59-praxis-kg-invasion)). Outside the city, Krimzon
+It stays in Jak 2's world. Outside the city, Krimzon
 Guards also stand in 10 places: the level port puts a spawner
 (`hj2-kg-spawner`, `jak2-haven-city-kg.gc`) at each spot where Jak 2 put an enemy (374 in all).
 About one spawner in three is used (35 %, drawn as the level loads), and at most 24 soldiers stand
@@ -550,13 +549,12 @@ while the mod is off.
 |---|---|
 | Mod enabled | Switches the mod on or off; off at each boot |
 | KG-Guard vs Freedom Fighters | The war mode, in Jak 2's world |
-| Praxis KG invasion | Its switch, and its conflict zones in Jak 3's city (Port, Industrial Section, Slums, Metal Head land) |
 | Warp to Haven City (Jak 2) | A submenu: Warp to Jak 2 (the underground hideout), Warp to a district (a district, or a place in it), Warp outside the city (a place outside the city, or back to Jak 3's Freedom HQ) |
 | Weather | The weather, and a Time of day submenu; usable with the mod off |
 
-![The Mods menu of the mod](images/mods-menu.jpg)
+![The Mods menu of the mod](../../img/mod/mods-menu.jpg)
 
-![The warps to Jak 2's world](images/menu-warps.jpg)
+![The warps to Jak 2's world](../../img/mod/menu-warps.jpg)
 
 Every warp goes through a continue point, never through the debug command `bg`: a continue point
 makes the game unload what it doesn't need before loading the new levels, so the city fits in

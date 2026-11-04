@@ -8,6 +8,7 @@
 ;; og:jak2-haven-city added: the war's reload speed (pc/features/jak2-haven-city-war.gc, GAME)
 (define-extern hj2-war-reload-speed (function process float float))
 (define-extern hj2-war-melee-ok? (function process-drawable symbol))
+(define-extern hj2-war-reload-break-ok? (function process-drawable symbol))
 
 ;; DECOMP BEGINS
 
@@ -332,7 +333,8 @@
     (set! (-> self reloading-ammo) (the-as handle #f))
     )
   :trans (behavior ()
-    (when (>= (/ (-> self grenade-guard-min-player-dist) 2) (-> self target-self-xz-dist))
+    ;; og:jak2-haven-city added the war's rule: the reload broken off for Jak alone (hj2-war-reload-break-ok?)
+    (when (and (>= (/ (-> self grenade-guard-min-player-dist) 2) (-> self target-self-xz-dist)) (hj2-war-reload-break-ok? self))
       (cond
         ((not (time-elapsed? (-> self state-time) (seconds 1.5)))
          (+! (-> self num-times-reloading-interrupted) 1)

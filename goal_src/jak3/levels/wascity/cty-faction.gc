@@ -21,9 +21,6 @@
 ;; ---exclusive-nav-info-mask
 
 
-;; og:jak2-haven-city added: Praxis KG invasion's spawn permissions (pc/features/jak2-haven-city-war.gc, GAME)
-(define-extern hj2-invasion-permission (function int int int))
-
 ;; DECOMP BEGINS
 
 (define *territory-list* (new 'static 'boxed-array :type pair '(#f) '(#f) '(#f) '(#f) '(#f) '(#f)))
@@ -159,8 +156,6 @@
 
 (defmethod cty-faction-manager-method-14 ((this cty-faction-manager) (arg0 nav-territory-type) (arg1 int) (arg2 int))
   (local-vars (gp-0 int))
-  ;; og:jak2-haven-city added: Praxis KG invasion's answer in its conflict zones (-1: Jak 3's)
-  (let ((hj2-perm (hj2-invasion-permission (the-as int arg0) arg1))) (if (>= hj2-perm 0) (return hj2-perm)))
   (when (= arg0 (nav-territory-type invalid))
     (set! gp-0 0)
     (goto cfg-14)

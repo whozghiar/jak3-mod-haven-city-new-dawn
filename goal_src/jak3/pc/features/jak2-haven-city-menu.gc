@@ -26,8 +26,7 @@
   thunderstorm, snow), see *mod-jak2-haven-city-weather*.
 
   The menu: the mod's switch (*mod-jak2-haven-city-enabled*, off by default); the war of Jak 2's
-  world ("KG-Guard vs Freedom Fighters"); Praxis KG invasion of Jak 3's city, its switch and its
-  conflict zones; the warps to Jak 2's world (to Jak 2's city: its underground hideout, by
+  world ("KG-Guard vs Freedom Fighters"); the warps to Jak 2's world (to Jak 2's city: its underground hideout, by
   district, outside the city); these greyed out while the mod is off. Then the weather (with the
   time of day of Jak 2's levels), usable with the mod off too. The traffic, its Hellcats and guard
   bikes, and Jak 2's alert are always on in Jak 2's levels (jak2-haven-city-world.gc).
@@ -45,10 +44,6 @@
 ;; defined in jak2-haven-city-war.gc, which GAME loads after this file
 (define-extern *mod-jak2-haven-city-war* symbol)
 (define-extern mod-jak2-haven-city-set-war (function symbol none))
-(define-extern *mod-jak2-haven-city-invasion* symbol)
-(define-extern mod-jak2-haven-city-set-invasion (function symbol none))
-(define-extern *mod-jak2-haven-city-invasion-zones* int)
-(define-extern mod-jak2-haven-city-toggle-zone (function int none))
 
 ;; A flag of the Mods menu greyed out while its entry-disabled? says so. The shared popup-menu-flag
 ;; (pc/util/popup-menu.gc, not ours to change) draws its label in white or cyan whatever its
@@ -116,21 +111,6 @@ Jak is in one of them."
         )
   )
 
-(defmacro mod-jak2-haven-city-zone-flag (label zone)
-  "A Mods menu choice of a conflict zone of Praxis KG invasion (HJ2_ZONE_*: 0 port, 1 industrial
-section, 2 slums, 3 Metal Heads' land), several at once; greyed out and inert while the mod is off."
-  `(new 'static 'hj2-menu-flag :label ,label
-        :entry-disabled? (lambda () (not *mod-jak2-haven-city-enabled*))
-        :is-toggled? (lambda () (logtest? *mod-jak2-haven-city-invasion-zones* (ash 1 ,zone)))
-        :on-confirm (lambda ()
-                      (if *mod-jak2-haven-city-enabled*
-                          (mod-jak2-haven-city-toggle-zone ,zone)
-                          )
-                      (none)
-                      )
-        )
-  )
-
 (defmacro mod-jak2-haven-city-hour-flag (label hour)
   "A Mods menu choice of the hour the clock stays at in this mod's levels (-1: Jak 2's day and night
 cycle, any negative hour)."
@@ -161,27 +141,6 @@ cycle, any negative hour)."
                          (none)
                          )
            )
-      ;; Praxis KG invasion (jak2-haven-city-war.gc): its switch and its conflict zones in Jak 3's
-      ;; city; greyed out and inert while the mod is off
-      (new 'static 'popup-menu-submenu :label "Praxis KG invasion"
-        :entry-disabled? (lambda () (not *mod-jak2-haven-city-enabled*))
-        :entries (new 'static 'boxed-array :type popup-menu-entry
-          (new 'static 'hj2-menu-flag :label "Invasion on (Jak 3's city, story over)"
-               :entry-disabled? (lambda () (not *mod-jak2-haven-city-enabled*))
-               :is-toggled? (lambda () *mod-jak2-haven-city-invasion*)
-               :on-confirm (lambda ()
-                             (if *mod-jak2-haven-city-enabled*
-                                 (mod-jak2-haven-city-set-invasion (not *mod-jak2-haven-city-invasion*))
-                                 )
-                             (none)
-                             )
-               )
-          (mod-jak2-haven-city-zone-flag "Conflict zone: Port" 0)
-          (mod-jak2-haven-city-zone-flag "Conflict zone: Industrial Section" 1)
-          (mod-jak2-haven-city-zone-flag "Conflict zone: Slums" 2)
-          (mod-jak2-haven-city-zone-flag "Conflict zone: Metal Head land" 3)
-          )
-        )
       ;; the warps to Jak 2's world
       (new 'static 'popup-menu-submenu :label "Warp to Haven City (Jak 2)"
         :entry-disabled? (lambda () (not *mod-jak2-haven-city-enabled*))

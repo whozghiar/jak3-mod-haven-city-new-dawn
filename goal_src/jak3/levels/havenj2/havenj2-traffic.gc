@@ -30,6 +30,7 @@
 (define-extern hj2-war-jak2-on? (function symbol))
 (define-extern hj2-war-guard-side (function process int))
 (define-extern hj2-war-guard-clips (function process-drawable none))
+(define-extern hj2-war-pos-ok? (function vector symbol))
 (define-extern skel-hj2-kg-red skeleton-group)
 (define-extern skel-hj2-kg-yellow skeleton-group)
 ;; Jak 2's citizens' lines, defined in the level-info file (jak2-haven-city-levels.gc)
@@ -483,7 +484,12 @@ there is none. No side effects."
         (dotimes (i (the-as int (-> trk active-object-count)))
           (when (= (-> trk active-object-type-list i) (traffic-type guard-a))
             (let ((g (the-as crimson-guard (handle->process (-> trk active-object-list i)))))
-              (when (and g (not (focus-test? g dead inactive)) (= (hj2-war-guard-side g) foe-side))
+              (when (and g
+                         (not (focus-test? g dead inactive))
+                         (= (hj2-war-guard-side g) foe-side)
+                         ;; never toward a NaN place (hj2-war-pos-ok?)
+                         (hj2-war-pos-ok? (-> g root trans))
+                         )
                 (let ((d (vector-vector-distance (-> veh root trans) (-> g root trans))))
                   (when (< d best-d)
                     (set! best-d d)
@@ -716,7 +722,8 @@ shots fired, may change veh's state."
       )
   (let ((tgt (as-type (handle->process (-> p pursuit-target)) process-focusable)))
     (cond
-      ((and tgt (logtest? (vehicle-flag in-pursuit) (-> veh v-flags)))
+      ;; no shot, steering or line-of-sight query toward a NaN place (hj2-war-pos-ok?): stand down
+      ((and tgt (logtest? (vehicle-flag in-pursuit) (-> veh v-flags)) (hj2-war-pos-ok? (get-trans tgt 3)))
        (if (logtest? (vehicle-flag target-in-sight) (-> veh v-flags))
            (turret-control-method-11 tc veh (get-trans tgt 3) (get-transv tgt))
            )

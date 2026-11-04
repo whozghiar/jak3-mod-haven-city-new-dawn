@@ -8,12 +8,12 @@
 #|
 
   The city's part of the war mode of Haven City: New Dawn (pc/features/jak2-haven-city-war.gc,
-  GAME): "KG-Guard vs Freedom Fighters" in Jak 2's city, and Praxis KG invasion in Jak 3's. Linked
+  GAME): "KG-Guard vs Freedom Fighters", in Jak 2's city. Linked
   after the traffic code in Jak 3's city (goal_src/jak3/dgos/cwi.gd, an added line) and in Jak 2's
   city hub (havenj2's DGO takes CWI's objects in their order), so it only exists while one of the
   two cities is loaded.
 
-  While either mode is on, a director process, child of the traffic manager (it dies with the
+  While the war is switched on, a director process, child of the traffic manager (it dies with the
   traffic), every frame:
   - counts the live looks of the guards and jetpack guards (the shares of jak2-haven-city-war.gc);
   - frightens the citizens: every citizen on foot keeps fleeing from the nearest guard (or Jak), and a
@@ -22,11 +22,8 @@
   - adds the war's hatreds to the attack controller: the two sides seek each other out from further
     away, and the Krimzon Guards attack citizens too;
   - in Jak 2's city only: plays Jak 3's city fight music (fight1), and sends a troop transport now
-    and then, landing near Jak, the two sides in turn (a red Krimzon Guard ship with red and yellow
-    guards, a blue Freedom Fighters one with blue guards; hj2-transport.gc). Jak 3's city has no war
-    ship: its conflict zones are held by the faction manager's hooks (jak2-haven-city-war.gc
-    hj2-invasion-permission, hj2-invasion-spawn-ok?, hj2-war-wake-ok?), and its fight music is Jak
-    3's own, in a territory at war.
+    and then, coming down near Jak, the two sides in turn (a red Krimzon Guard ship with red and yellow
+    guards, a blue Freedom Fighters one with blue guards; hj2-transport.gc).
 
   Switching a mode on or off rebuilds the city's traffic (a guard's look is chosen when its process
   is made): in Jak 3's city by running ctywide's activation again, as a death does
@@ -36,9 +33,10 @@
 
 ;; in hj2-transport.gc, linked before this file
 (define-extern hj2-transport-spawn (function process int level process))
+;; a place the war may use: no NaN (jak2-haven-city-war.gc, GAME)
+(define-extern hj2-war-pos-ok? (function vector symbol))
 ;; the switches alone, mission or not, and the war of Jak 2's world (jak2-haven-city-war.gc, GAME)
 (define-extern hj2-war-switched-on? (function symbol))
-(define-extern hj2-invasion-switched-on? (function symbol))
 (define-extern hj2-war-jak2-on? (function symbol))
 
 ;; DECOMP BEGINS
@@ -172,6 +170,7 @@ seconds. Guards ignore this danger type. Returns nothing."
             (let ((g (the-as process-drawable (handle->process (-> trk active-object-list i)))))
               (when (and g
                          (hj2-war-kg? g)
+                         (hj2-war-pos-ok? (-> g root trans))
                          (< (vector-vector-distance (-> g root trans) (target-pos 0)) HJ2_WAR_PANIC_RANGE)
                          )
                 ;; one at random: the n-th candidate replaces the pick with a chance of 1 in n
@@ -232,7 +231,7 @@ else on Jak. Returns nothing."
                   (dotimes (j (the-as int (-> trk active-object-count)))
                     (when (= (-> trk active-object-type-list j) (traffic-type guard-a))
                       (let ((g (the-as process-drawable (handle->process (-> trk active-object-list j)))))
-                        (when g
+                        (when (and g (hj2-war-pos-ok? (-> g root trans)))
                           (let ((dist (vector-vector-distance (-> g root trans) (-> civ root trans))))
                             (when (< dist best-d)
                               (set! best-d dist)
@@ -341,8 +340,8 @@ guards); the next one 45 to 90 s later. A failed spawn (no landing spot, no proc
   )
 
 (defbehavior hj2-war-director-update hj2-war-director ()
-  "One frame of the war in the city: every 0.5 s whether a Jak 3 mission runs (the invasion then
-steps aside, hj2-war-on?), and while a mode is on its counts, panic and hatreds, and in Jak 2's city
+  "One frame of the war in the city: every 0.5 s whether a Jak 3 mission runs, and while the war is
+on its counts, panic and hatreds, and in Jak 2's city
 its music and transports. Returns nothing. Side effect: the director's music setting."
   (when (time-elapsed? (-> self mission-time) (seconds 0.5))
     (set-time! (-> self mission-time))
@@ -377,7 +376,7 @@ its music and transports. Returns nothing. Side effect: the director's music set
          )
        )
       ((-> self hatred?)
-       (if (not (or (hj2-war-switched-on?) (hj2-invasion-switched-on?)))
+       (if (not (hj2-war-switched-on?))
            (hj2-war-hatred-set! #f)
            )
        (set! (-> self hatred?) #f)
@@ -437,7 +436,7 @@ nothing (goes active)."
 child of the traffic manager: it dies with the traffic). Returns nothing."
   (*hj2-war-stock-traffic-update* this)
   ;; switched on, not hj2-war-on?: the director also tells when a Jak 3 mission ends
-  (when (and (or (hj2-war-switched-on?) (hj2-invasion-switched-on?)) (not (handle->process (-> *hj2-war-city* director))))
+  (when (and (hj2-war-switched-on?) (not (handle->process (-> *hj2-war-city* director))))
     (let ((proc (process-spawn hj2-war-director :name "hj2-war-director" :to this)))
       (set! (-> *hj2-war-city* director) (if proc
                                              (ppointer->handle proc)

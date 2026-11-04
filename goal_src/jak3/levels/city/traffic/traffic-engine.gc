@@ -7,10 +7,6 @@
 
 ;; og:jak2-haven-city added: the war mode's unit counts (pc/features/jak2-haven-city-war.gc, GAME)
 (define-extern hj2-war-want-count (function int int int))
-;; og:jak2-haven-city added: Praxis KG invasion's conflict zones, and which sleeping unit may go out on
-;; a street (pc/features/jak2-haven-city-war.gc, GAME)
-(define-extern hj2-invasion-spawn-ok? (function int int symbol))
-(define-extern hj2-war-wake-ok? (function process int int symbol symbol))
 
 (deftype traffic-engine-stack-var0 (structure)
   ((params traffic-object-spawn-params :inline :offset 0)
@@ -258,38 +254,6 @@
   (none)
   )
 
-;; og:jak2-haven-city added: the territory (nav-territory-type) of the street activate-by-type sends
-;; a unit out on, for hj2-get-from-inactive; -1 for every other wake (an 'activate-object event: a
-;; parking spot, a transport, a mission), whose params have no nav branch
-(define *hj2-wake-territory* -1)
-
-(defun hj2-get-from-inactive ((this traffic-tracker) (type traffic-type))
-  "og:jak2-haven-city added: get-from-inactive-by-type (which takes the pool's first sleeping unit of
-type), but the first one hj2-war-wake-ok? (GAME) lets out on the street of *hj2-wake-territory*,
-the one it would rather send first, else any it allows: during Praxis KG invasion, a guard of either
-side in a conflict zone (the side with fewer guards out first), a Freedom League guard elsewhere; a
-jetpack guard in a zone, a stock flying turret elsewhere. Out of the invasion, or with no street
-(-1), every unit may: the stock pick. Returns its handle, #f when none may. Side effects: the pool's
-order and counts (get-from-inactive-by-type's)."
-  (let ((info (-> this traffic object-type-info-array type))
-        (territory *hj2-wake-territory*)
-        )
-    (dotimes (pass 2)
-      (dotimes (i (-> info inactive-count))
-        (let ((h (-> info array i)))
-          (when (hj2-war-wake-ok? (handle->process h) (the-as int type) territory (zero? pass))
-            ;; to the pool's head, the unit get-from-inactive-by-type takes
-            (set! (-> info array i) (-> info array 0))
-            (set! (-> info array 0) h)
-            (return (get-from-inactive-by-type this type))
-            )
-          )
-        )
-      )
-    )
-  (the-as handle #f)
-  )
-
 ;; WARN: Function (method 21 traffic-tracker) has a return type of none, but the expression builder found a return statement.
 (defmethod activate-from-params ((this traffic-tracker) (arg0 traffic-object-spawn-params))
   (let ((gp-0 (-> arg0 object-type)))
@@ -297,8 +261,7 @@ order and counts (get-from-inactive-by-type's)."
     (set! (-> arg0 proc) #f)
     (let ((v1-5 (-> this traffic object-type-info-array gp-0)))
       (when (and (> (-> v1-5 inactive-count) 0) (> (-> v1-5 reserve-count) 0))
-        ;; og:jak2-haven-city changed: the first sleeping unit the war lets out here (hj2-get-from-inactive)
-        (let* ((sv-16 (hj2-get-from-inactive this gp-0))
+        (let* ((sv-16 (get-from-inactive-by-type this gp-0))
                (s3-0 (handle->process sv-16))
                )
           (when s3-0
@@ -341,8 +304,6 @@ order and counts (get-from-inactive-by-type's)."
                (< (-> s1-0 active-count) (-> s1-0 want-count))
                )
       (when *cty-faction-manager*
-        ;; og:jak2-haven-city added: Praxis KG invasion keeps the other factions out of its zones
-        (if (not (hj2-invasion-spawn-ok? (the-as int arg0) (the-as int (-> arg1 branch clock-type)))) (return #f))
         (if (not (cty-faction-manager-method-23 *cty-faction-manager* (the-as uint (-> arg1 branch clock-mask))))
             (return #f)
             )
@@ -387,12 +348,9 @@ order and counts (get-from-inactive-by-type's)."
           ;; og:jak2-haven-city added the check: no pedestrian on a street whose nav mesh isn't loaded
           ;; (its init reads the mesh, setup-enemy!: a crash). Jak 3's city keeps every mesh loaded;
           ;; Jak 2's city has them in its district levels, and the war wakes streets further away.
-          ;; og:jak2-haven-city added: the street's territory, for hj2-get-from-inactive (-1 after)
-          (set! *hj2-wake-territory* (the-as int (-> arg1 branch clock-type)))
           (if (or (!= (-> arg1 tracker-id) 1) (-> s4-0 params nav-mesh))
               (activate-from-params this (-> s4-0 params))
               )
-          (set! *hj2-wake-territory* -1)
           )
         )
       )
@@ -788,8 +746,7 @@ order and counts (get-from-inactive-by-type's)."
                           )
                         )
                       )
-                  ;; og:jak2-haven-city changed: a type Praxis KG invasion keeps out of this street isn't a candidate
-                  (when (and (< (-> s1-0 active-count) s0-0) (hj2-invasion-spawn-ok? s2-0 (the-as int (-> arg0 branch clock-type))))
+                  (when (< (-> s1-0 active-count) s0-0)
                     (when (logtest? (cty-faction-manager-method-9 *cty-faction-manager* (the-as int (-> arg0 branch clock-type)) (-> s1-0 level))
                                     2
                                     )

@@ -8,7 +8,8 @@
 ;; og:jak2-haven-city The war mode's troop transport: Jak 2's Krimzon Guard drop-ship (transport.gc
 ;; there, levels/city/traffic/vehicle) in Jak 3's traffic, in Jak 2's city (havenj2) and in Jak 3's
 ;; own city. The war director (hj2-war-city.gc) calls hj2-transport-spawn at the moments it picks:
-;; the ship comes down 10 to 18 m from Jak, opens its hatch at the back, drops up to
+;; the ship comes down 10 to 18 m from Jak to the height the hover vehicles fly at there (the traffic
+;; height map's flight level, as hvehicle's), opens its hatch at the back, drops up to
 ;; HJ2_TRANSPORT_MAX_GUARDS guards of its side one by one (Jak 2's transport-method-33), closes and
 ;; flies away, and dies once out of sight. The war sends both sides' ships in turn: a Krimzon Guard
 ;; ship (red, Jak 2's) drops red and yellow guards, a Freedom Fighters ship (blue) drops blue
@@ -35,6 +36,14 @@
 ;; Guards one ship drops at most (the transport-ag alert mod's number)
 (defconstant HJ2_TRANSPORT_MAX_GUARDS 8)
 
+;; How high over the ground the ship hovers to drop its guards: the hover vehicles' upper lane there
+;; (*traffic-height-map*'s flight level plus 1.5 m, where hvehicle-physics holds a flying vehicle),
+;; at least HJ2_TRANSPORT_HOVER_MIN and at most HJ2_TRANSPORT_HOVER_MAX above the ground (a guard
+;; jumping from the hatch looks for the ground up to 20 m below it: crimson-guard exit-transport,
+;; enemy-above-ground?)
+(defconstant HJ2_TRANSPORT_HOVER_MIN (meters 4))
+(defconstant HJ2_TRANSPORT_HOVER_MAX (meters 14))
+
 ;; ---------------------------------------------------------------------------------------------
 ;; The ship (Jak 2's transport)
 ;; ---------------------------------------------------------------------------------------------
@@ -52,13 +61,15 @@
   :bounds (0 5 0 17)
   )
 
-;;   y-dest: the ground it lands on. next-drop-time: when it may try the next guard.
+;;   y-dest: the height it hovers at to drop its guards; y-ground: the ground under it. next-drop-time:
+;;   when it may try the next guard.
 ;;   last-drop-time: its last guard dropped (or its landing). spawn-side: the side of the hatch the
 ;;   next guard walks out of (0 left, 1 right). spawn?: still dropping. leave-time: when it takes
 ;;   off (0: not decided). max-guard / count-guard: guards to drop / dropped. side: its war side
 ;;   (0 Freedom League, 1 Krimzon Guard, hj2-war-guard-side's). ambient-sound-id: its engine loop.
 (deftype hj2-transport (process-focusable)
   ((y-dest              float)
+   (y-ground            float)
    (next-drop-time      time-frame)
    (last-drop-time      time-frame)
    (spawn-side          uint32)
@@ -108,11 +119,18 @@ the pool's handles."
   #f
   )
 
+(defun hj2-transport-ground-point ((this hj2-transport) (out vector))
+  "Set out to the ground under the ship: its place at y-ground. Returns out."
+  (set-vector! out (-> this root trans x) (-> this y-ground) (-> this root trans z) 1.0)
+  out
+  )
+
 (defmethod drop-guard ((this hj2-transport))
   "Jak 2's transport-method-33, once the delay is over: wake a guard of the ship's side
 (hj2-transport-pick-guard) with the traffic's 'activate-object, as Jak 2's: behavior 6 (Jak 3's
 crimson-guard exit-transport: it walks out of the hatch of the ship in the params' handle, on
-spawn-side, and jumps down), on the nav mesh under the ship, 2 m above it, facing the hatch; guard
+spawn-side, and jumps down), on the nav mesh of the ground under the ship, at the hatch (2 m above
+the ship's origin), facing the hatch; guard
 type 11 keeps the type the squad gave it. Next try 1 s later (2 s off screen) after a guard, 0.1 s
 (1 s) after none. Returns nothing. Side effects: a guard on the street, the pool's order,
 spawn-side, count-guard, next-drop-time, last-drop-time."
@@ -121,7 +139,8 @@ spawn-side, count-guard, next-drop-time, last-drop-time."
           (on-screen (logtest? (-> this draw status) (draw-control-status on-screen)))
           )
       (set! (-> params proc) #f)
-      (let ((nav (find-nearest-nav-mesh (-> this root trans) 8192.0)))
+      ;; the nav mesh is on the ground, under the hovering ship
+      (let ((nav (find-nearest-nav-mesh (hj2-transport-ground-point this (new 'stack-no-clear 'vector)) 8192.0)))
         (when (and nav *traffic-manager* (hj2-transport-pick-guard (-> this side)))
           (set! (-> params object-type) (traffic-type guard-a))
           (set! (-> params behavior) (the-as uint 6))
@@ -249,7 +268,7 @@ block: its parameters. Returns the event's answer. Side effects: state, spawn?."
     )
   )
 
-;; Jak 2's: sinks from 40 m up to its landing ground (twice the height left per second, 30 m/s at
+;; Jak 2's: sinks from 40 m up to its hover height (twice the height left per second, 30 m/s at
 ;; most), then idle. The war switched off: it turns back.
 (defstate come-down (hj2-transport)
   :virtual #t
@@ -334,7 +353,8 @@ block: its parameters. Returns the event's answer. Side effects: state, spawn?."
     )
   )
 
-;; Jak 2's: closes its hatch and climbs (10 m/s^2, 30 m/s at most); gone once off screen 40 m up
+;; Jak 2's: closes its hatch and climbs (10 m/s^2, 30 m/s at most); gone once off screen 40 m above
+;; its hover height
 ;; (or after 15 s: a camera looking up kept Jak 2's on screen)
 (defstate leave (hj2-transport)
   :virtual #t
@@ -372,10 +392,12 @@ block: its parameters. Returns the event's answer. Side effects: state, spawn?."
   )
 
 (defbehavior hj2-transport-init-by-other hj2-transport ((pos vector) (side int) (lev level))
-  "Set the ship up over pos (its landing ground), its hatch (its back) towards Jak, for side `side`
+  "Set the ship up over pos (the ground under it), its hatch (its back) towards Jak, for side `side`
 (0 Freedom League, 1 Krimzon Guard), its art looked up in `lev` (a process looks its art up in its
-own level), 40 m up, then come-down. Returns nothing (goes to come-down;
-process-drawable-art-error without its art). Side effects: all of the ship's fields."
+own level), 40 m above the height it hovers at to drop its guards (the hover vehicles' flight level
+there, *traffic-height-map*, kept HJ2_TRANSPORT_HOVER_MIN to HJ2_TRANSPORT_HOVER_MAX above the
+ground), then come-down. Returns nothing (goes to come-down; process-drawable-art-error without its
+art). Side effects: all of the ship's fields."
   (setup-collision self)
   (vector-copy! (-> self root trans) pos)
   (let ((away (vector-! (new 'stack-no-clear 'vector) pos (target-pos 0))))
@@ -390,8 +412,18 @@ process-drawable-art-error without its art). Side effects: all of the ship's fie
   (set! (-> self spawn-side) (the-as uint 0))
   (set! (-> self level) lev)
   (initialize-skeleton self (if (zero? side) *hj2-transport-blue-sg* *hj2-transport-sg*) (the-as pair 0))
-  (set! (-> self y-dest) (-> self root trans y))
-  (+! (-> self root trans y) 163840.0)
+  (set! (-> self y-ground) (-> self root trans y))
+  (set! (-> self y-dest)
+        (fmax (+ (-> self y-ground) HJ2_TRANSPORT_HOVER_MIN)
+              (fmin (+ (-> self y-ground) HJ2_TRANSPORT_HOVER_MAX)
+                    (if *traffic-height-map*
+                        (+ 6144.0 (get-height-at-point *traffic-height-map* (-> self root trans)))
+                        (-> self y-ground)
+                        )
+                    )
+              )
+        )
+  (set! (-> self root trans y) (+ (-> self y-dest) 163840.0))
   (set! (-> self spawn?) #t)
   (set! (-> self leave-time) 0)
   (set! (-> self ambient-sound-id) (new-sound-id))
