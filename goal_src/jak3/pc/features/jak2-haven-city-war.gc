@@ -582,13 +582,15 @@ firing clip, when the turret code plays it, is left alone. Returns nothing."
   )
 
 ;; The blue guard's death: its die clip calls the "death-default" effect (merc-death.gc), which
-;; switches its model to the generic renderer for 15 frames: the mesh is hidden after 4 and each
-;; frame one vertex in 10 to 20 launches part 53, a purple spark drifting away for 1.7 s. The cloud
+;; switches its model to the generic renderer while its death timer runs: the mesh is hidden after 4
+;; frames, and each frame one vertex in 10 to 20 launches part 53, a purple spark drifting away for
+;; 1.7 s. The cloud
 ;; keeps the body's shape a moment, then blows away. The Krimzon Guard models are custom models
 ;; (build-actor), which the generic renderer can't draw: switched to it by the death timer, the game
 ;; crashed. Their death timer is cleared as it is set, and their cloud is launched from their joints
 ;; instead (hj2-war-death-fx), HJ2_DEATH_SPARKS sparks by each joint a frame, scattered by up to
-;; 30 cm, over the same 15 frames. Part 53 has no texture of its own: merc-death-spawn launches it
+;; 30 cm, for 15 frames (shot at the same frames from their start, a red guard's cloud and a blue
+;; one's look alike; 8 frames made it weaker). Part 53 has no texture of its own: merc-death-spawn launches it
 ;; with the death texture, as the generic renderer does (a plain launch-particles draws nothing).
 (defconstant HJ2_DEATH_PART 53)
 (defconstant HJ2_DEATH_FRAMES 15)
