@@ -6,6 +6,7 @@ import colorsys
 import hashlib
 import json
 import math
+import os
 import struct
 import zlib
 
@@ -251,7 +252,7 @@ class Glb:
 
 
 def rebuild_model(src, path, name, keep_prims, collide=None, anims=None, anim_fps=None,
-                  insert_joints=None, recolor=None):
+                  insert_joints=None, recolor=None, texture_dir=None, texture_out=None):
     """<name>.glb for build-actor (written to path) from a model ripped by the decompiler: the kept
     primitives (None: all) with only the vertices they use (the rip shares one buffer), its first
     animation renamed <name>-idle (the name build-actor's def-actor looks up), no collision from
@@ -279,7 +280,11 @@ def rebuild_model(src, path, name, keep_prims, collide=None, anims=None, anim_fp
     recolor: a rule {"hues": [lo, hi], "rotate", "min_saturation", "textures"} or a list of them
     (degrees, lo may be negative): the texels whose hue is in the window turned by rotate degrees,
     in every texture of the model or only in those named in "textures" (a team's color: Jak 2's
-    red armor in Freedom League blue). Rules apply in order.
+    red armor in Freedom League blue). Rules apply in order. A recolored texture is renamed
+    <texture>-<name> (a texture pack replaces textures by name: the variant's must not be the
+    original's); when texture_dir (a texture pack's folder) holds <texture>-<name>.png, that file is
+    used instead of the recolored one (a hand-retouched variant), and texture_out, when given, gets
+    the texture used as <texture>-<name>.png (a folder to make a texture pack of).
     Returns (vertex count, lo, hi) of the kept vertices."""
     gltf, read = load_glb(src)
     sizes = GLTF_TYPES
@@ -547,8 +552,16 @@ def rebuild_model(src, path, name, keep_prims, collide=None, anims=None, anim_fp
             for r in todo:
                 changed += recolor_pixels(pixels, r["hues"], r["rotate"], r.get("min_saturation", 0.0))
             if changed:
-                im["uri"] = "data:image/png;base64," + base64.b64encode(
-                    png_encode(width, height, pixels)).decode()
+                tex_name = f"{im.get('name', 'texture')}-{name}"
+                packed = texture_dir and os.path.join(texture_dir, tex_name + ".png")
+                if packed and os.path.isfile(packed):
+                    data = open(packed, "rb").read()
+                else:
+                    data = png_encode(width, height, pixels)
+                im["name"] = tex_name
+                im["uri"] = "data:image/png;base64," + base64.b64encode(data).decode()
+                if texture_out:
+                    write_if_changed(os.path.join(texture_out, tex_name + ".png"), data)
 
     if "inverseBindMatrices" in skin:
         skin["inverseBindMatrices"] = add(ibms, "16f", "MAT4", 5126, target=None)

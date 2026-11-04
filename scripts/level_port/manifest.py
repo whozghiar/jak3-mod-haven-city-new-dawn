@@ -63,6 +63,9 @@ class Port:
         self.levels_dir = paths["levels"]
         self.models_dir = paths["models"]
         self.code_dir = paths["code"]
+        # where the recolored textures of the models are written, as a texture pack's _all folder
+        # (optional: none written without it)
+        self.texture_variants_dir = paths.get("texture_variants")
         self.levels = [Level(ld, self) for ld in d["levels"]]
         self.by_name = {lv.name: lv for lv in self.levels}
         # source level -> our level

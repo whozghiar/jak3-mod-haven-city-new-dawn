@@ -577,7 +577,9 @@ def build_model(ctx, spec):
                                       model, spec.get("prims"), spec.get("collide"),
                                       anims=anims or None, anim_fps=spec.get("anim_fps"),
                                       insert_joints=spec.get("insert_joints"),
-                                      recolor=spec.get("recolor"))
+                                      recolor=spec.get("recolor"),
+                                      texture_dir=f"custom_assets/{port.target.NAME}/texture_replacements/_all",
+                                      texture_out=port.texture_variants_dir)
     print(f"    {model}: {verts} vertices, bounds {lo} - {hi}")
 
 
