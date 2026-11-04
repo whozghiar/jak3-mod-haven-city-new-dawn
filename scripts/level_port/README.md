@@ -55,7 +55,7 @@ At a mod's install from the OpenGOAL Launcher, the mod's extractor runs the port
 before it compiles (`run_level_ports`, `decompiler/extractor/main.cpp`), as a one-file executable
 the release builds with PyInstaller (`.github/workflows/release.yml`). Outside a git checkout (no
 `.git` in the root) a full run leaves the `ignore_outputs` `.gitignore` alone. The Jak 2 → Jak 3
-port's install sequence and error codes: [Launcher install](../../docs/modding/current_mod/haven_city_new_dawn_reference.md#46-launcher-install).
+port's install sequence and error codes: [Launcher install](../../docs/modding/current_mod/haven_city_new_dawn_reference.md#14-installing-from-the-launcher).
 
 ## What it writes
 
