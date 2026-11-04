@@ -68,17 +68,19 @@ wiki common 1.4.17)."
 
 ;; Hatred ////////////////////////////////////////////////////////////////////////////////////////
 ;; Jak 3's attack controller gives each fighter its target from a table of hatreds between types
-;; (city-target-type: civilian 1, guards 3 to 5 by weapon, roboguard 9, which a Krimzon Guard of the
-;; war registers as, hj2-war-attacker-type). An entry weighs a pair by its hatred, full up to
+;; (city-target-type: Jak 0, civilian 1, guards 3 to 5 by weapon, KG robots 9; the faction
+;; praxis-kguard 13, HJ2_TARGET_PRAXIS, which the war's Krimzon Guards and red jetpack guards
+;; register as, hj2-war-attacker-type). An entry weighs a pair by its hatred, full up to
 ;; hatred-dist, dist-scale times at that distance, none past max-consider-dist (mission-squad-control-
-;; method-13). Jak 3's table (init-attack-controller, cty-attack-controller.gc): guards to roboguards
-;; 0.5 to 0.7 within 100 m, roboguards to Jak 0.6 before guards 0.5, and to civilians 0.1 within 40 m.
-;; At war, two more entries: guards and Krimzon Guards hate each other most (0.9, full up to 100 m,
-;; up to 160 m), and Krimzon Guards hate civilians 0.7, full up to 10 m, a quarter at 60 m, up to
-;; 100 m: a citizen near a Krimzon Guard is shot before a guard further away.
+;; method-13). Jak 3's table (init-attack-controller, cty-attack-controller.gc) has nothing for type
+;; 13. At war, three entries: the Freedom League's guards and praxis-kguard hate each other most
+;; (0.9, full up to 100 m, up to 160 m); praxis-kguard hates the citizens 0.7, full up to 10 m, a
+;; quarter at 60 m, up to 100 m (a citizen near a Krimzon Guard is shot before a guard further
+;; away); and Jak 0.6, as Jak 3's KG robots do. The KG robots and the Metal Heads have no entry
+;; towards it, nor it towards them.
 
-;; the table's length with the war's 2 entries (Jak 3's 11 and the empty entry 0, then 2)
-(defconstant HJ2_WAR_HATRED_COUNT 14)
+;; the table's length with the war's 3 entries (Jak 3's 11 and the empty entry 0, then 3)
+(defconstant HJ2_WAR_HATRED_COUNT 15)
 
 (defun hj2-war-hatred-set! ((on symbol))
   "Jak 3's hatred table again (reset-hatred, init-attack-controller), and with on the war's entries
@@ -95,8 +97,8 @@ on top (see above). Returns nothing. Side effect: *cty-attack-controller*'s tabl
           (set! (-> fight attacker-scale) 0.01)
           (set! (-> fight max-consider-dist) (meters 160))
           (dotimes (guard 3)
-            (set-hatred-indices ctrl fight (+ guard 3) (the-as int (city-target-type roboguard)))
-            (set-hatred-indices ctrl fight (the-as int (city-target-type roboguard)) (+ guard 3))
+            (set-hatred-indices ctrl fight (+ guard 3) HJ2_TARGET_PRAXIS)
+            (set-hatred-indices ctrl fight HJ2_TARGET_PRAXIS (+ guard 3))
             )
           )
         (let ((civ (push-back-hatred ctrl)))
@@ -105,7 +107,16 @@ on top (see above). Returns nothing. Side effect: *cty-attack-controller*'s tabl
           (set! (-> civ dist-scale) 0.25)
           (set! (-> civ attacker-scale) 0.01)
           (set! (-> civ max-consider-dist) (meters 100))
-          (set-hatred-indices ctrl civ (the-as int (city-target-type roboguard)) 1)
+          (set-hatred-indices ctrl civ HJ2_TARGET_PRAXIS 1)
+          )
+        ;; Jak, as Jak 3's KG robots (its own entry 0.6: 60 m full, up to 100 m)
+        (let ((jak (push-back-hatred ctrl)))
+          (set! (-> jak hatred) 0.6)
+          (set! (-> jak hatred-dist) (meters 60))
+          (set! (-> jak dist-scale) 0.5)
+          (set! (-> jak attacker-scale) 0.01)
+          (set! (-> jak max-consider-dist) (meters 100))
+          (set-hatred-indices ctrl jak HJ2_TARGET_PRAXIS 0)
           )
         )
       )
