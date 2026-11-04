@@ -1582,7 +1582,9 @@ lines came one after the other), and never while the other channel speaks (`hj2-
 `*speech-ready-hook*`, a marked line of `speech.gc`). During the war mode (`hj2-speech-type`,
 `*speech-type-hook*`), a Krimzon Guard says the Jak 2 lines above, and a blue guard Jak 3's own
 guard lines, kept in the speech types Jak 3's city never uses (34 to 51, the race types) by
-`hj2-restore-city-speeches`. A Krimzon Guard fighting while Jak drives says Jak 2's lines for a
+`hj2-restore-city-speeches`, as copies of Jak 3's 18 infos (`*hj2-war-blue-speeches*`) spaced like
+Jak 2's line of the same type: Jak 3's own spacing (15 to 23 s between two lines of a type, for
+every guard) kept the blue guards nearly silent. A Krimzon Guard fighting while Jak drives says Jak 2's lines for a
 driving target (types 52 and 53, Jak 2's type 7), while Jak is Dark Jak those for a dark target
 (54 and 55, Jak 2's type 8): `kg005` to `kg040a` and `kg300a` to `kg319a`, the manifest's `voices`.
 Every war line picks its sound at random (`random-order`).
@@ -2130,7 +2132,10 @@ if they end past `#x10000000`. Jak 2's is 12.0 on `master-dev` (about 215 MB): c
   butt but on Jak in 24 counts of 60 s of war (the third path, `guard-states.gc`, struck 1 in 3
   counts before); the speech tables in war, read in game: before, both sides shared Jak 2's 222
   guard lines per voice; now the Krimzon Guards have 261 (with 39 for a driving or Dark Jak target)
-  and the blue guards Jak 3's 66, all in random order.
+  and the blue guards Jak 3's 66, all in random order; 2 minutes of war heard 16 to 21 lines, the
+  blue guards' all from Jak 3. A Krimzon Guard's and a blue guard's deaths shot at the same frames
+  from their cloud's start look alike (the same clip, at the same pace). The final run: a retail
+  boot, the mod and the war switched on through the Mods menu's own entries, 2 minutes of war.
 - **The war's crash (changes 31 to 33, fixed):** in Jak 2's city at war the game crashed at times
   (an access violation in the kernel's dispatcher resuming a `crimson-guard`, a transport or the
   minimap, whose saved thread held floats such as `0x3f800000`; or a guard whose squad target was a
