@@ -20,8 +20,6 @@ Freedom League.
 - **Target Game:** Jak 3
 - **Repository:** [`whozghiar/jak3-mod-haven-city-new-dawn`](https://github.com/whozghiar/jak3-mod-haven-city-new-dawn)
 
-![The war mode: a Krimzon Guard jetpack guard firing in the slums](docs/modding/current_mod/images/war-jetpack-guard.jpg)
-
 ## Requirements
 
 > [!IMPORTANT]
@@ -41,11 +39,6 @@ Freedom League.
 - **Mini-games:** Whack-a-Metal-Head, Onin's bubble game, Vin's game.
 - **Time and weather** set from the menu.
 - **Travelling:** warps to every place, time gates between the two games, saving anywhere.
-
-| | |
-|---|---|
-| ![A Freedom Fighters transport dropping a blue guard](docs/modding/current_mod/images/war-transport-blue.jpg) | ![A blue anti-air turret, war mode off](docs/modding/current_mod/images/turret-blue.jpg) |
-| ![A Krimzon Guard's death cloud](docs/modding/current_mod/images/war-kg-death.jpg) | ![The mod's menu](docs/modding/current_mod/images/mods-menu.jpg) |
 
 ## Controls
 
