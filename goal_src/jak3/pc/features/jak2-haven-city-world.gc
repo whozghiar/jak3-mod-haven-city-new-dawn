@@ -1644,8 +1644,28 @@ activation one more time gate (GOAL wiki common 1.4.17). They live in this struc
 (set! (-> *hj2-handles* time-gate) (the-as handle #f))
 (set! (-> *hj2-handles* continues) (the-as handle #f))
 
+(defun hj2-weather-particle-unfreeze ((sys sparticle-system) (cpu sparticle-cpuinfo) (vec pointer))
+  "forall-particles callback (hj2-weather-update): a particle of the background clock launched
+without a launch control (the rain, its splashes and the snow of update-rain and update-snow, which
+the time-of-day process launches: they take its clock) moves to the particles' clock. The sun, the
+moon and the stars have their launch control and stay. sys: its system; cpu: the particle; vec: its
+sprite data (unused). Returns nothing."
+  ;; no launch control: key 0 (or #f)
+  (if (and (= (-> cpu clock-index) (-> *display* bg-clock index))
+           (or (zero? (the-as int (-> cpu key))) (not (-> cpu key)))
+           )
+      (set! (-> cpu clock-index) (the-as uint (-> *display* part-clock index)))
+      )
+  (none)
+  )
+
 (defun hj2-weather-update ()
-  "Hold the weather chosen in the Mods menu (see *mod-jak2-haven-city-weather*)."
+  "Hold the weather chosen in the Mods menu (see *mod-jak2-haven-city-weather*). While the hour is
+held (hj2-apply-time-of-day: the background clock stopped), the rain and snow falling, which that
+clock would hold still in the air (hj2-weather-particle-unfreeze)."
+  (if (= (-> *display* bg-clock clock-ratio) 0.0)
+      (forall-particles hj2-weather-particle-unfreeze #t #f)
+      )
   (let ((ctrl *mood-control*)
         (weather (if *mod-jak2-haven-city-enabled* *mod-jak2-haven-city-weather* 0))
         )
