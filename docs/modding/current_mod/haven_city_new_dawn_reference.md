@@ -1658,7 +1658,7 @@ jetpack guard on Jak 3's stock code), with the models made at install from Jak 2
 |---|---|
 | Switch | `jak2-haven-city-war.gc` (GAME): `hj2-war-on?` is the war switch and the mod's. Switching either rebuilds the traffic of the city loaded now (`hj2-war-changed!`; a guard's look is chosen when its process is made): havenj2 restarts its own (`hj2-traffic-refresh`), Jak 3's city runs ctywide's activation again, as a death does (`*hj2-war-city-hook*`, set by `hj2-war-city.gc` at each link). The Mods menu's entry is greyed out and does nothing while the mod is off (`hj2-menu-flag`, the menu's own flag type: the shared popup menu draws a disabled flag like an enabled one) |
 | Models | `hj2-kg-red`, `hj2-kg-red-gl`, `hj2-kg-yellow`, `hj2-kg-yellow-gl` (rifle, or grenade launcher and tazer; 255 KB each), `hj2-hover-red`, `hj2-hover-blue` (78 KB), `hj2-transport`: the level port's `models` ([6.7](#67-rebuilding-jak-2s-models)), in the hub's DGO, in the places with Krimzon Guards (red and yellow rifles, with Jak 3's `crimson-guard-ag` for their clips: the manifest's `art_groups` entry of `hj2-kg-spawner`), in Jak 3's CTYPESA (guards, transport) and CTYPESC (jetpacks; their art groups by decreasing size, the borrow levels' load buffer rule), and in `hj2-war` for their meshes in Jak 3's city |
-| Guards | Jak 3's `crimson-guard`. A marked line of `guard.gc` asks `hj2-war-guard-skel-name` for the skeleton group: during the war, the look furthest below its share of the pool (`*hj2-war-look-share*`: 10 blue, 4 red rifles, 3 red launchers, 2 yellow rifles, 1 yellow launcher, of the 20 guards) whose art is in the guard's level (`hj2-war-look-has-art?`, the GAME skeleton groups read directly: a citizen's init runs on a 512-byte stack). The director recounts the live looks every 0.5 s (`hj2-war-count-looks!`, in its own process); a look is told by its skeleton (the draw's `jgeo`). Clips: a red or yellow guard plays the blue guard's own, so it walks, runs, shoots, throws and dies exactly like one: right after its skeleton is set up, a marked line of `init-enemy!` gives its draw Jak 3's `crimson-guard-ag` as the art group its clips are looked up in (`hj2-war-guard-clips`; the model has the blue guard's 41 joints and bind pose, so only its meshes stay Jak 2's). Its Jak 2 clips, resampled to 15 frames per second, made a jerky walk, a firing clip out of step with the shots, a frozen grenade throw, and carried Jak 2's `death-default` effect frames (the purple dissolve). Weapon: the model's, never the tazer (`hj2-war-guard-type`, a marked line at the top of `crimson-guard-method-267`, which every weapon change goes through): rifle for `red` and `yellow`, grenade launcher for `red-gl` and `yellow-gl`. A blue guard of the war has the rifle, or the grenade launcher one in three (by process id): a pooled guard keeps the weapon it had before the war, so the director gives the tazer-armed ones theirs every 0.5 s (`hj2-war-rearm-guards`). Rifle butt: during the war a guard strikes only when Jak is its target and within reach (`hj2-war-melee-ok?`, marked lines of `guard-rifle.gc` and `guard-grenade.gc`); against a guard of the other side it keeps shooting. Death: a Krimzon Guard dies like a blue one, with Jak 3's `death-default` purple cloud (below) |
+| Guards | Jak 3's `crimson-guard`. A marked line of `guard.gc` asks `hj2-war-guard-skel-name` for the skeleton group: during the war, the look furthest below its share of the pool (`*hj2-war-look-share*`: 10 blue, 4 red rifles, 3 red launchers, 2 yellow rifles, 1 yellow launcher, of the 20 guards) whose art is in the guard's level (`hj2-war-look-has-art?`, the GAME skeleton groups read directly: a citizen's init runs on a 512-byte stack). The director recounts the live looks every 0.5 s (`hj2-war-count-looks!`, in its own process); a look is told by its skeleton (the draw's `jgeo`). Clips: a red or yellow guard plays the blue guard's own, so it walks, runs, shoots, throws and dies exactly like one: right after its skeleton is set up, a marked line of `init-enemy!` gives its draw Jak 3's `crimson-guard-ag` as the art group its clips are looked up in (`hj2-war-guard-clips`; the model has the blue guard's 41 joints and bind pose, so only its meshes stay Jak 2's). Its Jak 2 clips, resampled to 15 frames per second, made a jerky walk, a firing clip out of step with the shots, a frozen grenade throw, and carried Jak 2's `death-default` effect frames (the purple dissolve). Weapon: the model's, never the tazer (`hj2-war-guard-type`, a marked line at the top of `crimson-guard-method-267`, which every weapon change goes through): rifle for `red` and `yellow`, grenade launcher for `red-gl` and `yellow-gl`. A blue guard of the war has the rifle, or the grenade launcher one in three (by process id): a pooled guard keeps the weapon it had before the war, so the director gives the tazer-armed ones theirs every 0.5 s (`hj2-war-rearm-guards`). Rifle butt: during the war a guard strikes only when Jak is its target and within reach (`hj2-war-melee-ok?`, marked lines of `guard-rifle.gc`, `guard-grenade.gc` and `guard-states.gc`, the three paths to `close-attack` but the tazer's and Jak bumping the guard); against a guard of the other side it keeps shooting. Off screen, Jak 3 offers a guard another weapon every 16 frames (`crimson-guard-method-270`): a marked line there compares the weapon the hook would really give, or a war guard went hostile again every time and the city crashed ([14](#14-not-done-yet)). Death: a Krimzon Guard dies like a blue one, with Jak 3's `death-default` purple cloud (below) |
 | Death cloud | Jak 3's `death-default` effect (`merc-death.gc`) switches the model to the generic renderer for 15 frames, each frame launching part 53 (a purple spark) from one vertex in 10. A build-actor model has no effect control at all (`new effect-control` returns `#f` unless the skeleton's `effect-name` lump exists): `hj2-war-guard-clips` makes one, so the clips' effect frames (steps, shots, `death-default`) run. The generic renderer can't draw a custom model (a native crash in `gk`), so on `'death-start` (a marked line of `enemy.gc`) `hj2-war-death-start` clears the death timer and starts `hj2-war-death-fx`: 15 frames of part 53 from each joint, through `merc-death-spawn` (part 53 has no texture of its own: the death texture comes with that launcher), the model hidden from the fourth |
 | Sides | A Krimzon Guard registers in the city's attack controller as a roboguard (city target type 9, `hj2-war-attacker-type`): Jak 3's stock hatred table already sends guards against roboguards, and roboguards against guards and Jak. During the war the director adds entries (`hj2-war-hatred-set!`, `*cty-attack-controller*`, 14 entries of the 17 allocated): the two sides seek each other from up to 160 m (hatred 0.9, full up to 100 m), and a Krimzon Guard seeks the citizens from up to 100 m (0.7); the stock table comes back when the war stops, unless a Jak 3 mission set its own. It gets the `enemy` process mask back (Jak's aim), loses the blue minimap icon (the minimap has no red guard class), and a yellow one is a dark guard (`citizen-flag dark-guard`, `hj2-war-guard-flags`: twice the hit points, 1.1 times the size). Hitting one raises no Freedom League alert in havenj2 |
 | Jetpack guards | Jak 3's Krimzon Guard flying turret (`flying-turret.gc`) drawn with Jak 2's jetpack guard, blue or red, at its own size (`hj2-war-unit-scale`), its idle and forward clips looped by speed (`hj2-war-hover-animate`). Its two thruster flames (the turret's beams, part 4709) come out of Jak 2's nozzles, joints 15 and 17, along their -z axis like Jak 2's flame (`hj2-war-hover-nozzle!`, two marked lines of `flying-turret-method-229`), not the turret's spots under its root. Blue registers as a rifle guard (4), red as a turret (10). The turret is a `kg-squad-member`, which hates every process with the `guard` mask: a marked line of `kg-squad-member.gc` sends a war jetpack at the other side only (`hj2-war-hover-hatred`). havenj2 links `flying-turret.o`, Jak 3's `kg-debris-ag` (its death debris), and allocates the Krimzon Guard's squad (`havenj2-login`). Silent in havenj2: their sounds are in Jak 3's Krimzon Guard banks |
@@ -2125,45 +2125,26 @@ if they end past `#x10000000`. Jak 2's is 12.0 on `master-dev` (about 215 MB): c
   Krimzon Guards targeting citizens (4 to 7 of them at once); no rifle butt but on Jak; guards
   95 to 150 m away; a Krimzon Guard's death cloud like a blue guard's (screenshots), no crash; 13
   different guard lines in 18 s; the turrets blue out of the war, red during it, switching at once;
-  a blue transport dropping blue guards; Hellcats and guard bikes of both colors flying (their
-  art groups logged; none caught on screen).
-- **Open crash (war mode):** in Jak 2's city at war, the game crashes at times (an access violation
-  in the kernel's dispatcher resuming a `crimson-guard`, or a guard whose squad target is a
-  `part-tracker`): in the test runs of change 33, 8 runs of 17 with the war switched on in the city
-  (40 to 90 s of war each, with or without Hellcats, guard bikes and Jak teleported), 1 of 5 with
-  the war switched on before entering the city. The guard's thread data holds
-  floats (`0x3f800000`): something writes a vector into freed or moved process memory. Ruled out:
-  the Hellcats and guard bikes, the process heaps (none above its size), rebuilding the traffic
-  from a one-shot process of `*display-pool*` a frame later instead of from the menu's process (no
-  change, so not kept). Seen first in change 31, where a bisection tied it to the Krimzon Guards'
-  rifles and grenade launchers: with Jak 2's clips and those weapons it crashed 3 runs of 3, with
-  the tazer or with the clips alone it didn't; a guard also reached its `die-fast` state without
-  the `'die-fast` event.
-- **Tested in game (change 29, 2026-11-03):** fresh debug boots (`gk -boot -fakeiso -debug`), one
-  scenario each, a temporary GAME file switching the mod and the war on, warping Jak, pressing
-  buttons and logging the processes (`log/` and screenshots, not committed). Seen:
-  - Jak 2's city, 90 s: blue, red and yellow guards fighting (tazer, rifle, knocked), jetpack guards
-    of both colors, crimson bikes parked, no Hellcat; transports at 15 s and 75 s, guards leaving
-    them (`exit-transport`); 3 to 11 citizens and 3 to 7 vehicles, 13 and 10 once the war is
-    switched off (the director gone at once);
-  - Jak 3's city (the slums, no mission): the same fight, the war's models drawn (`hj2-war.fr3`
-    ready), a transport landing; the slums have no citizen there, war or not;
-  - Dead Town, the pumping station's outside and the fortress: red and yellow soldiers coming,
-    chasing, staring and firing bursts at Jak; the mountain and Haven Forest: soldiers born within
-    60 m but idle off screen (the rule in [7.5](#75-war-mode-kg-guard-vs-freedom-fighters));
-  - war off, game in French: Torn's 4 lines on a slums speaker, each played to its end (7 s, 20 s);
-    the alert raising 2 of 3 turrets near Jak, which fired at him on a bike and stopped once he was
-    off it;
-  - Onin's game from her tent (bubbles, Pecker's lines, score, R3 quits) and Vin's game (powergd
-    loaded under the room, a game played until Daxter's death, Jak let go, powergd unloaded).
-- **Not tested yet (change 29):** the citizens' panic near Krimzon Guards, the minimap without icons
-  on them, the war stepping aside during a Jak 3 mission, the Mods menu entry itself (the test
-  called its function), and a retail boot (`task boot-game-retail`).
-- **Known limits (change 29):** the weapon a war guard holds is its look's, the one it uses the
-  squad's (a red rifleman can throw grenades; seen: a red guard's blue tazer beam); the jetpack
-  guards are silent in havenj2; no parked crimson bike in Jak 3's city; the transport's 40 hit
-  points and its landing spot (not checked for room for its hull) are guesses to tune; a soldier of
-  the places waiting off screen doesn't notice Jak until it is on screen.
+  a blue transport dropping blue guards; Hellcats and guard bikes of both colors, each driven by Jak
+  in turn for a screenshot (`'change-mode 'pilot` with the vehicle). After the last fixes: no rifle
+  butt but on Jak in 24 counts of 60 s of war (the third path, `guard-states.gc`, struck 1 in 3
+  counts before); the speech tables in war, read in game: before, both sides shared Jak 2's 222
+  guard lines per voice; now the Krimzon Guards have 261 (with 39 for a driving or Dark Jak target)
+  and the blue guards Jak 3's 66, all in random order.
+- **The war's crash (changes 31 to 33, fixed):** in Jak 2's city at war the game crashed at times
+  (an access violation in the kernel's dispatcher resuming a `crimson-guard`, a transport or the
+  minimap, whose saved thread held floats such as `0x3f800000`; or a guard whose squad target was a
+  `part-tracker`): 8 test runs of 17 with the war switched on in the city. Cause: every 16 frames
+  off screen, Jak 3's `crimson-guard-method-270` offers the guard another weapon and calls
+  `crimson-guard-method-267`; the war's weapon hook kept a Krimzon Guard's rifle, so nothing
+  changed, but the method still answered #t and its callers sent the guard to its hostile state
+  again (`go-hostile`), over and over. A bisection with a temporary switch tied it to the Krimzon
+  Guards' forced weapons: with the squad's weapons, 4 runs of 4 went through; with rifles only, 3 of
+  4 crashed. Fix: the marked line of `crimson-guard-method-270` compares the weapon the guard would
+  really get (`hj2-war-guard-type`). After it: 10 runs of 90 s of war (switched on before entering
+  the city) and 6 runs with the war switched on in the city, none crashed. Ruled out on the way: the
+  Hellcats and guard bikes, the process heaps (none above its size), rebuilding the traffic a frame
+  later from `*display-pool*`.
 
 - **Not played in game yet (phase 12):** everything in its row of [the change log](haven_city_new_dawn_readme.md#change-log) but
   the Freedom HQ crash fix.
