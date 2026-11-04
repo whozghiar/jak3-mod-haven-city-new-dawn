@@ -345,8 +345,9 @@ stock look, so the war switch tells it from a guard at peace). No side effects."
   )
 
 (defun hj2-war-melee-ok? ((this process-drawable))
-  "Called by guard-rifle.gc gun-shoot and guard-grenade.gc grenade-throw-post-retreating before a
-guard goes to its rifle butt (close-attack) on a target within 4 m. At war a guard keeps its rifle
+  "Called by guard-rifle.gc gun-shoot, guard-grenade.gc grenade-throw-post-retreating and
+guard-states.gc (the hostile check of a target in reach) before a guard goes to its rifle butt
+(close-attack) on a close target. At war a guard keeps its rifle
 butt for Jak: it strikes only when Jak is the target it holds (focus); against another guard or a
 citizen it keeps shooting or backing away. #t out of the war. No side effects."
   (or (not (hj2-war-guard? this))

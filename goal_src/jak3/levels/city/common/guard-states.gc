@@ -5,6 +5,9 @@
 ;; name in dgo: guard-states
 ;; dgos: CWI
 
+;; og:jak2-haven-city added: the war's rule for the rifle butt (pc/features/jak2-haven-city-war.gc, GAME)
+(define-extern hj2-war-melee-ok? (function process-drawable symbol))
+
 ;; DECOMP BEGINS
 
 (defstate knocked-recover (crimson-guard)
@@ -461,7 +464,8 @@
                  )
              )
             (else
-              (if (crimson-guard-method-269 this s5-0)
+              ;; og:jak2-haven-city added the war's test (hj2-war-melee-ok?): a war guard strikes Jak only
+              (if (and (crimson-guard-method-269 this s5-0) (hj2-war-melee-ok? this))
                   (go (method-of-object this close-attack))
                   )
               )
