@@ -233,14 +233,22 @@ guard is drawn with Jak 2's model but plays the blue guard's clips, so it walks,
 exactly like one.
 
 Who fights whom comes from Jak 3's **attack controller**, a table of hatreds between kinds of
-units. A Krimzon Guard registers as a Krimzon Guard robot, which Jak 3's guards already hate. For
-the war the director adds entries (`hj2-war-hatred-set!`, `hj2-war-city.gc`):
+units. The Krimzon Guards (and the red jetpack guards) are the faction praxis-kguard: they register
+with a type of their own, 13 (`HJ2_TARGET_PRAXIS`). Jak 3 makes the controller for 17 types and uses
+0 to 12, so 13 is free, and Jak 3's table has nothing for it: the KG robots and the Metal Heads
+leave the faction alone, as it leaves them. The director adds its entries (`hj2-war-hatred-set!`,
+`hj2-war-city.gc`):
 
 | Who | Seeks | Hatred | Distance |
 |---|---|---|---|
 | Blue guards | Krimzon Guards | 0.9 | up to 160 m (full up to 100 m) |
 | Krimzon Guards | Blue guards | 0.9 | up to 160 m |
 | Krimzon Guards | Citizens | 0.7 | up to 100 m |
+| Krimzon Guards | Jak | 0.6 | up to 100 m (as Jak 3's KG robots) |
+
+Counted in a test, 3 minutes of war: 7 to 10 Krimzon Guards aiming at blue guards and as many blue
+guards aiming at them, every 10 s. Until then the Krimzon Guards registered as KG robots (9), which
+made them one faction with Jak 3's robots.
 
 A unit picks the target with the best score, its hatred times a distance factor. With 0.4 the
 Krimzon Guards never chose a citizen over a guard; 0.7 has 4 to 7 of them chasing citizens at once.
@@ -364,13 +372,17 @@ Each is flown by a guard of its side: a red or yellow Krimzon Guard in a red one
 frame while it has no target): a red one after the nearest blue guard on foot or Jak within 100 m,
 a blue one after the nearest red or yellow guard, never Jak (`hj2-war-vehicle-may-hunt-jak?`
 keeps it out of the alert's chase and of Jak's hits too). Seen in a test: a blue Hellcat with its
-blue pilot chasing a Krimzon Guard, a red bike with a red pilot chasing a blue guard.
+blue pilot chasing a Krimzon Guard, a red bike with a red pilot chasing a blue guard. Three runs
+of 3 minutes of war, every vehicle's pilot checked against its color as it came out: 18 pilots, 0
+of the wrong side. The transports' guards in the last two: 39 landed and fought (rifle, grenade
+launcher, or knocked back on landing), 0 vanished.
 
 ### 5.9 Praxis KG invasion
 
 The second war mode (Mods menu, "Praxis KG invasion"), in Jak 3's city once its story is over (its
 last boss beaten, `hj2-story-done?`). The faction praxis-kguard (the same red and yellow guards as
-the war's, and red jetpack guards) fights the Freedom League in the conflict zones picked in the
+the war's, and red jetpack guards; a target type of its own in Jak 3's attack controller,
+[5.2](#52-looks-and-sides)) fights the Freedom League in the conflict zones picked in the
 menu, several at once, the port by default. In a zone the two sides are all there is: no KG robot,
 spydroid, Metal Head or Wastelander comes out there, even where Jak 3 had its own fight. Outside
 the zones the city is Jak 3's own, and no ship flies, of either side: no transport, no guard
@@ -650,6 +662,13 @@ start fails. Saves and settings stay from one boot to the next
   Light Jak was not seen in tests (it stayed down for both, war on or off); its check now leaves
   them out by name.
 - **Praxis KG invasion with a finished story:** tested with a save whose story isn't over
-  ([5.9](#59-praxis-kg-invasion)).
+  ([5.9](#59-praxis-kg-invasion)). Its zones were tested in the port only: the industrial
+  section's case (a zone where Jak 3 already had its KG robots fight the Freedom League) is written
+  but not run in game.
+- **A crash in the collision code, once:** in one of three runs of 3 minutes of war with two blue
+  transports sent on top of the war's own, the game stopped in native collision code (a
+  `collide-cache-prim` query reading a bad pointer) after 77 s; the two other runs went through.
+  Earlier, 16 runs of the war without the war ships hunting guards went through. The cause isn't
+  found.
 - **The repository's history** still holds `.glb` files, and the repository is public: [7](#7-what-the-repository-holds-and-what-it-doesnt).
 - More open points: [reference, 18](haven_city_new_dawn_reference.md#18-not-done-yet).
