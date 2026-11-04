@@ -31,32 +31,16 @@ Freedom League.
 > made on your machine from your games.
 
 ## Key Features
-- **Jak 2's city:** its 14 districts and the stadium grounds, loaded district by district like in
-  Jak 2, with their lighting, water, particles, neon signs, breakable speakers and market props.
-- **The places around it:** 30 more levels (the Hip Hog, the hideout, the Oracle, Vin's power
-  station, Keira's garage, the palace pillar and roof, Dead Town and the Sage's hut, the
-  construction site, the pumping station, the mountain and its canyon, Haven Forest, the fortress,
-  its prison and the way out, the stadium's race track, the castle pad, the dig, Onin's tent),
-  reached through Jak 2's own doors, elevators and air trains.
-- **The end of Jak 2:** each level as it is once the game is finished, with its hazards (fans,
-  turrets, lasers, the avalanche, the gun buoy), its platforms and decor, and no enemies.
-- **Life in the city:** Jak 3's citizens, guards, hover bikes and cars at Jak 2's density; Jak 2's
-  Hellcats and Krimzon bikes, which Jak can steal; Jak 2's five alert levels, with guards hunting
-  Jak, guard vehicles chasing him and the anti-air turrets firing at him in a vehicle; Jak 2's
-  city maps on the minimap.
-- **War mode, KG-Guard vs Freedom Fighters:** red and yellow Krimzon Guards fight the Freedom
-  League's blue guards in Jak 2's city and in Jak 3's own, to Jak 3's fight music. Troop
-  transports of both sides drop guards, jetpack guards fly in, Hellcats and bikes fly in both
-  sides' colors, the citizens flee and the Krimzon Guards hunt them. A fallen guard dissolves in
-  a purple cloud. Krimzon Guards also stand in the places around the city.
-- **Jak 2's sound:** each place's music and ambience, the citizens' and guards' lines, the Baron's
-  speeches from the propaganda speakers (Torn's, recorded for the mod, when the game is in French
-  and the war is off).
-- **Mini-games:** the Hip Hog's Whack-a-Metal-Head, Onin's bubble game, Vin's game from Jak 3.
-- **Time and weather:** a fixed hour or Jak 2's day and night; Jak 3's weather or a fixed one.
-- **Travelling and saves:** warps to every district and place from the menu, two time gates
-  between Jak 3's Freedom HQ and Jak 2's hideout, respawn at Jak 2's closest point, saving
-  anywhere.
+- **Jak 2's city:** its districts and the stadium, loaded district by district like in Jak 2.
+- **30 places around it:** the Hip Hog, the palace, Dead Town, the pumping station, Haven Forest,
+  the fortress and its prison, the dig site and more, reached through Jak 2's doors.
+- **The end of Jak 2:** every level as the game leaves it, with its hazards and no enemies.
+- **A living city:** citizens, guards and vehicles, Jak 2's Hellcats and guard bikes, Jak 2's alert.
+- **War mode:** Jak 2's Krimzon Guards against Jak 3's Freedom League, in both games' cities.
+- **Jak 2's sound:** its music, ambiences and voices.
+- **Mini-games:** Whack-a-Metal-Head, Onin's bubble game, Vin's game.
+- **Time and weather** set from the menu.
+- **Travelling:** warps to every place, time gates between the two games, saving anywhere.
 
 | | |
 |---|---|
@@ -81,13 +65,12 @@ Freedom League.
 
 ## Download & Play via OpenGOAL Launcher (Players)
 
-> [!WARNING]
-> Not published yet: the repository is private and has no release. Until then, build it from
-> source ([Developer Setup](#developer-setup--local-compilation)).
-
 Install Jak 2 and Jak 3 in the OpenGOAL Launcher first, each from your own ISO. While the launcher
 installs the mod, it makes the mod's levels from your installed Jak 2 (a minute or two more than
 a usual mod); without Jak 2 the install stops with error code 4060.
+
+Each release also carries the mod's texture pack (`haven-city-new-dawn-textures-v*.zip`). It is
+optional: the mod's models and their colors are made without it.
 
 ### Option A — Add Custom Mod Source (Recommended)
 1. In the **OpenGOAL Launcher**, open **Settings ▸ Mods ▸ Add Custom Mod Source**.
@@ -98,7 +81,7 @@ a usual mod); without Jak 2 the install stops with error code 4060.
 3. In the **Mods** tab, find **Haven City: New Dawn** and click **Install**.
 
 ### Option B — Manual Installation from GitHub Releases
-1. Download the package for your system from the [Releases](https://github.com/whozghiar/jak3-mod-haven-city-new-dawn/releases) tab (`windows-v*.zip` or `linux-v*.zip`).
+1. Download the package for your system from the [Releases](https://github.com/whozghiar/jak3-mod-haven-city-new-dawn/releases) tab (`windows-haven-city-new-dawn-v*.zip` or `linux-haven-city-new-dawn-v*.zip`).
 2. Extract it into `<launcher installation folder>/features/jak3/mods/_local/haven-city-new-dawn/`.
 3. Run the mod's decompile and compile from the launcher, then launch the game.
 
@@ -124,8 +107,8 @@ a usual mod); without Jak 2 the install stops with error code 4060.
 **[Watch the demonstration video on YouTube](https://youtu.be/1_B4fGxRQZ0)**
 
 ## Technical Documentation
-- [`docs/modding/current_mod/haven_city_new_dawn_readme.md`](docs/modding/current_mod/haven_city_new_dawn_readme.md): how the mod works, for a developer new to GOAL, and the change log.
-- [`docs/modding/current_mod/haven_city_new_dawn_reference.md`](docs/modding/current_mod/haven_city_new_dawn_reference.md): the detailed reference, feature by feature.
+- [`docs/modding/current_mod/haven_city_new_dawn_readme.md`](docs/modding/current_mod/haven_city_new_dawn_readme.md): the developer guide (GOAL basics, hooks, the war mode, color variants) and the change log.
+- [`docs/modding/current_mod/haven_city_new_dawn_reference.md`](docs/modding/current_mod/haven_city_new_dawn_reference.md): how each feature works, for a beginner.
 
 ---
 *(AI-assisted)*
