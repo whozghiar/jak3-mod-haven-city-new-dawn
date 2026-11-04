@@ -459,9 +459,10 @@ bank, 'j2palca1: the gate asks for it before opening, *hj2-door-sound-banks*)."
 ;; as Jak 2's). Not ported: the power station mission's button and messages (the mission
 ;; is over), and Jak 2's mesh masks (build-actor models have none): the whole model hides while
 ;; the destroyed turret sinks, where Jak 2 hid its head only.
-;; Colors: red (Jak 2's) during the war mode, blue (the Freedom League's) out of it: the level
-;; port's -blue models, the same skeleton and clips with the red turned blue. A hidden turret
-;; switches models as the war mode changes (hj2-cty-guard-turret-color).
+;; Colors: blue, the Freedom League's, war or not (the city's turrets are the Freedom League's): the
+;; level port's -blue models, the same skeleton and clips as Jak 2's red ones with the red turned
+;; blue. A turret is born with the red model, which holds its clips, and takes the blue one at once
+;; (hj2-cty-guard-turret-color).
 
 ;; the group id of the turret's explosion (havenj2-part.gc, generated: "extra_groups")
 (define-extern *hj2-cty-guard-turret-hit-group-ids* (array int32))
@@ -519,12 +520,11 @@ bank, 'j2palca1: the gate asks for it before opening, *hj2-door-sound-banks*)."
   )
 
 (defun hj2-cty-guard-turret-color ((this hj2-cty-guard-turret))
-  "Draw the turret blue out of the war mode, red during it (hj2-war-on?): when its color is the
-other one, its draw takes the other model's art group and meshes (the two models share their
-skeleton and clips, so its joints, animation and collision stay). Does nothing while the other
-model's art group isn't in the turret's level. Returns nothing. Side effects: blue?, the draw's
-art group, meshes and lods."
-  (let ((blue (not (hj2-war-on?))))
+  "Draw the turret blue: while it is still red, its draw takes the blue model's art group and meshes
+(the two models share their skeleton and clips, so its joints, animation and collision stay). Does
+nothing while the blue model's art group isn't in the turret's level (it stays red). Returns
+nothing. Side effects: blue?, the draw's art group, meshes and lods."
+  (let ((blue #t))
     (when (!= blue (-> this blue?))
       (let* ((sg (if blue *hj2-cty-guard-turret-blue-sg* *hj2-cty-guard-turret-sg*))
              (ag (load-to-heap-by-name (-> this level art-group) (-> sg art-group-name) 'test global (-> sg version)))
@@ -681,13 +681,15 @@ root's position. Returns a vector (mode 3: a static one, overwritten by the next
                     (square 409600.0)
                     )
                  (focus-test? (the-as process-focusable gp-0) pilot)
+                 ;; never for Dark Jak or Light Jak (only a pilot: a vehicle's driver)
+                 (not (focus-test? (the-as process-focusable gp-0) dark light))
                  (>= (hj2-city-alert-level) 1)
                  *mod-jak2-haven-city-alert*
                  )
         (go-virtual hostile)
         )
       )
-    ;; hidden: red or blue as the war mode is on or off
+    ;; hidden: blue (red until its blue art group is found)
     (hj2-cty-guard-turret-color self)
     (transform-post)
     )
@@ -1013,7 +1015,7 @@ effects: all of the turret's fields. Returns nothing."
     )
   (process-drawable-from-entity! this arg0)
   (initialize-skeleton this *hj2-cty-guard-turret-sg* (the-as pair 0))
-  ;; red now; blue at once out of the war mode
+  ;; red now, blue at once
   (set! (-> this blue?) #f)
   (hj2-cty-guard-turret-color this)
   (logior! (-> this mask) (process-mask enemy))
