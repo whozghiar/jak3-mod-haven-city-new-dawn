@@ -1209,10 +1209,12 @@ model:
   Freedom League blue (hue 217). It takes one rule or a list of them, each limited to some textures
   by name if it says so (`"textures"`). The color variants of change 33 (the turret, transport,
   guard bike and Hellcat in red and blue) are such rules: the guide lists them and shows how to
-  make one ([Color variants](haven_city_new_dawn_readme.md#color-variants)). A rule moves only the
+  make one ([Color variants](haven_city_new_dawn_readme.md#6-color-variants)). A rule moves only the
   texels in its window, so a red-to-blue rule leaves a rip already blue (ripped with the mod's
   texture pack) as it is, and a blue-to-red rule turns it red: the variant comes out the same
-  with or without the pack.
+  with or without the pack. A recolored texture is renamed `<texture>-<model>` and written to
+  `paths.texture_variants` (a texture pack's `_all` folder); a pack file of that name replaces it
+  ([the guide, 6.4](haven_city_new_dawn_readme.md#64-the-variants-textures-in-a-texture-pack)).
 - **An art-only level:** `hj2-war` (`HKW`, no geometry, no continue, never loaded by the game)
   holds the war's 8 models, for its `.fr3`: the PC renderer finds a merc model in any loaded
   `.fr3`, and in Jak 3's city the mod names `hj2-war` to it ([7.5](#75-war-mode-kg-guard-vs-freedom-fighters)).
