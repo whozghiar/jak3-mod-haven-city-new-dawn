@@ -1857,7 +1857,11 @@
                     )
                   )
             )
-        (when (!= a1-3 (-> this guard-type))
+        ;; og:jak2-haven-city added the hook (hj2-war-guard-type): the weapon the guard would really
+        ;; get. A war guard keeps the weapon the war gives it, so the change Jak 3 asks for every 16
+        ;; frames off screen changed nothing, and this method still answered #t: the guard went
+        ;; hostile again each time, and the city crashed within a minute
+        (when (!= (hj2-war-guard-type this (the-as int a1-3)) (the-as int (-> this guard-type)))
           (crimson-guard-method-267 this (the-as guard-type a1-3) #f)
           (return #t)
           )
