@@ -364,6 +364,24 @@ enemy-init-by-other, after init-enemy-collision!. Side effect: sets the shared s
   (none)
   )
 
+(defmethod event-handler ((this hj2-kg-soldier) (arg0 process) (arg1 int) (arg2 symbol) (arg3 event-message-block))
+  "Jak 3's guard's 'event-death (guard.gc event-handler): its die clip sends it at the frame the body
+must go, and a dead guard then runs the death-default effect, the purple cloud (which a Krimzon
+Guard model gets from hj2-war-death-start, on 'death-start). nav-enemy ignores 'event-death: the
+soldier's death left no cloud. Every other event goes to nav-enemy's handler. arg0: the sender,
+arg1: the parameter count, arg2: the event, arg3: its parameters. Returns the event's answer."
+  (case arg2
+    (('event-death)
+     (if (and (= (-> this hit-points) 0.0) (-> this skel effect))
+         (do-effect (-> this skel effect) "death-default" 0.0 -1)
+         )
+     )
+    (else
+      ((method-of-type nav-enemy event-handler) this arg0 arg1 arg2 arg3)
+      )
+    )
+  )
+
 (defmethod deactivate ((this hj2-kg-soldier))
   "Counts the soldier out of *hj2-kg-soldier-count* (once: a dead process is deactivated no more),
 then the stock clean-up. Returns nothing."
