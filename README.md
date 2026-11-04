@@ -107,7 +107,7 @@ optional: the mod's models and their colors are made without it.
 **[Watch the demonstration video on YouTube](https://youtu.be/1_B4fGxRQZ0)**
 
 ## Technical Documentation
-- [`docs/modding/current_mod/haven_city_new_dawn_readme.md`](docs/modding/current_mod/haven_city_new_dawn_readme.md): the developer guide (GOAL basics, hooks, the war mode, color variants) and the change log.
+- [`docs/modding/current_mod/haven_city_new_dawn_readme.md`](docs/modding/current_mod/haven_city_new_dawn_readme.md): the developer guide (GOAL basics, hooks, the war mode, color variants).
 - [`docs/modding/current_mod/haven_city_new_dawn_reference.md`](docs/modding/current_mod/haven_city_new_dawn_reference.md): how each feature works, for a beginner.
 
 ---

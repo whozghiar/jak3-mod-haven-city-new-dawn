@@ -4,8 +4,7 @@ This document explains, feature by feature, how Haven City: New Dawn rebuilds Ja
 inside Jak 3: what you see in game, how it is made, why it is made that way, and where the code
 is. It is written for a developer new to GOAL. Read sections 1 to 4 of the
 [developer guide](haven_city_new_dawn_readme.md) first: they explain processes, hooks, art groups
-and the level port, which this document uses everywhere. The war mode, the color variants and the
-change log are in the guide too.
+and the level port, which this document uses everywhere. The war mode and the color variants are in the guide too.
 
 **Contents**
 
