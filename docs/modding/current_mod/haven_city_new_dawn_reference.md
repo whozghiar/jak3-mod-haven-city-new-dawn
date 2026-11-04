@@ -445,13 +445,28 @@ in Jak 2's numbers.
 ### 8.3 Jak 2's alert
 
 **What you see:** hit a citizen or a guard, and the minimap flashes, the music turns to its alert
-mode (or the alarm sounds), and guards hunt Jak. 30 s without a new offence, the alert ends. Every
-8 kills raise it.
+mode (or the alarm sounds), and guards hunt Jak. Every 8 kills raise it. It ends like Jak 2's:
+
+| Alert | Ends |
+|---|---|
+| Low (level 1, the tazers' arrest) | 30 s after the last offence; the guards let go of Jak at once, the alarm stops 3 s later |
+| High (2 and up) | Once the 30 s are over and no guard or guard vehicle has seen Jak for 3 s: Jak loses them, or hides |
+
+Each new offence starts the 30 s again. Hiding against a wall (`target-hide`) drains them three
+times as fast, as in Jak 2.
 
 **How:** Jak 3 kept Jak 2's alert code (`ff-squad-control-method-45`) but only raises it in its own
 city. The hub's DGO links its own version of that method, with Jak 2's five alert levels
-(`*hj2-alert-level-settings*`) and timer. Jak is the squad's target every frame; the guards get
-the hatred Jak 3 gives a guard Jak attacks.
+(`*hj2-alert-level-settings*`), its timer and its end (`hj2-alert-update`, `hj2-alert-seen-count`).
+Jak is the squad's target every frame; the guards get the hatred Jak 3 gives a guard Jak attacks.
+
+**Trap:** Jak 3's attack controller picks a new target for a guard only while the guard keeps some
+hatred for the one it has (`mission-squad-control-method-12`). Clearing the hatred alone left
+every guard that once hunted Jak on him for good: after the alert ended, 5 guards kept tazing Jak
+for the next 70 s of a test. At the end the mod drops the guard's target itself, as the controller
+does for a target that is gone (`hj2-alert-drop-jak`). Tested: a low alert ends at 30 s with no
+guard left on Jak; a high one holds while guards see Jak and ends 3 s after he is out of their
+sight.
 
 ### 8.4 Hellcats and guard bikes
 
@@ -460,8 +475,9 @@ the hatred Jak 3 gives a guard Jak attacks.
   wrapped copy of `traffic-object-spawn`.
 - **Guard bikes:** Jak 2's model on Jak 3's bike base, `hj2-guard-bike`.
 - Both fly the lanes, chase Jak from alert level 2 with Jak 2's pursuit rules, and can be stolen;
-  R1 fires their gun. In the war mode they fly in both sides' colors
-  ([guide, 6](haven_city_new_dawn_readme.md#6-color-variants)).
+  R1 fires their gun. In the war mode they fly in both sides' colors, one of each at most, with a
+  pilot of their side, and go after the other side
+  ([guide, 5.8](haven_city_new_dawn_readme.md#58-transports-and-vehicles)).
 
 ### 8.5 Minimap
 
@@ -473,7 +489,9 @@ guard vehicles larger ones. Three one-line changes of `minimap.gc` (marked): dra
 ### 8.6 War mode
 
 How the war works is in the [guide, 5](haven_city_new_dawn_readme.md#5-the-war-mode-step-by-step).
-Outside the city, Krimzon Guards also stand in 10 places: the level port puts a spawner
+It stays in Jak 2's world; Jak 3's city has Praxis KG invasion instead
+([guide, 5.9](haven_city_new_dawn_readme.md#59-praxis-kg-invasion)). Outside the city, Krimzon
+Guards also stand in 10 places: the level port puts a spawner
 (`hj2-kg-spawner`, `jak2-haven-city-kg.gc`) at each spot where Jak 2 put an enemy (374 in all).
 About one spawner in three is used (35 %, drawn as the level loads), and at most 24 soldiers stand
 at once.
@@ -516,7 +534,7 @@ Three traps:
   light), or runs Jak 2's day and night.
 - **Weather.** Jak 2 and Jak 3 share their weather system. The Mods menu picks Jak 3's changing
   weather or a fixed one (sunny, cloudy, foggy, light rain, rain, thunderstorm, snow), for the whole
-  game. A process, `hj2-weather-driver`, holds the choice every frame, so a Jak 3 level or mission
+  game, with the mod on or off. A process, `hj2-weather-driver`, holds the choice every frame, so a Jak 3 level or mission
   can't take it over.
 - **Trap:** a weather picked while the menu pauses the game left rain drops hanging in the air: the
   particles are paused, but the sky is not. The change now waits for the menu to close.
@@ -525,17 +543,20 @@ Three traps:
 
 ### 11.1 Mods menu
 
-L3 + SELECT, Mods, Haven City: New Dawn. Every entry but "Mod enabled" is greyed out while the mod
-is off.
+L3 + SELECT, Mods, Haven City: New Dawn. Every entry but "Mod enabled" and "Weather" is greyed out
+while the mod is off.
 
 | Entry | Does |
 |---|---|
 | Mod enabled | Switches the mod on or off; off at each boot |
-| Warp to Haven City (Jak 2) | Warps to the underground hideout |
-| Warp to a district | Warps to a district, or to a place in it |
-| Warp outside the city | Warps to a place outside the city, or back to Jak 3's Freedom HQ |
-| Weather | The weather, and a Time of day submenu |
-| KG-Guard vs Freedom Fighters | The war mode |
+| KG-Guard vs Freedom Fighters | The war mode, in Jak 2's world |
+| Praxis KG invasion | Its switch, and its conflict zones in Jak 3's city (Port, Industrial Section, Slums, Metal Head land) |
+| Warp to Haven City (Jak 2) | A submenu: Warp to Jak 2 (the underground hideout), Warp to a district (a district, or a place in it), Warp outside the city (a place outside the city, or back to Jak 3's Freedom HQ) |
+| Weather | The weather, and a Time of day submenu; usable with the mod off |
+
+![The Mods menu of the mod](images/mods-menu.jpg)
+
+![The warps to Jak 2's world](images/menu-warps.jpg)
 
 Every warp goes through a continue point, never through the debug command `bg`: a continue point
 makes the game unload what it doesn't need before loading the new levels, so the city fits in

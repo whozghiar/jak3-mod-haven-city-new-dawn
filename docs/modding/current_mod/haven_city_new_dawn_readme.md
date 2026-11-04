@@ -22,8 +22,9 @@ places, the traffic, the sound, the tools) is in
 ## 1. The mod in one page
 
 The mod puts Jak 2's Haven City and the places around it inside Jak 3, as they are at the end of
-Jak 2, and adds a war mode where Jak 2's Krimzon Guards fight Jak 3's Freedom League. Three kinds
-of work make it:
+Jak 2, and adds two war modes: in Jak 2's world, Jak 2's Krimzon Guards fight Jak 3's Freedom
+League; in Jak 3's city, once its story is over, Praxis's Krimzon Guard invades the conflict zones
+chosen in the menu. Three kinds of work make it:
 
 | Kind | Where | Made by |
 |---|---|---|
@@ -33,7 +34,7 @@ of work make it:
 
 Two rules shape every change:
 
-- **Off by default.** The mod and its war mode are off at each boot. Off, Jak 3 behaves as the
+- **Off by default.** The mod and its war modes are off at each boot. Off, Jak 3 behaves as the
   original game: every hook gives back Jak 3's own answer.
 - **Generated data is never edited by hand.** A fix to a level goes into the port's manifest or
   into the level port itself, then the level port runs again.
@@ -71,7 +72,7 @@ and continues on the next one.
 
 Example in the mod: the city's guard turret has an `idle` state (hidden under its lids) and a
 `hostile` state (popped up, firing). Every frame in `idle`, it checks whether Jak drives a vehicle
-nearby during an alert, and whether its color must change
+nearby during an alert, and turns its model blue if it isn't yet
 (`hj2-cty-guard-turret-color`, `goal_src/jak3/levels/havenj2/havenj2-obs.gc`).
 
 A `defbehavior` is a function that runs as a process (it can read `self`). The war's death cloud
@@ -154,6 +155,8 @@ The hooks the war mode and the color variants add:
 | `engine/ai/enemy.gc` (`'death-start`) | `hj2-war-death-start` | A Krimzon Guard's purple death cloud |
 | `levels/wascity/traffic-util.gc` | `hj2-war-cell-dist` | Units spawn further out during the war |
 | `levels/city/traffic/traffic-engine.gc` | (a test, no call) | No pedestrian spawned when its navigation mesh isn't loaded |
+| `levels/city/traffic/traffic-engine.gc` (`activate-by-type`, `activate-from-params`) | `hj2-invasion-spawn-ok?`, `hj2-war-wake-ok?` | Praxis KG invasion: which units come out in a conflict zone, and which of the pooled guards goes out on a street ([5.9](#59-praxis-kg-invasion)) |
+| `levels/wascity/cty-faction.gc` (`cty-faction-manager-method-14`) | `hj2-invasion-permission` | Praxis KG invasion: a conflict zone's spawn permissions |
 
 ## 4. From Jak 2's disc to Jak 3 levels: the level port
 
@@ -202,9 +205,10 @@ what the level port can do with a model: [reference, 7](haven_city_new_dawn_refe
 ## 5. The war mode, step by step
 
 The war mode (Mods menu, "KG-Guard vs Freedom Fighters") puts Jak 2's Krimzon Guards against
-Jak 3's Freedom League in Jak 2's city and in Jak 3's own. It reuses Jak 3's traffic code: the
-guards are Jak 3's `crimson-guard`, the jetpack guards Jak 3's `flying-turret`. The mod only
-changes how they look, which side they are on and a few rules.
+Jak 3's Freedom League in Jak 2's city and the places around it. It never reaches Jak 3's city
+(`hj2-war-jak2-on?`): there, Praxis KG invasion takes over ([5.9](#59-praxis-kg-invasion)). It
+reuses Jak 3's traffic code: the guards are Jak 3's `crimson-guard`, the jetpack guards Jak 3's
+`flying-turret`. The mod only changes how they look, which side they are on and a few rules.
 
 ![A red jetpack guard firing over the slums](images/war-jetpack-guard.jpg)
 
@@ -221,8 +225,10 @@ when its process is made.
 
 ### 5.2 Looks and sides
 
-During the war, each new guard takes the look that is furthest below its share: 10 blue, 4 red
-rifles, 3 red grenade launchers, 2 yellow rifles, 1 yellow launcher, out of 20. A red or yellow
+During the war, each new guard takes the look that is furthest below its share in proportion: 10
+blue, 4 red rifles, 3 red grenade launchers, 2 yellow rifles, 1 yellow launcher, out of 20. In
+proportion, so that the first guards made alternate the sides: counted in guards missing, the
+blue look came first six times, and the traffic wakes a pool's first guards first. A red or yellow
 guard is drawn with Jak 2's model but plays the blue guard's clips, so it walks, shoots and dies
 exactly like one.
 
@@ -258,6 +264,13 @@ it: Krimzon Guards with the squad's weapons ran 4 times without a crash, with ri
 crashed 3 times in 4. The fix is one marked line: the off-screen change compares the weapon the
 guard would really get. Since then, 16 test runs of war, none crashed.
 
+The same hook hid a second bug. A transport wakes its guards with the weapon code 11, "keep the
+one you have", and a pooled blue guard then kept the squad's guard type for a vehicle's gunner,
+which no guard on foot has. Landing from the jump, it looked for its attack state by weapon, found
+none, and its code ran to its end, which kills a process: the blue guards vanished as they touched
+the ground. The hook now gives a blue guard of the war the rifle or the launcher for anything but
+those two.
+
 ### 5.4 The rifle butt
 
 Jak 3's guards strike with the rifle butt when their target is close. During the war two guards
@@ -292,6 +305,13 @@ The code and the evidence are in the wiki,
 [4.35](../../../.agents/skills/goal-lisp/wiki/jak3.md#435-build-actor-models-their-effects-the-death-cloud-another-mesh-at-runtime).
 
 ![A Krimzon Guard's death cloud](images/war-kg-death.jpg)
+
+The Krimzon Guards of the places around the city (`hj2-kg-soldier`, a `nav-enemy`) had a fourth
+cause: a guard's death clip doesn't run `death-default` itself, it sends the guard `'event-death`,
+and the guard's own event handler runs the effect. A `nav-enemy` ignores that event. The soldier
+now handles it like Jak 3's guard does (`jak2-haven-city-kg.gc`).
+
+![A Krimzon Guard of Dead Town dissolving](images/place-soldier-death.jpg)
 
 Checked side by side: a Krimzon Guard (top) and a blue guard (bottom) killed in front of Jak, shot
 2, 8, 16 and 30 frames after their cloud starts. Both play the same death clip at the same pace,
@@ -333,9 +353,61 @@ own tables stay as they are for Jak 3's city.
 
 A troop transport lands near Jak every 45 to 90 s and drops guards of its side, the two sides in
 turn: a red Krimzon Guard ship with red and yellow guards, a blue Freedom Fighters ship with blue
-guards. The Hellcats and guard bikes fly the lanes during the war too, half red, half blue.
+guards ([5.3](#53-weapons) for why the blue ones once vanished on landing).
 
-![A Freedom Fighters transport dropping a blue guard](images/war-transport-blue.jpg)
+![A Freedom Fighters transport dropping a blue guard](images/war-transport-blue-drop.jpg)
+
+The Hellcats and guard bikes fly the lanes during the war too, half red, half blue, and they are
+rare: one Hellcat and one guard bike at most (`HJ2_WAR_AIR_VEHICLES`, `hj2-guard-vehicle-caps`).
+Each is flown by a guard of its side: a red or yellow Krimzon Guard in a red one
+(`hj2-hellcat-pilot setup-lods`). Each goes after the other side (`hj2-war-vehicle-foe`, every
+frame while it has no target): a red one after the nearest blue guard on foot or Jak within 100 m,
+a blue one after the nearest red or yellow guard, never Jak (`hj2-war-vehicle-may-hunt-jak?`
+keeps it out of the alert's chase and of Jak's hits too). Seen in a test: a blue Hellcat with its
+blue pilot chasing a Krimzon Guard, a red bike with a red pilot chasing a blue guard.
+
+### 5.9 Praxis KG invasion
+
+The second war mode (Mods menu, "Praxis KG invasion"), in Jak 3's city once its story is over (its
+last boss beaten, `hj2-story-done?`). The faction praxis-kguard (the same red and yellow guards as
+the war's, and red jetpack guards) fights the Freedom League in the conflict zones picked in the
+menu, several at once, the port by default. In a zone the two sides are all there is: no KG robot,
+spydroid, Metal Head or Wastelander comes out there, even where Jak 3 had its own fight. Outside
+the zones the city is Jak 3's own, and no ship flies, of either side: no transport, no guard
+vehicle.
+
+![Krimzon Guards of the invasion at the Hip Hog's door, in Jak 3's port](images/invasion-port.jpg)
+
+A zone is a group of Jak 3's territories (`nav-territory-type`, each street of its navigation
+graph has one), the groups Jak 3's faction manager uses itself:
+
+| Menu entry | Jak 3's territories |
+|---|---|
+| Port | `port-ff-deep` to `port-ff-kg-border`, `port-ff-near-mh`, `port-ff-mh-border` |
+| Industrial Section | `inda-*`, `indb-*` (the KG robots' land) |
+| Slums | `sluma-*`, `slumb-ff-deep`, `slumc-ff-deep`, `genc-border`, `genc` |
+| Metal Head land | `mhcity-*` |
+
+![The invasion's submenu](images/menu-invasion.jpg)
+
+Three hooks hold the zones, each giving Jak 3's own answer outside them:
+
+| Hook | Called by | In a conflict zone |
+|---|---|---|
+| `hj2-invasion-permission` | `cty-faction-manager-method-14`, the spawn permission of a faction in a territory | The Freedom League's guards and the KG's slot are allowed (their borrow levels load: CTYPESA with both sides' guards, CTYPESC with the jetpack guards), the KG's pedestrians and the Metal Heads are not |
+| `hj2-invasion-spawn-ok?` | `activate-by-type`, before a unit goes out on a street | Only the two sides' guards, the jetpack guards and the citizens |
+| `hj2-war-wake-ok?` | `hj2-get-from-inactive` (added to `traffic-engine.gc`), the pick of a sleeping unit | A guard of either side, the side with fewer guards out first; outside a zone a Freedom League guard only. A jetpack guard in a zone, a stock flying turret elsewhere |
+
+The guards' pool holds both sides (half Freedom League, half Krimzon Guard, 20 guards; the flying
+turrets' half jetpack guards), so the third hook is what keeps the Krimzon Guards in the zones.
+The street a unit goes out on is only known in `activate-by-type`: it hands its territory to the
+pick through a global, because other wakes (a parking spot, a transport, a mission) give no street
+and left garbage where the pick read one.
+
+Test, with a save whose story isn't over (the test's own copy of `hj2-story-done?` answered yes; no
+task was closed, no save written): in the port, the guards woke alternately red and blue, fought,
+and only blue guards came out in the slums. That city state has few guards, so the zone looked
+thinner than a finished story's city will.
 
 ## 6. Color variants
 
@@ -358,13 +430,13 @@ Where the game uses each color:
 
 | Object | Out of the war | During the war |
 |---|---|---|
-| Anti-air turret | Blue | Red; a hidden turret switches as the war starts or stops |
+| Anti-air turret | Blue | Blue (the city's turrets are the Freedom League's) |
 | Transport | (none) | Red for the Krimzon Guard's ships, blue for the Freedom Fighters' |
-| Hellcat | Jak 3's own | Half red, half blue (by process id) |
-| Guard bike | Blue | Half red, half blue |
+| Hellcat | Jak 3's own | Half red, half blue (by process id), one at most, a pilot of its side |
+| Guard bike | Blue | Half red, half blue, one at most, a rider of its side |
 | Jetpack guard | (none) | Red or blue, by side |
 
-![A blue anti-air turret, war mode off](images/turret-blue.jpg)
+![A blue anti-air turret](images/turret-blue.jpg)
 
 | | |
 |---|---|
@@ -559,7 +631,10 @@ clock (`*display*`'s `real-clock`) so that it goes on while a menu pauses the ga
 
 Each test run starts a fresh `gk` after the build, so it is a cold boot. The final run
 was a retail boot (`task boot-game-retail`'s arguments, no debug segment): the mod and the war
-switched on through the Mods menu's own entries, then 2 minutes of war. To see a vehicle up close,
+switched on through the Mods menu's own entries, the warp taken through the "Warp to Haven City
+(Jak 2)" submenu, then a minute of war. Praxis KG invasion needs Jak 3's story over: its scenario
+answers `hj2-story-done?` itself, in the temporary file only, so no task is closed and no save is
+written. To see a vehicle up close,
 the scenario puts Jak at its controls (`'change-mode 'pilot` with that vehicle): the camera follows
 it.
 
@@ -569,7 +644,12 @@ start fails. Saves and settings stay from one boot to the next
 
 ## 9. Known issues
 
-- **Not played by a player yet:** the war mode and the color variants were tested in boots driven by test scenarios,
-  the last one a retail boot ([8](#8-building-and-testing)).
+- **Not played by a player yet:** the war modes, the color variants and the alert's end were
+  tested in boots driven by test scenarios, the last one a retail boot ([8](#8-building-and-testing)).
+- **The turret and Dark Jak or Light Jak:** a city turret popping up as Jak turns into Dark Jak or
+  Light Jak was not seen in tests (it stayed down for both, war on or off); its check now leaves
+  them out by name.
+- **Praxis KG invasion with a finished story:** tested with a save whose story isn't over
+  ([5.9](#59-praxis-kg-invasion)).
 - **The repository's history** still holds `.glb` files, and the repository is public: [7](#7-what-the-repository-holds-and-what-it-doesnt).
 - More open points: [reference, 18](haven_city_new_dawn_reference.md#18-not-done-yet).
