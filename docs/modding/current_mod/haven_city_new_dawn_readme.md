@@ -72,7 +72,8 @@ and continues on the next one.
 
 Example in the mod: the city's guard turret has an `idle` state (hidden under its lids) and a
 `hostile` state (popped up, firing). Every frame in `idle`, it checks whether Jak drives a vehicle
-nearby during an alert, and turns its model blue if it isn't yet
+nearby during an alert or is Dark Jak or Light Jak (`hj2-cty-guard-turret-target?`), and turns its
+model blue if it isn't yet
 (`hj2-cty-guard-turret-color`, `goal_src/jak3/levels/havenj2/havenj2-obs.gc`).
 
 A `defbehavior` is a function that runs as a process (it can read `self`). The war's death cloud
@@ -155,7 +156,7 @@ The hooks the war mode and the color variants add:
 | `engine/ai/enemy.gc` (`'death-start`) | `hj2-war-death-start` | A Krimzon Guard's purple death cloud |
 | `levels/wascity/traffic-util.gc` | `hj2-war-cell-dist` | Units spawn further out during the war |
 | `levels/city/traffic/traffic-engine.gc` | (a test, no call) | No pedestrian spawned when its navigation mesh isn't loaded |
-| `levels/city/traffic/traffic-engine.gc` (`activate-by-type`, `activate-from-params`) | `hj2-invasion-spawn-ok?`, `hj2-war-wake-ok?` | Praxis KG invasion: which units come out in a conflict zone, and which of the pooled guards goes out on a street ([5.9](#59-praxis-kg-invasion)) |
+| `levels/city/traffic/traffic-engine.gc` (`activate-one-vehicle`, `activate-by-type`, `activate-from-params`) | `hj2-invasion-spawn-ok?`, `hj2-war-wake-ok?` | Praxis KG invasion: which units come out in a conflict zone, and which of the pooled guards goes out on a street ([5.9](#59-praxis-kg-invasion)) |
 | `levels/wascity/cty-faction.gc` (`cty-faction-manager-method-14`) | `hj2-invasion-permission` | Praxis KG invasion: a conflict zone's spawn permissions |
 
 ## 4. From Jak 2's disc to Jak 3 levels: the level port
@@ -407,7 +408,7 @@ Three hooks hold the zones, each giving Jak 3's own answer outside them:
 | Hook | Called by | In a conflict zone |
 |---|---|---|
 | `hj2-invasion-permission` | `cty-faction-manager-method-14`, the spawn permission of a faction in a territory | The Freedom League's guards and the KG's slot are allowed (their borrow levels load: CTYPESA with both sides' guards, CTYPESC with the jetpack guards), the KG's pedestrians and the Metal Heads are not |
-| `hj2-invasion-spawn-ok?` | `activate-by-type`, before a unit goes out on a street | Only the two sides' guards, the jetpack guards and the citizens |
+| `hj2-invasion-spawn-ok?` | `activate-one-vehicle`, which picks the type to send out next, and `activate-by-type`, before a unit goes out on a street | Only the two sides' guards, the jetpack guards and the citizens |
 | `hj2-war-wake-ok?` | `hj2-get-from-inactive` (added to `traffic-engine.gc`), the pick of a sleeping unit | A guard of either side, the side with fewer guards out first; outside a zone a Freedom League guard only. A jetpack guard in a zone, a stock flying turret elsewhere |
 
 The guards' pool holds both sides (half Freedom League, half Krimzon Guard, 20 guards; the flying
@@ -416,10 +417,21 @@ The street a unit goes out on is only known in `activate-by-type`: it hands its 
 pick through a global, because other wakes (a parking spot, a transport, a mission) give no street
 and left garbage where the pick read one.
 
-Test, with a save whose story isn't over (the test's own copy of `hj2-story-done?` answered yes; no
-task was closed, no save written): in the port, the guards woke alternately red and blue, fought,
-and only blue guards came out in the slums. That city state has few guards, so the zone looked
-thinner than a finished story's city will.
+`activate-one-vehicle` needs the test too. It picks, each time, the type furthest below its count:
+the KG robots, none out, always won, `activate-by-type` then refused them, and nothing came out. In
+the industrial section, with the zone set there, only one guard stood in 2 minutes; with the test
+in the pick, 15 to 17.
+
+Tests, with a save whose story isn't over (the test's own copy of `hj2-story-done?` answered yes; no
+task was closed, no save written), counted every 10 s over 100 s around Jak:
+
+| Where, invasion | Freedom League guards | Krimzon Guards | Jetpack guards | KG robots | Metal Heads | KG flying turrets |
+|---|---|---|---|---|---|---|
+| Industrial section, off (KG made strong, as at war) | 3 to 7 | 0 | 0 | 4 to 6 | 4 to 6 | 1 to 3 |
+| Industrial section, its only zone | 7 to 8 | 7 to 9 | 3 | 0 | 0 | 0 |
+
+The two sides aimed at each other (5 to 8 of each, every count). In the port, its default zone, the
+guards woke alternately red and blue and fought; outside the zones only blue guards came out.
 
 ## 6. Color variants
 
@@ -658,17 +670,12 @@ start fails. Saves and settings stay from one boot to the next
 
 - **Not played by a player yet:** the war modes, the color variants and the alert's end were
   tested in boots driven by test scenarios, the last one a retail boot ([8](#8-building-and-testing)).
-- **The turret and Dark Jak or Light Jak:** a city turret popping up as Jak turns into Dark Jak or
-  Light Jak was not seen in tests (it stayed down for both, war on or off); its check now leaves
-  them out by name.
 - **Praxis KG invasion with a finished story:** tested with a save whose story isn't over
-  ([5.9](#59-praxis-kg-invasion)). Its zones were tested in the port only: the industrial
-  section's case (a zone where Jak 3 already had its KG robots fight the Freedom League) is written
-  but not run in game.
-- **A crash in the collision code, once:** in one of three runs of 3 minutes of war with two blue
-  transports sent on top of the war's own, the game stopped in native collision code (a
-  `collide-cache-prim` query reading a bad pointer) after 77 s; the two other runs went through.
-  Earlier, 16 runs of the war without the war ships hunting guards went through. The cause isn't
-  found.
+  ([5.9](#59-praxis-kg-invasion)).
+- **Crashes under stress:** a test that sends two extra blue transports on top of the war's own (up
+  to three ships at once, which the war never does) crashed in 2 of 7 runs of 3 minutes: once in
+  native collision code (a `collide-cache-prim` query reading a bad pointer, after 77 s), once as a
+  guard's reload grenade (`reload-grenade`) entered its first state (after 198 s). The war alone
+  went through 4 runs of 3 minutes and a retail run. The cause isn't found.
 - **The repository's history** still holds `.glb` files, and the repository is public: [7](#7-what-the-repository-holds-and-what-it-doesnt).
 - More open points: [reference, 18](haven_city_new_dawn_reference.md#18-not-done-yet).

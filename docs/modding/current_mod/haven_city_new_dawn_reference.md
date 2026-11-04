@@ -170,7 +170,7 @@ scripts ([5](#5-loading-levels-like-jak-2)).
 | Palace gate | `hj2-palace-door` | Jak 3 has none. It really closes: the city is hidden in the lobby behind it |
 | Propaganda speakers | `hj2-propa` | The Baron's hologram and speeches; two hits break one. In French with the war off, the speakers say Torn's lines (the owner's own recordings, `custom_assets/jak3/ports/jak2-haven-city/voices/`) |
 | Neon signs | `havenj2-signs.gc` | Blink in random patterns like Jak 2's |
-| Anti-air turrets | `hj2-cty-guard-turret` | Rise during an alert when Jak drives within 100 m, fire, sink 120 m away. Blue out of the war, red during it |
+| Anti-air turrets | `hj2-cty-guard-turret` | Rise when Jak drives within 100 m during an alert, or is Dark Jak or Light Jak within 100 m (war or not); fire; sink 120 m away or once he is neither. Always blue |
 | Street lamps | `hj2-ctyn-lamp` | Snap when Jak or a vehicle hits them |
 | Parked vehicles | `hj2-parking-spot` | 49 spots, each spawning a traffic vehicle |
 | Force-field walls | `hj2-security-wall` | Open: at the end of the game Jak owns every pass |
