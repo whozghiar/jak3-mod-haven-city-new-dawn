@@ -2135,7 +2135,10 @@ if they end past `#x10000000`. Jak 2's is 12.0 on `master-dev` (about 215 MB): c
   floats (`0x3f800000`): something writes a vector into freed or moved process memory. Ruled out:
   the Hellcats and guard bikes, the process heaps (none above its size), rebuilding the traffic
   from a one-shot process of `*display-pool*` a frame later instead of from the menu's process (no
-  change, so not kept). Seen first in change 31.
+  change, so not kept). Seen first in change 31, where a bisection tied it to the Krimzon Guards'
+  rifles and grenade launchers: with Jak 2's clips and those weapons it crashed 3 runs of 3, with
+  the tazer or with the clips alone it didn't; a guard also reached its `die-fast` state without
+  the `'die-fast` event.
 - **Tested in game (change 29, 2026-11-03):** fresh debug boots (`gk -boot -fakeiso -debug`), one
   scenario each, a temporary GAME file switching the mod and the war on, warping Jak, pressing
   buttons and logging the processes (`log/` and screenshots, not committed). Seen:
