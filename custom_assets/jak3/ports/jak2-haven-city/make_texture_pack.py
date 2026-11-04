@@ -3,8 +3,9 @@ textures the level port wrote (paths.texture_variants of port.jsonc), named <tex
 
 The pack's own replacements stay as they are: a variant texture with the same file name as one of
 them is left out, and reported. Retouch a variant in the variants folder (or in an installed pack:
-the level port then uses that file for the model), then run this script, then register the pack
-with `task modding-package-texture-pack`.
+the level port then uses that file for the model), then run this script and commit the zip
+(`git add -f`: the folder ignores zips). The release workflow uploads every zip of the folder and
+registers it in index.json.
 
 Usage, from the repository root:
     python custom_assets/jak3/ports/jak2-haven-city/make_texture_pack.py [--version 1.1.0] [--out <zip>]
@@ -55,6 +56,7 @@ def main():
                 meta = json.loads(data)
                 meta["version"] = version
                 meta["releaseDate"] = datetime.date.today().isoformat()
+                meta["publishedDate"] = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
                 meta["description"] = meta["description"].rstrip(".") + \
                     ", and the red and blue versions of the turret, transport, guard bike and Hellcat."
                 data = json.dumps(meta, indent=2).encode()
