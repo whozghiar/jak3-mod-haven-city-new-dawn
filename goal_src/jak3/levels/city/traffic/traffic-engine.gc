@@ -788,7 +788,8 @@ order and counts (get-from-inactive-by-type's)."
                           )
                         )
                       )
-                  (when (< (-> s1-0 active-count) s0-0)
+                  ;; og:jak2-haven-city changed: a type Praxis KG invasion keeps out of this street isn't a candidate
+                  (when (and (< (-> s1-0 active-count) s0-0) (hj2-invasion-spawn-ok? s2-0 (the-as int (-> arg0 branch clock-type))))
                     (when (logtest? (cty-faction-manager-method-9 *cty-faction-manager* (the-as int (-> arg0 branch clock-type)) (-> s1-0 level))
                                     2
                                     )
