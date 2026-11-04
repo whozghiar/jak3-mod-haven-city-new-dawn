@@ -461,12 +461,35 @@ The texture pack is optional: the color variants come out the same without it.
 
 Two things for the owner to decide before the repository goes public:
 
-- **Old commits still hold `.glb` files** (124 of them: level meshes and models, added before they
-  were generated at install). Removing them from GitHub means rewriting the history (for example
-  `git filter-repo --path-glob '*.glb' --invert-paths`) and force-pushing, after which every clone
-  must be made again. Not done.
+- **Old commits still hold `.glb` files**: 124 files, 172 versions, 61 MB (16 MB packed), level
+  meshes and models added before they were generated at install. Removing them rewrites the
+  history; it is not done, by the owner's choice (2026-11-04). The procedure below was tested on a
+  throwaway copy: 70 commits rewritten in about a minute, no `.glb` of the mod left, the upstream
+  test models (`test-actor.glb`, `test-zone2.glb`) kept, the last commit's files unchanged, and
+  `master-dev`'s commits untouched (only the mod's own commits are rewritten, so later syncs from
+  `master-dev` stay clean).
 - **The texture pack zip** (`docs/modding/current_mod/texture_packs/`) holds textures of the games,
   repainted. It is committed so that the release workflow finds it.
+
+The history rewrite, when the repository goes public: in a bare clone of the mod's repository
+(`git clone --bare`), where `main` and the two release tags are the refs to rewrite. `dd14a7829`
+is the first commit that added one of these files; `bac2f2e07` is the last `master-dev` commit
+merged into the mod (take the current one: `git merge-base main master-dev`). Excluding what
+`master-dev` holds matters: `filter-branch` drops commit signatures, so rewriting `master-dev`'s
+merged commits would change their hashes even without a file removed. Name the refs: `--all`
+would also rewrite every other branch and remote of a clone that holds several mods.
+
+```bash
+git filter-branch --tag-name-filter cat --index-filter   'git rm -r -q --cached --ignore-unmatch -- "custom_assets/jak3/models/custom_levels/hj2-*.glb" "custom_assets/jak3/levels/*/hj2-*-mesh.glb" "custom_assets/jak3/levels/havenj2/havenj2-mesh.glb"'   -- main haven-city-new-dawn-v1.0.0 haven-city-new-dawn-v1.0.1 --not bac2f2e07 dd14a7829^
+git push --force origin main haven-city-new-dawn-v1.0.0 haven-city-new-dawn-v1.0.1
+```
+
+Tested exactly so on a copy (2026-11-04): `main` and both tags rewritten, none of them holding a
+`.glb` of the mod any more, their files otherwise identical.
+
+After it: the two release tags (`haven-city-new-dawn-v1.0.0`, `-v1.0.1`) point to the rewritten
+commits (`--tag-name-filter cat`), every clone and worktree of the mod must be made again, and
+GitHub may keep the old objects until its own cleanup (its support can run one on request).
 
 ## 8. Building and testing
 
