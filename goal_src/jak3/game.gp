@@ -100,7 +100,7 @@
 (hash-table-set! *file-entry-map* "hj2-kg-yellow-ag.go" #f)
 (hash-table-set! *file-entry-map* "hj2-kg-yellow-gl-ag.go" #f)
 (hash-table-set! *file-entry-map* "hj2-transport-ag.go" #f)
-(hash-table-set! *file-entry-map* "hj2-vehicle-turret-ag.go" #f)
+(hash-table-set! *file-entry-map* "hj2-transport-blue-ag.go" #f)
 (hash-table-set! *file-entry-map* "hj2-hover-red-ag.go" #f)
 (hash-table-set! *file-entry-map* "hj2-hover-blue-ag.go" #f)
 

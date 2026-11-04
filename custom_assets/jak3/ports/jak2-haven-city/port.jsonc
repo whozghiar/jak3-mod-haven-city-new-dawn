@@ -114,6 +114,10 @@
       "*hj2-guard-victory-sounds*": ["kg009", "kg132", "kg132a", "kg133", "kg146", "kg147", "kg148", "kg149", "kg151", "kg152", "kg153", "kg154", "kg159", "kg165", "kg165a", "kg165b", "kg166", "kg166a", "kg166b", "kg167", "kg167a", "kg167b", "kg168", "kg168a", "kg168b", "kg169", "kg169a", "kg169b", "kg170", "kg170a", "kg170b", "kg171", "kg171a", "kg171b", "kg172", "kg172a", "kg172b", "kg173", "kg173a", "kg173b", "kg236a", "kg236b", "kg237a", "kg237b", "kg238a", "kg239a", "kg239b", "kg240a"],
       "*hj2-guard-change-targets-sounds*": ["kg044a", "kg045a", "kg046a", "kg047a", "kg048a", "kg049a", "kg050a"],
       "*hj2-guard-bumped-sounds*": ["kg387a", "kg396a", "kg399a"],
+      // Jak 2's speech types 7 and 8, the guards' fight lines when Jak drives and when he is Dark Jak
+      // (speech-control-method-15 there; hj2-speech-type, jak2-haven-city-war.gc)
+      "*hj2-guard-battle-pilot-sounds*": ["kg005", "kg008", "kg008a", "kg011", "kg011a", "kg021", "kg022", "kg025", "kg025a", "kg026", "kg026a", "kg027", "kg027a", "kg028", "kg028a", "kg039", "kg039a", "kg040", "kg040a"],
+      "*hj2-guard-battle-dark-sounds*": ["kg300a", "kg301a", "kg302a", "kg303a", "kg304a", "kg305a", "kg306a", "kg307a", "kg308a", "kg309a", "kg310a", "kg311a", "kg312a", "kg313a", "kg314a", "kg315a", "kg316a", "kg317a", "kg318a", "kg319a"],
       "*hj2-guard-battle-sounds*": ["kg001", "kg002", "kg004", "kg006", "kg001a", "kg013", "kg016", "kg018", "kg019", "kg020", "kg023", "kg024", "kg002a", "kg004a", "kg078a", "kg079a", "kg080a", "kg081a", "kg082a", "kg083a", "kg084a", "kg085a", "kg086a", "kg087a", "kg088a", "kg091a", "kg023a", "kg006a", "kg092a", "kg020a", "kg093a", "kg094a", "kg005a", "kg095a", "kg103a", "kg104a", "kg112a", "kg024a", "kg134", "kg136", "kg137", "kg138", "kg139", "kg140", "kg141", "kg014", "kg153", "kg135", "kg142", "kg144", "kg145", "kg150"],
       // Tess at the Hip Hog's whack-a-metal (Jak 2's talker speeches 395 to 448, whack.gc there;
       // hj2-hiphog-obs.gc): cheering, near 1300 points, after a hit, after a red metal head, at the
@@ -253,9 +257,9 @@
       // the code of its districts' props, signs, palace gate, speakers and crops, after the traffic
       "code": ["ctymark-obs-h.o", "ctymark-obs.o", "ctyfarm-obs.o", "havenj2-part.o", "havenj2-signs.o", "havenj2-obs.o", "havenj2-farm.o"],
       // the traffic's guard bikes (hj2-guard-bike, havenj2-traffic.gc), rebuilt from Jak 2's model,
-      // and the war mode's models (the "models" block): its Krimzon Guards, jetpack guards and
-      // troop transport with its turret
-      "models": ["hj2-guard-bike", "hj2-kg-red", "hj2-kg-red-gl", "hj2-kg-yellow", "hj2-kg-yellow-gl", "hj2-hover-red", "hj2-hover-blue", "hj2-transport", "hj2-vehicle-turret"],
+      // and the war mode's models (the "models" block): its Krimzon Guards, jetpack guards, troop
+      // transports, and the two sides' bikes and Hellcats
+      "models": ["hj2-guard-bike", "hj2-guard-bike-red", "hj2-hellcat-red", "hj2-hellcat-blue", "hj2-kg-red", "hj2-kg-red-gl", "hj2-kg-yellow", "hj2-kg-yellow-gl", "hj2-hover-red", "hj2-hover-blue", "hj2-transport", "hj2-transport-blue"],
       "level_info": {
         "callbacks": [[6, "*security-texture-anim-array*"], [33, "havenj2-login"], [34, "havenj2-logout"], [35, "havenj2-activate"], [36, "havenj2-deactivate"]],
         "draw_priority": "9.0",
@@ -867,7 +871,7 @@
       "ported_actors": false,
       "sky": false,
       "level_info": {"mood": "update-mood-havenj2"},
-      "models": ["hj2-kg-red", "hj2-kg-red-gl", "hj2-kg-yellow", "hj2-kg-yellow-gl", "hj2-hover-red", "hj2-hover-blue", "hj2-transport", "hj2-vehicle-turret"]
+      "models": ["hj2-kg-red", "hj2-kg-red-gl", "hj2-kg-yellow", "hj2-kg-yellow-gl", "hj2-hover-red", "hj2-hover-blue", "hj2-transport", "hj2-transport-blue"]
     }
     // Not ported: the inside of the palace (palent, throne), only reached in Jak 2's missions.
   ],
@@ -997,7 +1001,12 @@
   // however far: riding the cable pillar's elevator up loads the roof, whose door (570m away) then
   // turned off hj2-pshaft, the elevator Jak stood on and the shaft around him. The pillar stays
   // shown (it's loaded with the roof and the cable anyway).
-  "script_overrides": {"palroof": {"com-airlock-outer-18": {"on-deactivate": null}}, "palcab": {"com-airlock-outer-17": {"on-deactivate": null}}},
+  // The fortress's middle airlock (forrescb: fort-entry-gate-8, then -9 on the prison's side) waits
+  // for the fortress's first half (forresca) behind gate 9 in Jak 2. The prison's gate
+  // (fort-entry-gate-11, 35m on) loads the prison in its place as soon as Jak is near it, which Jak
+  // 2's visibility kept from happening before Jak was through: gate 8 opened and gate 9 stayed shut
+  // behind it. Gate 9 waits for the fortress's second half alone.
+  "script_overrides": {"palroof": {"com-airlock-outer-18": {"on-deactivate": null}}, "palcab": {"com-airlock-outer-17": {"on-deactivate": null}}, "forrescb": {"fort-entry-gate-9": {"on-notice": "'(hj2-fortb)"}}},
   // a door's pair (next-actor), when Jak 2's isn't placed: Jak 2 pairs the slums' fortress gate
   // with the dump's (fordumpa, not ported); the rescue's gate (forresca) is its other side at the
   // end of the game
@@ -1010,8 +1019,10 @@
   // Jak's pole animations (jak-pole+0-ag, the target's jakb-pole-cycle-ja): Jak 3 only lets him grab
   // a swingpole while a level of his has them, like its own levels with poles (halfpipe, precc,
   // tema); the levels placing swingpoles or the dig's trapezes carry them. Jak's slide animations
-  // (jak-tube+0-ag, the target's jakb-tube-turn-ja...) the same way, with the slides
-  "art_groups": {"hj2-power-game": null, "swingpole": "jak-pole+0-ag", "slide-control": "jak-tube+0-ag", "hj2-dig-balloon-lurker": "jak-pole+0-ag", "hj2-air-train": "air-train-ag", "hj2-time-gate": "warp-gate-ag", "hj2-security-wall": "security-wall-ag", "searchlight": "searchlight-ag", "hj2-boat-manager": "barge-ag"},
+  // (jak-tube+0-ag, the target's jakb-tube-turn-ja...) the same way, with the slides. The places
+  // with Krimzon Guard spawners carry Jak 3's guard art (crimson-guard-ag): the war's soldiers play
+  // the blue guard's clips (jak2-haven-city-war.gc hj2-war-guard-clips)
+  "art_groups": {"hj2-power-game": null, "swingpole": "jak-pole+0-ag", "slide-control": "jak-tube+0-ag", "hj2-dig-balloon-lurker": "jak-pole+0-ag", "hj2-air-train": "air-train-ag", "hj2-time-gate": "warp-gate-ag", "hj2-security-wall": "security-wall-ag", "searchlight": "searchlight-ag", "hj2-boat-manager": "barge-ag", "hj2-kg-spawner": "crimson-guard-ag"},
 
   // Actors ported by Jak 2 level and name. The mountain's: the warp gates between its foot (the
   // gardens airlock) and its top, Jak 2's only way up; the trans-plat riding from the top down to
@@ -1323,11 +1334,14 @@
     "hj2-fort-elec-belt": {"model": "hj2-fort-elec-belt", "rip": "forrescb/fort-elec-belt-lod0.glb", "prims": null, "collide": null},
     "hj2-gun-buoy": {"model": "hj2-gun-buoy", "rip": "atoll/gun-buoy-lod0.glb", "prims": null, "collide": null, "anims": [["atoll/gun-buoy-lod0.glb", "gun-buoy-idle", "hj2-gun-buoy-idle"], ["atoll/gun-buoy-lod0.glb", "gun-buoy-open", "hj2-gun-buoy-open"], ["atoll/gun-buoy-lod0.glb", "gun-buoy-close", "hj2-gun-buoy-close"]]},
     // the fortress's laser turrets (hj2-fortb-obs.gc), invincible like Jak 2's; the city's guard
-    // turrets are named actors (hj2-cty-guard-turret, havenj2-obs.gc)
+    // turrets are named actors (hj2-cty-guard-turret, havenj2-obs.gc), red during the war mode and
+    // blue (the Freedom League's) out of it: the -blue extras, their red turned blue (recolor)
     // the street lamps (havenj2-obs.gc): the pole (Jak 2's 2 primitives), its collision two boxes
     // (the pole, the head; 5.67m high), and the four pieces it snaps into (joints a to d)
     "hj2-ctyn-lamp": {"model": "hj2-ctyn-lamp", "rip": "ctygenc/ctyn-lamp-lod0.glb", "prims": null, "collide": [[[[-0.2, 0.0, -0.2], [0.2, 4.6, 0.2]], [[-0.37, 4.6, -0.37], [0.37, 5.67, 0.37]]]], "extras": [{"model": "hj2-ctyn-lamp-explode", "rip": "ctygenc/ctyn-lamp-explode-lod0.glb", "prims": null, "collide": null}]},
-    "hj2-cty-guard-turret": {"model": "hj2-cty-guard-turret", "rip": "ctywide/cty-guard-turret-lod0.glb", "prims": null, "collide": [{"hull": null, "joint": "lidL"}, {"hull": null, "joint": "lidR"}, {"hull": null, "joint": "main"}], "anims": [["ctywide/cty-guard-turret-lod0.glb", "cty-guard-turret-idle", "hj2-cty-guard-turret-idle"], ["ctywide/cty-guard-turret-lod0.glb", "cty-guard-turret-pop-up-down", "hj2-cty-guard-turret-pop-up-down"]], "extras": [{"model": "hj2-cty-guard-turret-explode", "rip": "ctywide/cty-guard-turret-explode-lod0.glb", "prims": null, "collide": null}]},
+    "hj2-cty-guard-turret": {"model": "hj2-cty-guard-turret", "rip": "ctywide/cty-guard-turret-lod0.glb", "prims": null, "collide": [{"hull": null, "joint": "lidL"}, {"hull": null, "joint": "lidR"}, {"hull": null, "joint": "main"}], "anims": [["ctywide/cty-guard-turret-lod0.glb", "cty-guard-turret-idle", "hj2-cty-guard-turret-idle"], ["ctywide/cty-guard-turret-lod0.glb", "cty-guard-turret-pop-up-down", "hj2-cty-guard-turret-pop-up-down"]], "extras": [{"model": "hj2-cty-guard-turret-explode", "rip": "ctywide/cty-guard-turret-explode-lod0.glb", "prims": null, "collide": null},
+      {"model": "hj2-cty-guard-turret-blue", "rip": "ctywide/cty-guard-turret-lod0.glb", "prims": null, "collide": [{"hull": null, "joint": "lidL"}, {"hull": null, "joint": "lidR"}, {"hull": null, "joint": "main"}], "recolor": {"hues": [-15, 15], "rotate": 217, "min_saturation": 0.3}, "anims": [["ctywide/cty-guard-turret-lod0.glb", "cty-guard-turret-idle", "hj2-cty-guard-turret-blue-idle"], ["ctywide/cty-guard-turret-lod0.glb", "cty-guard-turret-pop-up-down", "hj2-cty-guard-turret-blue-pop-up-down"]]},
+      {"model": "hj2-cty-guard-turret-explode-blue", "rip": "ctywide/cty-guard-turret-explode-lod0.glb", "prims": null, "collide": null, "recolor": {"hues": [-15, 15], "rotate": 217, "min_saturation": 0.3}}]},
     "hj2-fort-turret": {"model": "hj2-fort-turret", "rip": "forrescb/fort-turret-lod0.glb", "prims": null, "collide": [{"hull": null, "joint": "recoiltrans"}, {"hull": null, "joint": "secrotate"}, {"hull": null, "joint": "main"}], "anims": [["forrescb/fort-turret-lod0.glb", "fort-turret-idle", "hj2-fort-turret-idle"], ["forrescb/fort-turret-lod0.glb", "fort-turret-shoot", "hj2-fort-turret-shoot"], ["forrescb/fort-turret-lod0.glb", "fort-turret-rise", "hj2-fort-turret-rise"]]},
     // the port and the garage: Daxter's mech (farthy) and the garage's parked cars (hj2-common-
     // obs.gc), the port's barges (hj2-port-obs.gc, Jak 3's boat-manager and barge)
@@ -1337,8 +1351,20 @@
     // (the turret turns joint 4). Primitives 5-10: the intact rear and front, 18-21: the body and
     // seat (0-1 and 2-4: the broken rear and front, 11-13 and 14-17: the damaged ones; Jak 2 swaps
     // them with setup-masks, build-actor models have no mask table). Its collision is the class's
-    // spheres
-    "hj2-guard-bike": {"model": "hj2-guard-bike", "rip": "lwideb/crimson-bike-lod0.glb", "prims": [5, 6, 7, 8, 9, 10, 18, 19, 20, 21], "collide": null},
+    // spheres. Two colors (recolor, on the three textures the mod's texture pack paints blue: the
+    // rip is red without the pack, blue with it): hj2-guard-bike blue (the Freedom League's, and
+    // the war's Freedom Fighters'), hj2-guard-bike-red (the war's Krimzon Guard)
+    "hj2-guard-bike": {"model": "hj2-guard-bike", "rip": "lwideb/crimson-bike-lod0.glb", "prims": [5, 6, 7, 8, 9, 10, 18, 19, 20, 21], "collide": null,
+                       "recolor": {"hues": [-15, 15], "rotate": 217, "min_saturation": 0.3, "textures": ["kcbackjet01", "kcfrontend01", "kcfrontgard01"]}},
+    "hj2-guard-bike-red": {"model": "hj2-guard-bike-red", "rip": "lwideb/crimson-bike-lod0.glb", "prims": [5, 6, 7, 8, 9, 10, 18, 19, 20, 21], "collide": null,
+                           "recolor": {"hues": [190, 250], "rotate": 143, "min_saturation": 0.3, "textures": ["kcbackjet01", "kcfrontend01", "kcfrontgard01"]}},
+    // Jak 2's Hellcat in two colors for the war mode (h-hellcat, havenj2-traffic.gc; out of the war
+    // the Hellcats are Jak 3's own hellcat-ag): its 6 joints are Jak 3's, all its primitives drawn
+    // (neither game masks any), recolored on the textures the mod's texture pack paints blue
+    "hj2-hellcat-red": {"model": "hj2-hellcat-red", "rip": "lwidea/hellcat-lod0.glb", "prims": null, "collide": null,
+                        "recolor": {"hues": [190, 250], "rotate": 143, "min_saturation": 0.3, "textures": ["backThing01", "dash01", "hood01", "jetTop01", "kcfrontend01", "stripe03", "wing01", "wing02"]}},
+    "hj2-hellcat-blue": {"model": "hj2-hellcat-blue", "rip": "lwidea/hellcat-lod0.glb", "prims": null, "collide": null,
+                         "recolor": {"hues": [-15, 15], "rotate": 217, "min_saturation": 0.3, "textures": ["backThing01", "dash01", "hood01", "jetTop01", "kcfrontend01", "stripe03", "wing01", "wing02"]}},
     // The war mode (jak2-haven-city-war.gc, skelgroups there): no actor places these models, the
     // levels' "models" lists bring them (havenj2: all; the outer places: hj2-kg-red and
     // hj2-kg-yellow; hj2-war: all, for Jak 3's own city). More model keys:
@@ -1346,7 +1372,8 @@
     //   insert_joints: joints added to the rip's skeleton (name, the joint it follows, parent, bind
     //                  pose relative to the parent), no vertex bound, held at that pose
     //   recolor:       the texels whose hue is in [lo, hi] degrees (and saturation >= min) turned
-    //                  by rotate degrees
+    //                  by rotate degrees, in every texture or only those named in "textures"; one
+    //                  rule or a list of them (a color variant, see the dev readme)
     //   anims "x" / [x, y]: the rip's own clip <art group>-x, named <model>-x / <model>-y
     // Jak 2's Krimzon Guard on Jak 3's 41-joint guard skeleton, for Jak 3's stock crimson-guard code
     // (guard.gc, guard-rifle.gc, guard-grenade.gc): Jak 2's 38 joints with back, right_wrist and
@@ -1397,10 +1424,9 @@
     // (2 idle, 3 hatch-open, 4 hatch-close; 60 frames per second, build-actor's default). Its
     // collision is the class's spheres (the box made here is unused)
     "hj2-transport": {"model": "hj2-transport", "rip": "forestb/transport-lod0.glb", "prims": null, "collide": null, "anims": ["idle", "hatch-open", "hatch-close"]},
-    // its chin turret (vehicle-turret, spawned by hj2-transport.gc): 2 idle (one frame); joints
-    // align, prejoint, main (node-list index 3, Jak 2's turret-control-info joint-index: the gun
-    // turns it); about 0.7 x 1.2 x 2.1 m. Its collision is the class's (the box made here is unused)
-    "hj2-vehicle-turret": {"model": "hj2-vehicle-turret", "rip": "ctywide/vehicle-turret-lod0.glb", "prims": null, "collide": null, "anims": ["idle"]}
+    // the Freedom Fighters' transport: the same, its red turned blue
+    "hj2-transport-blue": {"model": "hj2-transport-blue", "rip": "forestb/transport-lod0.glb", "prims": null, "collide": null, "anims": ["idle", "hatch-open", "hatch-close"],
+                           "recolor": {"hues": [-15, 15], "rotate": 217, "min_saturation": 0.3}}
   },
 
   // Regions: Jak 2 region ids are unique over the whole game; ours are offset past the water

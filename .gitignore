@@ -293,6 +293,8 @@ graphify-out/*
 /custom_assets/jak3/models/custom_levels/hj2-cons-bomb-hinges.glb
 /custom_assets/jak3/models/custom_levels/hj2-cons-silo-doors.glb
 /custom_assets/jak3/models/custom_levels/hj2-cpad-elevator.glb
+/custom_assets/jak3/models/custom_levels/hj2-cty-guard-turret-blue.glb
+/custom_assets/jak3/models/custom_levels/hj2-cty-guard-turret-explode-blue.glb
 /custom_assets/jak3/models/custom_levels/hj2-cty-guard-turret-explode.glb
 /custom_assets/jak3/models/custom_levels/hj2-cty-guard-turret.glb
 /custom_assets/jak3/models/custom_levels/hj2-ctyn-lamp-explode.glb
@@ -319,8 +321,11 @@ graphify-out/*
 /custom_assets/jak3/models/custom_levels/hj2-fort-trap-door.glb
 /custom_assets/jak3/models/custom_levels/hj2-fort-turret.glb
 /custom_assets/jak3/models/custom_levels/hj2-gar-curtain.glb
+/custom_assets/jak3/models/custom_levels/hj2-guard-bike-red.glb
 /custom_assets/jak3/models/custom_levels/hj2-guard-bike.glb
 /custom_assets/jak3/models/custom_levels/hj2-gun-buoy.glb
+/custom_assets/jak3/models/custom_levels/hj2-hellcat-blue.glb
+/custom_assets/jak3/models/custom_levels/hj2-hellcat-red.glb
 /custom_assets/jak3/models/custom_levels/hj2-hide-door-a.glb
 /custom_assets/jak3/models/custom_levels/hj2-hide-door-b.glb
 /custom_assets/jak3/models/custom_levels/hj2-hide-light-fog.glb
@@ -382,9 +387,9 @@ graphify-out/*
 /custom_assets/jak3/models/custom_levels/hj2-ruins-pillar.glb
 /custom_assets/jak3/models/custom_levels/hj2-slider.glb
 /custom_assets/jak3/models/custom_levels/hj2-trans-plat.glb
+/custom_assets/jak3/models/custom_levels/hj2-transport-blue.glb
 /custom_assets/jak3/models/custom_levels/hj2-transport.glb
 /custom_assets/jak3/models/custom_levels/hj2-turbine.glb
-/custom_assets/jak3/models/custom_levels/hj2-vehicle-turret.glb
 /custom_assets/jak3/models/custom_levels/hj2-vin-door-ctyinda.glb
 /custom_assets/jak3/models/custom_levels/hj2-vin-door.glb
 /custom_assets/jak3/models/custom_levels/hj2-vin-turbine.glb

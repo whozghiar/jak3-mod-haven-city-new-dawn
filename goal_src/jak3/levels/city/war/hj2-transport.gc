@@ -10,8 +10,9 @@
 ;; own city. The war director (hj2-war-city.gc) calls hj2-transport-spawn at the moments it picks:
 ;; the ship comes down 10 to 18 m from Jak, opens its hatch at the back, drops up to
 ;; HJ2_TRANSPORT_MAX_GUARDS guards of its side one by one (Jak 2's transport-method-33), closes and
-;; flies away, and dies once out of sight. Its chin turret (Jak 2's vehicle-turret) fires at Jak
-;; from a Krimzon Guard ship.
+;; flies away, and dies once out of sight. The war sends both sides' ships in turn: a Krimzon Guard
+;; ship (red, Jak 2's) drops red and yellow guards, a Freedom Fighters ship (blue) drops blue
+;; guards. Jak 2's chin turret (vehicle-turret) is left out: the ship carries no gun.
 ;;
 ;; The guards are the traffic's own: Jak 3's crimson-guard kept Jak 2's transport behavior (traffic
 ;; behavior 6: the exit-transport state, which walks the guard out of the hatch of the process in
@@ -21,169 +22,18 @@
 ;; ('activate-object). No guard of its side free: it drops nothing, retries, and leaves after 8 s
 ;; without a drop.
 ;;
-;; Jak 2's ship and turret are invulnerable (penetrated-by none, no 'attack). Here they take hits
-;; like the city's guard turret (havenj2-obs.gc): HJ2_TRANSPORT_HIT_POINTS, then the ship explodes.
+;; Invulnerable, as Jak 2's: shots and blows bounce off its hull (penetrated-by none, no 'attack).
 ;;
 ;; Models (build-actor, the level port's "models"): hj2-transport (Jak 2's transport rip) and
-;; hj2-vehicle-turret (Jak 2's vehicle-turret rip). A process looks its art up in its own level:
-;; the spawn names the level holding both art groups, and a turret whose art is missing stays in
-;; process-drawable-art-error (no turret, nothing else breaks). Sounds: Jak 2's (CTYWIDE3, loaded as
-;; 'j2ctywi3 in havenj2; silent where it isn't loaded), Jak 3's vehicle-explode (COMMON).
+;; hj2-transport-blue (the same, its red turned blue), the second for side 0. A process
+;; looks its art up in its own level: the spawn names the level holding its art group. Sounds: Jak
+;; 2's (CTYWIDE3, loaded as 'j2ctywi3 in havenj2; silent where it isn't loaded).
 
 (define-extern hj2-war-on? (function symbol))
 (define-extern hj2-war-guard-side (function process int))
 
 ;; Guards one ship drops at most (the transport-ag alert mod's number)
 (defconstant HJ2_TRANSPORT_MAX_GUARDS 8)
-
-;; Hit points of a ship: a strong hit, a red or dark shot or an explosion takes 10, a shot its
-;; damage (a guard shot 1). ponytail: a guess, tune it in game
-(defconstant HJ2_TRANSPORT_HIT_POINTS 40)
-
-;; ---------------------------------------------------------------------------------------------
-;; The turret (Jak 2's vehicle-turret)
-;; ---------------------------------------------------------------------------------------------
-
-;; Joints (Jak 2's, kept by build-actor): 3 main (turned by the aim). Animation: 2 idle.
-(def-actor hj2-vehicle-turret
-  :bounds (0 0 0 2)
-  )
-
-;; Jak 2's *transport-turret-control-info* (joint 3, 25 m reach, all around), with the fields Jak 3
-;; added: guard-shot rounds, 1 hit point each (the Hellcat's, havenj2-traffic.gc)
-(define *hj2-transport-turret-info*
-  (new 'static 'turret-control-info
-    :joint-index 3
-    :barrel-count 1
-    :shot-speed 819200.0
-    :attack-range 102400.0
-    :damage 1.0
-    :vehicle-damage-factor 1.0
-    :vehicle-impulse-factor 1.0
-    :rot-min (new 'static 'array float 2 -16384.0 -2184533.2)
-    :rot-max (new 'static 'array float 2 0.0 2184533.2)
-    :local-pos (new 'static 'vector :y -1433.6 :z 4096.0 :w 1.0)
-    :local-dir (new 'static 'vector :z 1.0 :w 1.0)
-    :barrel-array (new 'static 'inline-array turret-barrel-info 4
-      (new 'static 'turret-barrel-info
-        :local-pos (new 'static 'vector :y -1433.6 :z 4096.0 :w 1.0)
-        :local-dir (new 'static 'vector :z 1.0 :w 1.0)
-        )
-      (new 'static 'turret-barrel-info)
-      (new 'static 'turret-barrel-info)
-      (new 'static 'turret-barrel-info)
-      )
-    )
-  )
-
-(set! (-> *hj2-transport-turret-info* shot-type) guard-shot)
-
-;; Jak 2's *transport-turret-state-info* in Jak 3's layout: bursts of 2 or 3 shots 0.25 s apart,
-;; every 3 s, 1.5 s after it acquires its target, no spread (Jak 2 set none)
-(define *hj2-transport-turret-fire*
-  (new 'static 'squad-unit-settings
-    :shot-count 2
-    :rand-shot-count 1
-    :acquire-delay (seconds 1.5)
-    :shot-delay (seconds 0.25)
-    :burst-delay (seconds 3)
-    )
-  )
-
-;; turret-jm: turns joint 3 where the turret aims. turret: the gun. target: the process it fires at
-;; (set every frame by its ship, #f: it only follows the ship).
-(deftype hj2-vehicle-turret (process-focusable)
-  ((turret-jm  joint-mod-rotate-local  :inline)
-   (turret     turret-control          :inline)
-   (target     handle)
-   )
-  (:state-methods
-    idle
-    )
-  (:methods
-    (follow-parent (_type_) none)
-    )
-  )
-
-
-(defmethod follow-parent ((this hj2-vehicle-turret))
-  "Jak 2's vehicle-turret-method-29: put the turret under its ship's nose (2.1 m up, 3 m forward in
-the ship's frame), turned like the ship. No ship: nothing. Returns nothing. Side effects: root trans
-and quat."
-  (let ((ship (as-type (ppointer->process (-> this parent)) process-focusable)))
-    (when ship
-      (let ((mat (matrix<-transformq! (new 'stack-no-clear 'matrix) (the-as transformq (-> ship root trans)))))
-        (vector-matrix*! (-> this root trans) (new 'static 'vector :y 8601.6 :z 12288.0 :w 1.0) mat)
-        )
-      (quaternion-copy! (-> this root quat) (-> ship root quat))
-      )
-    )
-  (none)
-  )
-
-;; Jak 2's vehicle-turret idle: follow the ship, turn the gun, fire at the target in reach
-(defstate idle (hj2-vehicle-turret)
-  :virtual #t
-  :event (behavior ((proc process) (argc int) (message symbol) (block event-message-block))
-    ;; a hit on the turret is a hit on its ship (the ship keeps the hit points)
-    (case message
-      (('attack)
-       (send-event-function (ppointer->process (-> self parent)) block)
-       )
-      )
-    )
-  :trans (behavior ()
-    (update-joint-mod (-> self turret) (-> self turret-jm))
-    (follow-parent self)
-    (let ((tgt (as-type (handle->process (-> self target)) process-focusable)))
-      (if tgt
-          (turret-control-method-11 (-> self turret) self (get-trans tgt 3) (get-transv tgt))
-          )
-      )
-    )
-  :code sleep-code
-  :post transform-post
-  )
-
-(defbehavior hj2-vehicle-turret-init-by-other hj2-vehicle-turret ()
-  "Spawned by its ship (hj2-transport-init-by-other), whose level it inherits (the art's). Jak 2's
-setup: a 1 m solid sphere on joint 3 that shots and blows hit (hits go to the ship), the gun (no
-y clamp; Jak 2's targetting laser is left out: Jak 3 never draws it and its particles' textures are
-unverified here), shots passing through the ship, under the ship's nose, twice Jak 2's model size,
-then idle. Returns nothing (goes idle; process-drawable-art-error without its art)."
-  (let ((cs (new 'process 'collide-shape-moving self (collide-list-enum usually-hit-by-player))))
-    (set! (-> cs dynam) (copy *standard-dynamics* 'process))
-    (set! (-> cs reaction) cshape-reaction-default)
-    (set! (-> cs no-reaction) (the-as (function collide-shape-moving collide-query vector vector object) nothing))
-    (set! (-> cs penetrated-by) (penetrate))
-    (let ((prim (new 'process 'collide-shape-prim-sphere cs (the-as uint 0))))
-      (set! (-> prim prim-core collide-as) (collide-spec enemy))
-      (set! (-> prim prim-core collide-with) (collide-spec jak player-list))
-      (set! (-> prim prim-core action) (collide-action solid))
-      (set! (-> prim transform-index) 3)
-      (set-vector! (-> prim local-sphere) 0.0 0.0 0.0 4096.0)
-      (set! (-> cs total-prims) (the-as uint 1))
-      (set! (-> cs root-prim) prim)
-      )
-    (set! (-> cs nav-radius) (* 0.75 (-> cs root-prim local-sphere w)))
-    (let ((rp (-> cs root-prim)))
-      (set! (-> cs backup-collide-as) (-> rp prim-core collide-as))
-      (set! (-> cs backup-collide-with) (-> rp prim-core collide-with))
-      )
-    (set! (-> self root) cs)
-    )
-  (set-info (-> self turret) *hj2-transport-turret-info*)
-  (logior! (-> self turret flags) (turret-flag no-rot-y-clamp))
-  (set! (-> self turret ignore-handle) (process->handle (ppointer->process (-> self parent))))
-  (set! (-> self turret guard-settings) *hj2-transport-turret-fire*)
-  (set! (-> self target) (the-as handle #f))
-  (follow-parent self)
-  (set-vector! (-> self root scale) 2.0 2.0 2.0 1.0)
-  (initialize-skeleton self *hj2-vehicle-turret-sg* (the-as pair 0))
-  (init (-> self turret-jm) self (the-as uint 3) (joint-mod-base-flags attached))
-  (go-virtual idle)
-  (none)
-  )
 
 ;; ---------------------------------------------------------------------------------------------
 ;; The ship (Jak 2's transport)
@@ -196,12 +46,17 @@ then idle. Returns nothing (goes idle; process-drawable-art-error without its ar
   :bounds (0 5 0 17)
   )
 
+;; the Freedom Fighters' ship: the same skeleton and clips, blue
+(def-actor hj2-transport-blue
+  :art (idle-ja hatch-open-ja hatch-close-ja)
+  :bounds (0 5 0 17)
+  )
+
 ;;   y-dest: the ground it lands on. next-drop-time: when it may try the next guard.
 ;;   last-drop-time: its last guard dropped (or its landing). spawn-side: the side of the hatch the
 ;;   next guard walks out of (0 left, 1 right). spawn?: still dropping. leave-time: when it takes
 ;;   off (0: not decided). max-guard / count-guard: guards to drop / dropped. side: its war side
-;;   (0 Freedom League, 1 Krimzon Guard, hj2-war-guard-side's). hit-points / incoming-attack-id: its
-;;   damage, one hit per attack. ambient-sound-id: its engine loop. turret: its hj2-vehicle-turret.
+;;   (0 Freedom League, 1 Krimzon Guard, hj2-war-guard-side's). ambient-sound-id: its engine loop.
 (deftype hj2-transport (process-focusable)
   ((y-dest              float)
    (next-drop-time      time-frame)
@@ -212,17 +67,13 @@ then idle. Returns nothing (goes idle; process-drawable-art-error without its ar
    (max-guard           uint32)
    (count-guard         uint32)
    (side                int32)
-   (hit-points          int32)
-   (incoming-attack-id  uint32)
    (ambient-sound-id    sound-id)
-   (turret              handle)
    )
   (:state-methods
     come-down
     idle
     leave
     die-fast
-    explode
     )
   (:methods
     (setup-collision (_type_) none)
@@ -322,33 +173,16 @@ effects: the loop's sound, the shared static spec's volume and pitch."
   )
 
 (defmethod setup-collision ((this hj2-transport))
-  "The ship's collision: an obstacle Jak bumps into and that shots and blows hit (wiki 4.11: in
-the hit-by-others list, solid). Jak 2's two collide meshes (the hull and the hatch) are replaced
-by one 8 m sphere on joint 3, centered at the landing ground (a sphere centered higher is a ceiling
+  "The ship's collision: a solid obstacle Jak bumps into and shots stop on, that nothing hurts
+(Jak 2's: penetrated-by none). Jak 2's two collide meshes (the hull and the hatch) are replaced by
+one 8 m sphere on joint 3, centered at the landing ground (a sphere centered higher is a ceiling
 for Jak beside it), as build-actor models may carry no collide mesh. Returns nothing. Side
 effects: root."
   (let ((cs (new 'process 'collide-shape-moving this (collide-list-enum usually-hit-by-player))))
     (set! (-> cs dynam) (copy *standard-dynamics* 'process))
     (set! (-> cs reaction) cshape-reaction-default)
     (set! (-> cs no-reaction) (the-as (function collide-shape-moving collide-query vector vector object) nothing))
-    (set! (-> cs penetrated-by) (penetrate
-                                  generic-attack
-                                  lunge
-                                  flop
-                                  punch
-                                  spin
-                                  roll
-                                  uppercut
-                                  bonk
-                                  tube
-                                  vehicle
-                                  flut-attack
-                                  board
-                                  mech-punch
-                                  dark-punch
-                                  dark-smack
-                                  )
-          )
+    (set! (-> cs penetrated-by) (penetrate))
     (let ((grp (new 'process 'collide-shape-prim-group cs (the-as uint 1) 0)))
       (set! (-> cs total-prims) (the-as uint 2))
       (set! (-> grp prim-core collide-as) (collide-spec obstacle))
@@ -388,11 +222,9 @@ effects: root."
 
 (defbehavior hj2-transport-event-handler hj2-transport ((proc process) (argc int) (message symbol) (block event-message-block))
   "Jak 2's events: 'die-fast (gone at once), 'leave (take off now, the war director's recall),
-'guards-left (answers how many guards it has still to drop), 'stop-spawning (drop no more). Added:
-'attack, once per attack id, takes hit points (the city guard turret's rules, havenj2-obs.gc: 10
-for a strong hit, a red or dark shot or an explosion, else the attack's damage) and blows the ship
-up at 0. proc: the sender, argc: the parameter count, message: the event, block: its parameters.
-Returns the event's answer. Side effects: state, spawn?, hit-points, incoming-attack-id."
+'guards-left (answers how many guards it has still to drop), 'stop-spawning (drop no more); no
+'attack (it can't be destroyed). proc: the sender, argc: the parameter count, message: the event,
+block: its parameters. Returns the event's answer. Side effects: state, spawn?."
   (case message
     (('die-fast)
      (go-virtual die-fast)
@@ -400,7 +232,7 @@ Returns the event's answer. Side effects: state, spawn?, hit-points, incoming-at
     (('leave)
      (if (not (and (-> self next-state)
                    (let ((name (-> self next-state name)))
-                     (or (= name 'leave) (= name 'die-fast) (= name 'explode))
+                     (or (= name 'leave) (= name 'die-fast))
                      )
                    )
               )
@@ -413,46 +245,6 @@ Returns the event's answer. Side effects: state, spawn?, hit-points, incoming-at
     (('stop-spawning)
      (set! (-> self spawn?) #f)
      #f
-     )
-    (('attack)
-     (let ((pen (get-penetrate-using-from-attack-event (the-as process-drawable proc) block))
-           (info (the-as attack-info (-> block param 1)))
-           )
-       (when (!= (-> info id) (-> self incoming-attack-id))
-         (set! (-> self incoming-attack-id) (-> info id))
-         (cond
-           ((logtest? (penetrate
-                        flop
-                        punch
-                        spin
-                        uppercut
-                        mech-punch
-                        mech-bonk
-                        dark-punch
-                        dark-bomb
-                        dark-smack
-                        explode
-                        jak-red-shot
-                        jak-dark-shot
-                        enemy-dark-shot
-                        )
-                      pen
-                      )
-            (+! (-> self hit-points) -10)
-            )
-           ((logtest? (attack-mask damage) (-> info mask))
-            (set! (-> self hit-points) (- (-> self hit-points) (the int (-> info damage))))
-            )
-           (else
-             (set! (-> self hit-points) (- (-> self hit-points) (penetrate-using->damage pen)))
-             )
-           )
-         (if (<= (-> self hit-points) 0)
-             (go-virtual explode)
-             )
-         #t
-         )
-       )
      )
     )
   )
@@ -492,8 +284,7 @@ Returns the event's answer. Side effects: state, spawn?, hit-points, incoming-at
   )
 
 ;; Jak 2's: landed, opens its hatch and drops its guards; takes off 3 s after its last one (or
-;; after 8 s without one: no guard of its side free, or the war switched off). Its turret fires at
-;; Jak from a Krimzon Guard ship (side 1); a Freedom League ship's turret holds its fire.
+;; after 8 s without one: no guard of its side free, or the war switched off).
 (defstate idle (hj2-transport)
   :virtual #t
   :event hj2-transport-event-handler
@@ -502,13 +293,6 @@ Returns the event's answer. Side effects: state, spawn?, hit-points, incoming-at
     (set-time! (-> self last-drop-time))
     (set! (-> self root transv y) 0.0)
     (set! (-> self next-drop-time) 0)
-    )
-  :exit (behavior ()
-    (let ((tp (the-as hj2-vehicle-turret (handle->process (-> self turret)))))
-      (if tp
-          (set! (-> tp target) (the-as handle #f))
-          )
-      )
     )
   :code (behavior ()
     (ja-channel-push! 1 0)
@@ -536,15 +320,6 @@ Returns the event's answer. Side effects: state, spawn?, hit-points, incoming-at
     (if (and (nonzero? (-> self leave-time)) (< (-> self leave-time) (current-time)))
         (go-virtual leave)
         )
-    (let ((tp (the-as hj2-vehicle-turret (handle->process (-> self turret)))))
-      (if tp
-          (set! (-> tp target) (if (= (-> self side) 1)
-                                   (process->handle *target*)
-                                   (the-as handle #f)
-                                   )
-                )
-          )
-      )
     (play-engine-sound self)
     (transform-post)
     )
@@ -555,21 +330,6 @@ Returns the event's answer. Side effects: state, spawn?, hit-points, incoming-at
   :virtual #t
   :code (behavior ()
     (sound-stop (-> self ambient-sound-id))
-    (cleanup-for-death self)
-    )
-  )
-
-;; Added: blown up by its hits. Jak 3's vehicle explosion (group-vehicle-explosion, vehicle-part.gc,
-;; as a city car's, ctywide-obs.gc; its flags have no sp13: a plain part-tracker) and sound, then
-;; gone; the guards already out stay.
-(defstate explode (hj2-transport)
-  :virtual #t
-  :code (behavior ()
-    (sound-stop (-> self ambient-sound-id))
-    (sound-play "vehicle-explode")
-    (vector-copy! (-> *launch-matrix* trans) (vector+*! (new 'stack-no-clear 'vector) (-> self root trans) *up-vector* 16384.0))
-    (part-tracker-spawn part-tracker :to *entity-pool* :group group-vehicle-explosion)
-    ;; the code returns: the process (and its turret) ends here
     (cleanup-for-death self)
     )
   )
@@ -614,9 +374,8 @@ Returns the event's answer. Side effects: state, spawn?, hit-points, incoming-at
 (defbehavior hj2-transport-init-by-other hj2-transport ((pos vector) (side int) (lev level))
   "Set the ship up over pos (its landing ground), its hatch (its back) towards Jak, for side `side`
 (0 Freedom League, 1 Krimzon Guard), its art looked up in `lev` (a process looks its art up in its
-own level; the turret inherits it), 40 m up, with its turret, then come-down. Returns nothing (goes
-to come-down; process-drawable-art-error without its art). Side effects: all of the ship's fields,
-a turret child."
+own level), 40 m up, then come-down. Returns nothing (goes to come-down;
+process-drawable-art-error without its art). Side effects: all of the ship's fields."
   (setup-collision self)
   (vector-copy! (-> self root trans) pos)
   (let ((away (vector-! (new 'stack-no-clear 'vector) pos (target-pos 0))))
@@ -629,20 +388,12 @@ a turret child."
   (set! (-> self max-guard) (the-as uint HJ2_TRANSPORT_MAX_GUARDS))
   (set! (-> self count-guard) (the-as uint 0))
   (set! (-> self spawn-side) (the-as uint 0))
-  (set! (-> self hit-points) HJ2_TRANSPORT_HIT_POINTS)
-  (set! (-> self incoming-attack-id) (the-as uint 0))
-  (set! (-> self turret) (the-as handle #f))
   (set! (-> self level) lev)
-  (initialize-skeleton self *hj2-transport-sg* (the-as pair 0))
+  (initialize-skeleton self (if (zero? side) *hj2-transport-blue-sg* *hj2-transport-sg*) (the-as pair 0))
   (set! (-> self y-dest) (-> self root trans y))
   (+! (-> self root trans y) 163840.0)
   (set! (-> self spawn?) #t)
   (set! (-> self leave-time) 0)
-  (let ((tp (process-spawn hj2-vehicle-turret :to self)))
-    (if tp
-        (set! (-> self turret) (ppointer->handle tp))
-        )
-    )
   (set! (-> self ambient-sound-id) (new-sound-id))
   (go-virtual come-down)
   (none)
@@ -679,7 +430,7 @@ guards) next to Jak, like the transport-ag alert mod: up to 8 random spots 10 to
 the first on his far side from the camera (a hull landing between them hid Jak behind it), with
 ground under it (hj2-transport-ground) and a nav mesh within 2 m of that ground.
 parent: the process it becomes a child of (it dies with it), lev: the level holding the
-hj2-transport and hj2-vehicle-turret art groups ('havenj2 in Jak 2's city, 'ctypesa in Jak 3's).
+hj2-transport art group ('havenj2 in Jak 2's city, 'ctypesa in Jak 3's).
 Returns the ship, or #f: no Jak, no level, no traffic, no spot found, no free process, or its art
 missing (that process is killed). Keep its handle in a process field or a structure (a global
 symbol drops a handle's pid); the ship is gone once handle->process gives #f."

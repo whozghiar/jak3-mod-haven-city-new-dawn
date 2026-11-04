@@ -1,6 +1,6 @@
 ("CTYPESA.DGO"
  ("tpage-957.go"
-  ;; og:jak2-haven-city added: the war mode's Krimzon Guards and troop transport (build-actor, the
+  ;; og:jak2-haven-city added: the war mode's Krimzon Guards and troop transports (build-actor, the
   ;; level port's models; their meshes in hj2-war.fr3). Art groups by decreasing size: in this
   ;; borrow level each DGO buffer shrinks to the object it held + 2 KB once the first art group
   ;; logs in, so the object two slots later must fit in it (seen by the Battlefront mod)
@@ -11,8 +11,8 @@
   "hj2-kg-red-ag.go"            ;; 255456, added
   "shield-sphere-explode-ag.go" ;; 7520
   "hj2-transport-ag.go"         ;; 6432, added
+  "hj2-transport-blue-ag.go"    ;; 6432, added
   "shield-sphere-distort-ag.go" ;; 5680
   "shield-sphere-ag.go"         ;; 3168
-  "hj2-vehicle-turret-ag.go"    ;; 2784, added
   "ctypesa.go"
  ))

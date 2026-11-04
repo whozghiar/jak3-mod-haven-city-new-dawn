@@ -43,6 +43,8 @@
 (define-extern *hj2-guard-change-targets-sounds* (array string))
 (define-extern *hj2-guard-bumped-sounds* (array string))
 (define-extern *hj2-guard-battle-sounds* (array string))
+(define-extern *hj2-guard-battle-pilot-sounds* (array string))
+(define-extern *hj2-guard-battle-dark-sounds* (array string))
 
 ;; Citizens' speech. Jak 3's city gives its civ-* speech types no lines (its citizens are silent);
 ;; here they get Jak 2's citizens' lines (ctywide-speech.gc there: speech types 16 and 24 when they
@@ -113,27 +115,36 @@
 ;; 2's guard code (guard.gc, crimson-guard-level.gc there; Jak 3's guard.gc and guard-states.gc
 ;; derive from them), with its channel, flags, priority and delays. Jak 3 has two voices per type
 ;; (the type, and the next one for odd traffic ids: speech-control-method-13): both get Jak 2's
-;; lines. guard-witness-death has no Jak 2 equivalent and keeps Jak 3's lines.
+;; lines. guard-witness-death has no Jak 2 equivalent and keeps Jak 3's lines. At war, the Freedom
+;; League's guards speak Jak 3's lines instead, and the Krimzon Guards Jak 2's; in a fight, Jak 2's
+;; lines for Jak driving or Dark Jak too. Every list is played in a random order, and lines come at
+;; Jak 2's pace (hj2-speech-ready?, hj2-speech-type: jak2-haven-city-war.gc).
 ;; Jak 2's speech type 1, on patrol
-(define *hj2-guard-chatter-speech* (new 'static 'speech-type-info :channel #x0 :priority -10 :min-delay (seconds 8) :max-delay (seconds 20)))
+(define *hj2-guard-chatter-speech* (new 'static 'speech-type-info :channel #x0 :flags (speech-type-flag random-order) :priority -10 :min-delay (seconds 8) :max-delay (seconds 20)))
 
 ;; Jak 2's speech type 4, seeing Jak
-(define *hj2-guard-chatter-jak-speech* (new 'static 'speech-type-info :channel #x0 :min-delay (seconds 3) :max-delay (seconds 8)))
+(define *hj2-guard-chatter-jak-speech* (new 'static 'speech-type-info :channel #x0 :flags (speech-type-flag random-order) :min-delay (seconds 3) :max-delay (seconds 8)))
 
 ;; Jak 2's speech type 3, going hostile
-(define *hj2-guard-go-hostile-speech* (new 'static 'speech-type-info :channel #x0 :priority 3 :request-timeout #x12c :min-delay (seconds 1) :max-delay (seconds 1)))
+(define *hj2-guard-go-hostile-speech* (new 'static 'speech-type-info :channel #x0 :flags (speech-type-flag random-order) :priority 3 :request-timeout #x12c :min-delay (seconds 1) :max-delay (seconds 1)))
 
 ;; Jak 2's speech type 11, attacked
-(define *hj2-guard-hit-speech* (new 'static 'speech-type-info :channel #x0 :priority 2 :min-delay (seconds 0.1) :max-delay (seconds 0.1)))
+(define *hj2-guard-hit-speech* (new 'static 'speech-type-info :channel #x0 :flags (speech-type-flag random-order) :priority 2 :min-delay (seconds 0.1) :max-delay (seconds 0.1)))
 
 ;; Jak 2's speech type 10, Jak killed
 (define *hj2-guard-victory-speech* (new 'static 'speech-type-info :channel #x0 :flags (speech-type-flag random-order) :priority 10 :request-timeout #x258 :min-delay (seconds 2) :max-delay (seconds 4)))
 
 ;; Jak 2's speech type 2, Jak seen again
-(define *hj2-guard-change-targets-speech* (new 'static 'speech-type-info :channel #x0 :priority 3 :request-timeout #x12c :min-delay (seconds 8) :max-delay (seconds 20)))
+(define *hj2-guard-change-targets-speech* (new 'static 'speech-type-info :channel #x0 :flags (speech-type-flag random-order) :priority 3 :request-timeout #x12c :min-delay (seconds 8) :max-delay (seconds 20)))
 
 ;; Jak 2's speech type 14, bumped
-(define *hj2-guard-bumped-speech* (new 'static 'speech-type-info :channel #x0 :priority 10 :min-delay (seconds 1) :max-delay (seconds 1)))
+(define *hj2-guard-bumped-speech* (new 'static 'speech-type-info :channel #x0 :flags (speech-type-flag random-order) :priority 10 :min-delay (seconds 1) :max-delay (seconds 1)))
+
+;; Jak 2's speech types 7 and 8, fighting while Jak drives, and while he is Dark Jak
+;; (speech-control-method-15 there; hj2-speech-type, jak2-haven-city-war.gc)
+(define *hj2-guard-battle-pilot-speech* (new 'static 'speech-type-info :channel #x0 :flags (speech-type-flag random-order) :min-delay (seconds 2) :max-delay (seconds 4)))
+
+(define *hj2-guard-battle-dark-speech* (new 'static 'speech-type-info :channel #x0 :flags (speech-type-flag random-order) :min-delay (seconds 2) :max-delay (seconds 4)))
 
 ;; Jak 2's speech type 6 and 9, fighting
 (define *hj2-guard-battle-speech* (new 'static 'speech-type-info :channel #x0 :flags (speech-type-flag random-order) :min-delay (seconds 2) :max-delay (seconds 4)))
@@ -156,9 +167,18 @@ Returns nothing."
 
 (defun hj2-restore-city-speeches ()
   "havenj2's restore-speech-callback (*traffic-info*): Jak 3's city speeches (its guards' lines), and
-Jak 2's citizens' lines for Jak 3's civ-* speech types, Jak 2's guards' for its guard-* types.
-Returns nothing."
+Jak 2's citizens' lines for Jak 3's civ-* speech types, Jak 2's guards' for its guard-* types. Jak 3's
+guards' lines (types 1 to 18, both voices) are kept 33 types on, in the race types (no race in the
+city), for the war's Freedom League guards; Jak 2's fight lines for Jak driving and for Dark Jak go
+in types 52 and 54 (hj2-speech-type, jak2-haven-city-war.gc). Returns nothing."
   (restore-city-speeches)
+  (dotimes (i 18)
+    (speech-table-set!
+      *speech-control*
+      (the-as speech-type (+ i 34))
+      (-> *speech-control* speech-table (+ i 1))
+      )
+    )
   (hj2-guard-speech (speech-type guard-chatter) *hj2-guard-chatter-speech* *hj2-guard-chatter-sounds*)
   (hj2-guard-speech (speech-type guard-chatter-jak) *hj2-guard-chatter-jak-speech* *hj2-guard-chatter-jak-sounds*)
   (hj2-guard-speech (speech-type guard-go-hostile) *hj2-guard-go-hostile-speech* *hj2-guard-go-hostile-sounds*)
@@ -167,6 +187,8 @@ Returns nothing."
   (hj2-guard-speech (speech-type guard-change-targets) *hj2-guard-change-targets-speech* *hj2-guard-change-targets-sounds*)
   (hj2-guard-speech (speech-type guard-bumped-by-jak) *hj2-guard-bumped-speech* *hj2-guard-bumped-sounds*)
   (hj2-guard-speech (speech-type guard-generic-battle) *hj2-guard-battle-speech* *hj2-guard-battle-sounds*)
+  (hj2-guard-speech (the-as speech-type 52) *hj2-guard-battle-pilot-speech* *hj2-guard-battle-pilot-sounds*)
+  (hj2-guard-speech (the-as speech-type 54) *hj2-guard-battle-dark-speech* *hj2-guard-battle-dark-sounds*)
   (hj2-civ-speech (speech-type civ-m-alert) *hj2-civ-m-alert-speech* *hj2-civ-m-alert-sounds*)
   (hj2-civ-speech (speech-type civ-f-alert) *hj2-civ-f-alert-speech* *hj2-civ-f-alert-sounds*)
   (hj2-civ-speech (speech-type civ-m-shot-by-player) *hj2-civ-m-shot-speech* *hj2-civ-m-shot-sounds*)
@@ -287,6 +309,28 @@ go-inactive. Returns nothing."
 
 ;; How many Hellcats fly at once, at most (Breath of Peace's number; 20 at most per traffic type)
 (defconstant HJ2_HELLCATS 3)
+
+;; During the war mode a Hellcat or guard bike flies in one side's color, half of them each (by
+;; process id): Jak 2's Hellcat rebuilt in red (Krimzon Guard) and blue (Freedom Fighters) by the
+;; level port (hj2-hellcat-red, hj2-hellcat-blue: Jak 3's 6 joints, so Jak 3's Hellcat code drives
+;; them as its own; havenj2's "models"), the guard bike in red (hj2-guard-bike-red) or its usual
+;; blue. Out of the war, Jak 3's own Hellcat art and the blue guard bike. Defines
+;; *hj2-hellcat-red-sg* and *hj2-hellcat-blue-sg* (Jak 3's skel-h-hellcat bounds and origin).
+(def-actor hj2-hellcat-red
+  :bounds (0 0 0 6.8)
+  :origin-joint-index 3
+  )
+
+(def-actor hj2-hellcat-blue
+  :bounds (0 0 0 6.8)
+  :origin-joint-index 3
+  )
+
+(defun hj2-war-vehicle-red? ((this process))
+  "#t for a war-mode guard vehicle of the Krimzon Guard's side: the war is on (hj2-war-on?) and the
+process id is odd (half of them). No side effects."
+  (and (hj2-war-on?) (logtest? (-> this pid) 1))
+  )
 
 ;; ---------------------------------------------------------------------------------------------
 ;; Pilot: a Freedom League guard seated in the Hellcat (Jak 2's crimson-guard-rider)
@@ -697,7 +741,14 @@ effects: veh's flags and controller flags, p's target."
    Freedom League mark: a guard, never targeted by guards. No minimap icon yet."
   (initialize-skeleton
     this
-    (the-as skeleton-group (art-group-get-by-name *level* "skel-h-hellcat" (the-as (pointer level) #f)))
+    ;; during the war mode, one side's colors (hj2-war-vehicle-red?)
+    (cond
+      ((not (hj2-war-on?))
+       (the-as skeleton-group (art-group-get-by-name *level* "skel-h-hellcat" (the-as (pointer level) #f)))
+       )
+      ((hj2-war-vehicle-red? this) *hj2-hellcat-red-sg*)
+      (else *hj2-hellcat-blue-sg*)
+      )
     (the-as pair 0)
     )
   (alloc-rbody-control! this *h-hellcat-constants*)
@@ -869,6 +920,13 @@ the parameter count, arg2: the event, arg3: its parameters. Returns the event's 
   :origin-joint-index 3
   )
 
+;; the Krimzon Guard's guard bike of the war mode: the same, red (the level port's
+;; hj2-guard-bike-red; hj2-guard-bike is blue)
+(def-actor hj2-guard-bike-red
+  :bounds (0 0 0 3.4)
+  :origin-joint-index 3
+  )
+
 ;; Jak 3's hover bike constants (*h-bike-a-constants*: Jak 2's guard bike has the same mass,
 ;; physics and thrusters, so the control-point arrays stay consistent with cm-offset), with Jak 2's
 ;; guard bike's (*guard-bike-constants* there) where they differ. Static (havenj2's heap), filled
@@ -974,7 +1032,8 @@ the parameter count, arg2: the event, arg3: its parameters. Returns the event's 
   "Skeleton (hj2-guard-bike-ag, in havenj2's DGO), physics (*hj2-guard-bike-constants*), the front
    gun (the Hellcat's turret settings: Jak 2's guard bike turret has the same, on joint 4), and the
    Freedom League mark: a guard, never targeted by guards. No minimap icon yet. Returns nothing."
-  (initialize-skeleton this *hj2-guard-bike-sg* (the-as pair 0))
+  ;; red for the Krimzon Guard's side during the war mode (hj2-war-vehicle-red?)
+  (initialize-skeleton this (if (hj2-war-vehicle-red? this) *hj2-guard-bike-red-sg* *hj2-guard-bike-sg*) (the-as pair 0))
   (alloc-rbody-control! this *hj2-guard-bike-constants*)
   (init (-> this turret-jm) this (the-as uint 4) (joint-mod-base-flags attached))
   (set-info (-> this turret) *hj2-hellcat-turret*)
@@ -1204,23 +1263,20 @@ Returns nothing."
 set every frame before the alert settings: guard type 5 (Hellcats) and 4 (guard bikes) get none
 while their Mods-menu toggle is off; with it on, the alert table's count up to HJ2_HELLCATS or
 HJ2_GUARD_BIKES while *mod-jak2-haven-city-alert* is on, else that number (Jak 3's table gives them
-none). During the war mode (hj2-war-on?) neither flies: their caps are 0 (the guard bikes' pool
-stays, for the crimson bikes parked on the ground, see hj2-parking-spot-random-type). Returns
-nothing. Side effects: the squad's guard type info."
-  (let ((alert *mod-jak2-haven-city-alert*)
-        (war (hj2-war-on?))
-        )
+none). The same during the war mode, where they fly in the two sides' colors
+(hj2-war-vehicle-red?). Returns nothing. Side effects: the squad's guard type info."
+  (let ((alert *mod-jak2-haven-city-alert*))
     (ff-squad-control-method-56
       this
       5
-      (if (and *mod-jak2-haven-city-hellcats* (not alert) (not war)) HJ2_HELLCATS 0)
-      (if (and *mod-jak2-haven-city-hellcats* (not war)) HJ2_HELLCATS 0)
+      (if (and *mod-jak2-haven-city-hellcats* (not alert)) HJ2_HELLCATS 0)
+      (if *mod-jak2-haven-city-hellcats* HJ2_HELLCATS 0)
       )
     (ff-squad-control-method-56
       this
       4
-      (if (and *mod-jak2-haven-city-guard-bikes* (not alert) (not war)) HJ2_GUARD_BIKES 0)
-      (if (and *mod-jak2-haven-city-guard-bikes* (not war)) HJ2_GUARD_BIKES 0)
+      (if (and *mod-jak2-haven-city-guard-bikes* (not alert)) HJ2_GUARD_BIKES 0)
+      (if *mod-jak2-haven-city-guard-bikes* HJ2_GUARD_BIKES 0)
       )
     )
   (none)
@@ -1635,13 +1691,13 @@ guards and the city's vehicles after it."
       (hj2-war-reset-looks!)
       ;; before restore-default-settings, which sets the target and reserve counts from them; during
       ;; the war mode, the war's (hj2-war-want-count: more guards, jetpack guards, fewer citizens
-      ;; and vehicles) and no Hellcat (the guard bikes' pool stays for the parked crimson bikes)
+      ;; and vehicles); the Hellcats and guard bikes as out of the war, in the sides' colors
       (dotimes (i 29)
         (set! (-> *traffic-engine* object-type-info-array i want-count)
               (hj2-war-want-count i (-> *havenj2-traffic-want-counts* i))
               )
         )
-      (if (and *mod-jak2-haven-city-hellcats* (not (hj2-war-on?)))
+      (if *mod-jak2-haven-city-hellcats*
           (set! (-> *traffic-engine* object-type-info-array (traffic-type guard-car) want-count) HJ2_HELLCATS)
           )
       (if *mod-jak2-haven-city-guard-bikes*
