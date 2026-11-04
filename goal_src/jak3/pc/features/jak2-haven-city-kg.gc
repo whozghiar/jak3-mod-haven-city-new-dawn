@@ -14,18 +14,21 @@
   the dig, the fortress and its way out. With the war off, nothing of this file runs.
 
   - hj2-kg-spawner: an actor the level port places at each of those Jak 2 enemies (the manifest's
-    "spawns", lumps: nav-mesh-actor, the Jak 2 enemy's nav mesh; look, 0 red, 1 yellow). Once Jak
-    comes near it spawns one hj2-kg-soldier, as its child, on a nav mesh of the loaded levels (its
-    own, else the nearest one); none where there is no nav mesh. A soldier killed isn't replaced
-    until its level loads again; a soldier Jak left far behind, or one of a war switched off, is
-    removed (and the war, on again, brings it back).
+    "spawns", lumps: nav-mesh-actor, the Jak 2 enemy's nav mesh; look, 0 red, 1 yellow). Only some
+    of them are used (*hj2-kg-spawn-chance*, drawn as the level loads). A used one spawns its
+    hj2-kg-soldier, as its child, as soon as it exists with the war on (when its level loads, out of
+    Jak's sight, so no soldier pops up in front of him), on a nav mesh of the loaded levels (its own,
+    else the nearest one); none where there is no nav mesh. A soldier killed isn't replaced until its
+    level loads again; one of a war switched off is removed (and the war, on again, brings it back).
+    The places keep Jak 2's music (their level's music bank), war or not.
   - hj2-kg-soldier: a Jak 3 nav-enemy drawn with Jak 2's Krimzon Guard (skel-hj2-kg-red or
-    skel-hj2-kg-yellow, jak2-haven-city-war.gc; their clips are in crimson-guard-ag's order, so the
-    clip numbers below are Jak 3's guard's). It stands or patrols by its spawner, notices Jak, runs
-    after him on the nav mesh, and fires bursts of Jak 3's guard shots (guard-shot) when he is in
-    range and in sight. Hit, it is knocked back; killed, it plays its death and is gone. Yellow (Jak
-    2's dark guard): 1.1 times bigger, twice the hit points. Its art groups are in its spawner's level
-    (the place's DGO), which is the level a child process looks its art up in.
+    skel-hj2-kg-yellow, jak2-haven-city-war.gc) playing the blue guard's clips (crimson-guard-ag, in
+    every place with spawners: hj2-war-guard-clips; the clip numbers below are Jak 3's guard's). It
+    stands or patrols by its spawner, notices Jak, runs after him on the nav mesh at Jak 3's guard
+    pace, and fires bursts of Jak 3's guard shots (guard-shot) when he is in range and in sight. Hit,
+    it is knocked back; killed, it plays its death and is gone. Yellow (Jak 2's dark guard): 1.1
+    times bigger, twice the hit points. Its art groups are in its spawner's level (the place's DGO),
+    which is the level a child process looks its art up in.
 
   Modeled on Jak 3's marauder (levels/desert/chase/marauder.gc: a nav-enemy that shoots guard shots)
   and on the Krimzon Guard's enemy settings (levels/city/traffic/citizen/guard.gc, CWI: copied here,
@@ -35,19 +38,20 @@
 
 ;; DECOMP BEGINS
 
-;; the war switch (jak2-haven-city-war.gc)
+;; the war switch, and the blue guard's clips for a war look (jak2-haven-city-war.gc)
 (define-extern hj2-war-on? (function symbol))
+(define-extern hj2-war-guard-clips (function process-drawable none))
+(define-extern hj2-war-shuffle-rate (function process-drawable float float))
 
 ;; Tuning ////////////////////////////////////////////////////////////////////////////////////////
 
-;; a spawner spawns its soldier when Jak comes this close to it
-(define *hj2-kg-spawn-distance* (meters 60))
+;; the share of the spawners that spawn a soldier (each one draws once, as its level loads): not
+;; every place where Jak 2 put an enemy has a guard
+(define *hj2-kg-spawn-chance* 0.35)
 
-;; a soldier this far from Jak is removed (its spawner may spawn it again when Jak comes back)
-(define *hj2-kg-forget-distance* (meters 150))
-
-;; at most this many soldiers at once (the process pool and the frame rate: the dig has 70 spawners)
-(define *hj2-kg-max-soldiers* 12)
+;; at most this many soldiers at once (the frame rate: the pumping station's way has 72 spawners, the
+;; dig 70); the spawners born first take the places
+(define *hj2-kg-max-soldiers* 24)
 
 ;; the soldiers alive now (hj2-kg-soldier-init-by-other adds one, its deactivate removes it)
 (define *hj2-kg-soldier-count* 0)
@@ -64,8 +68,16 @@
 (defconstant HJ2_KG_AIM 19)     ;; idle-to-stab-idle: raises the rifle
 (defconstant HJ2_KG_FIRE 26)    ;; gun-attack: one shot
 (defconstant HJ2_KG_LOWER 24)   ;; stab-idle-to-idle: lowers it
+(defconstant HJ2_KG_WALK 5)     ;; walk
+(defconstant HJ2_KG_RUN 6)      ;; run
 (defconstant HJ2_KG_MUZZLE 14)
 (defconstant HJ2_KG_GUN_BACK 15)
+
+;; the ground one cycle of the walk and of the run covers (guard.gc init-enemy!: dist-walk-anim,
+;; dist-run-anim), and the shuffle's (citizen.gc citizen-travel-anim)
+(defconstant HJ2_KG_WALK_DIST 12288.0)
+(defconstant HJ2_KG_RUN_DIST 34078.72)
+(defconstant HJ2_KG_SHUFFLE_DIST 4096.0)
 
 ;; Soldier ///////////////////////////////////////////////////////////////////////////////////////
 
@@ -92,10 +104,10 @@
   )
 
 
-;; Jak 3's Krimzon Guard's enemy settings (guard.gc *crimson-guard-nav-enemy-info*), with Jak 2's
-;; guard's pace: it notices Jak from 60m (not 100m), runs at 9m/s (not 12m/s), has a run clip
-;; (hostile-anim 6) and a notice clip (7), and isn't knocked by a mere touch. nav-mesh is set by
-;; init-enemy! for each soldier, before setup-enemy! reads it.
+;; Jak 3's Krimzon Guard's enemy settings (guard.gc *crimson-guard-nav-enemy-info*, its pace: walks
+;; at 3m/s, runs at 12m/s, which its clips are made for), noticing Jak from 60m (not 100m), with a
+;; run clip (hostile-anim 6) and a notice clip (7), and not knocked by a mere touch. nav-mesh is set
+;; by init-enemy! for each soldier, before setup-enemy! reads it.
 (define *hj2-kg-soldier-nav-enemy-info*
   (new 'static 'nav-enemy-info
     :use-die-falling #f
@@ -237,7 +249,7 @@
     :turn-anim 5
     :run-anim 6
     :taunt-anim -1
-    :run-travel-speed (meters 9)
+    :run-travel-speed (meters 12)
     :run-acceleration (meters 2)
     :run-turning-acceleration (meters 30)
     :walk-travel-speed (meters 3)
@@ -323,9 +335,10 @@ and shots hit (usually-hit-by-player: the hit-by-others list), solid, 1.5m wide.
   )
 
 (defmethod init-enemy! ((this hj2-kg-soldier))
-  "The soldier's model (red, or yellow: 1.1 times bigger and twice the hit points), its enemy settings
-on its spawner's nav mesh, and its line of sight to Jak. Called by enemy-init-by-other, after
-init-enemy-collision!. Side effect: sets the shared settings' nav-mesh (read by setup-enemy! now)."
+  "The soldier's model (red, or yellow: 1.1 times bigger and twice the hit points) playing the blue
+guard's clips, its enemy settings on its spawner's nav mesh, and its line of sight to Jak. Called by
+enemy-init-by-other, after init-enemy-collision!. Side effect: sets the shared settings' nav-mesh
+(read by setup-enemy! now)."
   (initialize-skeleton
     this
     (the-as skeleton-group (art-group-get-by-name
@@ -339,6 +352,7 @@ init-enemy-collision!. Side effect: sets the shared settings' nav-mesh (read by 
             )
     (the-as pair 0)
     )
+  (hj2-war-guard-clips this)
   (set! (-> *hj2-kg-soldier-nav-enemy-info* nav-mesh) (-> this kg-mesh))
   (setup-enemy! this *hj2-kg-soldier-nav-enemy-info*)
   (when (-> this yellow?)
@@ -410,7 +424,82 @@ when he is alive, in range, in sight and the last burst is over. Returns nothing
   (none)
   )
 
-;; Running after Jak (nav-enemy's hostile: the run clip, chasing on the nav mesh), shooting when it can.
+(defbehavior hj2-kg-soldier-travel-anim hj2-kg-soldier ()
+  "The soldier's legs, as Jak 3's guard moves its own (citizen.gc citizen-travel-anim, which GAME
+can't call): the walk on channel 0 blended with the run (over 6m/s) or the shuffle (under 1m/s) on
+channel 1, played at the pace of the ground the soldier covers (its nav speed over the blended
+clips' cycle distance; the shuffle at the war's pace, hj2-war-shuffle-rate). nav-enemy's chase
+plays the run at a fixed pace instead, out of step with the soldier's speed (1.0 at 12m/s, where
+Jak 3's guard plays it at 1.5). Never returns: a state's code."
+  (let ((interp 0.0)
+        (run? #f)
+        (shuffle? #f)
+        )
+    (ja-channel-push! 2 (seconds 0.2))
+    (ja-no-eval :group! (-> self draw art-group data HJ2_KG_WALK) :num! (loop!) :dist HJ2_KG_WALK_DIST :frame-num 0.0)
+    (let ((ch (-> self skel root-channel 1)))
+      (set! (-> ch frame-interp 1) 0.0)
+      (set! (-> ch frame-interp 0) 0.0)
+      (set! (-> ch dist) HJ2_KG_RUN_DIST)
+      (set! (-> ch param 0) 0.0)
+      (joint-control-channel-group! ch (the-as art-joint-anim (-> self draw art-group data HJ2_KG_RUN)) num-func-chan)
+      )
+    (until #f
+      (let ((speed (-> self nav state speed))
+            (target 0.0)
+            )
+        ;; a mode (run, shuffle) starts or ends once channel 1 has faded out, like Jak 3's
+        (cond
+          ((< speed 4096.0)
+           (cond
+             (shuffle?
+               (set! target 1.0)
+               (ja :chan 1 :group! (-> self draw art-group data HJ2_KG_WALK) :dist HJ2_KG_SHUFFLE_DIST)
+               )
+             ((= interp 0.0)
+              (set! shuffle? #t)
+              (set! run? #f)
+              )
+             )
+           )
+          ((< 24576.0 speed)
+           (cond
+             (run?
+               (set! target 1.0)
+               (ja :chan 1 :group! (-> self draw art-group data HJ2_KG_RUN) :dist HJ2_KG_RUN_DIST)
+               )
+             ((= interp 0.0)
+              (set! run? #t)
+              (set! shuffle? #f)
+              )
+             )
+           )
+          ((= interp 0.0)
+           (set! run? #f)
+           (set! shuffle? #f)
+           )
+          )
+        (seek! interp target (* 4.0 (seconds-per-frame)))
+        (let ((ch (-> self skel root-channel 1)))
+          (set! (-> ch frame-interp 1) interp)
+          (set! (-> ch frame-interp 0) interp)
+          )
+        (ja :num! (loop! (if shuffle?
+                             (hj2-war-shuffle-rate self speed)
+                             (/ (/ (* 16.0 speed) (* 15.0 (current-cycle-distance (-> self skel)))) (-> self root scale x))
+                             )
+                         )
+            )
+        )
+      (ja :chan 1 :num! (chan 0))
+      (suspend)
+      )
+    )
+  #f
+  )
+
+;; Running after Jak (nav-enemy's hostile: chasing on the nav mesh), its legs at the pace of its
+;; run (hj2-kg-soldier-travel-anim), shooting when it can.
 (defstate hostile (hj2-kg-soldier)
   :virtual #t
   :trans (behavior ()
@@ -421,6 +510,7 @@ when he is alive, in range, in sight and the last burst is over. Returns nothing
           )
       )
     )
+  :code hj2-kg-soldier-travel-anim
   )
 
 ;; Standing, facing Jak where it can't reach him (nav-enemy's stare: blocked, or Jak off its mesh),
@@ -482,8 +572,9 @@ when he is alive, in range, in sight and the last burst is over. Returns nothing
 ;; Spawner ///////////////////////////////////////////////////////////////////////////////////////
 
 ;; soldier: its soldier (#f: none); pos, quat: the Jak 2 enemy's place and rotation; yellow?: its
-;; soldier's look (lump look: 1); done?: its soldier was killed, no other until its level loads again;
-;; next-try: no spawn before this time (there was no nav mesh to put it on).
+;; soldier's look (lump look: 1); done?: its soldier was killed, or this spawner isn't used, no
+;; soldier until its level loads again; next-try: no spawn before this time (there was no nav mesh
+;; to put it on).
 (deftype hj2-kg-spawner (process)
   ((soldier   handle)
    (pos       vector      :inline)
@@ -567,9 +658,9 @@ soldier, next-try. Returns nothing."
   )
 
 (defun hj2-kg-spawner-update ((this hj2-kg-spawner))
-  "Once a frame: with the war on, spawns the soldier when Jak comes within *hj2-kg-spawn-distance*
-(and fewer than *hj2-kg-max-soldiers* are alive), notes a soldier killed (done?), removes one Jak
-left *hj2-kg-forget-distance* behind; with the war off, removes the soldier. Returns nothing."
+  "Once a frame: with the war on, spawns the soldier (a used spawner, fewer than
+*hj2-kg-max-soldiers* alive), wherever Jak is, and notes a soldier killed (done?); with the war off,
+removes the soldier. Returns nothing."
   (let ((soldier (the-as hj2-kg-soldier (handle->process (-> this soldier)))))
     (cond
       ((not (hj2-war-on?))
@@ -578,14 +669,8 @@ left *hj2-kg-forget-distance* behind; with the war off, removes the soldier. Ret
          (set! (-> this soldier) (the-as handle #f))
          )
        )
-      ((not *target*)
+      ((or (not *target*) soldier)
        )
-      (soldier
-        (when (< *hj2-kg-forget-distance* (vector-vector-distance (target-pos 0) (-> soldier root trans)))
-          (deactivate soldier)
-          (set! (-> this soldier) (the-as handle #f))
-          )
-        )
       ((-> this soldier)
        ;; a soldier was spawned and is gone without us: killed
        (set! (-> this done?) #t)
@@ -594,7 +679,6 @@ left *hj2-kg-forget-distance* behind; with the war off, removes the soldier. Ret
       ((and (not (-> this done?))
             (>= (current-time) (-> this next-try))
             (< *hj2-kg-soldier-count* *hj2-kg-max-soldiers*)
-            (< (vector-vector-distance (target-pos 0) (-> this pos)) *hj2-kg-spawn-distance*)
             )
        (hj2-kg-spawn-soldier this)
        )
@@ -617,11 +701,11 @@ left *hj2-kg-forget-distance* behind; with the war off, removes the soldier. Ret
 
 (defmethod init-from-entity! ((this hj2-kg-spawner) (arg0 entity-actor))
   "Setup from the entity the level port placed: the Jak 2 enemy's place and rotation, the look (lump
-look: 1 yellow, else red), no soldier yet."
+look: 1 yellow, else red), whether it is used (*hj2-kg-spawn-chance*), no soldier yet."
   (vector-copy! (-> this pos) (-> arg0 extra trans))
   (quaternion-copy! (-> this quat) (-> arg0 quat))
   (set! (-> this yellow?) (= (res-lump-value arg0 'look int :time -1000000000.0) 1))
-  (set! (-> this done?) #f)
+  (set! (-> this done?) (>= (rand-vu) *hj2-kg-spawn-chance*))
   (set! (-> this next-try) 0)
   (set! (-> this soldier) (the-as handle #f))
   (go (method-of-object this idle))

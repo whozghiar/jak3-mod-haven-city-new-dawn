@@ -5,6 +5,9 @@
 ;; name in dgo: citizen
 ;; dgos: DESRESC, WWD, CWI
 
+;; og:jak2-haven-city added: the war's shuffle pace (pc/features/jak2-haven-city-war.gc, GAME)
+(define-extern hj2-war-shuffle-rate (function process-drawable float float))
+
 ;; DECOMP BEGINS
 
 (define *citizen-debug* #f)
@@ -922,7 +925,8 @@
              (f0-25 (/ (/ (* 16.0 f30-0) (* 15.0 f0-22)) (-> self root scale x)))
              )
         (if (logtest? (-> self flags) (citizen-flag shuffle-mode))
-            (set! f0-25 1.0)
+            ;; og:jak2-haven-city added the hook (hj2-war-shuffle-rate): 1.0, but for a Krimzon Guard of the war
+            (set! f0-25 (hj2-war-shuffle-rate self f30-0))
             )
         (let ((f0-26 (* f0-25 (-> self travel-anim-scale-speed))))
           (ja :num! (loop! f0-26))

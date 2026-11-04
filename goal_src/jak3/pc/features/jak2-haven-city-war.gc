@@ -7,9 +7,10 @@
 
   A Mods menu switch (*mod-jak2-haven-city-war*, off by default, usable only while the mod is on):
   in Jak 2's city (havenj2) as in Jak 3's own, Jak 2's Krimzon Guards (red, and yellow: Jak 2's
-  dark guards) fight the Freedom League's blue guards; troop transports bring guards of either side;
-  jetpack guards of either side fly in; the citizens flee and are fewer, and so are the vehicles; no
-  Hellcat or guard bike flies the lanes, but crimson bikes wait on the ground. In the places around
+  dark guards) fight the Freedom League's blue guards; troop transports bring guards of either side
+  (a red ship or a blue one); jetpack guards of either side fly in; the citizens flee and are fewer,
+  and so are the vehicles; in Jak 2's city the Hellcats and guard bikes fly in either side's colors
+  (red or blue, havenj2-traffic.gc), and crimson bikes wait on the ground. In the places around
   the city (Dead Town, the pumping station, Haven Forest, the fortress and its prison...), red and
   yellow Krimzon Guards stand where Jak 2 put its enemies (jak2-haven-city-kg.gc).
 
@@ -213,14 +214,17 @@ settings. No side effects."
 (defconstant HJ2_SIDE_KG 1)         ;; Krimzon Guard (red, yellow)
 
 ;; Live units of each look, and each look's share of its pool. The guards' pool (traffic type guard-a,
-;; HJ2_WAR_GUARDS) is half Freedom League, half Krimzon Guard, of which a third are yellow dark
+;; HJ2_WAR_GUARDS, 30) is half Freedom League, half Krimzon Guard, of which a third are yellow dark
 ;; guards; the jetpacks' (flying-turret, HJ2_WAR_JETPACKS) half and half.
 (define *hj2-war-looks* (new 'static 'array int32 7 0 0 0 0 0 0 0))
 (define *hj2-war-look-share* (new 'static 'array int32 7 10 4 3 2 1 2 2))
 
-;; the art group of each look, and its skeleton group
+;; the joint geometry (the model's skeleton, named <art group>-lod0) of each look, and its skeleton group. A look is told by
+;; its skeleton, not its art group: a guard of the war plays the blue guard's clips, from
+;; crimson-guard-ag (hj2-war-guard-clips).
 (define *hj2-war-look-art* (new 'static 'boxed-array :type string
-  "crimson-guard" "hj2-kg-red" "hj2-kg-red-gl" "hj2-kg-yellow" "hj2-kg-yellow-gl" "hj2-hover-blue" "hj2-hover-red"
+  "crimson-guard-lod0" "hj2-kg-red-lod0" "hj2-kg-red-gl-lod0" "hj2-kg-yellow-lod0" "hj2-kg-yellow-gl-lod0"
+  "hj2-hover-blue-lod0" "hj2-hover-red-lod0"
   ))
 (define *hj2-war-look-skel* (new 'static 'boxed-array :type string
   "skel-crimson-guard" "skel-hj2-kg-red" "skel-hj2-kg-red-gl" "skel-hj2-kg-yellow" "skel-hj2-kg-yellow-gl"
@@ -228,10 +232,11 @@ settings. No side effects."
   ))
 
 (defun hj2-war-art-name ((proc process))
-  "Name of the art group proc draws, \"\" when it has no draw-control yet. No side effects."
+  "Name of the joint geometry (skeleton) proc draws, \"\" when it has no draw-control yet. No side
+effects."
   (let ((pd (the-as process-drawable proc)))
-    (if (and (type? proc process-drawable) (nonzero? (-> pd draw)) (-> pd draw) (-> pd draw art-group))
-        (-> pd draw art-group name)
+    (if (and (type? proc process-drawable) (nonzero? (-> pd draw)) (-> pd draw) (-> pd draw jgeo))
+        (-> pd draw jgeo name)
         ""
         )
     )
@@ -273,6 +278,80 @@ effects."
   (let ((look (hj2-war-look proc)))
     (or (= look HJ2_LOOK_YELLOW) (= look HJ2_LOOK_YELLOW_GL))
     )
+  )
+
+(defun hj2-war-guard-clips ((this process-drawable))
+  "Called by crimson-guard init-enemy! (guard.gc) and hj2-kg-soldier's (jak2-haven-city-kg.gc) right
+after their skeleton is set up: a red or yellow Krimzon Guard plays the blue guard's clips. Its
+model is Jak 2's on Jak 3's 41-joint guard skeleton (the same joints and bind pose), so its draw
+takes crimson-guard-ag, when that art group is in its level, as the art group its clips (and their
+sound and death effects) are looked up in; its own meshes stay. Those effects need an
+effect-control, which a process only gets when its model has an effect-name lump (effect-control's
+new), and the Krimzon Guard models (build-actor) have none: without it they made no step or gun
+sound and skipped the blue guard's death effect (death-default), vanishing at once. It gets one,
+made like effect-control's new does. Returns nothing. Side effects: the draw-control's art-group,
+the skeleton's effect-control (process heap)."
+  (when (and (hj2-war-kg? this) (-> this level))
+    (let ((ag (load-to-heap-by-name (-> this level art-group) "crimson-guard" 'test global 0)))
+      (when (and ag
+                 (= (-> ag type) art-group)
+                 (= (-> (the-as art-joint-geo (-> ag data 0)) length) (-> this draw jgeo length))
+                 )
+        (set! (-> this draw art-group) ag)
+        (when (not (-> this skel effect))
+          (let ((ec (the-as effect-control ((method-of-type object new) 'process effect-control (the-as int (-> effect-control size))))))
+            (set! (-> ec process) this)
+            (set! (-> ec last-frame-group) #f)
+            (set! (-> this skel effect) ec)
+            )
+          )
+        )
+      )
+    )
+  (none)
+  )
+
+(defun hj2-war-guard-type ((this process) (stock int))
+  "Called by crimson-guard-method-267 (guard.gc) whenever a guard is given a weapon (guard-type: 0
+tazer, 1 rifle, 2 grenade launcher). At war no guard uses the tazer: a Krimzon Guard takes the
+weapon its model holds, the rifle (red, yellow) or the grenade launcher (red-gl, yellow-gl); a
+Freedom League guard keeps a rifle or launcher the squad gives it, and trades a tazer for a rifle,
+or for a launcher one time in three (by its pid, so the same guard keeps the same weapon). Out of
+the war every guard keeps stock. Returns the guard type."
+  (case (hj2-war-look this)
+    ((HJ2_LOOK_RED HJ2_LOOK_YELLOW) (the-as int (guard-type rifle)))
+    ((HJ2_LOOK_RED_GL HJ2_LOOK_YELLOW_GL) (the-as int (guard-type grenade)))
+    ((HJ2_LOOK_BLUE)
+     (cond
+       ((or (not (hj2-war-on?)) (!= stock (the-as int (guard-type tazer))))
+        stock
+        )
+       ((zero? (mod (-> this pid) 3))
+        (the-as int (guard-type grenade))
+        )
+       (else
+         (the-as int (guard-type rifle))
+         )
+       )
+     )
+    (else stock)
+    )
+  )
+
+(defun hj2-war-guard? ((this process))
+  "#t for a guard of the war, either side, while the war is on (a Freedom League guard keeps the
+stock look, so the war switch tells it from a guard at peace). No side effects."
+  (and (hj2-war-on?) (!= (hj2-war-guard-side this) HJ2_SIDE_NONE))
+  )
+
+(defun hj2-war-melee-ok? ((this process-drawable))
+  "Called by guard-rifle.gc gun-shoot and guard-grenade.gc grenade-throw-post-retreating before a
+guard goes to its rifle butt (close-attack) on a target within 4 m. At war a guard keeps its rifle
+butt for Jak: it strikes only when Jak is the target it holds (focus); against another guard or a
+citizen it keeps shooting or backing away. #t out of the war. No side effects."
+  (or (not (hj2-war-guard? this))
+      (= (handle->process (-> (the-as enemy this) focus handle)) *target*)
+      )
   )
 
 (defun hj2-war-reset-looks! ()
@@ -386,6 +465,26 @@ model is in the level)."
     )
   )
 
+(defun hj2-war-hover-nozzle! ((this process-drawable) (pos vector) (dir vector) (side int))
+  "Called by flying-turret-method-229 (flying-turret.gc) before each of its two thruster flames: a
+jetpack guard's flame comes out of Jak 2's nozzle, node-list joint 15 (side 0, Jak 2's engine-left)
+or 17 (side 1, engine-right), not the turret's spots under its root. pos: set to the joint's place;
+dir: to its -z axis, the way Jak 2's flame runs (crimson-guard-hover.gc spawns part 718 along it).
+Returns #t when it set them, #f (both unchanged) for a stock flying turret."
+  (cond
+    ((hj2-war-hover? this)
+     (let ((joint (-> this node-list data (if (zero? side) 15 17))))
+       (vector<-cspace! pos joint)
+       (vector-normalize-copy! dir (-> joint bone transform vector 2) -1.0)
+       )
+     #t
+     )
+    (else
+      #f
+      )
+    )
+  )
+
 (defun hj2-war-unit-scale ((proc process) (stock float))
   "Root scale of a flying-turret (flying-turret.gc init-enemy!): the turret is drawn at stock (2.0), a
 jetpack guard at its own size (1.0)."
@@ -481,14 +580,190 @@ firing clip, when the turret code plays it, is left alone. Returns nothing."
   (none)
   )
 
+;; The blue guard's death: its die clip calls the "death-default" effect (merc-death.gc), which
+;; switches its model to the generic renderer for 15 frames: the mesh is hidden after 4 and each
+;; frame one vertex in 10 to 20 launches part 53, a purple spark drifting away for 1.7 s. The cloud
+;; keeps the body's shape a moment, then blows away. The Krimzon Guard models are custom models
+;; (build-actor), which the generic renderer can't draw: switched to it by the death timer, the game
+;; crashed. Their death timer is cleared as it is set, and their cloud is launched from their joints
+;; instead (hj2-war-death-fx), HJ2_DEATH_SPARKS sparks by each joint a frame, scattered by up to
+;; 30 cm, over the same 15 frames. Part 53 has no texture of its own: merc-death-spawn launches it
+;; with the death texture, as the generic renderer does (a plain launch-particles draws nothing).
+(defconstant HJ2_DEATH_PART 53)
+(defconstant HJ2_DEATH_FRAMES 15)
+(defconstant HJ2_DEATH_SPARKS 1)
+
+(defun hj2-war-death-sparks ((pd process-drawable))
+  "One frame of the Krimzon Guard death cloud: HJ2_DEATH_SPARKS death sparks (part 53, through
+merc-death-spawn) by each joint of pd, scattered by up to 30 cm. Returns nothing."
+  (let ((pos (new 'stack-no-clear 'vector)))
+    (dotimes (i (-> pd node-list length))
+      (dotimes (k HJ2_DEATH_SPARKS)
+        (vector<-cspace! pos (-> pd node-list data i))
+        (+! (-> pos x) (rand-vu-float-range -1228.8 1228.8))
+        (+! (-> pos y) (rand-vu-float-range -1228.8 1228.8))
+        (+! (-> pos z) (rand-vu-float-range -1228.8 1228.8))
+        (merc-death-spawn HJ2_DEATH_PART pos pos)
+        )
+      )
+    )
+  (none)
+  )
+
+(defbehavior hj2-war-death-fx process ((h handle))
+  "Code of the process hj2-war-death-start makes: HJ2_DEATH_FRAMES frames of death sparks from the
+dying model's joints (hj2-war-death-sparks), the model hidden from the fourth on, as the generic
+renderer does the blue guard's; stops early if the model's process is gone. Then exits."
+  (dotimes (frame HJ2_DEATH_FRAMES)
+    (let ((pd (the-as process-drawable (handle->process h))))
+      (when pd
+        (hj2-war-death-sparks pd)
+        (if (>= frame 4)
+            (logior! (-> pd draw status) (draw-control-status no-draw))
+            )
+        )
+      )
+    (suspend)
+    )
+  (none)
+  )
+
+(defun hj2-war-death-start ((this process-drawable))
+  "Called by the enemy event handler on 'death-start (enemy.gc: the death-default effect just set the
+draw's death timer): for a Krimzon Guard model (a war guard or a soldier of the places), the death
+timer cleared before the frame is drawn (the generic renderer it would switch the model to can't
+draw a custom model) and a small process that gives it the blue guard's death cloud
+(hj2-war-death-fx). Returns nothing."
+  (when (hj2-war-kg? this)
+    (set! (-> this draw death-timer) (the-as uint 0))
+    (process-spawn-function process hj2-war-death-fx (process->handle this) :name "hj2-death-fx" :to *default-pool*)
+    )
+  (none)
+  )
+
+(defun hj2-war-shuffle-rate ((this process-drawable) (speed float))
+  "Called by citizen-travel-anim (citizen.gc) and hj2-kg-soldier-travel-anim for a guard in its
+shuffle mode (entered under 1m/s, kept while it edges on), where Jak 3 plays the shuffle at a fixed
+pace of 1.0: its legs walk at 3m/s whatever its speed. A guard of the war (either side), whose rifle
+or grenade launcher keeps it edging between spots at 1 to 3m/s (Jak 3's tazer guards run), steps at
+the pace of the ground it covers (speed, units per second, over the walk clip's 3m a cycle, as
+citizen-travel-anim times its walk), 0.25 at least as it turns on the spot; anyone else 1.0 (the
+citizens go through this too). No side effects."
+  (if (hj2-war-guard? this)
+      (fmax 0.25 (/ (/ (* 16.0 speed) (* 15.0 (meters 3))) (-> this root scale x)))
+      1.0
+      )
+  )
+
+(defun hj2-war-reload-speed ((this process) (stock float))
+  "Called by guard-grenade.gc grenade-throw-post-reloading: the speed of the reload clips (stock: Jak
+3's). A grenade guard has one grenade out of a mission, and stands to reload it after each throw and
+at each spot it reaches (the reload clip, then the cocking clip at half speed: 3 s). A guard of the
+war (either side) reloads twice as fast, back on its feet sooner. No side effects."
+  (if (hj2-war-guard? this)
+      (* 2.0 stock)
+      stock
+      )
+  )
+
+;; Speech ////////////////////////////////////////////////////////////////////////////////////////
+
+;; Jak 2's city gives Jak 3's guard-* and civ-* speech types Jak 2's lines and timings
+;; (havenj2-traffic.gc), played here at Jak 2's pace. Jak 3 spaces a type's lines from that type's
+;; last line, and any two lines by the type's delay-pre-time (none in Jak 2's timings): lines came
+;; one after the other. Jak 2 spaced them from the end of the channel's last line, by the type's
+;; delay and, unless urgent (a request of priority 0 or more), by the delay drawn for that last line
+;; (goal_src/jak2/engine/sound/speech.gc speech-channel-method-11). Here, too, no line starts while
+;; the other channel (guards, citizens) speaks. At war the Freedom League's guards (blue) speak Jak 3's
+;; guards' lines (types 1 to 18), which hj2-restore-city-speeches keeps 33 types on, in the race types
+;; (34 to 51: no race in the city). The guards speaking Jak 2's lines (the Krimzon Guards, and the
+;; city's guards at peace) say in a fight what Jak 2's guards say for Jak's state
+;; (speech-control-method-15 there): Jak 2's type 6 and 9 lines, type 7's when Jak drives (slots 52
+;; and 53, both voices) and type 8's when Jak is Dark Jak (54 and 55). Jak 3's levels keep Jak 3's
+;; speech.
+
+;; the speech types of the Jak 2 battle lines when Jak drives, and when he is Dark Jak
+(defconstant HJ2_SPEECH_BATTLE_PILOT 52)
+(defconstant HJ2_SPEECH_BATTLE_DARK 54)
+
+(defun hj2-jak2-speech? ()
+  "Is Jak 2's city active (its speech table in place: hj2-restore-city-speeches)? No side effects."
+  (let ((lev (level-get *level* 'havenj2)))
+    (and lev (= (-> lev status) 'active))
+    )
+  )
+
+(defun hj2-speech-ready? ((ch speech-channel) (info speech-type-info))
+  "*speech-ready-hook* (speech.gc), asked by a channel about to play a line of info's type once Jak
+3's delays allow it: in Jak 2's city, #t when Jak 2's spacing allows it too (see above) and the other
+channel is silent; #t elsewhere. No side effects."
+  (if (not (hj2-jak2-speech?))
+      (return #t)
+      )
+  (let ((since-end (- (-> *display* game-clock frame-counter) (-> ch end-time)))
+        (last (-> ch speech-table (-> ch last-request speech-type)))
+        (other (-> *speech-control* channel-array (if (= ch (-> *speech-control* channel-array 0)) 1 0)))
+        )
+    (and (>= since-end (the-as time-frame (-> info delay)))
+         (or (>= (-> ch request priority) 0.0) (not last) (>= since-end (the-as time-frame (-> last delay))))
+         (zero? (-> other id))
+         )
+    )
+  )
+
+(defun hj2-speech-type ((who process-drawable) (type speech-type))
+  "*speech-type-hook* (speech.gc): the type of a speech request of who (a guard's: its type before
+the second voice's). In Jak 2's city: at war, a Freedom League guard's guard line (types 1 to 18) is
+Jak 3's, 33 types on (hj2-restore-city-speeches); any other guard's battle line is Jak 2's for Jak's
+state, his driving (HJ2_SPEECH_BATTLE_PILOT) or Dark Jak (HJ2_SPEECH_BATTLE_DARK). Any other
+request keeps its type. No side effects."
+  (cond
+    ((not (hj2-jak2-speech?))
+     type
+     )
+    ((and (hj2-war-on?) (= (hj2-war-guard-side who) HJ2_SIDE_FF))
+     (if (and (< 0 (the-as int type)) (<= (the-as int type) (the-as int (speech-type guard-bumped-by-jak-b))))
+         (the-as speech-type (+ (the-as int type) 33))
+         (speech-type none)
+         )
+     )
+    ((and (= type (speech-type guard-generic-battle)) *target* (focus-test? *target* dark))
+     (the-as speech-type HJ2_SPEECH_BATTLE_DARK)
+     )
+    ((and (= type (speech-type guard-generic-battle)) *target* (focus-test? *target* pilot))
+     (the-as speech-type HJ2_SPEECH_BATTLE_PILOT)
+     )
+    (else
+      type
+      )
+    )
+  )
+
+(set! *speech-ready-hook* hj2-speech-ready?)
+
+(set! *speech-type-hook* hj2-speech-type)
+
 ;; Unit counts ///////////////////////////////////////////////////////////////////////////////////
 
 ;; The war's pools: guards (blue, red, yellow), jetpack guards; the citizens and the city's vehicles
-;; at most these.
+;; at most these, of each of their types (3 citizen types, 6 vehicle types).
 (defconstant HJ2_WAR_GUARDS 20)
 (defconstant HJ2_WAR_JETPACKS 3)
-(defconstant HJ2_WAR_WALKERS 4)
-(defconstant HJ2_WAR_VEHICLES 2)
+(defconstant HJ2_WAR_WALKERS 1)
+(defconstant HJ2_WAR_VEHICLES 1)
+
+(defun hj2-war-cell-dist ((kind int) (stock float))
+  "Called by per-frame-cell-update (traffic-util.gc): the traffic wakes the citizens and guards of a
+street cell (its sphere) within 120 m of the camera, and keeps them off screen within 20 m only.
+kind 1 is the first distance, kind 0 the second; stock is Jak 3's. At war guards come from 180 m and
+stay off screen within 80 m: they arrive from further away and don't vanish when the camera turns.
+No side effects."
+  (cond
+    ((not (hj2-war-on?)) stock)
+    ((= kind 1) (meters 180))
+    (else (meters 80))
+    )
+  )
 
 (defun hj2-war-want-count ((kind int) (stock int))
   "How many units of traffic type kind the city keeps (Jak 3's city: traffic-manager.gc

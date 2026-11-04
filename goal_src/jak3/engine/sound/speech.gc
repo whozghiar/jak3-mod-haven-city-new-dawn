@@ -239,6 +239,13 @@
     )
   )
 
+;; og:jak2-haven-city added: a mod's speech rules, #f for Jak 3's own (set by
+;; pc/features/jak2-haven-city-world.gc). *speech-ready-hook*: may the channel play a line of the
+;; requested type (its speech-type-info) now, on top of Jak 3's delays. *speech-type-hook*: the type a
+;; process's request (speech-control-method-13) is made as, (speech-type none) for no request.
+(define *speech-ready-hook* (the-as (function speech-channel speech-type-info symbol) #f))
+(define *speech-type-hook* (the-as (function process-drawable speech-type speech-type) #f))
+
 (defmethod speech-channel-method-11 ((this speech-channel))
   (local-vars (s3-0 int))
   (with-pp
@@ -276,6 +283,8 @@
                            (>= (- (-> *display* game-clock frame-counter) (-> this end-time))
                                (the-as time-frame (-> s5-1 delay-pre-time))
                                )
+                           ;; og:jak2-haven-city added: a mod's own rule on top (*speech-ready-hook*)
+                           (or (not *speech-ready-hook*) (*speech-ready-hook* this s5-1))
                            )
                   (let ((s2-0 (-> s5-1 list length))
                         (v1-40 (-> s5-1 play-index))
@@ -586,7 +595,14 @@
 (speech-control-method-15 *speech-control*)
 
 (defmethod speech-control-method-13 ((this speech-control) (arg0 process-drawable) (arg1 speech-type) (arg2 int))
-  (if (not (-> *setting-control* user-current disable-guard-chatter?))
+  ;; og:jak2-haven-city added: a mod's choice of the request's type (*speech-type-hook*), none: none
+  (if *speech-type-hook*
+      (set! arg1 (*speech-type-hook* arg0 arg1))
+      )
+  (if (and (not (-> *setting-control* user-current disable-guard-chatter?))
+           ;; og:jak2-haven-city added
+           (!= arg1 (speech-type none))
+           )
       (speech-control-method-12 this arg0 (+ arg1 (logand arg2 1)))
       )
   0

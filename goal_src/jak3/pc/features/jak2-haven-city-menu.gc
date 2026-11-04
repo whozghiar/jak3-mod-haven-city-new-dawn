@@ -45,11 +45,32 @@
 (define-extern *mod-jak2-haven-city-war* symbol)
 (define-extern mod-jak2-haven-city-set-war (function symbol none))
 
+;; A flag of the Mods menu greyed out while its entry-disabled? says so. The shared popup-menu-flag
+;; (pc/util/popup-menu.gc, not ours to change) draws its label in white or cyan whatever its
+;; entry-disabled? says, and confirm! doesn't look at it: this type draws a disabled flag like a
+;; disabled button (grey, no check mark); the mod's entries also ignore a confirm while the mod is
+;; off (their on-confirm lambdas, mod-jak2-haven-city-warp).
+(deftype hj2-menu-flag (popup-menu-flag)
+  ()
+  )
+
+
+(defmethod draw-entry ((this hj2-menu-flag) (font-ctx font-context) (dma-buf dma-buffer) (hovering? symbol))
+  "Draw the flag: as a plain grey label while it is disabled (popup-menu-entry's drawing), else as
+popup-menu-flag draws it. Returns nothing."
+  (if (and (nonzero? (-> this entry-disabled?)) ((-> this entry-disabled?)))
+      ((method-of-type popup-menu-entry draw-entry) this font-ctx dma-buf hovering?)
+      ((method-of-type popup-menu-flag draw-entry) this font-ctx dma-buf hovering?)
+      )
+  (none)
+  )
+
 (defun mod-jak2-haven-city-warp ((name string))
   "Close the Mods menu and restart the player at one of this mod's continue points (havenj2-start:
-the city, hj2-atoll-start: the pumping station, hj2-forest-start: Haven Forest)."
+the city, hj2-atoll-start: the pumping station, hj2-forest-start: Haven Forest). Nothing while the
+mod is off (a disabled entry the menu's cursor landed on)."
   (let ((cont (get-continue-by-name *game-info* name)))
-    (when cont
+    (when (and cont *mod-jak2-haven-city-enabled*)
       (mods-menu-close!)
       (start 'play cont)
       )
@@ -109,11 +130,16 @@ cycle, any negative hour)."
            :on-confirm (lambda () (mod-jak2-haven-city-set-enabled (not *mod-jak2-haven-city-enabled*)) (none))
            )
       ;; the war mode (jak2-haven-city-war.gc): Krimzon Guards against the Freedom League, in Jak 2's
-      ;; city and its places as in Jak 3's city; greyed out while the mod is off
-      (new 'static 'popup-menu-flag :label "KG-Guard vs Freedom Fighters"
+      ;; city and its places as in Jak 3's city; greyed out and inert while the mod is off
+      (new 'static 'hj2-menu-flag :label "KG-Guard vs Freedom Fighters"
            :entry-disabled? (lambda () (not *mod-jak2-haven-city-enabled*))
            :is-toggled? (lambda () *mod-jak2-haven-city-war*)
-           :on-confirm (lambda () (mod-jak2-haven-city-set-war (not *mod-jak2-haven-city-war*)) (none))
+           :on-confirm (lambda ()
+                         (if *mod-jak2-haven-city-enabled*
+                             (mod-jak2-haven-city-set-war (not *mod-jak2-haven-city-war*))
+                             )
+                         (none)
+                         )
            )
       ;; to Jak 2's city: its underground hideout
       (new 'static 'popup-menu-button :label "Warp to Haven City (Jak 2)"

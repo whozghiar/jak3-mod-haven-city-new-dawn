@@ -18,9 +18,15 @@
   - in Jak 3's city, holds the factions at war (Jak 3's faction commands, as a death or a task
     change restores the stock ones): Freedom League and Krimzon Guard both strong, Metal Heads out;
     the Krimzon Guard's spawn level loads CTYPESC, the jetpack guards' code;
-  - frightens the citizens near the fighting: a danger sphere on a Krimzon Guard near Jak sends
-    the citizens around fleeing (the traffic engine's 'panic) and keeps new ones from walking in;
-  - sends a troop transport now and then, landing near Jak with guards of one side (hj2-transport.gc).
+  - plays Jak 3's city fight music (fight1);
+  - frightens the citizens: every citizen on foot keeps fleeing from the nearest guard (or Jak), and a
+    danger sphere on a Krimzon Guard near Jak keeps new ones from walking in (the traffic engine's
+    'panic);
+  - sends a troop transport now and then, landing near Jak, the two sides in turn (a red Krimzon
+    Guard ship with red and yellow guards, a blue Freedom Fighters one with blue guards;
+    hj2-transport.gc);
+  - adds the war's hatreds to the attack controller: the two sides seek each other out from further
+    away, and the Krimzon Guards attack citizens too.
 
   Switching the war on or off rebuilds the city's traffic (a guard's look is chosen when its
   process is made): in Jak 3's city by running ctywide's activation again, as a death does
@@ -30,6 +36,8 @@
 
 ;; in hj2-transport.gc, linked before this file
 (define-extern hj2-transport-spawn (function process int level process))
+;; the war switch alone, mission or not (jak2-haven-city-war.gc, GAME)
+(define-extern hj2-war-switched-on? (function symbol))
 
 ;; DECOMP BEGINS
 
@@ -75,10 +83,59 @@ wiki common 1.4.17)."
 (defconstant HJ2_WAR_PANIC_RADIUS (meters 15))
 (defconstant HJ2_WAR_PANIC_NOTIFY (meters 40))
 
+;; Hatred ////////////////////////////////////////////////////////////////////////////////////////
+;; Jak 3's attack controller gives each fighter its target from a table of hatreds between types
+;; (city-target-type: civilian 1, guards 3 to 5 by weapon, roboguard 9, which a Krimzon Guard of the
+;; war registers as, hj2-war-attacker-type). An entry weighs a pair by its hatred, full up to
+;; hatred-dist, dist-scale times at that distance, none past max-consider-dist (mission-squad-control-
+;; method-13). Jak 3's table (init-attack-controller, cty-attack-controller.gc): guards to roboguards
+;; 0.5 to 0.7 within 100 m, roboguards to Jak 0.6 before guards 0.5, and to civilians 0.1 within 40 m.
+;; At war, two more entries: guards and Krimzon Guards hate each other most (0.9, full up to 100 m,
+;; up to 160 m), and Krimzon Guards hate civilians 0.7, full up to 10 m, a quarter at 60 m, up to
+;; 100 m: a citizen near a Krimzon Guard is shot before a guard further away.
+
+;; the table's length with the war's 2 entries (Jak 3's 11 and the empty entry 0, then 2)
+(defconstant HJ2_WAR_HATRED_COUNT 14)
+
+(defun hj2-war-hatred-set! ((on symbol))
+  "Jak 3's hatred table again (reset-hatred, init-attack-controller), and with on the war's entries
+on top (see above). Returns nothing. Side effect: *cty-attack-controller*'s table."
+  (let ((ctrl *cty-attack-controller*))
+    (when (and ctrl (nonzero? ctrl))
+      (reset-hatred ctrl)
+      (init-attack-controller ctrl)
+      (when on
+        (let ((fight (push-back-hatred ctrl)))
+          (set! (-> fight hatred) 0.9)
+          (set! (-> fight hatred-dist) (meters 100))
+          (set! (-> fight dist-scale) 0.5)
+          (set! (-> fight attacker-scale) 0.01)
+          (set! (-> fight max-consider-dist) (meters 160))
+          (dotimes (guard 3)
+            (set-hatred-indices ctrl fight (+ guard 3) (the-as int (city-target-type roboguard)))
+            (set-hatred-indices ctrl fight (the-as int (city-target-type roboguard)) (+ guard 3))
+            )
+          )
+        (let ((civ (push-back-hatred ctrl)))
+          (set! (-> civ hatred) 0.7)
+          (set! (-> civ hatred-dist) (meters 60))
+          (set! (-> civ dist-scale) 0.25)
+          (set! (-> civ attacker-scale) 0.01)
+          (set! (-> civ max-consider-dist) (meters 100))
+          (set-hatred-indices ctrl civ (the-as int (city-target-type roboguard)) 1)
+          )
+        )
+      )
+    )
+  (none)
+  )
+
 ;; The director //////////////////////////////////////////////////////////////////////////////////
 ;;   count-time, mission-time, faction-time, panic-time: the last looks count, mission check,
 ;;   faction commands, danger sphere.
 ;;   transport-time: when the next transport may come. transport: the transport flying now.
+;;   transport-side: the side of the next one (HJ2_SIDE_FF or HJ2_SIDE_KG, in turn).
+;;   music?: its fight music setting is on. hatred?: the war's hatred entries are in the table.
 (deftype hj2-war-director (process)
   ((count-time      time-frame)
    (mission-time    time-frame)
@@ -86,6 +143,9 @@ wiki common 1.4.17)."
    (panic-time      time-frame)
    (transport-time  time-frame)
    (transport       handle)
+   (transport-side  int32)
+   (music?          symbol)
+   (hatred?         symbol)
    )
   (:state-methods
     active
@@ -154,6 +214,87 @@ seconds. Guards ignore this danger type. Returns nothing."
   (none)
   )
 
+(defun hj2-war-scare-civilians ()
+  "Keep every citizen on foot fleeing (the city is at war): each one active in the traffic gets the
+traffic engine's 'panic (civilian.gc: it flees from the danger's place, when walking, waiting or
+stepping aside), the danger centered on the nearest guard of the war within HJ2_WAR_PANIC_RANGE,
+else on Jak. Returns nothing."
+  (let ((te *traffic-engine*))
+    (when (and te *target*)
+      (let ((trk (-> te tracker1))
+            (d (new 'stack-no-clear 'traffic-danger-info))
+            )
+        (vector-reset! (-> d velocity))
+        (set! (-> d handle) (the-as handle #f))
+        (set! (-> d notify-radius) HJ2_WAR_PANIC_NOTIFY)
+        (set! (-> d danger-level) 1.0)
+        (set! (-> d decay-rate) 0.0)
+        (set! (-> d flags) (the-as uint 1))
+        (set! (-> d danger-type) (the-as uint 0))
+        (dotimes (i (the-as int (-> trk active-object-count)))
+          ;; civilian-male, civilian-female, civilian-fat
+          (when (< (the-as int (-> trk active-object-type-list i)) (the-as int (traffic-type civilian-pilot)))
+            (let ((civ (the-as process-drawable (handle->process (-> trk active-object-list i)))))
+              (when civ
+                ;; the nearest guard of the war, else Jak
+                (let ((best (the-as process-drawable #f))
+                      (best-d HJ2_WAR_PANIC_RANGE)
+                      )
+                  (dotimes (j (the-as int (-> trk active-object-count)))
+                    (when (= (-> trk active-object-type-list j) (traffic-type guard-a))
+                      (let ((g (the-as process-drawable (handle->process (-> trk active-object-list j)))))
+                        (when g
+                          (let ((dist (vector-vector-distance (-> g root trans) (-> civ root trans))))
+                            (when (< dist best-d)
+                              (set! best-d dist)
+                              (set! best g)
+                              )
+                            )
+                          )
+                        )
+                      )
+                    )
+                  (set! (-> d sphere quad) (-> (if best (-> best root trans) (target-pos 0)) quad))
+                  )
+                (set! (-> d sphere r) HJ2_WAR_PANIC_RADIUS)
+                (send-event civ 'panic d)
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+  (none)
+  )
+
+(defun hj2-war-rearm-guards ()
+  "At war no guard uses the tazer (hj2-war-guard-type, at each weapon change). A Freedom League guard
+woken with its tazer before the war's rule applied to it (a guard of the pool kept from before the
+war was switched on) is given its weapon again: the weapon change goes through the rule, which
+trades the tazer for a rifle or a launcher. Returns nothing."
+  (let ((te *traffic-engine*))
+    (when te
+      (let ((trk (-> te tracker1)))
+        (dotimes (i (the-as int (-> trk active-object-count)))
+          (when (= (-> trk active-object-type-list i) (traffic-type guard-a))
+            (let ((g (the-as crimson-guard (handle->process (-> trk active-object-list i)))))
+              (when (and g
+                         (= (-> g type) crimson-guard)
+                         (= (-> g guard-type) (guard-type tazer))
+                         (= (hj2-war-guard-side g) 0)
+                         )
+                (crimson-guard-method-267 g (guard-type tazer) #f)
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+  (none)
+  )
+
 (defun hj2-war-kg-icons-off ()
   "The Krimzon Guards on the street lose the blue minimap icon Jak 3 gives every guard as it goes
 out (citizen-method-194): the minimap has no red guard class, and a blue dot would say Freedom
@@ -178,16 +319,17 @@ League. The icon fades out (Jak 2's way of dropping one). Returns nothing."
   )
 
 (defbehavior hj2-war-transports hj2-war-director ()
-  "Send a troop transport when it's time and none flies: one side at random, landing near Jak
-(hj2-transport-spawn), then the next one 45 to 90 s later; a failed spawn (no landing spot, no
-process) is tried again 5 s later. Returns nothing. Side effects: transport, transport-time."
+  "Send a troop transport when it's time and none flies, landing near Jak (hj2-transport-spawn):
+the two sides in turn, a Krimzon Guard ship (red and yellow guards) then a Freedom Fighters one (blue
+guards); the next one 45 to 90 s later. A failed spawn (no landing spot, no process) is tried again
+5 s later. Returns nothing. Side effects: transport, transport-time, transport-side."
   (when (and *target*
              (not (handle->process (-> self transport)))
              (>= (current-time) (-> self transport-time))
              )
     (let* ((lev (hj2-war-city-level))
            (proc (if lev
-                     (hj2-transport-spawn self (rand-vu-int-count 2) lev)
+                     (hj2-transport-spawn self (-> self transport-side) lev)
                      (the-as process #f)
                      )
                  )
@@ -195,6 +337,7 @@ process) is tried again 5 s later. Returns nothing. Side effects: transport, tra
       (cond
         (proc
           (set! (-> self transport) (process->handle proc))
+          (set! (-> self transport-side) (- 1 (-> self transport-side)))
           (set! (-> self transport-time)
                 (+ (current-time) (rand-vu-int-range HJ2_WAR_TRANSPORT_MIN HJ2_WAR_TRANSPORT_MAX))
                 )
@@ -210,17 +353,55 @@ process) is tried again 5 s later. Returns nothing. Side effects: transport, tra
 
 (defbehavior hj2-war-director-update hj2-war-director ()
   "One frame of the war in the city: every 0.5 s whether a Jak 3 mission runs (the war then steps
-aside, hj2-war-on?), and while the war is on its counts, faction state, panic and transports.
-Returns nothing."
+aside, hj2-war-on?), and while the war is on its music, counts, faction state, panic and
+transports. Returns nothing. Side effect: the director's music setting."
   (when (time-elapsed? (-> self mission-time) (seconds 0.5))
     (set-time! (-> self mission-time))
     (hj2-war-update-mission!)
+    )
+  ;; Jak 3's city fight music (cty-faction.gc plays it during a fight near Jak) for the whole war: a
+  ;; setting of this process, above the city's own music and gone with the process
+  (cond
+    ((hj2-war-on?)
+     (when (not (-> self music?))
+       (set-setting! 'music 'fight1 0.0 0)
+       (set! (-> self music?) #t)
+       )
+     )
+    ((-> self music?)
+     (remove-setting! 'music)
+     (set! (-> self music?) #f)
+     )
+    )
+  ;; the war's hatreds: put in while the war is on (again after a traffic restart reset the table),
+  ;; taken out when the war is switched off; left to Jak 3's mission when the war steps aside for one
+  ;; (the mission sets its own table)
+  (let ((ctrl *cty-attack-controller*))
+    (cond
+      ((hj2-war-on?)
+       (when (and ctrl
+                  (nonzero? ctrl)
+                  (or (not (-> self hatred?)) (< (-> ctrl hatred-vals length) HJ2_WAR_HATRED_COUNT))
+                  )
+         (hj2-war-hatred-set! #t)
+         (set! (-> self hatred?) #t)
+         )
+       )
+      ((-> self hatred?)
+       (if (not (hj2-war-switched-on?))
+           (hj2-war-hatred-set! #f)
+           )
+       (set! (-> self hatred?) #f)
+       )
+      )
     )
   (when (hj2-war-on?)
     (when (time-elapsed? (-> self count-time) (seconds 0.5))
       (set-time! (-> self count-time))
       (hj2-war-count-looks!)
       (hj2-war-kg-icons-off)
+      (hj2-war-rearm-guards)
+      (hj2-war-scare-civilians)
       )
     ;; Jak 3's city only (havenj2 has no faction manager)
     (when (and *cty-faction-manager*
@@ -259,6 +440,9 @@ nothing (goes active)."
   (set! (-> self panic-time) 0)
   (set! (-> self transport) (the-as handle #f))
   (set! (-> self transport-time) (+ (current-time) HJ2_WAR_FIRST_TRANSPORT))
+  (set! (-> self transport-side) HJ2_SIDE_KG)
+  (set! (-> self music?) #f)
+  (set! (-> self hatred?) #f)
   (go-virtual active)
   )
 

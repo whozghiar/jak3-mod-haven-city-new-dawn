@@ -345,7 +345,12 @@
               )
           (forward-up-nopitch->quaternion (-> s4-0 params rotation) (-> s4-0 vec0) (new 'static 'vector :y 1.0 :w 1.0))
           (set! (-> this rand) (rand-vu))
-          (activate-from-params this (-> s4-0 params))
+          ;; og:jak2-haven-city added the check: no pedestrian on a street whose nav mesh isn't loaded
+          ;; (its init reads the mesh, setup-enemy!: a crash). Jak 3's city keeps every mesh loaded;
+          ;; Jak 2's city has them in its district levels, and the war wakes streets further away.
+          (if (or (!= (-> arg1 tracker-id) 1) (-> s4-0 params nav-mesh))
+              (activate-from-params this (-> s4-0 params))
+              )
           )
         )
       )

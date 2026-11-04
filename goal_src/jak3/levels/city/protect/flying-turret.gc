@@ -10,6 +10,7 @@
 (define-extern hj2-war-unit-scale (function process float float))
 (define-extern hj2-war-attacker-type (function process int int))
 (define-extern hj2-war-hover-animate (function process-drawable float none))
+(define-extern hj2-war-hover-nozzle! (function process-drawable vector vector int symbol))
 
 ;; DECOMP BEGINS
 
@@ -516,8 +517,13 @@
           (set! (-> *part-id-table* 4709 init-specs 3 initial-valuef) (/ f0-8 2))
           )
         )
+      ;; og:jak2-haven-city added: a jetpack guard of the war fires its flames from Jak 2's nozzles
+      (hj2-war-hover-nozzle! this gp-0 s5-0 0)
       (draw-beam (-> *part-id-table* 4709) gp-0 s5-0 #f)
-      (vector+float*! gp-0 gp-0 (-> s4-0 rvec) 1228.8)
+      ;; og:jak2-haven-city added: the second flame from a jetpack guard's other nozzle
+      (if (not (hj2-war-hover-nozzle! this gp-0 s5-0 1))
+          (vector+float*! gp-0 gp-0 (-> s4-0 rvec) 1228.8)
+          )
       (draw-beam (-> *part-id-table* 4709) gp-0 s5-0 #f)
       )
     )
