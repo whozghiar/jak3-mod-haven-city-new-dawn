@@ -276,9 +276,10 @@ def rebuild_model(src, path, name, keep_prims, collide=None, anims=None, anim_fp
     its bind pose relative to its parent. No vertex is bound to it, every animation holds it at
     that pose: a model driven by code written for a skeleton with more joints (the vertices' joint
     indices and the inverse bind matrices follow).
-    recolor: {"hues": [lo, hi], "rotate", "min_saturation"} (degrees, lo may be negative): the
-    texels of the model's textures whose hue is in the window turned by rotate degrees (a team's
-    color: Jak 2's red armor in Freedom League blue).
+    recolor: a rule {"hues": [lo, hi], "rotate", "min_saturation", "textures"} or a list of them
+    (degrees, lo may be negative): the texels whose hue is in the window turned by rotate degrees,
+    in every texture of the model or only in those named in "textures" (a team's color: Jak 2's
+    red armor in Freedom League blue). Rules apply in order.
     Returns (vertex count, lo, hi) of the kept vertices."""
     gltf, read = load_glb(src)
     sizes = GLTF_TYPES
@@ -534,12 +535,18 @@ def rebuild_model(src, path, name, keep_prims, collide=None, anims=None, anim_fp
                                          "target": {"node": node, "path": path_name}})
 
     images = gltf["images"]
-    if recolor:
+    rules = [recolor] if isinstance(recolor, dict) else recolor or []
+    if rules:
         images = [dict(im) for im in images]
         for im in images:
+            todo = [r for r in rules if "textures" not in r or im.get("name") in r["textures"]]
+            if not todo:
+                continue
             width, height, pixels = png_decode(base64.b64decode(im["uri"].split(",", 1)[1]))
-            if recolor_pixels(pixels, recolor["hues"], recolor["rotate"],
-                              recolor.get("min_saturation", 0.0)):
+            changed = 0
+            for r in todo:
+                changed += recolor_pixels(pixels, r["hues"], r["rotate"], r.get("min_saturation", 0.0))
+            if changed:
                 im["uri"] = "data:image/png;base64," + base64.b64encode(
                     png_encode(width, height, pixels)).decode()
 

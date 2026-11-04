@@ -1037,8 +1037,13 @@ def build_level(ctx, level):
         models += [m for m in prop_models if m not in models]
     # the mod's class at the places of some source actors (enemy spawners; their models are the
     # level's "models"), last: the actors before them keep their ids (the builder numbers them in
-    # order from base_id)
-    actor_list += spawn_actors(ctx, level)
+    # order from base_id); the spawned class's art group too, when "art_groups" names one
+    spawned = spawn_actors(ctx, level)
+    actor_list += spawned
+    if spawned:
+        ag = port.get("art_groups", {}).get(spawned[0][1]["etype"])
+        if ag and ag not in art:
+            art.append(ag)
     models += [m for m in custom_models(ctx, actor_list) if m not in models]
     trees = make_regions(ctx, level)
     return dict(actors=actor_list, art=art, code=code, models=models,
