@@ -10,187 +10,112 @@
 
 ---
 
-> [!NOTE]
-> This mod was called Jak2 Haven City: first the `jak3/features/jak2-haven-city` branch of [whozghiar/jak-project](https://github.com/whozghiar/jak-project), then the repository `jak3-mod-jak2-haven-city`, renamed `jak3-mod-haven-city-new-dawn` (GitHub redirects the old address).
-
 ## Overview
-Brings Jak 2's Haven City and the places around it into Jak 3, as they are at the end of Jak 2:
-the whole city, district by district like in Jak 2, with its interiors, the palace, Dead Town, the pumping
-station, the mountain, Haven Forest, the fortress and its prison, the stadium's race track and the
-dig site, all rebuilt from Jak 2's own extracted data and linked the way Jak 2 links them.
+Jak 2's Haven City and the places around it, playable inside Jak 3, as they are at the end of
+Jak 2: the city district by district, its interiors, the palace, Dead Town, the pumping station,
+the mountain, Haven Forest, the fortress and its prison, the stadium and the dig site. Everything
+is rebuilt from your own copy of Jak 2. A war mode sets Jak 2's Krimzon Guards against Jak 3's
+Freedom League.
 
 - **Target Game:** Jak 3
 - **Repository:** [`whozghiar/jak3-mod-haven-city-new-dawn`](https://github.com/whozghiar/jak3-mod-haven-city-new-dawn)
 
+![The war mode: a Krimzon Guard jetpack guard firing in the slums](docs/modding/current_mod/images/war-jetpack-guard.jpg)
+
 ## Requirements
 
 > [!IMPORTANT]
-> **You need an official copy of both Jak 2 and Jak 3**: your own PS2 discs, or ISOs dumped
-> from them. It is made and tested with the European Jak 2 (PAL, SCES-51608) and the American
-> Jak 3 (NTSC-U, SCUS-97330); other regions are untested. The mod contains nothing of
-> either game: its levels, models, textures, music, sounds and voices are all made on your machine
-> from your own Jak 2 and Jak 3. Owning Jak 3 alone is not enough.
->
-> - **From the OpenGOAL Launcher:** install Jak 2 and Jak 3 in the launcher first (each from your
->   own ISO), then the mod. Its install makes the levels from your installed Jak 2 by itself
->   ([Download & Play](#download--play-via-opengoal-launcher-players)).
-> - **From source:** both games must be **extracted before the mod is built**:
->
-> 1. copy each disc's files (the content of the ISO) into `iso_data/jak2` and `iso_data/jak3`;
-> 2. run `task level-port -- custom_assets/jak3/ports/jak2-haven-city/port.jsonc`: it extracts
->    what it needs from both games (the first time, all of Jak 2 with its models: long, about
->    11 GB) and generates the levels;
-> 3. build and play ([Developer Setup](#developer-setup--local-compilation)).
->
-> Without Jak 2, the mod can't be built.
+> You need your own copy of **both Jak 2 and Jak 3** (discs, or ISOs made from them). Made and
+> tested with the European Jak 2 (PAL, SCES-51608) and the American Jak 3 (NTSC-U, SCUS-97330).
+> The mod contains nothing of either game: its levels, models, textures, music and voices are
+> made on your machine from your games.
 
 ## Key Features
-- **The whole city:** Jak 2's 14 districts, `ctywide` and the stadium grounds, loaded district by
-  district through Jak 2's own doors and regions, with Jak 2's lighting, water, particles, neon
-  signs and breakable market props.
+- **Jak 2's city:** its 14 districts and the stadium grounds, loaded district by district like in
+  Jak 2, with their lighting, water, particles, neon signs, breakable speakers and market props.
 - **The places around it:** 30 more levels (the Hip Hog, the hideout, the Oracle, Vin's power
-  station, Keira's garage, the gun course, the palace pillar and roof, Dead Town with the Sage's
-  hut, the construction site, the pumping station, the mountain and the canyon behind its iris
-  doors, Haven Forest, the inside of the fortress, its prison and the way out, the stadium's race
-  track, the castle pad and the dig, the bazaar's stall, Onin's tent), loaded through their doors, elevators, airlocks, gates and regions like in Jak 2, in
-  Jak 2's own memory modes, with their moving platforms, lifts, swinging bars and slides.
-- **The end of Jak 2:** every level as it is once the game is finished: the Baron's statue in
-  rubble, the market roof broken, Dead Town's tower and pillars fallen, the mountain temple's
-  puzzles solved, only what Jak 2 still places then.
-- **Complete levels:** Jak 2's particles in every place, and every hazard that hurts Jak (the
-  palace cable's electric fans, falling platforms and gun turrets, the fortress's laser turrets,
-  the avalanche, the dark eco pool, the gun buoy, the city's guard turrets), without enemies; the
-  city's searchlights, force-field walls, parked vehicles and barges, the gardens' yakows; Jak 2's
-  own doors and airlocks; the places' decor (banners, lamps, turbines, birds and fish).
-- **The fortress's escape:** its far gate opens on the prison (cells, torture machine, hanging
-  cells), whose tunnels lead out of the fortress, back to the slums.
-- **Breakable city:** the Baron's propaganda speakers break in two hits like in Jak 2, the farm
-  crops are solid and burst when hit hard.
-- **Air trains:** the port's air train takes Jak to the dig site and back, in a short fade.
-- **Whack-a-Metal-Head:** Jak 2's arcade game in the Hip Hog, with Daxter, Tess and the session's best score: press triangle at the cabinet.
-- **Onin's bubble game:** Jak 2's game in Onin's tent, with Onin, Pecker's comments and the
-  session's best score: press triangle in front of Onin (war mode off).
-- **Vin's game:** Jak 3's game from Vin's room (Daxter clears its board, wave after wave), in
-  Jak 2's Vin room: press triangle at the console (war mode off).
-- **War mode, KG-Guard vs Freedom Fighters:** Jak 2's red and yellow Krimzon Guards fight the
-  Freedom League's blue guards, in Jak 2's city and in Jak 3's own. Troop transports bring guards
-  of either side, jetpack guards fly in, the citizens flee and are fewer, no Hellcat or guard bike
-  flies, and crimson bikes wait parked for Jak (Jak 2's city). Around the city (Dead Town, the
-  pumping station, the mountain, Haven Forest, the dig, the fortress and the prison's way out),
-  Krimzon Guards stand where Jak 2 put its enemies.
-- **City traffic:** Jak 3's citizens, Freedom League guards, hover bikes and cars, as many as in
-  Jak 2; Jak 2's Freedom League Hellcats: they fly with the traffic, and Jak can steal one and fire
-  its front gun; Jak 2's Crimson Guard bikes, ridden by Freedom League guards.
-- **Jak 2's alert:** Jak 2's five alert levels. Hitting a citizen or a guard, hitting a guard
-  vehicle or turning into Dark Jak raises the alert; the guards hunt Jak, the Hellcats and guard
-  bikes chase and shoot him from level 2, the city music plays its alert mode and the minimap
-  flashes. It ends 30 s after the last offence, once no guard hunts any more. The city's guard
-  turrets pop up as soon as the alert starts near Jak and fire at him while he drives a vehicle.
-- **Minimap:** Jak 2's city maps on Jak 3's minimap, with the guards, Hellcats and guard bikes as
-  blue icons with their view cone.
-- **Jak 2's sound:** each place's Jak 2 music (with its variations when Jak draws his gun, rides
-  the board, turns dark or drives), ambiences and object sounds, the Baron's speeches from his
-  propaganda speakers (Torn's lines instead when the game is in French and the war mode is off),
-  the citizens' and the guards' lines (the Freedom League guards speak like Jak 2's Crimson
-  Guards), taken from your Jak 2 extraction.
-- **Time and weather:** a fixed hour or Jak 2's day and night; Jak 3's changing weather or a fixed
-  one (sunny, cloudy, foggy, light rain, rain, thunderstorm, snow) in the whole game.
-- **Travelling:** warps to every district, key places and places outside the city; two time gates,
-  one in Jak 3's Freedom HQ and one in Jak 2's underground hideout, lead to each other; dying
-  respawns Jak at Jak 2's closest respawn point.
-- **Saves:** save anywhere in Jak 2's world; the save screen shows "Haven City (Jak 2)" on the
-  slot.
+  station, Keira's garage, the palace pillar and roof, Dead Town and the Sage's hut, the
+  construction site, the pumping station, the mountain and its canyon, Haven Forest, the fortress,
+  its prison and the way out, the stadium's race track, the castle pad, the dig, Onin's tent),
+  reached through Jak 2's own doors, elevators and air trains.
+- **The end of Jak 2:** each level as it is once the game is finished, with its hazards (fans,
+  turrets, lasers, the avalanche, the gun buoy), its platforms and decor, and no enemies.
+- **Life in the city:** Jak 3's citizens, guards, hover bikes and cars at Jak 2's density; Jak 2's
+  Hellcats and Krimzon bikes, which Jak can steal; Jak 2's five alert levels, with guards hunting
+  Jak, guard vehicles chasing him and the anti-air turrets firing at him in a vehicle; Jak 2's
+  city maps on the minimap.
+- **War mode, KG-Guard vs Freedom Fighters:** red and yellow Krimzon Guards fight the Freedom
+  League's blue guards in Jak 2's city and in Jak 3's own, to Jak 3's fight music. Troop
+  transports of both sides drop guards, jetpack guards fly in, Hellcats and bikes fly in both
+  sides' colors, the citizens flee and the Krimzon Guards hunt them. A fallen guard dissolves in
+  a purple cloud. Krimzon Guards also stand in the places around the city.
+- **Jak 2's sound:** each place's music and ambience, the citizens' and guards' lines, the Baron's
+  speeches from the propaganda speakers (Torn's, recorded for the mod, when the game is in French
+  and the war is off).
+- **Mini-games:** the Hip Hog's Whack-a-Metal-Head, Onin's bubble game, Vin's game from Jak 3.
+- **Time and weather:** a fixed hour or Jak 2's day and night; Jak 3's weather or a fixed one.
+- **Travelling and saves:** warps to every district and place from the menu, two time gates
+  between Jak 3's Freedom HQ and Jak 2's hideout, respawn at Jak 2's closest point, saving
+  anywhere.
+
+| | |
+|---|---|
+| ![A Freedom Fighters transport dropping a blue guard](docs/modding/current_mod/images/war-transport-blue.jpg) | ![A blue anti-air turret, war mode off](docs/modding/current_mod/images/turret-blue.jpg) |
+| ![A Krimzon Guard's death cloud](docs/modding/current_mod/images/war-kg-death.jpg) | ![The mod's menu](docs/modding/current_mod/images/mods-menu.jpg) |
 
 ## Controls
 
 | Action | How |
 |---|---|
-| Open the mod's menu | L3 + SELECT, then Mods ▸ Haven City: New Dawn (retail and debug boots) |
-| Take an air train or a time gate | Triangle, when the prompt shows |
-| Play Whack-a-Metal-Head, Onin's game, Vin's game | Triangle, when the prompt shows; R3 quits a game |
+| Open the mod's menu | L3 + SELECT, then Mods ▸ Haven City: New Dawn |
+| Take an air train or a time gate, play a mini-game | Triangle when the prompt shows; R3 quits a game |
 
-The menu's entries:
-
-| Entry | Does |
+| Menu entry | Does |
 |---|---|
-| Mod enabled | Switches the mod on or off (off by default). On: the time gate stands in Jak 3's Freedom HQ, and the entries below can be used. Off: Jak 3 as it is |
-| KG-Guard vs Freedom Fighters | Switches the war mode on or off (off by default), in Jak 2's city and its places and in Jak 3's city |
+| Mod enabled | Switches the mod on or off (off at each boot); off, Jak 3 is unchanged |
+| KG-Guard vs Freedom Fighters | Switches the war mode on or off (off at each boot); greyed out while the mod is off |
 | Warp to Haven City (Jak 2) | Warps to the underground hideout |
-| Warp to a district | Warps to a spot in each district (slums, port, bazaar, industrial section, main town, gardens, palace plaza and roof, stadium grounds) or to a place in it (the Hip Hog, the gun course, the port's air train, Vin's power station, the construction site gate, the cable pillar, the fortress gate, the Oracle, Keira's garage) |
-| Warp outside the city | Warps to Dead Town, the Sage's hut, the inside of the fortress, its prison, the stadium's race track, the construction site, the pumping station, the mountain top, Haven Forest, the castle pad, the dig site, or back to Jak 3's Freedom HQ |
-| Weather | Changing (Jak 3's weather, default) or a fixed one, in the whole game; and the time of day in Jak 2's levels: 9:00, 12:00, 16:00 (default), 19:00, 23:00, or Jak 2's day and night |
+| Warp to a district | Warps to each district or to a place in it |
+| Warp outside the city | Warps to the places outside the city, or back to Jak 3's Freedom HQ |
+| Weather | The weather in the whole game, and the hour in Jak 2's levels |
 
 ## Download & Play via OpenGOAL Launcher (Players)
 
 > [!WARNING]
-> Not published yet: this repository has no release of the mod, and the launcher only installs
-> releases of a public repository (this one is private). Until then, build it from source
-> ([Developer Setup](#developer-setup--local-compilation)).
+> Not published yet: the repository is private and has no release. Until then, build it from
+> source ([Developer Setup](#developer-setup--local-compilation)).
 
-**Install Jak 2 and Jak 3 in the OpenGOAL Launcher first**, each from your own ISO, and let each
-install finish. Then install the mod: nothing else to do. While the launcher compiles the mod, the
-mod's extractor reads your installed Jak 2 and makes its levels, models and sounds (a minute or two
-more than a usual mod). If Jak 2 isn't installed, the install stops with an error code (4060): the
-launcher's log says to install Jak 2, then to reinstall the mod.
+Install Jak 2 and Jak 3 in the OpenGOAL Launcher first, each from your own ISO. While the launcher
+installs the mod, it makes the mod's levels from your installed Jak 2 (a minute or two more than
+a usual mod); without Jak 2 the install stops with error code 4060.
 
 ### Option A — Add Custom Mod Source (Recommended)
-1. In the **OpenGOAL Launcher**, navigate to **Settings ▸ Mods ▸ Add Custom Mod Source**.
+1. In the **OpenGOAL Launcher**, open **Settings ▸ Mods ▸ Add Custom Mod Source**.
 2. Paste this catalog URL:
    ```text
    https://raw.githubusercontent.com/whozghiar/jak3-mod-haven-city-new-dawn/main/index.json
    ```
-3. Go to the **Mods** tab, locate **Haven City: New Dawn**, and click **Install**.
-4. If Jak 3 isn't installed yet, the launcher asks for your Jak 3 ISO. It then extracts, generates
-   the Jak 2 levels from your installed Jak 2 and compiles the mod.
+3. In the **Mods** tab, find **Haven City: New Dawn** and click **Install**.
 
 ### Option B — Manual Installation from GitHub Releases
-1. Download the pre-built package for your operating system from the [Releases](https://github.com/whozghiar/jak3-mod-haven-city-new-dawn/releases) tab (`windows-v*.zip` or `linux-v*.zip`).
-2. Extract the archive into the `features` folder of the launcher's installation folder (the one
-   chosen in its settings): `<installation folder>/features/jak3/mods/_local/haven-city-new-dawn/`.
-3. Run the mod's decompile and compile from the OpenGOAL Launcher (the compile generates the Jak 2
-   levels), then launch the game.
+1. Download the package for your system from the [Releases](https://github.com/whozghiar/jak3-mod-haven-city-new-dawn/releases) tab (`windows-v*.zip` or `linux-v*.zip`).
+2. Extract it into `<launcher installation folder>/features/jak3/mods/_local/haven-city-new-dawn/`.
+3. Run the mod's decompile and compile from the launcher, then launch the game.
 
 ---
 
 ## Developer Setup & Local Compilation
 
-If you want to modify or compile this mod locally from source:
-
-### 1. Select the Active Game
-Make sure your environment is targeting Jak 3:
-```bash
-task set-game-jak3
-```
-
-### 2. Binary Compilation
-- **Status:** `task build-release-game` and `task build-release-decomp`: the custom level builder
-  in `goalc` and the decompiler changed.
-- **Details:** see [Rebuilding it step by step](docs/modding/current_mod/haven_city_new_dawn_readme.md#3-rebuilding-it-step-by-step)
-  in the technical README.
-```bash
-task build-release-game
-task build-release-decomp
-```
-
-### 3. Asset Extraction and Level Generation
-- **Status:** Required for **both** Jak 2 and Jak 3, from official copies (tested: Jak 2 PAL SCES-51608, Jak 3 NTSC-U SCUS-97330).
-- **Details:** nothing of Jak 2 or Jak 3 is in the repository: the levels, models and level code
-  are made on your machine from your own discs or ISOs. Copy each disc's files into `iso_data/jak2` and
-  `iso_data/jak3`, then run the level port: it extracts what it needs (the first time, all of
-  Jak 2 with its models: long, 11 GB) and generates the levels. The build then copies Jak 2's
-  music, sound banks and voice lines from `iso_data/jak2`. Jak 3's Freedom HQ needs the time gate's
-  model at extraction: a Jak 3 extracted before this branch needs that level again (the technical
-  README gives the command).
-```bash
-task level-port -- custom_assets/jak3/ports/jak2-haven-city/port.jsonc
-```
-
-### 4. Launch the Game
-Build with `task repl` then `(mi)`, and run the game natively:
-```bash
-task boot-game
-```
-Then warp from the Mods menu (L3 + SELECT, Mods ▸ Haven City: New Dawn ▸ Warp to Haven City (Jak 2)).
+1. Copy each disc's files into `iso_data/jak2` and `iso_data/jak3`.
+2. Build the tools and generate the levels (the first run extracts all of Jak 2, about 11 GB):
+   ```bash
+   task set-game-jak3
+   task build-release-game
+   task build-release-decomp
+   task level-port -- custom_assets/jak3/ports/jak2-haven-city/port.jsonc
+   ```
+3. Build and run: `task repl`, then `(mi)`, then `task boot-game`. In the game, open the Mods menu
+   and warp to Haven City.
 
 ## Demonstration Video
 
@@ -198,12 +123,9 @@ Then warp from the Mods menu (L3 + SELECT, Mods ▸ Haven City: New Dawn ▸ War
 
 **[Watch the demonstration video on YouTube](https://youtu.be/1_B4fGxRQZ0)**
 
-> [!NOTE]
-> *Demonstration videos must be hosted externally on YouTube to prevent repository bloating. Replace `YOUR_VIDEO_ID` with your YouTube video ID (e.g. `MnqnybexhSA` from `https://youtu.be/MnqnybexhSA`).*
-
 ## Technical Documentation
-For the complete technical breakdown, architecture, and developer notes, refer to:
-- [`docs/modding/current_mod/haven_city_new_dawn_readme.md`](docs/modding/current_mod/haven_city_new_dawn_readme.md)
+- [`docs/modding/current_mod/haven_city_new_dawn_readme.md`](docs/modding/current_mod/haven_city_new_dawn_readme.md): how the mod works, for a developer new to GOAL, and the change log.
+- [`docs/modding/current_mod/haven_city_new_dawn_reference.md`](docs/modding/current_mod/haven_city_new_dawn_reference.md): the detailed reference, feature by feature.
 
 ---
 *(AI-assisted)*
