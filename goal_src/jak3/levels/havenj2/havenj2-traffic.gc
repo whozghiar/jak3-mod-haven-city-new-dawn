@@ -165,18 +165,32 @@ Returns nothing."
   (none)
   )
 
+;; Copies of Jak 3's 18 guard speech infos (both voices of its 9 guard speech types), for the war's
+;; blue guards (speech types 34 to 51): Jak 3's lines, channel and priority, at random, spaced like
+;; Jak 2's guard lines of the same type (hj2-restore-city-speeches). With Jak 3's own spacing (a
+;; type's next line 15 to 23 s after its last, for every guard) the blue guards hardly spoke: 0 to 2
+;; lines in 2 minutes of war. Copies, so Jak 3's own city keeps its infos untouched.
+(deftype hj2-speech-copies (structure)
+  ((info  speech-type-info 18 :inline)
+   )
+  )
+
+(define *hj2-war-blue-speeches* (new 'static 'hj2-speech-copies))
+
 (defun hj2-restore-city-speeches ()
   "havenj2's restore-speech-callback (*traffic-info*): Jak 3's city speeches (its guards' lines), and
 Jak 2's citizens' lines for Jak 3's civ-* speech types, Jak 2's guards' for its guard-* types. Jak 3's
 guards' lines (types 1 to 18, both voices) are kept 33 types on, in the race types (no race in the
-city), for the war's Freedom League guards; Jak 2's fight lines for Jak driving and for Dark Jak go
-in types 52 and 54 (hj2-speech-type, jak2-haven-city-war.gc). Returns nothing."
+city), for the war's Freedom League guards, as copies spaced like Jak 2's lines of the same type
+(*hj2-war-blue-speeches*); Jak 2's fight lines for Jak driving and for Dark Jak go in types 52 and 54
+(hj2-speech-type, jak2-haven-city-war.gc). Returns nothing."
   (restore-city-speeches)
   (dotimes (i 18)
-    (speech-table-set!
-      *speech-control*
-      (the-as speech-type (+ i 34))
-      (-> *speech-control* speech-table (+ i 1))
+    (let ((copy (-> *hj2-war-blue-speeches* info i)))
+      (mem-copy! (the-as pointer copy) (the-as pointer (-> *speech-control* speech-table (+ i 1))) (size-of speech-type-info))
+      (set! (-> copy time) (the-as uint 0))
+      (logior! (-> copy flags) (speech-type-flag random-order))
+      (speech-table-set! *speech-control* (the-as speech-type (+ i 34)) copy)
       )
     )
   (hj2-guard-speech (speech-type guard-chatter) *hj2-guard-chatter-speech* *hj2-guard-chatter-sounds*)
@@ -189,6 +203,17 @@ in types 52 and 54 (hj2-speech-type, jak2-haven-city-war.gc). Returns nothing."
   (hj2-guard-speech (speech-type guard-generic-battle) *hj2-guard-battle-speech* *hj2-guard-battle-sounds*)
   (hj2-guard-speech (the-as speech-type 52) *hj2-guard-battle-pilot-speech* *hj2-guard-battle-pilot-sounds*)
   (hj2-guard-speech (the-as speech-type 54) *hj2-guard-battle-dark-speech* *hj2-guard-battle-dark-sounds*)
+  ;; the blue guards' copies take the spacing of Jak 2's line of the same type
+  (dotimes (i 18)
+    (let ((copy (-> *hj2-war-blue-speeches* info i))
+          (jak2 (-> *speech-control* speech-table (+ i 1)))
+          )
+      (set! (-> copy min-delay) (-> jak2 min-delay))
+      (set! (-> copy max-delay) (-> jak2 max-delay))
+      (set! (-> copy delay) (-> jak2 delay))
+      (set! (-> copy delay-pre-time) (-> jak2 delay-pre-time))
+      )
+    )
   (hj2-civ-speech (speech-type civ-m-alert) *hj2-civ-m-alert-speech* *hj2-civ-m-alert-sounds*)
   (hj2-civ-speech (speech-type civ-f-alert) *hj2-civ-f-alert-speech* *hj2-civ-f-alert-sounds*)
   (hj2-civ-speech (speech-type civ-m-shot-by-player) *hj2-civ-m-shot-speech* *hj2-civ-m-shot-sounds*)
