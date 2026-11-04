@@ -7,37 +7,39 @@
 
 #|
 
-  The city's part of the war mode of Haven City: New Dawn ("KG-Guard vs Freedom Fighters",
-  pc/features/jak2-haven-city-war.gc, GAME). Linked after the traffic code in Jak 3's city
-  (goal_src/jak3/dgos/cwi.gd, an added line) and in Jak 2's city hub (havenj2's DGO takes CWI's
-  objects in their order), so it only exists while one of the two cities is loaded.
+  The city's part of the war mode of Haven City: New Dawn (pc/features/jak2-haven-city-war.gc,
+  GAME): "KG-Guard vs Freedom Fighters" in Jak 2's city, and Praxis KG invasion in Jak 3's. Linked
+  after the traffic code in Jak 3's city (goal_src/jak3/dgos/cwi.gd, an added line) and in Jak 2's
+  city hub (havenj2's DGO takes CWI's objects in their order), so it only exists while one of the
+  two cities is loaded.
 
-  While the war is on, a director process, child of the traffic manager (it dies with the traffic),
-  every frame:
+  While either mode is on, a director process, child of the traffic manager (it dies with the
+  traffic), every frame:
   - counts the live looks of the guards and jetpack guards (the shares of jak2-haven-city-war.gc);
-  - in Jak 3's city, holds the factions at war (Jak 3's faction commands, as a death or a task
-    change restores the stock ones): Freedom League and Krimzon Guard both strong, Metal Heads out;
-    the Krimzon Guard's spawn level loads CTYPESC, the jetpack guards' code;
-  - plays Jak 3's city fight music (fight1);
   - frightens the citizens: every citizen on foot keeps fleeing from the nearest guard (or Jak), and a
     danger sphere on a Krimzon Guard near Jak keeps new ones from walking in (the traffic engine's
     'panic);
-  - sends a troop transport now and then, landing near Jak, the two sides in turn (a red Krimzon
-    Guard ship with red and yellow guards, a blue Freedom Fighters one with blue guards;
-    hj2-transport.gc);
   - adds the war's hatreds to the attack controller: the two sides seek each other out from further
-    away, and the Krimzon Guards attack citizens too.
+    away, and the Krimzon Guards attack citizens too;
+  - in Jak 2's city only: plays Jak 3's city fight music (fight1), and sends a troop transport now
+    and then, landing near Jak, the two sides in turn (a red Krimzon Guard ship with red and yellow
+    guards, a blue Freedom Fighters one with blue guards; hj2-transport.gc). Jak 3's city has no war
+    ship: its conflict zones are held by the faction manager's hooks (jak2-haven-city-war.gc
+    hj2-invasion-permission, hj2-invasion-spawn-ok?, hj2-war-wake-ok?), and its fight music is Jak
+    3's own, in a territory at war.
 
-  Switching the war on or off rebuilds the city's traffic (a guard's look is chosen when its
-  process is made): in Jak 3's city by running ctywide's activation again, as a death does
+  Switching a mode on or off rebuilds the city's traffic (a guard's look is chosen when its process
+  is made): in Jak 3's city by running ctywide's activation again, as a death does
   (*hj2-war-city-hook*); havenj2 restarts its own (jak2-haven-city-war.gc hj2-war-changed!).
 
 |#
 
 ;; in hj2-transport.gc, linked before this file
 (define-extern hj2-transport-spawn (function process int level process))
-;; the war switch alone, mission or not (jak2-haven-city-war.gc, GAME)
+;; the switches alone, mission or not, and the war of Jak 2's world (jak2-haven-city-war.gc, GAME)
 (define-extern hj2-war-switched-on? (function symbol))
+(define-extern hj2-invasion-switched-on? (function symbol))
+(define-extern hj2-war-jak2-on? (function symbol))
 
 ;; DECOMP BEGINS
 
@@ -51,25 +53,6 @@ wiki common 1.4.17)."
 (define *hj2-war-city* (new 'static 'hj2-war-city-state))
 
 (set! (-> *hj2-war-city* director) (the-as handle #f))
-
-;; Jak 3's city at war (cty-faction.gc cty-faction-evaluate-commands): both sides strong
-;; everywhere, no Metal Head; the guards at the "combat" spawn level and the Krimzon Guard at "war"
-;; (it loads CTYPESC with the flying turrets' code, the jetpack guards'); the citizens and their
-;; vehicles at "war" (the war's counts cap them further, hj2-war-want-count). Battlefront's, with
-;; the citizens and vehicles kept.
-(define *hj2-war-faction-commands*
-  '((faction-strength ff 20)
-    (faction-strength kg 20)
-    (faction-strength mh -20)
-    (faction-spawn ff-guard combat)
-    (faction-spawn kg-guard war)
-    (faction-spawn mh-guard off)
-    (faction-spawn ff-ped war)
-    (faction-spawn ff-vehicle war)
-    (faction-spawn kg-ambient off)
-    (faction-spawn mh-ambient off)
-    )
-  )
 
 ;; how often a transport comes: the first one this long after the war starts, then one every 45 to
 ;; 90 s while none flies
@@ -131,15 +114,13 @@ on top (see above). Returns nothing. Side effect: *cty-attack-controller*'s tabl
   )
 
 ;; The director //////////////////////////////////////////////////////////////////////////////////
-;;   count-time, mission-time, faction-time, panic-time: the last looks count, mission check,
-;;   faction commands, danger sphere.
+;;   count-time, mission-time, panic-time: the last looks count, mission check, danger sphere.
 ;;   transport-time: when the next transport may come. transport: the transport flying now.
 ;;   transport-side: the side of the next one (HJ2_SIDE_FF or HJ2_SIDE_KG, in turn).
 ;;   music?: its fight music setting is on. hatred?: the war's hatred entries are in the table.
 (deftype hj2-war-director (process)
   ((count-time      time-frame)
    (mission-time    time-frame)
-   (faction-time    time-frame)
    (panic-time      time-frame)
    (transport-time  time-frame)
    (transport       handle)
@@ -154,16 +135,13 @@ on top (see above). Returns nothing. Side effect: *cty-attack-controller*'s tabl
 
 
 (defun hj2-war-city-level ()
-  "The level the war's city art is in (the transport's): havenj2 in Jak 2's city, CTYPESA (Jak 3's
-guards' borrow level) in Jak 3's, #f when neither is active. No side effects."
-  (let ((hub (level-get *level* 'havenj2))
-        (pes (level-get *level* 'ctypesa))
+  "The level the transport's art is in: havenj2, Jak 2's city hub, #f while it isn't active (the
+transports fly in Jak 2's city only). No side effects."
+  (let ((hub (level-get *level* 'havenj2)))
+    (if (and hub (= (-> hub status) 'active))
+        hub
+        (the-as level #f)
         )
-    (cond
-      ((and hub (= (-> hub status) 'active)) hub)
-      ((and pes (= (-> pes status) 'active)) pes)
-      (else (the-as level #f))
-      )
     )
   )
 
@@ -352,17 +330,17 @@ guards); the next one 45 to 90 s later. A failed spawn (no landing spot, no proc
   )
 
 (defbehavior hj2-war-director-update hj2-war-director ()
-  "One frame of the war in the city: every 0.5 s whether a Jak 3 mission runs (the war then steps
-aside, hj2-war-on?), and while the war is on its music, counts, faction state, panic and
-transports. Returns nothing. Side effect: the director's music setting."
+  "One frame of the war in the city: every 0.5 s whether a Jak 3 mission runs (the invasion then
+steps aside, hj2-war-on?), and while a mode is on its counts, panic and hatreds, and in Jak 2's city
+its music and transports. Returns nothing. Side effect: the director's music setting."
   (when (time-elapsed? (-> self mission-time) (seconds 0.5))
     (set-time! (-> self mission-time))
     (hj2-war-update-mission!)
     )
-  ;; Jak 3's city fight music (cty-faction.gc plays it during a fight near Jak) for the whole war: a
-  ;; setting of this process, above the city's own music and gone with the process
+  ;; Jak 3's city fight music (cty-faction.gc plays it during a fight near Jak) for the whole war of
+  ;; Jak 2's city: a setting of this process, above the city's own music and gone with the process
   (cond
-    ((hj2-war-on?)
+    ((hj2-war-jak2-on?)
      (when (not (-> self music?))
        (set-setting! 'music 'fight1 0.0 0)
        (set! (-> self music?) #t)
@@ -388,7 +366,7 @@ transports. Returns nothing. Side effect: the director's music setting."
          )
        )
       ((-> self hatred?)
-       (if (not (hj2-war-switched-on?))
+       (if (not (or (hj2-war-switched-on?) (hj2-invasion-switched-on?)))
            (hj2-war-hatred-set! #f)
            )
        (set! (-> self hatred?) #f)
@@ -403,20 +381,14 @@ transports. Returns nothing. Side effect: the director's music setting."
       (hj2-war-rearm-guards)
       (hj2-war-scare-civilians)
       )
-    ;; Jak 3's city only (havenj2 has no faction manager)
-    (when (and *cty-faction-manager*
-               (nonzero? *cty-faction-manager*)
-               (time-elapsed? (-> self faction-time) (seconds 2))
-               )
-      (set-time! (-> self faction-time))
-      (cty-faction-evaluate-commands *hj2-war-faction-commands*)
-      )
     ;; every 2 s: each danger also holds one of the traffic engine's 16 suppression boxes for 5 s
     (when (time-elapsed? (-> self panic-time) (seconds 2))
       (set-time! (-> self panic-time))
       (hj2-war-panic)
       )
-    (hj2-war-transports)
+    (if (hj2-war-jak2-on?)
+        (hj2-war-transports)
+        )
     )
   (none)
   )
@@ -436,7 +408,6 @@ transports. Returns nothing. Side effect: the director's music setting."
 nothing (goes active)."
   (set! (-> self count-time) 0)
   (set! (-> self mission-time) 0)
-  (set! (-> self faction-time) 0)
   (set! (-> self panic-time) 0)
   (set! (-> self transport) (the-as handle #f))
   (set! (-> self transport-time) (+ (current-time) HJ2_WAR_FIRST_TRANSPORT))
@@ -455,7 +426,7 @@ nothing (goes active)."
 child of the traffic manager: it dies with the traffic). Returns nothing."
   (*hj2-war-stock-traffic-update* this)
   ;; switched on, not hj2-war-on?: the director also tells when a Jak 3 mission ends
-  (when (and (hj2-war-switched-on?) (not (handle->process (-> *hj2-war-city* director))))
+  (when (and (or (hj2-war-switched-on?) (hj2-invasion-switched-on?)) (not (handle->process (-> *hj2-war-city* director))))
     (let ((proc (process-spawn hj2-war-director :name "hj2-war-director" :to this)))
       (set! (-> *hj2-war-city* director) (if proc
                                              (ppointer->handle proc)
@@ -485,3 +456,4 @@ Returns nothing."
 ;; at every link of this file (Jak 3's city, or havenj2): the previous value pointed into the
 ;; previous link
 (set! *hj2-war-city-hook* hj2-war-city-command)
+

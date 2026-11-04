@@ -3,16 +3,28 @@
 
 #|
 
-  jak2-haven-city-war.gc -- "KG-Guard vs Freedom Fighters", the war mode of Haven City: New Dawn (GAME).
+  jak2-haven-city-war.gc -- the war modes of Haven City: New Dawn (GAME).
 
-  A Mods menu switch (*mod-jak2-haven-city-war*, off by default, usable only while the mod is on):
-  in Jak 2's city (havenj2) as in Jak 3's own, Jak 2's Krimzon Guards (red, and yellow: Jak 2's
-  dark guards) fight the Freedom League's blue guards; troop transports bring guards of either side
-  (a red ship or a blue one); jetpack guards of either side fly in; the citizens flee and are fewer,
-  and so are the vehicles; in Jak 2's city the Hellcats and guard bikes fly in either side's colors
-  (red or blue, havenj2-traffic.gc), and crimson bikes wait on the ground. In the places around
-  the city (Dead Town, the pumping station, Haven Forest, the fortress and its prison...), red and
-  yellow Krimzon Guards stand where Jak 2 put its enemies (jak2-haven-city-kg.gc).
+  "KG-Guard vs Freedom Fighters", a Mods menu switch (*mod-jak2-haven-city-war*, off by default,
+  usable only while the mod is on), in Jak 2's world only (its city havenj2 and the places around
+  it, hj2-war-jak2-on?): Jak 2's Krimzon Guards (red, and yellow: Jak 2's dark guards) fight the
+  Freedom League's blue guards; troop transports bring guards of either side (a red ship or a blue
+  one); jetpack guards of either side fly in; the citizens flee and are fewer, and so are the
+  vehicles; the Hellcats and guard bikes, rare, fly in either side's colors with a pilot of that side
+  and go after the other side (red ones after Jak too; havenj2-traffic.gc), and crimson bikes wait
+  on the ground. In the places around the city (Dead Town, the pumping station, Haven Forest, the
+  fortress and its prison...), red and yellow Krimzon Guards stand where Jak 2 put its enemies
+  (jak2-haven-city-kg.gc).
+
+  Praxis KG invasion, a second switch (*mod-jak2-haven-city-invasion*), in Jak 3's city once its
+  story is over (hj2-invasion-on?): the faction praxis-kguard (the same red and yellow guards, and red
+  jetpack guards) fights the Freedom League in the conflict zones chosen in the menu (the port by
+  default, several at once: *mod-jak2-haven-city-invasion-zones*). In a zone the two sides are all
+  there is (no KG robot, Metal Head or Wastelander comes out), elsewhere Jak 3's city is as it is;
+  no ship flies, of either side. Jak 3's faction manager and traffic hold this through three hooks:
+  hj2-invasion-permission (a zone's spawn permissions), hj2-invasion-spawn-ok? (which traffic types
+  come out in a zone) and hj2-war-wake-ok? (which of the pools' guards, of which side, goes out on a
+  street).
 
   How: the guards and jetpack guards are Jak 3's own traffic units (`crimson-guard`, and
   `flying-turret` for the jetpacks), drawn with Jak 2's models (build-actor, made by the level port:
@@ -35,10 +47,33 @@
 ;; The war mode, set by the Mods menu (jak2-haven-city-menu.gc). Off at every boot, like the mod.
 (define *mod-jak2-haven-city-war* #f)
 
+;; Praxis KG invasion, the war's second mode, set by the Mods menu: in Jak 3's city once its story is
+;; over, the Krimzon Guard of Praxis (the faction praxis-kguard: red and yellow guards, red jetpack
+;; guards) fights the Freedom League in the conflict zones chosen in the menu
+;; (*mod-jak2-haven-city-invasion-zones*). Off at every boot.
+(define *mod-jak2-haven-city-invasion* #f)
+
+;; The invasion's conflict zones, one bit per zone of Jak 3's city (HJ2_ZONE_*): the port by
+;; default. Each is a group of Jak 3's territories (nav-territory-type, cty-faction-h.gc), the groups
+;; Jak 3's faction manager uses itself (cty-faction-manager-method-16).
+(defconstant HJ2_ZONE_PORT 0)       ;; port-ff-deep ... port-ff-mh-border
+(defconstant HJ2_ZONE_IND 1)        ;; inda-kg-ff-border ... indb-kg-ff-border (the KG robots' land)
+(defconstant HJ2_ZONE_SLUM 2)       ;; sluma-ff-kg-border ... slumc-ff-deep, genc-border, genc
+(defconstant HJ2_ZONE_MH 3)         ;; mhcity-mh-ff-border ... mhcity-mh-deep (the Metal Heads' land)
+(define *mod-jak2-haven-city-invasion-zones* 1)
+
 (deftype hj2-war-state (structure)
   "What the war mode knows of the game. mission?: a Jak 3 mission runs in Jak 3's city (a
-task-manager process), set by hj2-war-update-mission!."
-  ((mission?  symbol)
+task-manager process), set by hj2-war-update-mission!. where-time: the frame (the real clock's frame
+counter) jak2? and city? were last found for (hj2-war-where!); jak2?: one of this mod's levels (Jak
+2's city, its places) is active; city?: Jak 3's city (ctywide) is active. awake-ff, awake-kg: the
+guards of each side out on the street, counted every half second (hj2-war-count-looks!)."
+  ((mission?    symbol)
+   (where-time  time-frame)
+   (jak2?       symbol)
+   (city?       symbol)
+   (awake-ff    int32)
+   (awake-kg    int32)
    )
   )
 
@@ -49,11 +84,79 @@ task-manager process), set by hj2-war-update-mission!."
   (and *mod-jak2-haven-city-enabled* *mod-jak2-haven-city-war*)
   )
 
-(defun hj2-war-on? ()
-  "#t while the war is on: switched on (hj2-war-switched-on?), and no Jak 3 mission runs in Jak 3's
-city (a mission sets its own factions and units: the war steps aside until it ends). No side
+(defun hj2-invasion-switched-on? ()
+  "#t while the invasion's switch and the mod's are on. No side effects."
+  (and *mod-jak2-haven-city-enabled* *mod-jak2-haven-city-invasion*)
+  )
+
+(defun hj2-story-done? ()
+  "#t once Jak 3's story is over (its last boss beaten: desert-final-boss-resolution closed). No side
 effects."
-  (and (hj2-war-switched-on?) (not (-> *hj2-war-state* mission?)))
+  (task-node-closed? (game-task-node desert-final-boss-resolution))
+  )
+
+(defun hj2-war-where! ()
+  "Where the war may be: whether one of this mod's levels (jak2?) and Jak 3's city (city?) are
+active, found once a frame (the hooks ask many times a frame, from small stacks). Returns nothing.
+Side effects: *hj2-war-state*'s where-time, jak2? and city?."
+  (let ((now (-> *display* real-clock frame-counter)))
+    (when (!= now (-> *hj2-war-state* where-time))
+      (set! (-> *hj2-war-state* where-time) now)
+      (set! (-> *hj2-war-state* jak2?) (hj2-world-level-active? (the-as level #f)))
+      (let ((city (level-get *level* 'ctywide)))
+        (set! (-> *hj2-war-state* city?) (the-as symbol (and city (= (-> city status) 'active))))
+        )
+      )
+    )
+  (none)
+  )
+
+(defun hj2-war-jak2-on? ()
+  "#t while the war of Jak 2's world is on: switched on (hj2-war-switched-on?) and one of this mod's
+levels active. It never reaches Jak 3's city. No side effects but the frame's cache (hj2-war-where!)."
+  (when (hj2-war-switched-on?)
+    (hj2-war-where!)
+    (-> *hj2-war-state* jak2?)
+    )
+  )
+
+(defun hj2-invasion-on? ()
+  "#t while Praxis KG invasion is on: switched on (hj2-invasion-switched-on?), Jak 3's city active,
+its story over (hj2-story-done?), and no Jak 3 mission running there (a mission sets its own
+factions and units: the invasion steps aside until it ends). No side effects but the frame's cache."
+  (when (hj2-invasion-switched-on?)
+    (hj2-war-where!)
+    (and (-> *hj2-war-state* city?) (not (-> *hj2-war-state* mission?)) (hj2-story-done?))
+    )
+  )
+
+(defun hj2-war-on? ()
+  "#t while the war's rules apply to the units here: the war of Jak 2's world (hj2-war-jak2-on?) or
+Praxis KG invasion in Jak 3's city (hj2-invasion-on?). Each hook of Jak 3's code asks this. No side
+effects but the frame's cache."
+  (or (hj2-war-jak2-on?) (hj2-invasion-on?))
+  )
+
+(defun hj2-invasion-zone ((territory int))
+  "The invasion zone (HJ2_ZONE_*) of one of Jak 3's territories (nav-territory-type: a nav branch's
+clock-type), -1 for the special and invalid ones. No side effects."
+  (cond
+    ((< territory 0) -1)
+    ((< territory 3) HJ2_ZONE_PORT)
+    ((< territory 9) HJ2_ZONE_IND)
+    ((< territory 16) HJ2_ZONE_SLUM)
+    ((< territory 18) HJ2_ZONE_PORT)
+    ((< territory 21) HJ2_ZONE_MH)
+    (else -1)
+    )
+  )
+
+(defun hj2-invasion-zone? ((territory int))
+  "#t when the invasion is on and territory (nav-territory-type) is in one of its conflict zones
+(*mod-jak2-haven-city-invasion-zones*). No side effects."
+  (let ((zone (hj2-invasion-zone territory)))
+    (and (>= zone 0) (logtest? *mod-jak2-haven-city-invasion-zones* (ash 1 zone)) (hj2-invasion-on?))
+    )
   )
 
 (defun hj2-war-update-mission! ()
@@ -111,6 +214,24 @@ Returns nothing."
 Returns nothing."
   (set! *mod-jak2-haven-city-war* on)
   (hj2-war-changed!)
+  (none)
+  )
+
+(defun mod-jak2-haven-city-set-invasion ((on symbol))
+  "Switch Praxis KG invasion on (on: #t) or off (#f) from the Mods menu; Jak 3's city, if loaded,
+follows at once. Returns nothing."
+  (set! *mod-jak2-haven-city-invasion* on)
+  (hj2-war-changed!)
+  (none)
+  )
+
+(defun mod-jak2-haven-city-toggle-zone ((zone int))
+  "Make zone (HJ2_ZONE_*) a conflict zone of the invasion, or no longer one, from the Mods menu;
+Jak 3's city, if loaded, follows at once. Returns nothing."
+  (set! *mod-jak2-haven-city-invasion-zones* (logxor *mod-jak2-haven-city-invasion-zones* (ash 1 zone)))
+  (if *mod-jak2-haven-city-invasion*
+      (hj2-war-changed!)
+      )
   (none)
   )
 
@@ -315,15 +436,21 @@ the skeleton's effect-control (process heap)."
   "Called by crimson-guard-method-267 (guard.gc) whenever a guard is given a weapon (guard-type: 0
 tazer, 1 rifle, 2 grenade launcher). At war no guard uses the tazer: a Krimzon Guard takes the
 weapon its model holds, the rifle (red, yellow) or the grenade launcher (red-gl, yellow-gl); a
-Freedom League guard keeps a rifle or launcher the squad gives it, and trades a tazer for a rifle,
-or for a launcher one time in three (by its pid, so the same guard keeps the same weapon). Out of
-the war every guard keeps stock. Returns the guard type."
+Freedom League guard keeps a rifle or launcher the squad gives it, and trades anything else for a
+rifle, or for a launcher one time in three (by its pid, so the same guard keeps the same weapon).
+Anything else: the tazer, or a type no guard on foot has (the squad's type of a vehicle's guard,
+which a guard woken by a transport keeps: params guard-type 11). With such a type, go-hostile
+found no state to go to, so the jump out of the transport ended its code and killed it as it
+landed. Out of the war every guard keeps stock. Returns the guard type."
   (case (hj2-war-look this)
     ((HJ2_LOOK_RED HJ2_LOOK_YELLOW) (the-as int (guard-type rifle)))
     ((HJ2_LOOK_RED_GL HJ2_LOOK_YELLOW_GL) (the-as int (guard-type grenade)))
     ((HJ2_LOOK_BLUE)
      (cond
-       ((or (not (hj2-war-on?)) (!= stock (the-as int (guard-type tazer))))
+       ((or (not (hj2-war-on?))
+            (= stock (the-as int (guard-type rifle)))
+            (= stock (the-as int (guard-type grenade)))
+            )
         stock
         )
        ((zero? (mod (-> this pid) 3))
@@ -370,6 +497,8 @@ director in its own process (hj2-war-city.gc), never from a unit's init. Returns
   (dotimes (i HJ2_LOOK_COUNT)
     (set! (-> *hj2-war-looks* i) 0)
     )
+  (set! (-> *hj2-war-state* awake-ff) 0)
+  (set! (-> *hj2-war-state* awake-kg) 0)
   (iterate-process-tree
     *active-pool*
     (lambda ((p process))
@@ -378,6 +507,13 @@ director in its own process (hj2-war-city.gc), never from a unit's init. Returns
           (let ((look (hj2-war-look p)))
             (if (>= look 0)
                 (+! (-> *hj2-war-looks* look) 1)
+                )
+            )
+          ;; a guard out on the street (the traffic keeps the others in its inactive state)
+          (when (and (= sym 'crimson-guard) (not (focus-test? (the-as process-focusable p) inactive dead)))
+            (if (= (hj2-war-guard-side p) HJ2_SIDE_KG)
+                (+! (-> *hj2-war-state* awake-kg) 1)
+                (+! (-> *hj2-war-state* awake-ff) 1)
                 )
             )
           )
@@ -419,14 +555,22 @@ side effects."
 
 (defun hj2-war-pick-look ((proc process-drawable) (first int) (last int))
   "The look, between first and last (HJ2_LOOK_*), a new unit proc takes: the one furthest below its
-share whose art is in proc's level (first, the stock look, needs none), counted as live at once (a
-pool makes several units in one frame). Returns the look."
+share in proportion (the fewest live units for its share: count / share), whose art is in proc's
+level (first, the stock look, needs none), counted as live at once (a pool makes several units in
+one frame). By proportion, not by units missing: the pool's first units alternate the sides (the
+blue look's share, 10, came first six times, and the traffic wakes a pool's first units first).
+Returns the look."
   (let ((look first)
         (lev (-> proc level))
         (i (+ first 1))
         )
     (while (<= i last)
-      (if (and (< (hj2-war-look-gap look) (hj2-war-look-gap i)) (hj2-war-look-has-art? lev i))
+      ;; count(i) / share(i) < count(look) / share(look), without a division
+      (if (and (< (* (-> *hj2-war-looks* i) (-> *hj2-war-look-share* look))
+                  (* (-> *hj2-war-looks* look) (-> *hj2-war-look-share* i))
+                  )
+               (hj2-war-look-has-art? lev i)
+               )
           (set! look i)
           )
       (+! i 1)
@@ -451,12 +595,21 @@ during the war the look furthest below its share (blue, red, yellow; hj2-war-pic
 
 (defun hj2-war-turret-skel-name ((this process-drawable))
   "Skeleton group of a new flying-turret process (flying-turret.gc init-enemy!): \"skel-flying-turret\",
-or during the war a jetpack guard, blue or red (hj2-war-pick-look; the stock turret when neither
-model is in the level)."
-  (if (and (hj2-war-on?) (hj2-war-look-has-art? (-> this level) HJ2_LOOK_JET_BLUE))
-      (-> *hj2-war-look-skel* (hj2-war-pick-look this HJ2_LOOK_JET_BLUE HJ2_LOOK_JET_RED))
+or during the war of Jak 2's world a jetpack guard, blue or red (hj2-war-pick-look); during Praxis KG
+invasion one process in two (odd pid) a red jetpack guard, the others Jak 3's turret (the
+invasion's conflict zones get the jetpack guards, the KG robots' land keeps its turrets:
+hj2-war-get-inactive). The stock turret when the jetpack model isn't in the level."
+  (cond
+    ((and (hj2-war-jak2-on?) (hj2-war-look-has-art? (-> this level) HJ2_LOOK_JET_BLUE))
+     (-> *hj2-war-look-skel* (hj2-war-pick-look this HJ2_LOOK_JET_BLUE HJ2_LOOK_JET_RED))
+     )
+    ((and (hj2-invasion-on?) (logtest? (-> this pid) 1) (hj2-war-look-has-art? (-> this level) HJ2_LOOK_JET_RED))
+     (-> *hj2-war-look-skel* HJ2_LOOK_JET_RED)
+     )
+    (else
       "skel-flying-turret"
       )
+    )
   )
 
 (defun hj2-war-hover? ((proc process))
@@ -519,10 +672,18 @@ the flags to set."
 (defun hj2-war-guard-activated ((this process))
   "Tail of crimson-guard citizen-method-194 (guard.gc), each time a guard is put on the street: a
 Krimzon Guard gets the enemy process mask back (Jak's aim and lock-on only consider processes with
-it), which Jak 3's guards drop. Returns nothing."
-  (if (hj2-war-kg? this)
-      (logior! (-> this mask) (process-mask enemy))
+it), which Jak 3's guards drop. The guard counts at once among its side's guards out
+(*hj2-war-state* awake-ff, awake-kg, which the war director recounts every half second): a burst of
+wakes then alternates the sides (hj2-war-wake-ok?). Returns nothing."
+  (cond
+    ((hj2-war-kg? this)
+     (logior! (-> this mask) (process-mask enemy))
+     (+! (-> *hj2-war-state* awake-kg) 1)
+     )
+    (else
+      (+! (-> *hj2-war-state* awake-ff) 1)
       )
+    )
   (none)
   )
 
@@ -768,38 +929,138 @@ No side effects."
     )
   )
 
+;; Praxis KG invasion's pools in Jak 3's city: the guards' (half Freedom League, half Krimzon Guard,
+;; *hj2-war-look-share*) and the flying turrets' (half red jetpack guards). Outside the conflict zones
+;; only the Freedom League's guards and the stock turrets go out (hj2-war-get-inactive).
+(defconstant HJ2_INVASION_GUARDS 20)
+(defconstant HJ2_INVASION_TURRETS 4)
+
 (defun hj2-war-want-count ((kind int) (stock int))
   "How many units of traffic type kind the city keeps (Jak 3's city: traffic-manager.gc
-traffic-manager-method-22, from the faction manager's spawn levels; havenj2 sets its counts itself,
-hj2-war-city.gc): stock while the war is off; during it the war's guards and jetpack guards, no
-Krimzon Guard robot nor Metal Head, and at most HJ2_WAR_WALKERS of each citizen and
-HJ2_WAR_VEHICLES of each hover vehicle."
-  (if (hj2-war-on?)
+traffic-manager-method-22, from the faction manager's spawn levels, and traffic-engine.gc
+activate-one-vehicle; havenj2 sets its counts itself, hj2-war-city.gc): stock while the war is off.
+During the war of Jak 2's world: the war's guards and jetpack guards, no Krimzon Guard robot nor
+Metal Head, and at most HJ2_WAR_WALKERS of each citizen and HJ2_WAR_VEHICLES of each hover vehicle.
+During Praxis KG invasion: pools for both sides' guards and the jetpack guards, and no guard vehicle
+(no Freedom League ship flies, nor any of Praxis's); the rest stock, which the conflict zones keep
+out of them (hj2-invasion-spawn-ok?)."
+  (cond
+    ((hj2-war-jak2-on?)
+     (case (the-as traffic-type kind)
+       (((traffic-type guard-a)) HJ2_WAR_GUARDS)
+       (((traffic-type flying-turret)) HJ2_WAR_JETPACKS)
+       (((traffic-type roboguard)
+         (traffic-type spydroid)
+         (traffic-type metalhead-grunt)
+         (traffic-type metalhead-flitter)
+         (traffic-type metalhead-predator)
+         )
+        0
+        )
+       (((traffic-type civilian-male) (traffic-type civilian-female) (traffic-type civilian-fat))
+        (min stock HJ2_WAR_WALKERS)
+        )
+       (((traffic-type civilian-bike-a)
+         (traffic-type civilian-bike-b)
+         (traffic-type civilian-bike-c)
+         (traffic-type civilian-car-a)
+         (traffic-type civilian-car-b)
+         (traffic-type civilian-car-c)
+         )
+        (min stock HJ2_WAR_VEHICLES)
+        )
+       (else stock)
+       )
+     )
+    ((hj2-invasion-on?)
+     (case (the-as traffic-type kind)
+       (((traffic-type guard-a)) (max stock HJ2_INVASION_GUARDS))
+       (((traffic-type flying-turret)) (max stock HJ2_INVASION_TURRETS))
+       (((traffic-type guard-bike) (traffic-type guard-car) (traffic-type guard-transport)) 0)
+       (else stock)
+       )
+     )
+    (else
+      stock
+      )
+    )
+  )
+
+(defun hj2-invasion-spawn-ok? ((kind int) (territory int))
+  "Called by traffic-engine.gc activate-by-type before Jak 3's faction check: may a unit of traffic
+type kind go out on a street of territory (nav-territory-type)? In a conflict zone of Praxis KG
+invasion only the two sides' guards (guard-a), the jetpack guards (flying-turret) and the citizens:
+no KG robot, spydroid, Metal Head nor Wastelander. #t everywhere else, and while the invasion is
+off. No side effects."
+  (or (not (hj2-invasion-zone? territory))
       (case (the-as traffic-type kind)
-        (((traffic-type guard-a)) HJ2_WAR_GUARDS)
-        (((traffic-type flying-turret)) HJ2_WAR_JETPACKS)
         (((traffic-type roboguard)
           (traffic-type spydroid)
           (traffic-type metalhead-grunt)
           (traffic-type metalhead-flitter)
           (traffic-type metalhead-predator)
+          (traffic-type wlander-male)
+          (traffic-type wlander-female)
+          (traffic-type kg-pickup)
           )
-         0
+         #f
          )
-        (((traffic-type civilian-male) (traffic-type civilian-female) (traffic-type civilian-fat))
-         (min stock HJ2_WAR_WALKERS)
-         )
-        (((traffic-type civilian-bike-a)
-          (traffic-type civilian-bike-b)
-          (traffic-type civilian-bike-c)
-          (traffic-type civilian-car-a)
-          (traffic-type civilian-car-b)
-          (traffic-type civilian-car-c)
-          )
-         (min stock HJ2_WAR_VEHICLES)
-         )
-        (else stock)
+        (else #t)
         )
-      stock
+      )
+  )
+
+(defun hj2-war-wake-ok? ((proc process) (kind int) (territory int) (first? symbol))
+  "Called by traffic-engine.gc hj2-get-from-inactive for each sleeping unit of traffic type kind the
+traffic could send out on a street of territory (nav-territory-type, -1: none known): may proc go
+out there? It asks twice: first (first? #t) for the unit it would rather send, then for any unit
+allowed. During Praxis KG invasion the pools hold both sides (hj2-war-guard-skel-name,
+hj2-war-turret-skel-name): a guard of either side in a conflict zone (hj2-invasion-zone?), first the
+side with fewer guards out (awake-ff, awake-kg), only a Freedom League guard elsewhere; a jetpack
+guard in a zone, only a stock flying turret elsewhere. #t for any other unit, street or time. No
+side effects."
+  (cond
+    ((or (not proc) (< territory 0) (not (hj2-invasion-on?)))
+     #t
+     )
+    ((= kind (the-as int (traffic-type guard-a)))
+     (cond
+       ((not (hj2-invasion-zone? territory))
+        (= (hj2-war-guard-side proc) HJ2_SIDE_FF)
+        )
+       (first?
+         (= (hj2-war-guard-side proc)
+            (if (<= (-> *hj2-war-state* awake-kg) (-> *hj2-war-state* awake-ff)) HJ2_SIDE_KG HJ2_SIDE_FF)
+            )
+         )
+       (else
+         #t
+         )
+       )
+     )
+    ((= kind (the-as int (traffic-type flying-turret)))
+     (= (hj2-invasion-zone? territory) (hj2-war-hover? proc))
+     )
+    (else
+      #t
+      )
+    )
+  )
+
+(defun hj2-invasion-permission ((territory int) (slot int))
+  "Called first by cty-faction.gc cty-faction-manager-method-14, Jak 3's spawn permission of a faction
+slot (cty-faction-info: 0 ff-guard, 1 ff-ped, 2 kg-guard, 3 kg-ped, 4 mh-guard, 5 mh-ped) in a
+territory (nav-territory-type): in a conflict zone of Praxis KG invasion, the Freedom League's
+guards and the Krimzon Guard's slot are allowed (3: their borrow levels load, CTYPESA with both
+sides' guards, CTYPESC with the jetpack guards; hj2-invasion-spawn-ok? keeps the KG robots out), the
+KG's pedestrians and the Metal Heads are not (0); the citizens keep Jak 3's answer. -1 (Jak 3's
+answer) everywhere else. No side effects."
+  (if (hj2-invasion-zone? territory)
+      (case slot
+        ((0 2) 3)
+        ((3 4 5) 0)
+        (else -1)
+        )
+      -1
       )
   )
