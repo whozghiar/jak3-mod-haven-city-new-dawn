@@ -1603,9 +1603,10 @@ shimmering on palette 6, palette 7 on."
 (define *mod-jak2-haven-city-weather* 0)
 
 ;; The mod's switch (Mods menu: Mod enabled), off by default: what the mod changes in Jak 3's own
-;; levels waits for it. On: the Freedom HQ's time gate stands (hj2-freehq-activate), the menu's
-;; weather holds (hj2-weather-update) and the menu's warps are usable. Off: Jak 3 as it is (no gate,
-;; Jak 3's own weather, warps greyed out). Jak 2's levels themselves don't read it.
+;; levels waits for it. On: the Freedom HQ's time gate stands (hj2-freehq-activate) and the menu's
+;; warps, war and invasion are usable. Off: Jak 3 as it is (no gate, warps greyed out). The menu's
+;; weather holds either way (Jak 3's changing weather until another is chosen). Jak 2's levels
+;; themselves don't read it.
 (define *mod-jak2-haven-city-enabled* #f)
 
 ;; clouds, fog and snow of the fixed weathers (index: the weather - 1). The rain comes from the
@@ -1667,7 +1668,7 @@ clock would hold still in the air (hj2-weather-particle-unfreeze)."
       (forall-particles hj2-weather-particle-unfreeze #t #f)
       )
   (let ((ctrl *mood-control*)
-        (weather (if *mod-jak2-haven-city-enabled* *mod-jak2-haven-city-weather* 0))
+        (weather *mod-jak2-haven-city-weather*)
         )
     (cond
       ((> weather 0)
@@ -2631,13 +2632,12 @@ while the mod is off (*mod-jak2-haven-city-enabled*)."
 
 ;; the war mode (jak2-haven-city-war.gc, linked after this file in GAME)
 (define-extern *mod-jak2-haven-city-war* symbol)
+(define-extern *mod-jak2-haven-city-invasion* symbol)
 (define-extern hj2-war-changed! (function none))
 
 (defun mod-jak2-haven-city-set-enabled ((on symbol))
   "Turn the mod on (on: #t) or off (#f) from the Mods menu, now: the Freedom HQ's time gate comes or
-goes if the Freedom HQ is active, and the weather driver, if running, goes back to Jak 3's weather
-while off (hj2-weather-update; while paused, on the first frame after, see hj2-apply-weather).
-Returns nothing."
+goes if the Freedom HQ is active. Returns nothing."
   (set! *mod-jak2-haven-city-enabled* on)
   (let ((lev (level-get *level* 'freehq)))
     (when (and lev (= (-> lev status) 'active))
@@ -2647,11 +2647,8 @@ Returns nothing."
           )
       )
     )
-  (if (and (handle->process (-> *hj2-handles* weather-driver)) (not (paused?)))
-      (hj2-weather-update)
-      )
-  ;; the war mode needs the mod: switching the mod switches it in the city loaded now
-  (if *mod-jak2-haven-city-war*
+  ;; the war and the invasion need the mod: switching the mod switches them in the city loaded now
+  (if (or *mod-jak2-haven-city-war* *mod-jak2-haven-city-invasion*)
       (hj2-war-changed!)
       )
   (none)
