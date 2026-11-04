@@ -26,6 +26,12 @@
 ;; *mod-jak2-haven-city-guard-bikes* is on (see "Freedom League guard bikes").
 
 (define-extern restore-city-speeches (function none))
+;; the war of Jak 2's world, and its Krimzon Guard models (pc/features/jak2-haven-city-war.gc, GAME)
+(define-extern hj2-war-jak2-on? (function symbol))
+(define-extern hj2-war-guard-side (function process int))
+(define-extern hj2-war-guard-clips (function process-drawable none))
+(define-extern skel-hj2-kg-red skeleton-group)
+(define-extern skel-hj2-kg-yellow skeleton-group)
 ;; Jak 2's citizens' lines, defined in the level-info file (jak2-haven-city-levels.gc)
 (define-extern *hj2-civ-m-alert-sounds* (array string))
 (define-extern *hj2-civ-f-alert-sounds* (array string))
@@ -341,6 +347,10 @@ go-inactive. Returns nothing."
 ;; them as its own; havenj2's "models"), the guard bike in red (hj2-guard-bike-red) or its usual
 ;; blue. Out of the war, Jak 3's own Hellcat art and the blue guard bike. Defines
 ;; *hj2-hellcat-red-sg* and *hj2-hellcat-blue-sg* (Jak 3's skel-h-hellcat bounds and origin).
+;; At war they are rare (one Hellcat and one guard bike at most, hj2-guard-vehicle-caps), flown by a
+;; guard of their side (hj2-hellcat-pilot setup-lods: a red or yellow Krimzon Guard in a red one),
+;; and each side's go after the other side ("War targets" below): a red one after the blue guards
+;; and Jak, a blue one after the red and yellow guards, never Jak.
 (def-actor hj2-hellcat-red
   :bounds (0 0 0 6.8)
   :origin-joint-index 3
@@ -400,12 +410,28 @@ process id is odd (half of them). No side effects."
   )
 
 (defmethod setup-lods ((this hj2-hellcat-pilot))
-  "Load the guard skeleton. vr3 marks a guard rider: if he is ever knocked off, stock code turns him
+  "Load the guard skeleton: a Freedom League guard's, or in a red (Krimzon Guard) vehicle of the war
+   (hj2-war-vehicle-red?) a red or yellow Krimzon Guard's (one pilot in two by process id), playing
+   the blue guard's clips like the war's guards on foot (hj2-war-guard-clips: crimson-guard-ag, in the
+   pilot's level, havenj2). vr3 marks a guard rider: if he is ever knocked off, stock code turns him
    into a guard on foot and raises the alert to 2."
-  (initialize-skeleton
-    this
-    (the-as skeleton-group (art-group-get-by-name *level* "skel-hj2-hellcat-pilot" (the-as (pointer level) #f)))
-    (the-as pair 0)
+  (let* ((ship (ppointer->process (-> this parent)))
+         (kg (and ship (hj2-war-vehicle-red? ship)))
+         )
+    (initialize-skeleton
+      this
+      (cond
+        ((not kg)
+         (the-as skeleton-group (art-group-get-by-name *level* "skel-hj2-hellcat-pilot" (the-as (pointer level) #f)))
+         )
+        ((logtest? (-> this pid) 1) skel-hj2-kg-yellow)
+        (else skel-hj2-kg-red)
+        )
+      (the-as pair 0)
+      )
+    (if kg
+        (hj2-war-guard-clips this)
+        )
     )
   (logior! (-> this flags) (vehicle-rider-flag vr0 vr3))
   (set! (-> this draw lod-set lod 0 dist) 122880.0)
@@ -416,6 +442,62 @@ process id is odd (half of them). No side effects."
   (setup this)
   0
   (none)
+  )
+
+;; ---------------------------------------------------------------------------------------------
+;; War targets: during the war mode, each side's guard vehicles go after the other side
+;; ---------------------------------------------------------------------------------------------
+
+;; how many Hellcats, and how many guard bikes, fly at once during the war (rare)
+(defconstant HJ2_WAR_AIR_VEHICLES 1)
+
+;; how far a vehicle of the war looks for its targets
+(defconstant HJ2_WAR_VEHICLE_RANGE (meters 100))
+
+(defun hj2-war-vehicle-may-hunt-jak? ((veh hvehicle))
+  "May the guard vehicle veh go after Jak? Always out of the war; during it, a red (Krimzon Guard)
+one only (hj2-war-vehicle-red?): a blue (Freedom Fighters) one fights the Krimzon Guards, never
+Jak. No side effects."
+  (or (not (hj2-war-jak2-on?)) (hj2-war-vehicle-red? veh))
+  )
+
+(defun hj2-war-vehicle-foe ((veh hvehicle))
+  "The unit the guard vehicle veh goes after during the war: the nearest within
+HJ2_WAR_VEHICLE_RANGE of a red (Krimzon Guard) one's blue guards on foot and Jak, of a blue (Freedom
+Fighters) one's red and yellow guards on foot (never Jak, hj2-war-vehicle-may-hunt-jak?). #f when
+there is none. No side effects."
+  (let ((foe-side (if (hj2-war-vehicle-red? veh) 0 1))
+        (best (the-as process-focusable #f))
+        (best-d HJ2_WAR_VEHICLE_RANGE)
+        )
+    (when (and *target* (hj2-war-vehicle-may-hunt-jak? veh) (not (focus-test? *target* dead)))
+      (let ((d (vector-vector-distance (-> veh root trans) (target-pos 0))))
+        (when (< d best-d)
+          (set! best-d d)
+          (set! best *target*)
+          )
+        )
+      )
+    (when *traffic-engine*
+      (let ((trk (-> *traffic-engine* tracker1)))
+        (dotimes (i (the-as int (-> trk active-object-count)))
+          (when (= (-> trk active-object-type-list i) (traffic-type guard-a))
+            (let ((g (the-as crimson-guard (handle->process (-> trk active-object-list i)))))
+              (when (and g (not (focus-test? g dead inactive)) (= (hj2-war-guard-side g) foe-side))
+                (let ((d (vector-vector-distance (-> veh root trans) (-> g root trans))))
+                  (when (< d best-d)
+                    (set! best-d d)
+                    (set! best g)
+                    )
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    best
+    )
   )
 
 ;; ---------------------------------------------------------------------------------------------
@@ -555,6 +637,7 @@ Returns #t."
   (case msg
     (('alert-begin)
      (when (and *mod-jak2-haven-city-alert*
+                (hj2-war-vehicle-may-hunt-jak? veh)
                 (not (logtest? (vehicle-flag dead alert player-driving) (-> veh v-flags)))
                 (logtest? (vehicle-flag ai-driving) (-> veh v-flags))
                 (-> block param 0)
@@ -580,6 +663,17 @@ after entering the state, or Jak is more than 100 m away (the alert arms it agai
 Then the stock post (vehicle-method-129, hvehicle-method-159). Returns #t when veh must go hostile
 (the caller's go-virtual). Side effects: veh's flags."
   (let ((chase #f))
+    ;; at war, an AI-flown vehicle not armed yet looks for a unit of the other side (or Jak)
+    (when (and (hj2-war-jak2-on?)
+               (logtest? (vehicle-flag ai-driving) (-> veh v-flags))
+               (not (logtest? (vehicle-flag alert dead player-driving) (-> veh v-flags)))
+               )
+      (let ((foe (hj2-war-vehicle-foe veh)))
+        (if foe
+            (hj2-guard-vehicle-engage veh p foe)
+            )
+        )
+      )
     (when (logtest? (vehicle-flag alert) (-> veh v-flags))
       (hj2-guard-vehicle-sight veh p)
       (cond
@@ -608,10 +702,14 @@ shots fired, may change veh's state."
   (hj2-guard-vehicle-sight veh p)
   (if (and (logtest? (vehicle-flag in-pursuit) (-> veh v-flags))
            (or (time-elapsed? (-> p target-in-sight-time) (seconds 8))
+               ;; Jak 2's rule for Jak (the squad's sightings are of him)
                (and (-> veh squad)
+                    (= (handle->process (-> p pursuit-target)) *target*)
                     (>= (-> veh squad alert-state guards-in-sight-of-target) 2)
                     (time-elapsed? (-> p target-in-sight-time) (seconds 0.5))
                     )
+               ;; at war a blue vehicle never goes after Jak
+               (and (= (handle->process (-> p pursuit-target)) *target*) (not (hj2-war-vehicle-may-hunt-jak? veh)))
                )
            )
       (vehicle-method-105 veh)
@@ -829,7 +927,7 @@ effects: veh's flags and controller flags, p's target."
   "Jak hit the Hellcat while a guard flies it (vehicle's event handler; Jak 3's does nothing): like
 Jak 2's vehicle-guard, it goes after him and the alert goes to 2 while *mod-jak2-haven-city-alert*
 is on. Returns none."
-  (when (and *mod-jak2-haven-city-alert* *target*)
+  (when (and *mod-jak2-haven-city-alert* *target* (hj2-war-vehicle-may-hunt-jak? this))
     (hj2-guard-vehicle-engage this (-> this pursuit) *target*)
     (vehicle-method-107 this 2 *target*)
     )
@@ -1110,7 +1208,7 @@ the parameter count, arg2: the event, arg3: its parameters. Returns the event's 
   "Jak hit the bike while a guard flies it (vehicle's event handler, flag bit 2 of the constants):
 like Jak 2's vehicle-guard, it goes after him and the alert goes to 2 while
 *mod-jak2-haven-city-alert* is on. Returns nothing."
-  (when (and *mod-jak2-haven-city-alert* *target*)
+  (when (and *mod-jak2-haven-city-alert* *target* (hj2-war-vehicle-may-hunt-jak? this))
     (hj2-guard-vehicle-engage this (-> this pursuit) *target*)
     (vehicle-method-107 this 2 *target*)
     )
@@ -1288,29 +1386,35 @@ Returns nothing."
 set every frame before the alert settings: guard type 5 (Hellcats) and 4 (guard bikes) get none
 while their Mods-menu toggle is off; with it on, the alert table's count up to HJ2_HELLCATS or
 HJ2_GUARD_BIKES while *mod-jak2-haven-city-alert* is on, else that number (Jak 3's table gives them
-none). The same during the war mode, where they fly in the two sides' colors
-(hj2-war-vehicle-red?). Returns nothing. Side effects: the squad's guard type info."
-  (let ((alert *mod-jak2-haven-city-alert*))
+none). During the war mode, where they fly in the two sides' colors (hj2-war-vehicle-red?), one of
+each at most (HJ2_WAR_AIR_VEHICLES): the war's ships are rare. Returns nothing. Side effects: the
+squad's guard type info."
+  (let ((alert *mod-jak2-haven-city-alert*)
+        (hellcats (if (hj2-war-jak2-on?) HJ2_WAR_AIR_VEHICLES HJ2_HELLCATS))
+        (bikes (if (hj2-war-jak2-on?) HJ2_WAR_AIR_VEHICLES HJ2_GUARD_BIKES))
+        )
     (ff-squad-control-method-56
       this
       5
-      (if (and *mod-jak2-haven-city-hellcats* (not alert)) HJ2_HELLCATS 0)
-      (if *mod-jak2-haven-city-hellcats* HJ2_HELLCATS 0)
+      (if (and *mod-jak2-haven-city-hellcats* (not alert)) hellcats 0)
+      (if *mod-jak2-haven-city-hellcats* hellcats 0)
       )
     (ff-squad-control-method-56
       this
       4
-      (if (and *mod-jak2-haven-city-guard-bikes* (not alert)) HJ2_GUARD_BIKES 0)
-      (if *mod-jak2-haven-city-guard-bikes* HJ2_GUARD_BIKES 0)
+      (if (and *mod-jak2-haven-city-guard-bikes* (not alert)) bikes 0)
+      (if *mod-jak2-haven-city-guard-bikes* bikes 0)
       )
     )
   (none)
   )
 
-(defun hj2-alert-hunter-count ((this ff-squad-control))
-  "Jak 2's guard-count for the alert's ending (this: the squad): the guards and guard vehicles still
-hunting. Jak 2 waited for every guard of the alert to be gone; Jak 3's guards keep patrolling, so
-only the hunters count (they stand down when the ending starts). Returns the count. No side effects."
+(defun hj2-alert-seen-count ((this ff-squad-control))
+  "How many of the alert's hunters still see Jak (this: the squad): the guards whose target is Jak and
+who have him in sight, and the guard vehicles chasing him in sight. Jak 2 kept an alert going while
+any of its guards was around (traffic-engine.gc guard-count); Jak 3's guards stay on the street
+whether they hunt or not, so only the ones still on Jak's heels count: losing them, or hiding, ends
+a high alert. Returns the count. No side effects."
   (let ((n 0))
     (let ((trk (-> this traffic tracker1)))
       (dotimes (i (the-as int (-> trk active-object-count)))
@@ -1318,7 +1422,8 @@ only the hunters count (they stand down when the ending starts). Returns the cou
           (let ((g (the-as crimson-guard (handle->process (-> trk active-object-list i)))))
             (if (and g
                      (not (focus-test? g dead inactive))
-                     (logtest? (-> g flags) (citizen-flag in-pursuit hostile))
+                     (logtest? (-> g flags) (citizen-flag target-in-sight))
+                     (= (handle->process (-> g target-status handle)) *target*)
                      )
                 (+! n 1)
                 )
@@ -1334,7 +1439,8 @@ only the hunters count (they stand down when the ending starts). Returns the cou
           (let ((v (the-as vehicle (handle->process (-> trk active-object-list i)))))
             (if (and v
                      (not (focus-test? v dead inactive))
-                     (logtest? (vehicle-flag alert) (-> v v-flags))
+                     (logtest? (vehicle-flag in-pursuit) (-> v v-flags))
+                     (logtest? (vehicle-flag target-in-sight) (-> v v-flags))
                      (not (logtest? (vehicle-flag player-driving) (-> v v-flags)))
                      )
                 (+! n 1)
@@ -1347,11 +1453,43 @@ only the hunters count (they stand down when the ending starts). Returns the cou
     )
   )
 
+(defun hj2-alert-drop-jak ((g crimson-guard))
+  "Make the guard g let go of Jak, as the attack controller does when a target is gone
+(mission-squad-control remove-attacker): its attacker's enemy, Jak, is dropped (Jak's count of
+attackers one less), so is its target, and the hatred Jak's attacks gave it ('member-attacked). Jak
+3's controller only picks a new enemy for a guard that has some hatred left for its current one:
+without this, a guard that once hunted Jak kept him as its target for good. Returns nothing. Side
+effects: g's attacker info and target, the controller's attacker count of Jak."
+  (let ((ai (-> g attacker-info))
+        (ctrl *cty-attack-controller*)
+        )
+    (when ai
+      (set! (-> ai hatred-map-callback) #f)
+      (when (and (= (handle->process (-> ai enemy)) *target*) ctrl (nonzero? ctrl))
+        (let ((k (-> ai enemy-index)))
+          (if (and (>= k 0) (< k (-> ctrl attackers length)) (> (-> ctrl attackers data k num-current-attackers) 0))
+              (+! (-> ctrl attackers data k num-current-attackers) -1)
+              )
+          )
+        (set! (-> ai enemy-index) -1)
+        (set! (-> ai enemy) (the-as handle #f))
+        (set! (-> ai enemy-type) -1)
+        (logior! (-> ai flags) (city-attacker-info-flag cai2))
+        )
+      )
+    (if (= (handle->process (-> g target-status handle)) *target*)
+        (set! (-> g target-status handle) (the-as handle #f))
+        )
+    )
+  (none)
+  )
+
 (defun hj2-alert-notify ((this ff-squad-control) (hunt symbol))
   "Jak 2's send-alert-events (this: the squad). hunt #t: every guard turns on Jak (the hatred Jak 3
 gives a guard he attacks: 'member-attacked) and every guard vehicle gets 'alert-begin. hunt #f: the
-guards drop that hatred and their pursuit ('end-pursuit), the guard vehicles get 'alert-end.
-Jak 3's guards ignore 'alert-begin and 'alert-end, hence the other events. Returns nothing."
+guards let go of Jak (hj2-alert-drop-jak) and of their pursuit ('end-pursuit), the guard vehicles
+get 'alert-end. Jak 3's guards ignore 'alert-begin and 'alert-end, hence the other events. Returns
+nothing."
   (let ((tgt (get-target-focus this)))
     (let ((trk (-> this traffic tracker1)))
       (dotimes (i (the-as int (-> trk active-object-count)))
@@ -1363,9 +1501,7 @@ Jak 3's guards ignore 'alert-begin and 'alert-end, hence the other events. Retur
                   (send-event g 'member-attacked)
                   )
                 (else
-                  (if (-> g attacker-info)
-                      (set! (-> g attacker-info hatred-map-callback) #f)
-                      )
+                  (hj2-alert-drop-jak g)
                   (send-event g 'end-pursuit)
                   )
                 )
@@ -1417,9 +1553,12 @@ setting."
 (defun hj2-alert-update ((this ff-squad-control))
   "Jak 2's update-alert-state on Jak 3's squad (this), Breath of Peace's port. Passes 1 and 2 are Jak
 3's method-45 (raw offsets kept as decompiled) with the settings of Jak 2's five levels
-(*hj2-alert-level-settings*). Pass 3 is Jak 2's: the alert lasts 30 s after the last offence (time
-drained twice as fast while Jak hides), then ends once no guard or guard vehicle hunts any more, and
-falls to 0 3 s later; no new guard or guard vehicle comes during the ending. While alerted: the
+(*hj2-alert-level-settings*). Pass 3 is Jak 2's: the alert lasts 30 s after the last offence (each
+new offence starts them again; the time drains three times as fast while Jak hides against a wall,
+target-hide), then it ends: a low alert (level 1, the tazers' arrest) at once, its guards letting go
+of Jak; a high one (2 and up) once no hunter has seen Jak for 3 s (hj2-alert-seen-count): Jak loses
+them or hides. The level falls to 0 3 s after the ending starts or after the last hunter lost him;
+no new guard or guard vehicle comes during the ending. While alerted: the
 minimap flashes, Jak 2's city music plays in its alert mode (sound-mode 1, MIDI register 3) or, when
 it isn't playing or is muted, the alarm sounds (city-alarm, Jak 2's CTYWIDE2 bank), the guards and
 guard vehicles hunt Jak, and every 8 kills raise the level. Returns nothing. Side effects: the
@@ -1506,7 +1645,8 @@ wanted-flash, the calling process's sound-mode setting, the alarm sound, events 
         (cond
           ((logtest? (-> this alert-state flags) (squad-alert-flag alert-ending))
            (cond
-             ((> (hj2-alert-hunter-count this) 0)
+             ;; a high alert holds while a hunter still sees Jak
+             ((and (>= (-> this alert-state level) (the-as uint 2)) (> (hj2-alert-seen-count this) 0))
               (set-time! (-> this alert-state start-time))
               )
              ((time-elapsed? (-> this alert-state start-time) (seconds 3))
@@ -1518,13 +1658,15 @@ wanted-flash, the calling process's sound-mode setting, the alarm sound, events 
            )
           (else
             (let ((left (+ (- (-> this alert-state start-time) (current-time)) (the-as time-frame (-> this alert-state duration)))))
-              ;; hiding drains the remaining time twice as fast
+              ;; hiding drains the remaining time three times as fast (Jak 2's: twice the time hidden)
               (if (and *target* (-> *target* next-state) (= (-> *target* next-state name) 'target-hide))
                   (set! left (- left (the-as time-frame (* (- (current-time) (-> *target* state-time)) 2))))
                   )
-              (if (<= left 0)
-                  (logior! (-> this alert-state flags) (squad-alert-flag alert-ending))
-                  )
+              (when (<= left 0)
+                (logior! (-> this alert-state flags) (squad-alert-flag alert-ending))
+                ;; the 3 s of the ending count from now
+                (set-time! (-> this alert-state start-time))
+                )
               )
             )
           )
@@ -1551,13 +1693,16 @@ wanted-flash, the calling process's sound-mode setting, the alarm sound, events 
           )
         (cond
           ((logtest? (-> this alert-state flags) (squad-alert-flag alert-ending))
-           ;; Jak 2: no new guard while the alert ends, and the hunters stand down
+           ;; Jak 2: no new guard while the alert ends; at a low alert the guards stand down at once,
+           ;; at a high one the hunters keep after Jak until they lose him (then hj2-alarm-off)
            (dotimes (m 3)
              (set! (-> this traffic object-type-info-array (traffic-type guard-a) target-counts m) 0)
              (set! (-> this traffic object-type-info-array (traffic-type guard-car) target-counts m) 0)
              (set! (-> this traffic object-type-info-array (traffic-type guard-bike) target-counts m) 0)
              )
-           (hj2-alert-notify this #f)
+           (if (< (-> this alert-state level) (the-as uint 2))
+               (hj2-alert-notify this #f)
+               )
            )
           (else
             (hj2-alert-notify this #t)
@@ -1791,3 +1936,4 @@ it, see hj2-sprite-page-used) and its minimap page."
   (set! *cty-attack-controller* #f)
   (none)
   )
+
