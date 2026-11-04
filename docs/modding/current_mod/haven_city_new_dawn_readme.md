@@ -472,6 +472,11 @@ To retouch a variant and ship it in a pack:
    the level port then uses it for that variant instead of recoloring (`texture_dir` of
    `rebuild_model`), at install or on the next run of the port.
 
+A release does not make this pack: `release.yml` ships the zips found in
+`docs/modding/current_mod/texture_packs/` as they are, and its runners have no Jak 2 to make the
+variants from. Make the pack on your machine before the release (step 2), and put its zip in that
+folder. Without retouches no pack is needed: every install recolors the variants itself.
+
 Checked: a pack file `kgtrns-wing01-hj2-transport-blue.png` replaced that texture in the rebuilt
 model and the export, the transport's 6 other textures were recolored; in game, the red turret, the
 blue transport, Hellcat and guard bike drew with their renamed textures.
