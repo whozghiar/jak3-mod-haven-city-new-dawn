@@ -443,9 +443,10 @@ bank, 'j2palca1: the gate asks for it before opening, *hj2-door-sound-banks*)."
 ;; the street (9 of them in the slums, the industrial and generic districts and by the stadium).
 ;; At the end of the game (the power station mission done, so no mission id counts), Jak 2 pops it
 ;; up when Jak drives a vehicle within 100m of it while the city's alert is at least 1; so does
-;; this one, whether the war mode is on or not. Up, it tracks him (leading his speed) and fires
-;; bursts of 5 double guard shots; it sinks back once he is 120m away or out of his vehicle (Jak 2
-;; kept it up while the alert lasted, firing at him on foot). Jak 2's alert is its traffic engine's;
+;; this one, and also when Jak is Dark Jak or Light Jak within 100m, whatever the alert, war mode
+;; on or off (hj2-cty-guard-turret-target?). Up, it tracks him (leading his speed) and fires bursts
+;; of 5 double guard shots; it sinks back once he is 120m away, or neither drives nor is Dark Jak
+;; or Light Jak any more (Jak 2 kept it up while the alert lasted, firing at him on foot). Jak 2's alert is its traffic engine's;
 ;; here it is the Freedom League squad's (*ff-squad-control*, havenj2-traffic.gc), the one Jak 3's
 ;; city guards react to. Popped up, it takes hits: 6 hit points (a strong hit, a red or dark shot
 ;; or an explosion takes 10); then its head blows apart (joint-exploder with its explode model),
@@ -568,6 +569,17 @@ havenj2's squad doesn't exist. No side effects."
       )
   )
 
+(defun hj2-cty-guard-turret-target? ((tgt process-focusable) (rising? symbol))
+  "Does the turret go up for (rising? #t), or stay up and fire at (#f), its target tgt (Jak)? Jak as
+Dark Jak or Light Jak, always; Jak driving a vehicle, to go up while the city's alert is at least
+1 (*mod-jak2-haven-city-alert* on), to stay up whatever it is now. No side effects."
+  (or (focus-test? tgt dark light)
+      (and (focus-test? tgt pilot)
+           (or (not rising?) (and *mod-jak2-haven-city-alert* (>= (hj2-city-alert-level) 1)))
+           )
+      )
+  )
+
 (defbehavior hj2-cty-guard-turret-anim-frame hj2-cty-guard-turret ((jak2-frame float))
   "The frame of the current animation matching Jak 2's frame jak2-frame of pop-up-down (frames 0
 to 32): build-actor resamples the animation, so the frame is taken as a fraction of its length.
@@ -680,11 +692,8 @@ root's position. Returns a vector (mode 3: a static one, overwritten by the next
                  (< (vector-vector-xz-distance-squared (get-trans (the-as process-focusable gp-0) 0) (-> self root trans))
                     (square 409600.0)
                     )
-                 (focus-test? (the-as process-focusable gp-0) pilot)
-                 ;; never for Dark Jak or Light Jak (only a pilot: a vehicle's driver)
-                 (not (focus-test? (the-as process-focusable gp-0) dark light))
-                 (>= (hj2-city-alert-level) 1)
-                 *mod-jak2-haven-city-alert*
+                 ;; Jak driving during an alert, or Dark Jak or Light Jak
+                 (hj2-cty-guard-turret-target? (the-as process-focusable gp-0) #t)
                  )
         (go-virtual hostile)
         )
@@ -838,9 +847,9 @@ and num-shots."
           ((zero? (-> self next-time-shot))
            (aim-at-focus self)
            )
-          ;; Jak on foot: no shot, back to aiming
+          ;; Jak on foot, neither Dark Jak nor Light Jak: no shot, back to aiming
           ((let ((tgt (the-as process-focusable (handle->process (-> self focus handle)))))
-             (not (and tgt (focus-test? tgt pilot)))
+             (not (and tgt (hj2-cty-guard-turret-target? tgt #f)))
              )
            (set! (-> self next-time-shot) 0)
            )
@@ -859,7 +868,7 @@ and num-shots."
                                   (< (vector-vector-xz-distance-squared (get-trans gp-0 0) (-> self root trans))
                                      (square 491520.0)
                                      )
-                                  (focus-test? gp-0 pilot)
+                                  (hj2-cty-guard-turret-target? gp-0 #f)
                                   )
                              #t
                              #f
