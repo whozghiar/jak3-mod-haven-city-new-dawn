@@ -38,7 +38,7 @@ Freedom League.
   places around it.
 - **Jak 2's sound:** its music, ambiences and voices.
 - **Mini-games:** Whack-a-Metal-Head, Onin's bubble game, Vin's game.
-- **Time and weather** set from the menu; the weather works with the mod off too.
+- **Time of day** of Jak 2's levels set from the menu; the weather is the Mods menu's Misc options > Weather, with the mod off too.
 - **Travelling:** warps to every place, time gates between the two games, saving anywhere.
 
 ## Controls
@@ -53,7 +53,7 @@ Freedom League.
 | Mod enabled | Switches the mod on or off (off at each boot); off, Jak 3 is unchanged |
 | KG-Guard vs Freedom Fighters | Switches the war mode on or off (off at each boot) |
 | Warp to Haven City (Jak 2) | Warp to Jak 2 (the underground hideout), Warp to a district, Warp outside the city (or back to Jak 3's Freedom HQ) |
-| Weather | The weather in the whole game, and the hour in Jak 2's levels; usable with the mod off |
+| Time of day (Jak 2's levels) | The hour in Jak 2's levels; usable with the mod off. The weather of the whole game is in the Mods menu's Misc options > Weather |
 
 The war and the warps are greyed out while the mod is off.
 

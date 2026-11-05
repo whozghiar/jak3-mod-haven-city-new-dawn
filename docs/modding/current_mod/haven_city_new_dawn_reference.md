@@ -531,10 +531,11 @@ Three traps:
 - **Time of day.** While one of the mod's levels is shown, the clock stays at the hour picked in
   the Mods menu (16:00 by default: a frozen noon puts the sun straight above, with a flat, grey
   light), or runs Jak 2's day and night.
-- **Weather.** Jak 2 and Jak 3 share their weather system. The Mods menu picks Jak 3's changing
-  weather or a fixed one (sunny, cloudy, foggy, light rain, rain, thunderstorm, snow), for the whole
-  game, with the mod on or off. A process, `hj2-weather-driver`, holds the choice every frame, so a Jak 3 level or mission
-  can't take it over.
+- **Weather.** Jak 2 and Jak 3 share their weather system. The weather is picked in the Mods
+  menu's Misc options > Weather (master-dev's `mods-menu.gc`, every mod's), which came from this
+  mod. The mod's own driver, `hj2-weather-driver`, still holds the time of day in Jak 2's levels; its
+  weather setting, `*mod-jak2-haven-city-weather*`, stays 0 (Jak 3's changing weather: nothing
+  held).
 - **Trap:** a weather picked while the menu pauses the game left rain drops hanging in the air: the
   particles are paused, but the sky is not. The change now waits for the menu to close.
 
@@ -550,7 +551,7 @@ while the mod is off.
 | Mod enabled | Switches the mod on or off; off at each boot |
 | KG-Guard vs Freedom Fighters | The war mode, in Jak 2's world |
 | Warp to Haven City (Jak 2) | A submenu: Warp to Jak 2 (the underground hideout), Warp to a district (a district, or a place in it), Warp outside the city (a place outside the city, or back to Jak 3's Freedom HQ) |
-| Weather | The weather, and a Time of day submenu; usable with the mod off |
+| Time of day (Jak 2's levels) | The hour of Jak 2's levels; usable with the mod off. The weather: Misc options > Weather |
 
 ![The Mods menu of the mod](../../img/mod/mods-menu.jpg)
 

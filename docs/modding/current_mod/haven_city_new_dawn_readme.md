@@ -212,10 +212,9 @@ Jak 3's Freedom League in Jak 2's city and the places around it. It never reache
 
 ### 5.1 The switch
 
-The menu's war entry is greyed out and can't be chosen while the mod is off. The shared menu file
-draws a disabled flag like an enabled one, and the project rules forbid editing it, so the mod's
-menu uses a flag type of its own that draws greyed out when disabled (`hj2-menu-flag`,
-`jak2-haven-city-menu.gc`; the code is in the wiki,
+The menu's war entry is greyed out and can't be chosen while the mod is off: the shared
+`popup-menu-flag` draws a disabled flag grey and ignores a confirm on it (master-dev's
+`popup-menu.gc`, Lisp wiki
 [4.36](../../../.agents/skills/goal-lisp/wiki/jak3.md#436-the-mods-menu-a-greyed-out-flag)).
 
 Switching the war rebuilds the traffic of the city loaded now, because a guard's look is chosen

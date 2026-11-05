@@ -21,14 +21,13 @@
   city or one of its places, or runs like in Jak 2 (see
   *mod-jak2-haven-city-hour* in jak2-haven-city-world.gc).
 
-  The weather, in the whole game: Jak 3's changing weather (clear, cloudy, foggy,
-  rain and thunderstorms), or a fixed one (sunny, cloudy, foggy, light rain, rain,
-  thunderstorm, snow), see *mod-jak2-haven-city-weather*.
+  The weather of the whole game is picked in the Mods menu's Misc options > Weather
+  (pc/features/mods-menu.gc, every mod's).
 
   The menu: the mod's switch (*mod-jak2-haven-city-enabled*, off by default); the war of Jak 2's
   world ("KG-Guard vs Freedom Fighters"); the warps to Jak 2's world (to Jak 2's city: its underground hideout, by
-  district, outside the city); these greyed out while the mod is off. Then the weather (with the
-  time of day of Jak 2's levels), usable with the mod off too. The traffic, its Hellcats and guard
+  district, outside the city); these greyed out while the mod is off. Then the time of day of Jak
+  2's levels, usable with the mod off too. The traffic, its Hellcats and guard
   bikes, and Jak 2's alert are always on in Jak 2's levels (jak2-haven-city-world.gc).
 
 |#
@@ -39,31 +38,12 @@
 (define-extern *mod-jak2-haven-city-hour* int)
 (define-extern hj2-world-level-active? (function level symbol))
 (define-extern hj2-apply-time-of-day (function none))
-(define-extern *mod-jak2-haven-city-weather* int)
-(define-extern hj2-apply-weather (function none))
 ;; defined in jak2-haven-city-war.gc, which GAME loads after this file
 (define-extern *mod-jak2-haven-city-war* symbol)
 (define-extern mod-jak2-haven-city-set-war (function symbol none))
 
-;; A flag of the Mods menu greyed out while its entry-disabled? says so. The shared popup-menu-flag
-;; (pc/util/popup-menu.gc, not ours to change) draws its label in white or cyan whatever its
-;; entry-disabled? says, and confirm! doesn't look at it: this type draws a disabled flag like a
-;; disabled button (grey, no check mark); the mod's entries also ignore a confirm while the mod is
-;; off (their on-confirm lambdas, mod-jak2-haven-city-warp).
-(deftype hj2-menu-flag (popup-menu-flag)
-  ()
-  )
-
-
-(defmethod draw-entry ((this hj2-menu-flag) (font-ctx font-context) (dma-buf dma-buffer) (hovering? symbol))
-  "Draw the flag: as a plain grey label while it is disabled (popup-menu-entry's drawing), else as
-popup-menu-flag draws it. Returns nothing."
-  (if (and (nonzero? (-> this entry-disabled?)) ((-> this entry-disabled?)))
-      ((method-of-type popup-menu-entry draw-entry) this font-ctx dma-buf hovering?)
-      ((method-of-type popup-menu-flag draw-entry) this font-ctx dma-buf hovering?)
-      )
-  (none)
-  )
+;; The mod's flags are the shared popup-menu-flag: a disabled one is drawn grey and ignores a
+;; confirm (pc/util/popup-menu.gc); their on-confirm lambdas also check the mod's switch.
 
 (defun mod-jak2-haven-city-warp ((name string))
   "Close the Mods menu and restart the player at one of this mod's continue points (havenj2-start:
@@ -88,26 +68,10 @@ Jak is in one of them."
   (none)
   )
 
-(defun mod-jak2-haven-city-set-weather ((weather int))
-  "Set the weather of the whole game (0: Jak 3's changing weather, else a fixed one, see
-*mod-jak2-haven-city-weather*), from now on."
-  (set! *mod-jak2-haven-city-weather* weather)
-  (hj2-apply-weather)
-  (none)
-  )
-
 (defmacro mod-jak2-haven-city-warp-button (label continue)
   "A Mods menu button warping to a continue point."
   `(new 'static 'popup-menu-button :label ,label
         :on-confirm (lambda () (mod-jak2-haven-city-warp ,continue) (none))
-        )
-  )
-
-(defmacro mod-jak2-haven-city-weather-flag (label weather)
-  "A Mods menu choice of weather."
-  `(new 'static 'popup-menu-flag :label ,label
-        :is-toggled? (lambda () (= *mod-jak2-haven-city-weather* ,weather))
-        :on-confirm (lambda () (mod-jak2-haven-city-set-weather ,weather) (none))
         )
   )
 
@@ -131,7 +95,7 @@ cycle, any negative hour)."
            )
       ;; the war mode (jak2-haven-city-war.gc): Krimzon Guards against the Freedom League, in Jak 2's
       ;; city and its places; greyed out and inert while the mod is off
-      (new 'static 'hj2-menu-flag :label "KG-Guard vs Freedom Fighters"
+      (new 'static 'popup-menu-flag :label "KG-Guard vs Freedom Fighters"
            :entry-disabled? (lambda () (not *mod-jak2-haven-city-enabled*))
            :is-toggled? (lambda () *mod-jak2-haven-city-war*)
            :on-confirm (lambda ()
@@ -200,28 +164,16 @@ cycle, any negative hour)."
             )
           )
         )
-      ;; the weather of the whole game and the hour of Jak 2's levels (jak2-haven-city-world.gc),
-      ;; usable with the mod off too
-      (new 'static 'popup-menu-submenu :label "Weather"
+      ;; the hour of Jak 2's levels (jak2-haven-city-world.gc), usable with the mod off too; the
+      ;; weather is the Mods menu's Misc options > Weather
+      (new 'static 'popup-menu-submenu :label "Time of day (Jak 2's levels)"
         :entries (new 'static 'boxed-array :type popup-menu-entry
-          (mod-jak2-haven-city-weather-flag "Changing (Jak 3's weather)" 0)
-          (mod-jak2-haven-city-weather-flag "Sunny" 1)
-          (mod-jak2-haven-city-weather-flag "Cloudy" 2)
-          (mod-jak2-haven-city-weather-flag "Foggy" 3)
-          (mod-jak2-haven-city-weather-flag "Light rain" 4)
-          (mod-jak2-haven-city-weather-flag "Rain" 5)
-          (mod-jak2-haven-city-weather-flag "Thunderstorm" 6)
-          (mod-jak2-haven-city-weather-flag "Snow" 7)
-          (new 'static 'popup-menu-submenu :label "Time of day (Jak 2's levels)"
-            :entries (new 'static 'boxed-array :type popup-menu-entry
-              (mod-jak2-haven-city-hour-flag "Morning (9:00)" 9)
-              (mod-jak2-haven-city-hour-flag "Noon (12:00)" 12)
-              (mod-jak2-haven-city-hour-flag "Afternoon (16:00)" 16)
-              (mod-jak2-haven-city-hour-flag "Evening (19:00)" 19)
-              (mod-jak2-haven-city-hour-flag "Night (23:00)" 23)
-              (mod-jak2-haven-city-hour-flag "Day and night cycle (Jak 2)" -1)
-              )
-            )
+          (mod-jak2-haven-city-hour-flag "Morning (9:00)" 9)
+          (mod-jak2-haven-city-hour-flag "Noon (12:00)" 12)
+          (mod-jak2-haven-city-hour-flag "Afternoon (16:00)" 16)
+          (mod-jak2-haven-city-hour-flag "Evening (19:00)" 19)
+          (mod-jak2-haven-city-hour-flag "Night (23:00)" 23)
+          (mod-jak2-haven-city-hour-flag "Day and night cycle (Jak 2)" -1)
           )
         )
       )
