@@ -305,6 +305,9 @@
   "anim-tester-x.o" ;; added
   "entity-debug.o" ;; added
   "subtitle.o" ;; added
+  "popup-menu-h.o" ;; added
+  "popup-menu.o" ;; added
+  "mods-menu.o" ;; added -- unified in-game "Mods" menu (see pc/features/mods-menu.gc)
   "default-menu-pc.o" ;; added
   "dir-tpages.go"
   "tpage-463.go"

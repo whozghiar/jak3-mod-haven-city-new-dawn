@@ -101,7 +101,7 @@
       (else
        ;; vanilla logic
        (set! *master-mode* new-mode)
-       (if *debug-segment* (menu-respond-to-pause))
+       (if (and *debug-segment* (not *popup-menu-open*)) (menu-respond-to-pause))
        (case *master-mode*
          (('pause)
           ;; request the pause mask to be set in prevent-from-run.
@@ -181,20 +181,22 @@
                                   *master-mode*))))))))))
     (('menu)
      ;; in debug menu
-     (set-master-mode (cond
-                        ;; push R3 to exit to previous master mode.
-                        ((cpad-hold? 0 r3) *last-master-mode*)
-                        ;; select/R2 to pause.
-                        ((cpad-hold? 0 select r2)
-                         (if *debug-segment*
-                           'pause
-                           *master-mode* ;; not sure we can get to menu in non-debug...
-                           ))
-                        (else
-                         (cond
-                           ((and (not (movie?)) (not *progress-process*)) (if (not *target*) 'pause 'progress))
-                           (else 'game)))))
-     (set! *pause-lock* (and *cheat-mode* (cpad-hold? 0 r2))))
+     ;; og:preserve-this Let the popup menu code handle inputs instead of the code written for the original debug menu
+     (when (not *popup-menu-open*)
+       (set-master-mode (cond
+                          ;; push R3 to exit to previous master mode.
+                          ((cpad-hold? 0 r3) *last-master-mode*)
+                          ;; select/R2 to pause.
+                          ((cpad-hold? 0 select r2)
+                           (if *debug-segment*
+                             'pause
+                             *master-mode* ;; not sure we can get to menu in non-debug...
+                             ))
+                          (else
+                           (cond
+                             ((and (not (movie?)) (not *progress-process*)) (if (not *target*) 'pause 'progress))
+                             (else 'game)))))
+       (set! *pause-lock* (and *cheat-mode* (cpad-hold? 0 r2)))))
     (('pause)
      (set! *last-master-mode* *master-mode*)
      (set-master-mode (cond
@@ -424,7 +426,11 @@
       (with-profiler "menu"
         (#when PC_PORT
           (if (and *display-sha* *debug-segment*) (draw-build-revision)))
-        (*menu-hook*)
+        ;; og:preserve-this Let the popup menu code handle inputs instead of the code written for the original debug menu
+        (when (not *popup-menu-open*)
+          (*menu-hook*))
+        ;; og:preserve-this the mods menu is NOT debug code: it runs in a retail boot. See pc/features/mods-menu.gc
+        (*mods-menu-hook*)
         (add-ee-profile-frame 'draw :g #x40)
         ;; finally, update hints/text
         (make-current-level-available-to-progress)

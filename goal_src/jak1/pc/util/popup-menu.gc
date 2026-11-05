@@ -1,0 +1,155 @@
+;;-*-Lisp-*-
+(in-package goal)
+
+;; Popup menu drawing and input, ported from Jak 2's pc/util/popup-menu.gc for the unified Mods menu.
+;; Differences from Jak 2:
+;; - the menu is a plain object ticked from main.gc (see popup-menu-h.gc), so there are no states or events;
+;; - Jak 1 has no PC UTF-8 text encoder: labels are drawn as is, in the small font of the debug menu,
+;;   so keep them ASCII;
+;; - Jak 1's screen is 512x224 (the debug menu's space), hence the smaller rows.
+
+;; Rows shown per page; a longer menu shows "N more..." and pages with the selection.
+(defconstant POPUP_MENU_PAGE_ROWS 15)
+
+;; Row height in screen units.
+(defconstant POPUP_MENU_ROW_HEIGHT 10)
+
+(defun popup-menu-widest-entry ((entries (array popup-menu-entry)) (title string) (font-ctx font-context) (start-index int) (end-index int))
+  "Width in screen units of the widest label among entries [start-index, end-index) and the title.
+   Flag rows count their 4-character [x] prefix."
+  (let ((max-len (get-string-length title font-ctx)))
+    (countdown (i (- end-index start-index))
+      (let* ((entry (-> entries (+ start-index i)))
+             (len (get-string-length (-> entry label) font-ctx)))
+        (if (type-type? (-> entry type) popup-menu-flag) (+! len (get-string-length "[x] " font-ctx)))
+        (if (> len max-len) (set! max-len len))))
+    (the int max-len)))
+
+(defmethod draw-entry ((this popup-menu-entry) (font-ctx font-context) (dma-buf dma-buffer) (hovering? symbol))
+  "Draw one row at the font's origin, cyan when selected, grey when disabled. Leaves the origin unchanged."
+  (let ((old-x (-> font-ctx origin x))
+        (old-color (-> font-ctx color)))
+    (when (type-type? (-> this type) popup-menu-flag)
+      (draw-string-adv (if ((-> (the-as popup-menu-flag this) is-toggled?)) "[x] " "[ ] ") dma-buf font-ctx))
+    (if hovering? (set! (-> font-ctx color) (font-color cyan)))
+    (if (and (nonzero? (-> this entry-disabled?)) ((-> this entry-disabled?)))
+      (set! (-> font-ctx color) (font-color menu-parent)))
+    (draw-string (-> this label) dma-buf font-ctx)
+    (set! (-> font-ctx origin x) old-x)
+    (set! (-> font-ctx color) old-color))
+  (none))
+
+(defmethod draw-menu ((this popup-menu))
+  "Draw the current page: a framed black box with the title, up to POPUP_MENU_PAGE_ROWS rows and the button hint."
+  (let* ((state (-> this menu-states (-> this curr-state-index)))
+         (font-ctx (new 'stack 'font-context *font-default-matrix* 15 30 0.0 (font-color default) (font-flags shadow kerning pc-hack)))
+         (entry-count (-> state entries length))
+         (start-index (* (/ (-> state entry-index) POPUP_MENU_PAGE_ROWS) POPUP_MENU_PAGE_ROWS))
+         (end-index (min (+ start-index POPUP_MENU_PAGE_ROWS) entry-count))
+         (rows (+ (- end-index start-index) (if (< end-index entry-count) 1 0)))
+         (width (popup-menu-widest-entry (-> state entries) (-> state title) font-ctx start-index end-index)))
+    (with-dma-buffer-add-bucket ((buf (-> (current-frame) global-buf)) (bucket-id debug-no-zbuf))
+      ;; frame, then background (correct-x-int: widescreen, like the debug menu; the font's pc-hack
+      ;; flag already corrects the text)
+      (draw-sprite2d-xy buf (correct-x-int 6) 21 (correct-x-int (+ 19 width)) (+ 17 (* POPUP_MENU_ROW_HEIGHT (+ rows 2))) (new 'static 'rgba :r 255 :g 255 :b 255 :a 75))
+      (draw-sprite2d-xy buf (correct-x-int 7) 22 (correct-x-int (+ 17 width)) (+ 15 (* POPUP_MENU_ROW_HEIGHT (+ rows 2))) (new 'static 'rgba :a 255))
+      ;; title
+      (set! (-> font-ctx color) (font-color menu-parent))
+      (draw-string (-> state title) buf font-ctx)
+      (set! (-> font-ctx color) (font-color default))
+      (+! (-> font-ctx origin y) POPUP_MENU_ROW_HEIGHT)
+      ;; rows
+      (let ((i start-index))
+        (while (< i end-index)
+          (draw-entry (-> state entries i) font-ctx buf (= i (-> state entry-index)))
+          (+! (-> font-ctx origin y) POPUP_MENU_ROW_HEIGHT)
+          (+! i 1)))
+      (when (< end-index entry-count)
+        (set! (-> font-ctx color) (font-color menu-parent))
+        (format (clear *temp-string*) "~D more..." (- entry-count end-index))
+        (draw-string *temp-string* buf font-ctx)
+        (set! (-> font-ctx color) (font-color default))
+        (+! (-> font-ctx origin y) POPUP_MENU_ROW_HEIGHT))
+      ;; button hint
+      (+! (-> font-ctx origin y) 5)
+      (draw-string (if (zero? (-> this curr-state-index)) "X: select  O: exit" "X: select  O: back") buf font-ctx)))
+  (none))
+
+(defun popup-menu-row-disabled? ((entries (array popup-menu-entry)) (index int))
+  "#t if row `index` of `entries` has a disable predicate that currently returns true."
+  (let ((entry (-> entries index)))
+    (and (nonzero? (-> entry entry-disabled?)) ((-> entry entry-disabled?)))))
+
+(defmethod move-up! ((this popup-menu) (amount int))
+  "Select `amount` rows up, skipping one disabled row."
+  (let* ((state (-> this menu-states (-> this curr-state-index)))
+         (new-index (max 0 (- (-> state entry-index) amount))))
+    (if (popup-menu-row-disabled? (-> state entries) new-index) (set! new-index (max 0 (+ new-index -1))))
+    (set! (-> state entry-index) new-index))
+  (none))
+
+(defmethod move-down! ((this popup-menu) (amount int))
+  "Select `amount` rows down, skipping one disabled row."
+  (let* ((state (-> this menu-states (-> this curr-state-index)))
+         (last (+ (-> state entries length) -1))
+         (new-index (min last (+ (-> state entry-index) amount))))
+    (if (popup-menu-row-disabled? (-> state entries) new-index) (set! new-index (min last (+ new-index 1))))
+    (set! (-> state entry-index) new-index))
+  (none))
+
+(defmethod confirm! ((this popup-menu))
+  "X on the selected row: enter a submenu (up to 10 levels deep) or run the row's on-confirm."
+  (let* ((state (-> this menu-states (-> this curr-state-index)))
+         (entry (-> state entries (-> state entry-index))))
+    (cond
+      ((popup-menu-row-disabled? (-> state entries) (-> state entry-index)))
+      ((type-type? (-> entry type) popup-menu-submenu)
+       (when (< (-> this curr-state-index) 9)
+         (+! (-> this curr-state-index) 1)
+         (let ((next (-> this menu-states (-> this curr-state-index))))
+           (set! (-> next title) (-> entry label))
+           (set! (-> next entries) (-> (the-as popup-menu-submenu entry) entries))
+           (set! (-> next entry-index) 0))))
+      (else ((-> entry on-confirm)))))
+  (sound-play "start-options")
+  (none))
+
+(defmethod back! ((this popup-menu))
+  "Circle/Triangle: leave the current submenu. Returns #t at the root, where it means close."
+  (sound-play "start-options")
+  (cond
+    ((<= (-> this curr-state-index) 0) #t)
+    (else (+! (-> this curr-state-index) -1) #f)))
+
+(defmethod open! ((this popup-menu) (title string) (entries (array popup-menu-entry)))
+  "Show the menu at its root page `entries`."
+  (set! (-> this curr-state-index) 0)
+  (set! (-> this menu-states 0 title) title)
+  (set! (-> this menu-states 0 entries) entries)
+  (set! (-> this menu-states 0 entry-index) 0)
+  (set! (-> this draw?) #t)
+  (set! *popup-menu-open* #t)
+  (sound-play "start-options")
+  (none))
+
+(defmethod close! ((this popup-menu))
+  "Hide the menu. The caller restores the master mode."
+  (set! (-> this draw?) #f)
+  (set! *popup-menu-open* #f)
+  (none))
+
+(defmethod update-menu! ((this popup-menu))
+  "Read the pad and draw. Call once per frame from the main loop: it must run while the game is frozen."
+  (when (-> this draw?)
+    (cond
+      ;; the game is unfrozen this same frame: hide SELECT from determine-pause-mode
+      ((cpad-pressed? 0 select) (close! this) (logclear! (cpad-pressed 0) (pad-buttons select)))
+      ((cpad-pressed? 0 up) (move-up! this 1))
+      ((cpad-pressed? 0 down) (move-down! this 1))
+      ((cpad-pressed? 0 left) (move-up! this 5))
+      ((cpad-pressed? 0 right) (move-down! this 5))
+      ((cpad-pressed? 0 x) (confirm! this))
+      ((cpad-pressed? 0 triangle circle) (if (back! this) (close! this))))
+    ;; a row's on-confirm may have closed the menu
+    (if (-> this draw?) (draw-menu this)))
+  (none))

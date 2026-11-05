@@ -1,0 +1,157 @@
+;;-*-Lisp-*-
+(in-package goal)
+
+#|
+
+  mods-menu.gc -- Unified "Mods" menu for the Jak 1 PC port.
+
+  Same registry and public API as goal_src/jak2/pc/features/mods-menu.gc (read that file's header
+  for the why). A mod never edits this file: it calls `(mods-menu-register "<slug>" builder)` from
+  its own .gc file, after this file in GAME.CGO. The menu opens with L3 + SELECT in every boot,
+  retail included: it is not debug code and allocates nothing per frame.
+
+    [L3 + SELECT] > Mods > [mod-slug] > [options]
+
+  PUBLIC API
+    (mods-menu-register (name string) (builder (function popup-menu-entry)))
+        Register (or, on hot-reload, replace) one mod's submenu. `builder` takes no argument and
+        returns a `popup-menu-entry`, normally a static `popup-menu-submenu`; #f hides the mod.
+    (mods-menu-rebuild)
+        Refill the live menu from the registry. Register and every open already call it.
+
+  Jak 1 differences: the popup is a plain object (pc/util/popup-menu.gc), so there is no process
+  to spawn and opening works on the first frame; there is no dynamic submenu; labels are ASCII.
+
+  CONTROLS
+    L3 + SELECT  open / close          UP / DOWN    move by 1
+    X            confirm / enter       LEFT / RIGHT move by 5
+    CIRCLE       back (exit at root)   SELECT       close from anywhere
+
+|#
+
+;; NOTE: deliberately NO `(declare-file (debug))`: this file must survive a retail boot.
+
+;; How many mods can show up in the root menu at once.
+(defconstant MODS_MENU_MAX_ENTRIES 32)
+
+;; One registered mod: its menu label (the mod slug) and the function building its submenu.
+(deftype mod-menu-entry (basic)
+  ((name    string)
+   (builder (function popup-menu-entry)))
+  (:methods
+   (new (symbol type string (function popup-menu-entry)) _type_)))
+
+(defmethod new mod-menu-entry ((allocation symbol) (type-to-make type) (name string) (builder (function popup-menu-entry)))
+  "Allocate a registry entry. Use 'global: the debug heap does not exist in a retail boot."
+  (let ((obj (object-new allocation type-to-make (the-as int (-> type-to-make size)))))
+    (set! (-> obj name) name)
+    (set! (-> obj builder) builder)
+    obj))
+
+;; All registered mods (a list of mod-menu-entry), sorted by name on every rebuild.
+;; Reloading THIS file resets it: run (mi) again so every mod re-registers.
+(define *mods-menu-entries* (the-as pair '()))
+
+;; The live root page, allocated once and refilled in place.
+(define *mods-menu-items* (new 'global 'boxed-array popup-menu-entry MODS_MENU_MAX_ENTRIES))
+
+;; Shown when no mod registered anything, so the root page is never empty.
+(define *mods-menu-empty-entry* (new 'static 'popup-menu-button :label "(no mod registered)" :on-confirm (lambda () (none))))
+
+;; The popup menu itself. draw? must start #f: a fresh object holds 0, which GOAL treats as true.
+(define *mods-popup-menu* (let ((menu (new 'global 'popup-menu))) (set! (-> menu draw?) #f) menu))
+
+;; Buttons that open and close the menu. L3+SELECT is free in a retail boot; a mod may change it at
+;; load time, e.g. (set! *mods-menu-bind* (pad-buttons l1 r1 triangle)).
+(define *mods-menu-bind* (pad-buttons l3 select))
+
+;; #t while the Mods menu owns the popup.
+(define *mods-menu-open?* #f)
+
+;; Set while the bind is still held after toggling, so holding it toggles once.
+(define *mods-menu-bind-consumed?* #f)
+
+(defun mods-menu-count ()
+  "How many mods are registered. For the REPL."
+  (let ((n 0)
+        (iter *mods-menu-entries*))
+    (while (not (null? iter))
+      (+! n 1)
+      (set! iter (cdr iter)))
+    n))
+
+(defun mods-menu-rebuild ()
+  "Refill the root page from the registry, sorted by label. Allocates nothing."
+  (if (pair? *mods-menu-entries*)
+    (set! *mods-menu-entries*
+          (the-as pair (sort *mods-menu-entries* (lambda ((a mod-menu-entry) (b mod-menu-entry)) (string<=? (-> a name) (-> b name)))))))
+  (let ((n 0)
+        (iter *mods-menu-entries*))
+    (while (not (null? iter))
+      (when (< n MODS_MENU_MAX_ENTRIES)
+        (let ((node ((-> (the-as mod-menu-entry (car iter)) builder))))
+          (when node
+            (set! (-> *mods-menu-items* n) node)
+            (+! n 1))))
+      (set! iter (cdr iter)))
+    (when (zero? n)
+      (set! (-> *mods-menu-items* 0) *mods-menu-empty-entry*)
+      (set! n 1))
+    (set! (-> *mods-menu-items* length) n))
+  (none))
+
+(defun mods-menu-register ((name string) (builder (function popup-menu-entry)))
+  "Register a mod's submenu builder under the Mods menu.
+     name    : the label, the mod slug (e.g. \"dark-jak\").
+     builder : called on every rebuild; returns a popup-menu-entry, or #f to hide the mod for now.
+   Calling it again with the same name replaces the builder (hot-reload safe)."
+  (let ((found #f)
+        (iter *mods-menu-entries*))
+    (while (not (null? iter))
+      (when (string= (-> (the-as mod-menu-entry (car iter)) name) name)
+        (set! (-> (the-as mod-menu-entry (car iter)) builder) builder)
+        (set! found #t))
+      (set! iter (cdr iter)))
+    (if (not found)
+      (set! *mods-menu-entries* (the-as pair (cons (new 'global 'mod-menu-entry name builder) *mods-menu-entries*)))))
+  (mods-menu-rebuild)
+  (none))
+
+(defun mods-menu-close! ()
+  "Close the menu and unfreeze the game."
+  (set! *mods-menu-open?* #f)
+  (close! *mods-popup-menu*)
+  (set-master-mode 'game)
+  (none))
+
+(defun mods-menu-open! ()
+  "Rebuild the menu, freeze the game and show the root page. Refused while another popup is open."
+  (when (not *popup-menu-open*)
+    (mods-menu-rebuild)
+    (set! *mods-menu-open?* #t)
+    (open! *mods-popup-menu* "Mods" *mods-menu-items*)
+    (set-master-mode 'menu))
+  (none))
+
+(defun mods-menu-update ()
+  "Poll the bind, tick the popup and keep the master mode in sync. Called every frame from main.gc
+   through *mods-menu-hook*, after the debug menu hook, which still runs while the game is frozen."
+  (cond
+    ;; bind not fully held: re-arm
+    ((!= (logand (cpad-hold 0) *mods-menu-bind*) *mods-menu-bind*) (set! *mods-menu-bind-consumed?* #f))
+    ;; bind pressed: toggle, except during a blackout (same guard as Jak 2)
+    ((and (not *mods-menu-bind-consumed?*) (>= (-> *display* base-frame-counter) (-> *game-info* blackout-time)))
+     (set! *mods-menu-bind-consumed?* #t)
+     ;; hide the bind from the rest of the frame: SELECT would reach determine-pause-mode
+     (logclear! (cpad-hold 0) *mods-menu-bind*)
+     (logclear! (cpad-pressed 0) *mods-menu-bind*)
+     (if *mods-menu-open?* (mods-menu-close!) (mods-menu-open!))))
+  ;; the popup closed itself (SELECT, or CIRCLE at the root): unfreeze the game
+  (when (and *mods-menu-open?* (not *popup-menu-open*))
+    (set! *mods-menu-open?* #f)
+    (set-master-mode 'game))
+  (update-menu! *mods-popup-menu*)
+  (none))
+
+;; main.gc calls *mods-menu-hook* (declared in main-h.gc) every frame.
+(set! *mods-menu-hook* mods-menu-update)

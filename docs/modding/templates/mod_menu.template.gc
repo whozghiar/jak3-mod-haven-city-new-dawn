@@ -53,9 +53,10 @@
 
   Replace every `crimson-blueguard` / `city-peaceful` below with your own names.
 
-  Works as-is on Jak 2 and Jak 3 -- the registry API is identical in both
-  (`goal_src/jak[2|3]/pc/features/mods-menu.gc`). Jak 1 has no registry yet --
-  see section 7 of docs/modding/guides/mods_menu.md.
+  Works as-is on Jak 1, Jak 2 and Jak 3 -- the registry API is identical in all
+  three (`goal_src/jak[1|2|3]/pc/features/mods-menu.gc`). On Jak 1, keep labels
+  ASCII and do not use `popup-menu-dynamic-submenu` (see section 7 of
+  docs/modding/guides/mods_menu.md).
 |#
 
 ;; ============================================================================

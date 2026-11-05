@@ -206,6 +206,13 @@
 
 (define *menu-hook* (the (function debug-menu-context) nothing))
 
+;; hook to run the mods menu (retail-safe, see pc/features/mods-menu.gc). Separate from *menu-hook*,
+;; which is the debug menu and does nothing in a retail boot.
+(define *mods-menu-hook* nothing)
+
+;; #t when a popup menu (e.g. Mods menu) is active, so the debug menu doesn't steal inputs or draw
+(define *popup-menu-open* #f)
+
 ;; function to call in the main loop to run the progress menu
 (define *progress-hook* nothing)
 

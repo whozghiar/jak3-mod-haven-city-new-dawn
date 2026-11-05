@@ -1,0 +1,50 @@
+;;-*-Lisp-*-
+(in-package goal)
+
+;; A small popup menu that isn't debug-only, used by the unified Mods menu (pc/features/mods-menu.gc).
+;; Ported from Jak 2's pc/util/popup-menu-h.gc. The entry types are the same, so a mod's menu
+;; builder reads the same in the three games. Unlike Jak 2, the menu itself is a plain object, not a
+;; process: nothing else uses it in Jak 1, and the Mods menu ticks it from main.gc every frame.
+
+;; #t while a popup menu is on screen.
+(define *popup-menu-open* #f)
+
+;; One row of a menu. `entry-disabled?` (optional) greys the row out and makes it unselectable.
+(deftype popup-menu-entry (basic)
+  ((label          string)
+   (entry-disabled? (function symbol))
+   (on-confirm     (function none)))
+  (:methods
+   (draw-entry (_type_ font-context dma-buffer symbol) none)))
+
+;; A plain action row: X calls `on-confirm`.
+(deftype popup-menu-button (popup-menu-entry) ())
+
+;; A toggle row: `is-toggled?` is called every drawn frame (keep it a pure read), X calls `on-confirm`.
+(deftype popup-menu-flag (popup-menu-entry)
+  ((is-toggled? (function symbol))))
+
+;; A nested page: X enters `entries`.
+(deftype popup-menu-submenu (popup-menu-entry)
+  ((entries (array popup-menu-entry))))
+
+;; One level of the menu stack: the page being shown and the selected row.
+(deftype popup-menu-state (structure)
+  ((title       string)
+   (entries     (array popup-menu-entry))
+   (entry-index int32)))
+
+;; The menu: a stack of up to 10 nested pages.
+(deftype popup-menu (basic)
+  ((menu-states      popup-menu-state 10 :inline)
+   (curr-state-index int32)
+   (draw?            symbol))
+  (:methods
+   (open! (_type_ string (array popup-menu-entry)) none)
+   (close! (_type_) none)
+   (update-menu! (_type_) none)
+   (draw-menu (_type_) none)
+   (move-up! (_type_ int) none)
+   (move-down! (_type_ int) none)
+   (confirm! (_type_) none)
+   (back! (_type_) symbol)))

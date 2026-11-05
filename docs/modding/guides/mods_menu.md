@@ -8,15 +8,15 @@
 > (see also [§3](#3-the-standardised-template)) — this file covers the
 > architecture and the pitfalls, not the syntax.
 
-The `mods-menu.gc` registry is live on `master-dev` for Jak 2 and Jak 3,
-with an identical public API in both. It is not part of the debug menu: it
+The `mods-menu.gc` registry is live on `master-dev` for Jak 1, Jak 2 and
+Jak 3, with an identical public API in all three. It is not part of the debug menu: it
 opens in a normal launcher boot with L3 + SELECT.
 
 | Game | Registry file | Wired in | Opens with |
 |---|---|---|---|
 | Jak 2 | `goal_src/jak2/pc/features/mods-menu.gc` | `goal_src/jak2/dgos/game.gd` | L3 + SELECT |
 | Jak 3 | `goal_src/jak3/pc/features/mods-menu.gc` | `goal_src/jak3/dgos/game.gd` | L3 + SELECT |
-| Jak 1 | not ported, see [§7](#7-why-jak-1-is-not-ported) | — | — |
+| Jak 1 | `goal_src/jak1/pc/features/mods-menu.gc` | `goal_src/jak1/dgos/game.gd` | L3 + SELECT |
 
 ## Contents
 
@@ -26,7 +26,7 @@ opens in a normal launcher boot with L3 + SELECT.
 - [4. Wiring the template into a build](#4-wiring-the-template-into-a-build)
 - [5. Pitfalls](#5-pitfalls)
 - [6. Jak 2 vs Jak 3 — the one real difference](#6-jak-2-vs-jak-3--the-one-real-difference)
-- [7. Why Jak 1 is not ported](#7-why-jak-1-is-not-ported)
+- [7. Jak 1 differences](#7-jak-1-differences)
 - [8. Migrating a branch from the old debug registry](#8-migrating-a-branch-from-the-old-debug-registry)
 
 ---
@@ -101,7 +101,13 @@ temporarily, e.g. when its level isn't loaded.
 | `popup-menu-submenu` | nested page |
 | `popup-menu-dynamic-submenu` | list computed at draw time |
 
-Every entry also accepts a disabled-row predicate that greys the row out.
+Every entry also accepts a disabled-row predicate (`entry-disabled?`): while it answers `#t`, the
+row is drawn grey (a flag without its check mark), the cursor skips it, and X on it does nothing.
+
+In Jak 3, the root menu always ends with **Misc options**, the options of the whole game rather
+than of one mod. It holds **Weather**: the game's changing weather (the default, nothing forced) or
+a fixed one (sunny, cloudy, foggy, light rain, rain, thunderstorm, snow), held in every level until
+another is picked. It is not saved: each boot starts on the changing weather.
 
 ## 3. The standardised template
 
@@ -178,23 +184,22 @@ either:
 Everything above the line — the registry, the API, the template, the bind —
 is identical.
 
-## 7. Why Jak 1 is not ported
+## 7. Jak 1 differences
 
-Two independent blockers:
+Jak 1 had no `popup-menu`, so `goal_src/jak1/pc/util/popup-menu*.gc` is a
+smaller port of Jak 2's. The registry, the template and the bind are the same;
+what differs:
 
-1. **No `popup-menu` in Jak 1.** `goal_src/jak1/pc/util/` has no
-   `popup-menu-h.gc` / `popup-menu.gc` — porting them is real work
-   (font-context, PC string encoding, and string-drawing all differ from
-   Jak 2/3).
-2. **The debug root menu is fragile at link time.** Appending an item to
-   Jak 1's root debug menu during link-and-exec segfaults the boot
-   reproducibly (see the [Lisp wiki, "The debug root menu is fragile at link time"](../../../.agents/skills/goal-lisp/wiki/jak1.md#25-the-debug-root-menu-is-fragile-at-link-time)), so the old
-   debug-menu workaround was already off-limits there too.
+| | Jak 1 | Jak 2 / Jak 3 |
+|---|---|---|
+| The menu | a plain object ticked from `main.gc` | a process (spawned on the first frame) |
+| Labels | drawn as is in the debug menu's small font: ASCII only | UTF-8 through the PC text encoder |
+| Flag rows | `[x]` / `[ ]` prefix | green check mark |
+| `popup-menu-dynamic-submenu` | not ported | available |
 
-Until Jak 1 is ported, Jak 1 mods add a mod-slug-prefixed submenu to their
-`default-menu*.gc` and document it in the mod README — with the explicit
-caveat that it is debug-only and therefore unreachable for a player using
-the launcher normally.
+The old blocker, Jak 1's debug root menu crashing when an item is appended
+at link time (see the [Lisp wiki](../../../.agents/skills/goal-lisp/wiki/jak1.md#25-the-debug-root-menu-is-fragile-at-link-time)),
+does not apply: the Mods menu never touches the debug menu.
 
 ## 8. Migrating a branch from the old debug registry
 

@@ -27,12 +27,19 @@ only when its description matches the task.
   `goalc --cmd`, no game window), `task build-release-game` and `task build-release-decomp`.
   Agents never launch the game (`gk`, `task boot-game*`, `task run-game`) and never attach the
   debugger (`(lt)`, `(dbg)`): give the user the exact command and ask what they see. In Claude
-  Code, a PreToolUse hook (`.claude/hooks/block_game_launch.py`) enforces this.
+  Code, a PreToolUse hook (`.claude/hooks/block_game_launch.py`) enforces this. The one
+  exception: when the user has authorized launches for tests, run smoke tests through
+  `python scripts/modding/smoke_test.py run`, one scenario per call.
+- **Smoke test every big feature.** After a mod gains a big feature, test it in game with a
+  scenario and record the result in the mod's test notebook,
+  `docs/modding/current_mod/<slug>_tests.md`: the `smoke-tests` skill.
 - **A cold boot is the final check.** Code hot-reloaded with `(mi)` into a running game can look
   fine while broken on a clean launch (stale definitions, declaration order, missing `.gp`
   registration). Ask the user for `task boot-game`, or `task boot-game-retail` for the Mods
   menu, before calling a gameplay change done.
-- **Register every new `.gc` file** in `goal_src/jak[1-3]/game.gp`, dependent types first.
+- **Register every new `.gc` file:** its `.o` in a `goal_src/jak[1-3]/dgos/*.gd` list, after the
+  files it depends on; Jak 1 also lists it in `game.gp` (the wiki's "Registering a new source
+  file").
 - **Saves and settings persist across boots.** A cold boot restores save slot 1
   (`%APPDATA%/OpenGOAL/jak[x]/saves/`), and toggled cheats and settings stay in
   `%APPDATA%/OpenGOAL/jak[x]/settings/pc-settings.gc`. Account for both when testing.
@@ -44,22 +51,17 @@ only when its description matches the task.
 2. **Native non-regression.** A mod must not change default game behavior unless asked: every
    change ships off by default, gated behind the mod's runtime toggle.
 3. **In-game Mods toggle mandatory** for every mod, switchable from a retail boot.
-   - Jak 2 / Jak 3: the Mods menu opens with L3 + SELECT. See
+   - Jak 1 / Jak 2 / Jak 3: the Mods menu opens with L3 + SELECT. See
      [`docs/modding/guides/mods_menu.md`](docs/modding/guides/mods_menu.md) and
      [`docs/modding/templates/mod_menu.template.gc`](docs/modding/templates/mod_menu.template.gc);
      the registration call is in the Lisp wiki.
    - Never edit shared menu files, and never mark your menu file debug-only (a debug segment is
      not linked in a retail boot).
-   - Jak 1: the toggle is debug-only. Prefix submenus with the mod slug and say so in the mod
-     README.
 4. **Mandatory in-code comments.** Comment every function, method, state, hook and type change in
    `.gc` (purpose, arguments, return values, side effects).
 5. **Non-destructive changes.** Never delete or wipe original `.gc` files; prefer surgical
    overrides and modular extensions. Never reformat a whole upstream `.gc` file: it trips the
    `og:preserve-this` lint and buries the real diff.
-6. **Traceability.** Log every change in the "Change log" section of
-   `docs/modding/current_mod/<slug>_readme.md`, next to the technical notes. The root `README.md`
-   is for players: no change log, no checklist.
 
 ## 5. Recording verified discoveries
 

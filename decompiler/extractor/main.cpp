@@ -333,6 +333,69 @@ ExtractorErrorCode run_level_ports(const fs::path& iso_data_path, const std::str
   return ExtractorErrorCode::SUCCESS;
 }
 
+// Mod models, made at a mod's install #############################################################
+// A mod whose models come from the games' discs (custom_assets/<game>/models/models.jsonc, made by
+// scripts/modding/mod_models.py) ships none of them: its release ships that tool as a one-file
+// executable, mod_models, next to this extractor, which runs it before the decompile (whose level
+// extraction bakes the models into their levels), on the player's own extracted discs.
+
+/*!
+ * Before the decompile, make the mod's models (and the other files its models.jsonc copies from a
+ * disc) with the mod_models executable its release ships next to this extractor, from the player's
+ * extracted discs: this game's (iso_data_path) and the other games' the manifest lists ("games",
+ * found by find_game_iso). Nothing to do without a manifest, without mod_models (a development
+ * checkout, where `task modding-models` runs the tool), or in an extraction the tool runs itself
+ * (OG_MOD_MODELS set: it rips a few levels with this extractor). Returns SUCCESS,
+ * LEVEL_PORT_SOURCE_GAME_MISSING (another game the models need isn't installed) or
+ * LEVEL_PORT_FAILED.
+ */
+ExtractorErrorCode run_mod_models(const fs::path& iso_data_path, const std::string& game_name) {
+  const auto data = file_util::get_jak_project_dir();
+  const auto manifest = data / "custom_assets" / game_name / "models" / "models.jsonc";
+  if (!fs::exists(manifest) || std::getenv("OG_MOD_MODELS")) {
+    return ExtractorErrorCode::SUCCESS;
+  }
+  const fs::path self = file_util::get_current_executable_path();
+  const auto exe = self.extension().string();  // ".exe" on Windows
+  const auto tool = self.parent_path() / ("mod_models" + exe);
+  if (!fs::exists(tool)) {
+    lg::info("mod models: no {} (a development checkout: run task modding-models)",
+             tool.string());
+    return ExtractorErrorCode::SUCCESS;
+  }
+  std::vector<std::string> args = {tool.string(),  "--game", game_name, "--root", data.string(),
+                                   "--extractor",  self.string(), "--iso",
+                                   game_name + "=" + fs::absolute(iso_data_path).string()};
+  const auto games = parse_commented_json(file_util::read_text_file(manifest), manifest.string())
+                         .value("games", std::vector<std::string>{});
+  for (const auto& game : games) {
+    if (game == game_name) {
+      continue;
+    }
+    const auto title = game.size() > 3 ? "Jak " + game.substr(3) : game;  // jak2: Jak 2
+    const auto iso = find_game_iso(game, iso_data_path);
+    if (!iso) {
+      lg::error(
+          "This mod makes its models from your own copy of {0}, which isn't installed. Install "
+          "{0} in the OpenGOAL Launcher (and let it finish), then reinstall this mod.",
+          title);
+      return ExtractorErrorCode::LEVEL_PORT_SOURCE_GAME_MISSING;
+    }
+    args.push_back("--iso");
+    args.push_back(game + "=" + iso->string());
+  }
+  lg::info("mod models: {}", manifest.string());
+  const int code = run_program(args);
+  if (code != 0) {
+    lg::error(
+        "Making the mod's models failed (exit code {}), see the lines above. Reinstalling the mod "
+        "starts it again; if it fails again, report it with this log.",
+        code);
+    return ExtractorErrorCode::LEVEL_PORT_FAILED;
+  }
+  return ExtractorErrorCode::SUCCESS;
+}
+
 int main(int argc, char** argv) {
   ArgumentGuard u8_guard(argc, argv);
 
@@ -554,6 +617,11 @@ int main(int argc, char** argv) {
   }
 
   if (flag_decompile) {
+    // the mod's models first: the level extraction bakes them into their levels
+    const auto models_code = run_mod_models(iso_data_path, game_name);
+    if (models_code != ExtractorErrorCode::SUCCESS) {
+      return static_cast<int>(models_code);
+    }
     try {
       const auto status_code = decompile(iso_data_path, data_subfolder, decomp_config_override);
       if (status_code != ExtractorErrorCode::SUCCESS) {

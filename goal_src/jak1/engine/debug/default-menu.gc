@@ -2626,9 +2626,11 @@
 (defun menu-respond-to-pause ()
   (case *master-mode*
     (('menu)
-     (if (cpad-hold? 0 l3)
-       (debug-menu-context-send-msg *popup-menu-context* (debug-menu-msg activate) (debug-menu-dest activation))
-       (debug-menu-context-send-msg *debug-menu-context* (debug-menu-msg activate) (debug-menu-dest activation))))
+     ;; og:preserve-this don't activate debug menu if popup menu (Mods menu) is open
+     (when (not *popup-menu-open*)
+       (if (cpad-hold? 0 l3)
+         (debug-menu-context-send-msg *popup-menu-context* (debug-menu-msg activate) (debug-menu-dest activation))
+         (debug-menu-context-send-msg *debug-menu-context* (debug-menu-msg activate) (debug-menu-dest activation)))))
     (else
      (debug-menu-context-send-msg *debug-menu-context* (debug-menu-msg deactivate) (debug-menu-dest activation))
      (debug-menu-context-send-msg *popup-menu-context* (debug-menu-msg deactivate) (debug-menu-dest activation))))
